@@ -251,6 +251,7 @@ function statusCallBack (rawdata) {
 	if (data['playlist'] != mpd['playlist']) {
 		PL = new Array(parseInt(data['playlistlength']))
 		playlist_view(PLmode)
+		command("playlistinfo", plinfo)
 	}		
 	if (data['state'] != mpd['state']) {setState(data['state'])}	
 	if (data['random'] != mpd['random']) {setRandom(data['random'])}	
@@ -316,23 +317,14 @@ function browse (loc) {
 	command('lsinfo "'+loc+'"', cb)
 }
 
-function plinfo (pos) {
-	var cb = function (data) {
-		db = parse_db(data)
-		PL[pos] = db.files[0]
+function plinfo (data) {
+	db = parse_db(data)
+	for (pos in db.files) {
+		PL[pos] = db.files[pos]
 		PL[pos]['Time'] = hmsFromSec(PL[pos]['Time'])
-		var boxobject = $('playlist').boxObject;
-	    boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-		if (PLmode == "extended") {
-			pos = parseInt(pos) * 3
-			boxobject.invalidateRow(pos);
-			boxobject.invalidateRow(pos + 1);
-			boxobject.invalidateRow(pos + 2);
-		}
-		else {
-			boxobject.invalidateRow(parseInt(pos));
-		}
 	}
-	command('playlistinfo '+pos, cb)
+	var boxobject = $('playlist').boxObject;
+	boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+	boxobject.invalidate();
 }
 
