@@ -1,0 +1,118 @@
+/* Playback control icons */
+.pause, .stop {
+    list-style-image: url('chrome://webamp2/content/play.png')
+    }
+.play {
+    list-style-image: url('chrome://webamp2/content/pause.png')
+    }
+#prev {
+    list-style-image: url('chrome://webamp2/content/prev.png')
+    }
+#stop {
+    margin: 0px;
+    padding: 0px;
+    min-height: 24px;
+    min-width: 24px;
+    list-style-image: url('chrome://webamp2/content/stop.png')
+    }
+#next {
+    list-style-image: url('chrome://webamp2/content/next.png')
+    }
+#vol {
+    list-style-image: url('chrome://webamp2/content/vol.png')
+    }
+#vol_slider {
+    margin-top: 6px;
+    margin-bottom: 6px;
+    height: 12px;
+    max-height: 12px;
+    min-width: 0px;
+    max-width: 75px;
+    width: 75px;
+    }
+
+/* Playlist toolbar icons */
+#playlist_menu {
+    list-style-image: url('chrome://webamp2/content/playlist.png')
+    }
+#playlist_browse {
+    list-style-image: url('chrome://webamp2/content/artist.png')
+    }
+#main #playlist_browse {
+    display: none;
+    }
+#playlist_random {
+    list-style-image: url('chrome://webamp2/content/random.png')
+    }
+#playlist_random.on {
+    list-style-image: url('chrome://webamp2/content/random-on.png')
+    }
+#playlist_repeat {
+    list-style-image: url('chrome://webamp2/content/repeat.png')
+    }
+#playlist_repeat.on {
+    list-style-image: url('chrome://webamp2/content/repeat-on.png')
+    }
+#playlist_simple {
+    list-style-image: url('chrome://webamp2/content/playlist_simple.png')
+    }
+#playlist_extended {
+    list-style-image: url('chrome://webamp2/content/playlist_expand.png')
+    }
+#playlist_clear {
+    list-style-image: url('chrome://webamp2/content/playlist_new.png')
+    }
+#playlist_remove {
+    list-style-image: url('chrome://webamp2/content/remove.png')
+    }
+#playlist_center {
+    padding: 0px;
+    margin: 0px;
+    width: 17px !important;
+    -moz-appearance: button;
+    list-style-image: url('chrome://webamp2/content/center.png')
+    }
+
+/* Current Song Display */
+#wa2_playlist #cur_song {
+    margin: 0px 6px 0px 4px;
+    border-left: 2px ridge black;
+    border-top: 2px ridge black;
+    border-right: 0px;
+    border-bottom: 1px solid #BBBBBB;
+    padding-bottom: 0px;
+    padding-left: 2px;
+    }
+#main #cur_song {
+    border: 1px inset;
+    -moz-border-radius: 4px;
+    margin: 4px;
+    }
+#cur_song.play {
+    background-color: PaleGreen;
+    }
+#cur_song.pause {
+    background-color: #fafb98;
+    }
+#cur_song.stop {
+    }
+#wa2_playlist #progress {
+    min-width: 20px;
+    min-height: 10px;
+    max-height: 20px;
+    }
+
+/* Playlist Tree styles */
+#playlist {
+    border-top: 1px solid #666;
+    margin-top: 0px;
+    padding-top: 0px;
+    }
+#playlist treechildren::-moz-tree-cell-text(top) {font-weight: bold;}
+#playlist treechildren::-moz-tree-cell-text(middle) {font-style: italic;}
+#playlist treechildren::-moz-tree-row(title) {
+    border-top: 1px solid #BBBBBB;
+    }
+#playlist treechildren::-moz-tree-row(album) {
+    border-bottom: 1px solid #666;
+    }

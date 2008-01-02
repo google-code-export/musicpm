@@ -1,0 +1,7 @@
+<!ENTITY filesLabel "Files">
+<!ENTITY dbLabel "Database">
+<!ENTITY wwwLabel "Internet>
+<!ENTITY playlistLabel "Playlist">
+<!ENTITY configLabel "Settings">
+<!ENTITY add "Add to Playlist">
+<!ENTITY add "Play Now">

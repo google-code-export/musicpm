@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://webamp2/content/style.css" type="text/css"?>
+<?xml-stylesheet href="chrome://webamp2/content/playlist.css" type="text/css"?>
+<?xul-overlay href="chrome://webamp2/content/wa2_overlay.xul"?>
+
+<window
+    id="wa2_playlist"
+    title="WebAMP2 Playlist"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    xmlns:s="http://webamp2/RDF#"
+    orient="vertical"
+    onload="talker();checkStatus()"
+    onclose="cleanup()"
+    onunload="cleanup()">
+
+    <script src="common.js"></script>
+    <script src="playlist.js"></script>
+    <script src="mpd.js"></script>
+    <script src="chrome://global/content/nsDragAndDrop.js"/>
+    <script src="chrome://global/content/nsTransferable.js"/>
+    <commandset id="commandset_overlay" />
+
+    <toolbar id="playlist_toolbar" />
+    <menupopup id="playlist_context" />
+    <toolbar id="playback_controls">
+            <toolbarbutton id="prev"
+                        oncommand="doNext()"/>
+            <toolbarbutton id="playpause"
+                        class="play"
+                        oncommand="doPlay()"/>
+            <toolbarbutton id="next"
+                        oncommand="doNext()"/>
+            <vbox flex="1">
+                <spacer flex="1"/>
+                <hbox>
+                    <toolbarbutton id="vol" value="70" oncommand="mute(this)"/>
+                    <progressmeter id="vol_slider"
+                        orient="horizontal"
+                        flex="1"
+                        value="0"
+                        onmousedown="prgmtrChange(event)"/>
+                </hbox>
+                <spacer flex="1"/>
+            </vbox>
+    </toolbar>
+
+    <hbox id="cur_song" class="hidden">
+        <vbox flex="1">
+            <label id="lbl_title" crop="right" value="Not Playing." class="Title"/>
+            <label id="lbl_artist" value="" class="Artist" crop="right" />
+            <hbox flex="1">
+                <label id="elapsedTm" value="0:00"/>
+                <progressmeter id="progress"
+                    value="0"
+                    flex="1"
+                    onmousedown="prgmtrChange(event)"/>
+                <label id="totalTm" value="0:00"/>
+            </hbox>
+        </vbox>
+        <toolbarbutton id="playlist_center" command="cmd_centerPL"/>
+    </hbox>
+    <tree id="playlist"
+        label="Playlist"
+        flex="1"
+        enablemultiselect="true"
+        ondblclick="playlist_dblclick()"
+        flags="dont-build-content"
+        onselect="playlist_select(this.currentIndex)">
+        <treecols>
+            <treecol id="Position" label="#" width="30" ordinal="0"/>
+            <splitter class="tree-splitter"/>
+            <treecol id="PLsong" label="Song" ordinal="1" flex="1"/>
+            <splitter class="tree-splitter"/>
+            <treecol id="PLtime" label="Time" ordinal="2" width="50"/>
+        </treecols>
+        <treechildren id="PLdata" context="playlist_context"/>
+    </tree>
+
+    <hbox>
+        <spacer flex="1"/>
+        <label id="pl_stats" value=""/>
+        <spacer flex="1"/>
+    </hbox>
+</window>
