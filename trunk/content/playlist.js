@@ -364,7 +364,6 @@ function assignPLview() {
                 var r = R - (pos*3)
 
                 if (typeof(PL[pos]) != 'object') {
-                    plinfo(pos)
                     return null
                     }
                 if (C.id=="Position"){
@@ -413,7 +412,6 @@ function assignPLview() {
             rowCount : PL.length,
             getCellText : function (R, C) {
                 if (typeof(PL[R]) != 'object') {
-                    plinfo(R)
 					return null
                     }
                 if (C.id=="Position"){
