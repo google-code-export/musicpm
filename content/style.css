@@ -1,0 +1,45 @@
+/* Style settings common to all WebAMP2 pages/windows */
+box, tree, listbox  {
+    -moz-appearance: none !important;
+    }
+
+.Title {
+    font-weight: bold;
+    }
+.Artist {
+  font-style: italic;
+  }
+
+
+#cur_album_art {
+    margin: 4px;
+    margin-left: 12px;
+    padding: 0px;
+    border: 1px solid DarkGray;
+    height: 70px;
+    width: 70px;
+    background-color: white;
+    background-image: url("chrome://webamp2/content/album_blank.png");
+    background-repeat: no-repeat;
+    background-position: center top;
+    }
+
+treecol, listheader {
+    -moz-appearance: button;
+    margin: 0px;
+    }
+treechildren::-moz-tree-cell-text() {
+    color: #5a6264;
+    }
+treechildren::-moz-tree-cell-text(title) {
+    color: Black;
+    }
+treechildren::-moz-tree-cell-text(artist) {
+    font-style: italic;
+    color: #5a6264;
+    }
+treechildren::-moz-tree-cell-text(album) {
+    color: #5a6264;
+    }
+
+

@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<overlay id="webamp2-overlay"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <script src="chrome://webamp2/content/common.js"></script>
+    <script type="text/javascript">
+        <![CDATA[
+        var myload = {
+            open: function(url, event) {
+                openUILink(url, event, false, true);
+                }
+            }
+        function vol(val){send("/doCommand?action=vol&val="+val)}
+        ]]>
+    </script>
+    <menubar id="main-menubar">
+        <menu id="menu_wa2" label="WebAMP2">
+            <menupopup id="menu_wa2Popup">
+              <menuitem observes="viewWA2_PlaylistSidebar" />
+              <menuitem label="Music Collection Page"
+                 oncommand="myload.open('chrome://webamp2/content/collection.xul', event)"
+                 onclick="checkForMiddleClick(this, event)"/>
+              <menuitem label="Launch in Browser"
+                 oncommand="myload.open('chrome://webamp2/content/webamp2.xul', event)"
+                 onclick="checkForMiddleClick(this, event)"/>
+              <menuitem label="Launch in New Window"
+                oncommand="window.open('chrome://webamp2/content/webamp2.xul', 'wa2_standalone','chrome,resizable=yes')"/>
+              <menuseparator/>
+              <menuitem label="Play / Pause" oncommand="doPlay()"/>
+              <menuitem label="Stop Playback" oncommand="doStop()"/>
+              <menuitem label="Previous Track" oncommand="doPrev()"/>
+              <menuitem label="Next Track" oncommand="doNext()"/>
+              <menu id="menu_wa2Volume" label="Volume">
+                <menupopup id="menu_wa2VolumePopup">
+                    <menuitem label="  0 %" oncommand="vol(0)"/>
+                    <menuitem label=" 10 %" oncommand="vol(10)"/>
+                    <menuitem label=" 20 %" oncommand="vol(20)"/>
+                    <menuitem label=" 30 %" oncommand="vol(30)"/>
+                    <menuitem label=" 40 %" oncommand="vol(40)"/>
+                    <menuitem label=" 50 %" oncommand="vol(50)"/>
+                    <menuitem label=" 60 %" oncommand="vol(60)"/>
+                    <menuitem label=" 70 %" oncommand="vol(70)"/>
+                    <menuitem label=" 80 %" oncommand="vol(80)"/>
+                    <menuitem label=" 90 %" oncommand="vol(90)"/>
+                    <menuitem label="100 %" oncommand="vol(100)"/>
+                </menupopup>
+              </menu>
+              <menuseparator/>
+              <menuitem label="Update"
+                 oncommand="updateMe()"/>
+            </menupopup>
+        </menu>
+    </menubar>
+  <menupopup id="viewSidebarMenu">
+    <menuitem observes="viewWA2_PlaylistSidebar" />
+  </menupopup>
+
+  <broadcasterset id="mainBroadcasterSet">
+    <broadcaster id="viewWA2_PlaylistSidebar"
+                 label="Playlist (Sidebar)"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebarurl="chrome://webamp2/content/playlist.xul"
+                 sidebartitle="WebAMP2 Playlist"
+                 oncommand="toggleSidebar('viewWA2_PlaylistSidebar');" />
+  </broadcasterset>
+
+</overlay>

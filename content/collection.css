@@ -1,0 +1,155 @@
+treechildren::-moz-tree-image {
+    margin: 0px 5px 0px 1px;
+    }
+#wa2_search_clear {
+    list-style-image: url('chrome://webamp2/content/clear_find.png')
+    }
+
+/* ICONS for Navigation Tree */
+#nav_collapse {
+    list-style-image: url('chrome://webamp2/content/collapse.png')
+    }
+#nav_rescan {
+    list-style-image: url('chrome://webamp2/content/rescan.png')
+    }
+treechildren::-moz-tree-image(navname dir) {
+    list-style-image: url("chrome://webamp2/content/folder.png");
+    }
+treechildren::-moz-tree-image(navname dir open) {
+    list-style-image: url("chrome://webamp2/content/folder_open.png");
+    }
+treechildren::-moz-tree-image(navname artist) {
+    list-style-image: url("chrome://webamp2/content/artist.png");
+    }
+treechildren::-moz-tree-image(navname artist open) {
+    list-style-image: url("chrome://webamp2/content/folder_open.png");
+    }
+treechildren::-moz-tree-image(navname album) {
+    list-style-image: url("chrome://webamp2/content/album.png");
+    }
+treechildren::-moz-tree-image(navname playlist) {
+    list-style-image: url("chrome://webamp2/content/playlist.png");
+    }
+
+/*ICONS for Files Tree */
+#files_back {
+    list-style-image: url('chrome://webamp2/content/back.png')
+    }
+#files_forward {
+    list-style-image: url('chrome://webamp2/content/forward.png')
+    }
+#files_add {
+    list-style-image: url('chrome://webamp2/content/add.png')
+    }
+#files_selectAll {
+    list-style-image: url('chrome://webamp2/content/yes.png')
+    }
+treechildren::-moz-tree-image(name dir) {
+    list-style-image: url("chrome://webamp2/content/folder.png");
+    }
+treechildren::-moz-tree-cell(track dir) {
+    background-image: url("chrome://webamp2/content/folder.png");
+    background-repeat: no-repeat;
+    background-position: right;
+    }
+treechildren::-moz-tree-cell(track artist) {
+    background-image: url("chrome://webamp2/content/artist.png");
+    background-repeat: no-repeat;
+    background-position: right;
+    }
+treechildren::-moz-tree-cell(track album) {
+    background-image: url("chrome://webamp2/content/album.png");
+    background-repeat: no-repeat;
+    background-position: right;
+    }
+treechildren::-moz-tree-cell(track playlist) {
+    background-image: url("chrome://webamp2/content/playlist.png");
+    background-repeat: no-repeat;
+    background-position: right;
+    }
+treechildren::-moz-tree-image(name dir) {
+    list-style-image: url("chrome://webamp2/content/folder.png");
+    }
+treechildren::-moz-tree-image(name artist) {
+    list-style-image: url("chrome://webamp2/content/artist.png");
+    }
+treechildren::-moz-tree-image(name album) {
+    list-style-image: url("chrome://webamp2/content/album.png");
+    }
+treechildren::-moz-tree-image(name file) {
+    list-style-image: url("chrome://webamp2/content/song.png");
+    }
+treechildren::-moz-tree-image(name playlist) {
+    list-style-image: url("chrome://webamp2/content/playlist.png");
+    }
+
+/* Layout styles for trees */
+.navtree treechildren::-moz-tree-row() {
+    background-color: #e1ecef;
+    color: #071e41;
+    border: 0px;
+    border-right: 1px solid #8ca6ac;
+    }
+.navtree treechildren::-moz-tree-cell-text() {
+    color: #071e41;
+    font-style: normal;
+    }
+.navtree treechildren::-moz-tree-cell-text(selected) {
+    color: black;
+    }
+.navtree treechildren::-moz-tree-row(selected) {
+    background-color: white;
+    color: black;
+    border: 1px solid #8ca6ac;
+    border-right: 1px solid white;
+    }
+.navtree {
+    min-width: 200px;
+    background-color: #afced5;
+    border-right: 0px !important;
+    margin-right: 0px !important;
+    padding-right: 0px !important;
+    }
+/*.navtree treerows {
+    -moz-binding: url('chrome://webamp2/content/customtree.xml#treerows')
+    }
+*/
+.navsplit {
+    min-width: 4px;
+    width: 4px;
+    border-left: none;
+    border-right: none;
+    border-top: 2px ridge;
+    margin: 0px;
+    padding: 0px;
+    background-color: white;
+}
+.navsplit:hover {
+    background-color: #E6E9EE;
+    }
+#album_artBox {
+    width: 250px;
+    margin: 0px !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    background-color: white !important;
+    }
+#album_art {
+    margin: 4px;
+    padding: 0px;
+    border: 1px solid DarkGray;
+    background-color: white;
+    background-image: url("chrome://webamp2/content/album_blank.png");
+    background-repeat: no-repeat;
+    background-position: center top;
+    }
+#album_art.scaled {
+    max-width: 140px;
+    max-height: 140px;
+    }
+.files {
+    min-width: 200px;
+    margin-left: 0px !important;
+    border-left: 0px !important;
+    background-color: white !important;
+    }
