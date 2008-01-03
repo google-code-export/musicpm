@@ -3,7 +3,8 @@ var NS = "http://webamp2"
 var dbVersion = 0
 var rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"].
                    getService(Components.interfaces.nsIRDFService);
-
+var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
+						.getService(Components.interfaces.nsIConsoleService);
 var rdf_name = rdfService.GetResource("mpd_Name")
 var rdf_title = rdfService.GetResource("mpd_Title")
 var rdf_artist = rdfService.GetResource("mpd_Artist")
@@ -25,15 +26,7 @@ var isLoaded = false
 var infoBrowser
 
 function $(e) {return document.getElementById(e)}
-function debug(s) {}
-
-//send a command without retrieving response
-function send(url){
-  var send = new XMLHttpRequest()
-  send.open("GET", base+url, true)
-  send.onreadystatechange = function() {if(send.readyState == 2){send.abort()}}
-  send.send("")
-  }
+function debug(s) {consoleService.logStringMessage(s)}
 
 //send a command with callback on completion
 function sendCB(url, callBack){
@@ -61,7 +54,7 @@ function safe_eval(s){
 //get data
 function get(url, callBack){
   var send = new XMLHttpRequest()
-  send.open("GET", base+url, true)
+  send.open("GET", url, true)
   send.onreadystatechange = function() {
     if (send.readyState == 4) {
         if (send.status == 200) {
@@ -247,7 +240,7 @@ function dbRDF(items, about){
 	return parseRDFString(rdf, base+"/temp")
 }
 
-function doPrev() {command("prev", null)}
+function doPrev() {command("previous", null)}
 function doStop() {command("stop", null)}
 function doPlay() {
 	if (mpd.state == "stop") {

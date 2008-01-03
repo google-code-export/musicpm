@@ -11,13 +11,13 @@
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:s="http://webamp2/RDF#"
     orient="vertical"
-    onload="talker();checkStatus()"
+    onload="init_mpd()"
     onclose="cleanup()"
     onunload="cleanup()">
 
     <script src="common.js"></script>
-    <script src="playlist.js"></script>
     <script src="mpd.js"></script>
+    <script src="playlist.js"></script>
     <script src="chrome://global/content/nsDragAndDrop.js"/>
     <script src="chrome://global/content/nsTransferable.js"/>
     <commandset id="commandset_overlay" />
@@ -26,7 +26,7 @@
     <menupopup id="playlist_context" />
     <toolbar id="playback_controls">
             <toolbarbutton id="prev"
-                        oncommand="doNext()"/>
+                        oncommand="doPrev()"/>
             <toolbarbutton id="playpause"
                         class="play"
                         oncommand="doPlay()"/>

@@ -18,13 +18,6 @@ function setColDB(db) {
 	clearDS(n)
 	var root = rdfService.GetDataSource("chrome://webamp2/content/nav_root.xml")
 	n.database.AddDataSource(root)
-	var filter = {
-		'dirs': true,
-		'artists': true,
-		'albums': true,
-		'files': false,
-		'playlists': true
-	}
 	var fdb = {
 		'playlists': [],
 		'dirs': [],
@@ -38,7 +31,7 @@ function setColDB(db) {
 				"list album\n" +
 				"command_list_end\n"
 	var cb = function(data){
-		db = parse_db(data, filter)
+		db = parse_db(data)
 		
 		fdb['dirs'] = db['dirs']
 		db_ds['dir'] = dbRDF(fdb, "mpd://dirs")
@@ -98,19 +91,10 @@ function getDir(mytype, id) {
 		f.builder.rebuild()
 	}
 	else {
-		var filter = {
-			'dirs': false,
-			'artists': false,
-			'albums': false,
-			'files': false,
-			'playlists': false
-		}
 		id = id.replace(/"/g, '\\"')
 		if (mytype == 'dir') {
 			var cb = function(data){
-				filter.files = true
-				filter.dirs = true
-				db = parse_db(data, filter)
+				db = parse_db(data)
 				contents_ds = dbRDF(db, "mpd://contents")
 				f.database.AddDataSource(contents_ds)
 				f.ref = "mpd://contents"
@@ -122,8 +106,13 @@ function getDir(mytype, id) {
 			if (mytype == 'playlist') {
 				if (id == '') {
 					var cb2 = function(data){
-						filter.playlists = true
-						db = parse_db(data, filter)
+						var db = {
+							'files': [],
+							'dirs': [],
+							'artists': [],
+							'albums': [],
+							'playlists': parse_db(data).playlists
+						}
 						$('navtree').database.RemoveDataSource(playlists_ds)
 						playlists_ds = dbRDF(db, "mpd://playlists")
 						$('navtree').database.AddDataSource(playlists_ds)
@@ -135,8 +124,7 @@ function getDir(mytype, id) {
 				}
 				else {
 					var cb2 = function(data){
-						filter.files = true
-						db = parse_db(data, filter)
+						db = parse_db(data)
 						contents_ds = dbRDF(db, "mpd://contents")
 						f.database.AddDataSource(contents_ds)
 						f.ref = "mpd://contents"
@@ -148,9 +136,7 @@ function getDir(mytype, id) {
 			}
 			else {
 				var cb = function(data){
-					filter.files = true
-					filter.dirs = true
-					db = parse_db(data, filter)
+					db = parse_db(data)
 					content_ds = dbRDF(db, "mpd://contents")
 					f.database.AddDataSource(content_ds)
 					f.ref = "mpd://contents"
@@ -348,12 +334,11 @@ function nav_collapse() {
         }
     }
 function show_search(data){
-    $('navtree').view.selection.clearSelection()
     var f = $('files')
     if (content_ds) {
       f.database.RemoveDataSource(content_ds)
       }
-	db = parse_db(data)
+	var db = parse_db(data)
 	content_ds = dbRDF(db, "mpd://search_results/contents")
     f.database.AddDataSource(content_ds)
     f.ref="mpd://search_results/contents"
@@ -374,3 +359,4 @@ function search_clear () {
     getDir(mytype, id)
 }
 
+notify['db_update'] = setColDB

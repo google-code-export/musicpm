@@ -6,6 +6,7 @@ var port = 6600
 var mpd
 var status_command = "command_list_begin\nstatus\nstats\ncommand_list_end\n"
 var queue = []
+var notify = {}
 var talker_active = false
 var doStatus = true
 
@@ -17,13 +18,13 @@ var transportService =
 function init_mpd () {
 	if (typeof(mpd) != 'object') {
 		mpd = {
-			'volume': '0',
-			'repeat': '0',
-			'random': '0',
-			'playlist': '0',
-			'playlistlength': '0',
+			'volume': '-1',
+			'repeat': '-1',
+			'random': '-1',
+			'playlist': '-1',
+			'playlistlength': '-1',
 			'xfade': '0',
-			'state': 'stop',
+			'state': 'none',
 			'song': '-1',
 			'songid': '-1',
 			'time': '0:0',
@@ -132,54 +133,8 @@ function clean(str){
 	}
 	return str
 }
-function parse(data)
-{
-	var result = {
-		'volume': '0',
-		'repeat': '0',
-		'random': '0',
-		'playlist': '0',
-		'playlistlength': '0',
-		'xfade': '0',
-		'state': 'stop',
-		'song': '-1',
-		'songid': '-1',
-		'time': '0:0',
-		'bitrate': '0',
-		'audio': '0:0:0',
-		'artists': '0',
-		'albums': '0',
-		'songs': '0',
-		'uptime': '0',
-		'playtime': '0',
-		'db_playtime': '0',
-		'db_update': '0'
-	}
-	if (data.substr(0, 3) == "ACK") {
-		alert(data)
-	}
-	else {
-		if (typeof(data) == "string") (data = data.split("\n"))
-		for (line in data) {
-			if (data[line].indexOf(": ") > 0) {
-				var pair = data[line].split(": ")
-				result[pair[0]] = clean(pair[1])
-			}
-		}
-	}
-	return result
-}
 
-function parse_db (data, filter) {
-	if (typeof(filter) == 'undefined') {
-		var filter = {
-			'playlists': true,
-			'dirs': true,
-			'artists': true,
-			'albums': true,
-			'files': true
-		}
-	}
+function parse_db (data) {
 	var db = {
 		'playlists': [],
 		'dirs': [],
@@ -187,45 +142,40 @@ function parse_db (data, filter) {
 		'albums': [],
 		'files': []
 	}
-	var pair
 	data = data.split("\n")
 	var dl = data.length
+	var pair, fld, val
 	for (var i=0;i<dl;i++) {
-		if (data[i].indexOf(": ") > 0) {
-			pair = data[i].split(": ")
-			pair[1] = clean(pair[1])
-			if (pair[0] == "file" && filter.files) {
-				var song = {
-					'file': pair[1],
-					'Track': 0,
-					'Time' : 0,
-					'Title': pair[1],
-					'Artist': 'unknown',
-					'Album': 'unknown'
-				}
-				do {
-					if (i < dl) {
-						i++
-						if (data[i].indexOf(": ") > 0) {
-							pair = data[i].split(": ")
-							song[pair[0]] = clean(pair[1])
+		pair = data[i].split(": ", 2)
+		if (pair.length == 2) {
+			fld = pair[0]
+			val = clean(pair[1])
+			switch (fld) {
+				case "file":
+						var song = {
+						'file': val,
+						'Track': 0,
+						'Time' : 0,
+						'Title': val,
+						'Artist': 'unknown',
+						'Album': 'unknown'
+					};
+					do {
+						if (i < dl) {
+							i++;
+							pair = data[i].split(": ", 2);
+							if (pair.length == 2) {
+								song[pair[0]] = clean(pair[1]);
+							}
 						}
-					}
-				}
-				while ((i+1) < dl && data[i+1].substr(0, 6) != "file: ")
-				db.files.push(song)
-			}
-			else if (pair[0] == "directory" && filter.dirs) {
-					db.dirs.push(pair[1])
-			}
-			else if (pair[0] == "playlist" && filter.playlists) {
-					db.playlists.push(pair[1])
-			}
-			else if (pair[0] == "Artist" && filter.artists) {
-					db.artists.push(pair[1])
-			}
-			else if (pair[0] == "Album" && filter.albums) {
-					db.albums.push(pair[1])
+					} while ((i+1) < dl && data[i+1].substr(0, 6) != "file: ");
+					song['Time'] = hmsFromSec(song['Time']);
+					db.files.push(song);
+					break;
+				case "directory": db.dirs.push(val); break;
+				case "Artist": db.artists.push(val); break;
+				case "Album": db.albums.push(val); break;
+				case "playlist": db.playlists.push(val); break;
 			}
 		}
 	}
@@ -245,66 +195,24 @@ function checkStatus() {
 	}
 	setTimeout("checkStatus()", tm)
 }
-function statusCallBack (rawdata) {
-	data = parse(rawdata)
-	if (data['volume'] != mpd['volume']) {setVol(data['volume'])}
-	if (data['playlist'] != mpd['playlist']) {
-		PL = new Array(parseInt(data['playlistlength']))
-		playlist_view(PLmode)
-		command("playlistinfo", plinfo)
-	}		
-	if (data['state'] != mpd['state']) {setState(data['state'])}	
-	if (data['random'] != mpd['random']) {setRandom(data['random'])}	
-	if (data['repeat'] != mpd['repeat']) {setRepeat(data['repeat'])}		
-	if (data['state'] != "stop") {
-		if (data['time'] != mpd['time']) {
-			var t = data['time'].split(":")
-			setTime(t[0], t[1])
+function statusCallBack (data) {
+	var pair, fld, val
+	data = data.split("\n")
+	for (line in data) {
+		pair = data[line].split(": ", 2)
+		if (pair.length == 2) {
+			fld = pair[0]
+			val = pair[1]
+			try {
+				if (val != mpd[fld]) {
+					if (typeof(notify[fld]) == 'function') {
+						notify[fld](val)
+					}
+				}
+			} catch (e) {debug("notify '"+fld+"'="+val+" error: "+e)}
+			mpd[fld] = val
 		}
 	}
-	else {setTime(0, 0)}
-	if (data['song'] != mpd['song']) {
-		var id = data['song']
-		var t = $('lbl_title')
-		var a = $('lbl_artist')
-		var b = $('lbl_album')
-		if (typeof(PL[id]) == 'object') {
-			if (t) {
-				t.value = PL[id]['Title']
-			}
-			if (a) {
-				a.value = PL[id]['Artist']
-			}
-			if (b) {
-				b.value = PL[id]['Album']
-			}
-			getCover($("cur_album_art"), PL[id])
-		}
-		else {
-			var cb = function(data){
-				var db = parse_db(data)
-				var song = db.files[0]
-				var t = $('lbl_title')
-				var a = $('lbl_artist')
-				var b = $('lbl_album')
-				if (t) {
-					t.value = song['Title']
-				}
-				if (a) {
-					a.value = song['Artist']
-				}
-				if (b) {
-					b.value = song['Album']
-				}
-				getCover($("cur_album_art"), song)
-			}
-			command('playlistinfo ' + id, cb)
-		}
-		curSong = id
-		centerPL()
-	}
-	if (data['db_update'] != mpd['db_update']) {setColDB(data['db_update'])}
-	mpd = data
 	doStatus = false
 }
 
@@ -317,14 +225,4 @@ function browse (loc) {
 	command('lsinfo "'+loc+'"', cb)
 }
 
-function plinfo (data) {
-	db = parse_db(data)
-	for (pos in db.files) {
-		PL[pos] = db.files[pos]
-		PL[pos]['Time'] = hmsFromSec(PL[pos]['Time'])
-	}
-	var boxobject = $('playlist').boxObject;
-	boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-	boxobject.invalidate();
-}
 
