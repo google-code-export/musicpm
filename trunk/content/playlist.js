@@ -22,6 +22,7 @@ var State = "stop"
 var PLmode = "extended"
 var PL
 
+
 function hmsFromSec(sec) {
   var hms = "0:00"
   try {sec = parseInt(sec)}
@@ -228,21 +229,21 @@ function setVol(val) {
     }
   }
 
-function setTime(val, max) {
-  //if (typeof(max) == "undefined") {max = false}
-  if (!seekTmr) {
-        if (max) {
-          //e.max = max
-          $('totalTm').value = hmsFromSec(max)
-          seekMax = max
-          }
-        $('elapsedTm').value = hmsFromSec(val)
-        val = toPercent(val, seekMax)
-    noEchoSeek = val
-    $('progress').value=val
-
-    }
-  }
+function setTime(val) {
+	var t = val.split(":")
+	var val = parseInt(t[0])
+	var max = parseInt(t[1])
+	if (!seekTmr) {
+	    if (max) {
+			$('totalTm').value = hmsFromSec(max)
+			seekMax = max
+	    }
+	    $('elapsedTm').value = hmsFromSec(val)
+	    val = toPercent(val, seekMax)
+		noEchoSeek = val
+		$('progress').value=val
+	}
+}
 
 function mute(e) {
   vs = $('vol_slider')
@@ -276,7 +277,12 @@ function setState(state) {
     State = state
     $('playpause').className = state
     $('cur_song').className = state
-    }
+	if (state == 'stop') {
+		setCurSong(-1)
+		setTime("0:0")
+	}
+	else {setCurSong(mpd.song)}
+}
 
 function setRandom(val) {
     if (val == "1" || val == 1) {
@@ -310,7 +316,6 @@ function parseRDFString(str, url){
     }
 
 function setCurSong(id) {
-    curSong = id
     var t = $('lbl_title')
     var a = $('lbl_artist')
     var b = $('lbl_album')
@@ -331,24 +336,11 @@ function setCurSong(id) {
         $('progress').mode = 'determined'
         centerPL()
         song = PL[id]
-        if (typeof(PL[id]) != 'object') {
-            PL[id] = getSong(PL[id])
-            }
-        song = PL[id]
         if (typeof(song) == 'object') {
-            if (t) {t.value = song['title']}
-            if (a) {a.value = song['artist']}
-            if (b) {b.value = song['album']}
-            if (albums_ds) {
-                var e = $('cur_album_art')
-                var albumsname = rdfService.GetLiteral(song['album']);
-                var node = albums_ds.GetSource(rdf_name, albumsname, true);
-                var target = albums_ds.GetTarget(node, rdf_id, true);
-                if (target instanceof Components.interfaces.nsIRDFLiteral) {
-                    e.src = base + "/static/rdf/covers/" + target.Value + ".jpg"
-                    e.value = target.Value
-                }
-            }
+            if (t) {t.value = song['Title']}
+            if (a) {a.value = song['Artist']}
+            if (b) {b.value = song['Album']}
+            getCover($("cur_album_art"), PL[id])
         }
     }
 }
@@ -452,11 +444,13 @@ function playlist_view(mode){
     boxobject.scrollToRow(cur)
     }
 
-function setPlaylist(items, version, time) {
-    $('pl_stats').value = time
-    PL = items
-    playlist_view(PLmode)
-    }
+function setPlaylist(ver) {
+	var cb = function(data){
+		PL = parse_db(data).files
+		playlist_view(PLmode)
+	}
+	command("playlistinfo", cb)
+}
 
 function playlist_dblclick() {
     if (PLmode == "extended") {
@@ -581,7 +575,7 @@ function clear() {
   }
 
 function centerPL() {
-    var row = (curSong)
+    var row = (mpd.song)
     if (PLmode == "extended") {row = row*3}
     var boxobject = $('playlist').boxObject;
     boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
@@ -591,10 +585,25 @@ function centerPL() {
 
 function playlist_openPopup(){
 	var cb = function(data) {
-		db = parse_db(data, {'playlists':true})
+		var db = {
+			'files': [],
+			'dirs': [],
+			'artists': [],
+			'albums': [],
+			'playlists': parse_db(data).playlists
+		}
 		playlists_ds = dbRDF(db, "mpd://playlists")
 	    $('playlist_open_popup').database.AddDataSource(playlists_ds)
     	$('playlist_open_popup').ref="mpd://playlists"
 	}
 	command('lsinfo', cb)
 }
+
+
+notify['song'] = setCurSong
+notify['state'] = setState
+notify['time'] = setTime
+notify['volume'] = setVol
+notify['random'] = setRandom
+notify['repeat'] = setRepeat
+notify['playlist'] = setPlaylist

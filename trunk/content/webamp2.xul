@@ -19,9 +19,9 @@
     onunload="cleanup()">
 
     <script src="common.js"></script>
-    <script src="collection.js"></script>
-    <script src="playlist.js"></script>
     <script src="mpd.js"></script>
+    <script src="playlist.js"></script>
+    <script src="collection.js"></script>
     <script src="chrome://global/content/nsDragAndDrop.js"/>
     <script src="chrome://global/content/nsTransferable.js"/>
     <commandset id="commandset_overlay" />
@@ -33,7 +33,7 @@
         <vbox pack="center" style="min-width:155px">
             <hbox pack="center">
                 <toolbarbutton id="prev"
-                            oncommand="doNext()"/>
+                            oncommand="doPrev()"/>
                 <toolbarbutton id="playpause"
                             class="play"
                             oncommand="doPlay()"/>
