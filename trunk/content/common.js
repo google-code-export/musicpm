@@ -179,65 +179,28 @@ function parseRDFString(str, url){
     }
 
 function xmlEscape (s) {
+	if (!s) {return ''}
 	return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g,"&quot;")
 }
-function dbRDF(items, about){
+function dbRDF(items, about, filter){
 	var name = ""
     var rdfString ='<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" \n' +
 					'    xmlns:s="mpd_"\n' +
 					'    xmlns:nc="http://home.netscape.com/NC-rdf#">\n\n'
 	var rdfSeq = ' <RDF:Seq about="'+about+'">\n'
-    for (x in items.dirs){
-		name = xmlEscape(items.dirs[x])
-	    rdfString += ' <RDF:Description about="mpd://dir/'+x+'">\n'
-		rdfString += '   <s:Name>'+name+'</s:Name>\n'
-		rdfString += '   <s:Title>'+name+'</s:Title>\n'
-		rdfString += '   <s:type>dir</s:type>\n'
-		rdfString += ' </RDF:Description>\n'
-	    rdfSeq += '  <RDF:li resource="mpd://dir/'+x+'"/>\n'
-    }
-    for (x in items.artists){
-		name = xmlEscape(items.artists[x])
-	    rdfString += ' <RDF:Description about="mpd://artist/'+x+'">\n'
-		rdfString += '   <s:Name>'+name+'</s:Name>\n'
-		rdfString += '   <s:Title>'+name+'</s:Title>\n'
-		rdfString += '   <s:type>artist</s:type>\n'
-		rdfString += ' </RDF:Description>\n'
-	    rdfSeq += '  <RDF:li resource="mpd://artist/'+x+'"/>\n'
-    }
-    for (x in items.albums){
-		name = xmlEscape(items.albums[x])
-	    rdfString += ' <RDF:Description about="mpd://album/'+x+'">\n'
-		rdfString += '   <s:Name>'+name+'</s:Name>\n'
-		rdfString += '   <s:Title>'+name+'</s:Title>\n'
-		rdfString += '   <s:type>album</s:type>\n'
-		rdfString += ' </RDF:Description>\n'
-	    rdfSeq += '  <RDF:li resource="mpd://album/'+x+'"/>\n'
-    }
-    for (x in items.playlists){
-		name = xmlEscape(items.playlists[x])
-	    rdfString += ' <RDF:Description about="mpd://playlist/'+x+'">\n'
-		rdfString += '   <s:Name>'+name+'</s:Name>\n'
-		rdfString += '   <s:Title>'+name+'</s:Title>\n'
-		rdfString += '   <s:type>playlist</s:type>\n'
-		rdfString += '  </RDF:Description>\n'
-	    rdfSeq += '  <RDF:li resource="mpd://playlist/'+x+'"/>\n'
-    }
-    for (x in items.files){
-		name = xmlEscape(items.files[x].file)
-        rdfString += ' <RDF:Description about="mpd://song/'+x+'">\n'
-		rdfString += '   <s:Name>'+name+'</s:Name>\n'
-		rdfString += '   <s:Title>'+xmlEscape(items.files[x].Title)+'</s:Title>\n'
-		rdfString += '   <s:Artist>'+xmlEscape(items.files[x].Artist)+'</s:Artist>\n'
-		rdfString += '   <s:Album>'+xmlEscape(items.files[x].Album)+'</s:Album>\n'
-		rdfString += '   <s:Time>'+hmsFromSec(items.files[x].Time)+'</s:Time>\n'
-		rdfString += '   <s:Track nc:parseType="Integer">'+items.files[x].Track+'</s:Track>\n'
-		rdfString += '   <s:type>file</s:type>\n'
-		rdfString += '  </RDF:Description>\n'
-	    rdfSeq += '  <RDF:li resource="mpd://song/'+x+'"/>\n'
+    for (x in items){
+		var item = items[x]
+		if (filter[item.type]) {
+		    rdfString += ' <RDF:Description about="mpd://'+item.type+'/'+x+'">\n'
+			for (p in items[x]) {
+				rdfString += '   <s:'+p+'>'+xmlEscape(item[p])+'</s:'+p+'>\n'
+			}
+			rdfString += ' </RDF:Description>\n'
+		    rdfSeq += '  <RDF:li resource="mpd://'+item.type+'/'+x+'"/>\n'
+		}
     }
     var rdf = rdfString + rdfSeq + '</RDF:Seq></RDF:RDF>'
-	return parseRDFString(rdf, base+"/temp")
+	return parseRDFString(rdf, about+"/temp")
 }
 
 function doPrev() {command("previous", null)}

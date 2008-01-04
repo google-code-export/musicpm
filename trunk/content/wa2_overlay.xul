@@ -4,11 +4,13 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <commandset id="commandset_overlay">
-    <command id="cmd_add" tooltiptext="Add to Playlist" oncommand="add();"/>
+    <command id="cmd_add" label="Add to Playlist" oncommand="add();"/>
     <command id="cmd_replace" label="Replace Playlist" oncommand="replace();"/>
+    <command id="cmd_delete_playlist" label="Delete" oncommand="delete_playlist();"/>
+    <command id="cmd_rename_playlist" label="Rename" oncommand="rename_playlist();"/>
     <command id="cmd_nav_add" label="Add to Playlist" oncommand="nav_add();"/>
     <command id="cmd_nav_replace" label="Replace Playlist" oncommand="nav_replace();"/>
-    <command id="cmd_selectAll" tooltiptext="Select All" oncommand="$('files').view.selection.selectAll();"/>
+    <command id="cmd_selectAll" label="Select All" oncommand="$('files').view.selection.selectAll();"/>
     <command id="cmd_remove" label="Remove Song(s)" oncommand="remove()" />
     <command id="cmd_clear" label="Clear Playlist" oncommand="clear()" />
     <command id="cmd_extended" label="Title/Artist/Album" oncommand="playlist_view('extended')" />
@@ -92,7 +94,7 @@
         <menuitem id="playlist_context_extened" command="cmd_extended"></menuitem>
     </menupopup>
 
-    <menupopup id="files_context">
+    <menupopup id="files_context" onpopupshowing="files_contextShowing()">
         <menuitem id="files_context_open"
             label="Open"
             default="true"
@@ -100,6 +102,8 @@
         <menuitem id="files_context_add" command="cmd_add"></menuitem>
         <menuitem id="files_context_replace" command="cmd_replace"></menuitem>
         <menuitem id="files_context_selectAll" command="cmd_selectAll"></menuitem>
+        <menuitem id="files_context_delete" command="cmd_delete_playlist"></menuitem>
+        <menuitem id="files_context_rename" command="cmd_rename_playlist"></menuitem>
         <menuseparator></menuseparator>
         <menuitem id="files_context_google"
             label="Search Google Music"
@@ -109,16 +113,13 @@
             oncommand="files_lyricsfreak()"></menuitem>
     </menupopup>
 
-    <menupopup id="nav_context">
+    <menupopup id="nav_context" onpopupshowing="nav_contextShowing()">
         <menuitem id="nav_context_add" command="cmd_nav_add"></menuitem>
         <menuitem id="nav_context_replace" command="cmd_nav_replace"></menuitem>
         <menuseparator></menuseparator>
         <menuitem id="nav_context_google"
             label="Search Google Music"
             oncommand="nav_googleIt()"></menuitem>
-        <menuitem id="nav_context_lyricsfreak"
-            label="Search LyricsFreak.com"
-            oncommand="nav_lyricsfreak()"></menuitem>
     </menupopup>
 
     <grid id="wa2_browse" flex="1">
