@@ -18,13 +18,6 @@ function setColDB(db) {
 	clearDS(n)
 	var root = rdfService.GetDataSource("chrome://webamp2/content/nav_root.xml")
 	n.database.AddDataSource(root)
-	var fdb = {
-		'playlists': [],
-		'dirs': [],
-		'artists': [],
-		'albums': [],
-		'files': []
-	}
 	var com = "command_list_begin\n" +
 				"lsinfo\n" +
 				"list artist\n" +
@@ -33,23 +26,16 @@ function setColDB(db) {
 	var cb = function(data){
 		db = parse_db(data)
 		
-		fdb['dirs'] = db['dirs']
-		db_ds['dir'] = dbRDF(fdb, "mpd://dirs")
+		db_ds['dir'] = dbRDF(db, "mpd://dirs", {'dir': true})
 		n.database.AddDataSource(db_ds['dir'])
-		fdb['dirs'] = []
 		
-		fdb['artists'] = db['artists']
-		db_ds['artist'] = dbRDF(fdb, "mpd://artists")
+		db_ds['artist'] = dbRDF(db, "mpd://artists", {'artist': true})
 		n.database.AddDataSource(db_ds['artist'])
-		fdb['artists'] = []
 		
-		fdb['albums'] = db['albums']
-		db_ds['album'] = dbRDF(fdb, "mpd://albums")
+		db_ds['album'] = dbRDF(db, "mpd://albums", {'album': true})
 		n.database.AddDataSource(db_ds['album'])
-		fdb['albums'] = []
 		
-		fdb['playlists'] = db['playlists']
-		playlists_ds = dbRDF(fdb, "mpd://playlists")
+		playlists_ds = dbRDF(db, "mpd://playlists", {'playlist': true})
 		n.database.AddDataSource(playlists_ds)
 		
 		n.builder.rebuild()
@@ -95,7 +81,7 @@ function getDir(mytype, id) {
 		if (mytype == 'dir') {
 			var cb = function(data){
 				db = parse_db(data)
-				contents_ds = dbRDF(db, "mpd://contents")
+				contents_ds = dbRDF(db, "mpd://contents", {'dir': true, 'file': true})
 				f.database.AddDataSource(contents_ds)
 				f.ref = "mpd://contents"
 				f.builder.rebuild()
@@ -114,7 +100,7 @@ function getDir(mytype, id) {
 							'playlists': parse_db(data).playlists
 						}
 						$('navtree').database.RemoveDataSource(playlists_ds)
-						playlists_ds = dbRDF(db, "mpd://playlists")
+						playlists_ds = dbRDF(db, "mpd://playlists", {'playlist': true})
 						$('navtree').database.AddDataSource(playlists_ds)
 						f.database.AddDataSource(playlists_ds)
 						f.ref = "mpd://playlists"
@@ -125,7 +111,7 @@ function getDir(mytype, id) {
 				else {
 					var cb2 = function(data){
 						db = parse_db(data)
-						contents_ds = dbRDF(db, "mpd://contents")
+						contents_ds = dbRDF(db, "mpd://contents", {'file': true})
 						f.database.AddDataSource(contents_ds)
 						f.ref = "mpd://contents"
 						f.builder.rebuild()
@@ -137,7 +123,7 @@ function getDir(mytype, id) {
 			else {
 				var cb = function(data){
 					db = parse_db(data)
-					content_ds = dbRDF(db, "mpd://contents")
+					content_ds = dbRDF(db, "mpd://contents", {'file': true})
 					f.database.AddDataSource(content_ds)
 					f.ref = "mpd://contents"
 					f.builder.rebuild()
@@ -358,5 +344,56 @@ function search_clear () {
     var id = loc[1]
     getDir(mytype, id)
 }
-
+function files_contextShowing(){
+ 	var tree = $('files')
+ 	var mytype = tree.view.getCellValue(tree.currentIndex, tree.columns.getNamedColumn('type'))
+ 	if (mytype == 'playlist') {
+ 		$('files_context_delete').hidden = false
+ 		$('files_context_rename').hidden = false
+ 	}
+ 	else {
+ 		$('files_context_delete').hidden = true
+ 		$('files_context_rename').hidden = true
+ 	}
+ 	if (mytype == 'file') {
+ 		$('files_context_lyricsfreak').hidden = false
+ 	}
+ 	else {
+ 		$('files_context_lyricsfreak').hidden = true
+ 	}
+ }
+ function delete_playlist(){
+ 	var tree = $('files')
+	var start = new Object();
+	var end = new Object();
+	var numRanges = tree.view.selection.getRangeCount();
+	
+	for (var t = 0; t < numRanges; t++) {
+		tree.view.selection.getRangeAt(t, start, end);
+		for (var v = start.value; v <= end.value; v++) {
+			var myname = tree.view.getCellValue(v, tree.columns.getNamedColumn('name'))
+			var mytype = tree.view.getCellValue(v, tree.columns.getNamedColumn('type'))
+			if (mytype == 'playlist') {
+				var cb = function (data) {
+					getDir('playlist', '')
+				}
+		 		command('rm "'+myname+'"', cb)
+		 	}
+		}
+	}
+ }
+ function rename_playlist(){
+ 	var tree = $('files')
+ 	var mytype = tree.view.getCellValue(tree.currentIndex, tree.columns.getNamedColumn('type'))
+	var myname = tree.view.getCellValue(tree.currentIndex, tree.columns.getNamedColumn('name'))
+ 	if (mytype == 'playlist') {
+		var cb = function (data) {
+			getDir('playlist', '')
+		}
+	    var val = prompt("Please enter a name for this playlist", "NewPlaylist")
+	    if (val != null) {
+	        command('rename "'+myname+'" "'+val+'"', null)
+	    }
+ 	}
+ }
 notify['db_update'] = setColDB

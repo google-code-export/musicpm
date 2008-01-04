@@ -126,59 +126,55 @@ function talker(){
 }
 
 function clean(str){
-	for (var i = 0; i < str.length; i++) {
-		if (str.charCodeAt(i) < 32) {
-			str = str.slice(0, i) + str.slice(i + 1)
+	try {
+		for (var i = 0; i < str.length; i++) {
+			if (str.charCodeAt(i) < 32) {
+				str = str.slice(0, i) + str.slice(i + 1)
+			}
 		}
-	}
+	} catch (e) {return ""}
 	return str
 }
 
 function parse_db (data) {
-	var db = {
-		'playlists': [],
-		'dirs': [],
-		'artists': [],
-		'albums': [],
-		'files': []
-	}
 	data = data.split("\n")
+	var db = []
 	var dl = data.length
-	var pair, fld, val
-	for (var i=0;i<dl;i++) {
-		pair = data[i].split(": ", 2)
-		if (pair.length == 2) {
-			fld = pair[0]
-			val = clean(pair[1])
-			switch (fld) {
-				case "file":
-						var song = {
-						'file': val,
-						'Track': 0,
-						'Time' : 0,
-						'Title': val,
-						'Artist': 'unknown',
-						'Album': 'unknown'
-					};
-					do {
-						if (i < dl) {
-							i++;
-							pair = data[i].split(": ", 2);
-							if (pair.length == 2) {
-								song[pair[0]] = clean(pair[1]);
-							}
-						}
-					} while ((i+1) < dl && data[i+1].substr(0, 6) != "file: ");
-					song['Time'] = hmsFromSec(song['Time']);
-					db.files.push(song);
-					break;
-				case "directory": db.dirs.push(val); break;
-				case "Artist": db.artists.push(val); break;
-				case "Album": db.albums.push(val); break;
-				case "playlist": db.playlists.push(val); break;
-			}
+	if (dl < 1) {return db}
+	var n = dl
+	do {
+		var i = dl - n
+		var pair = data[i].split(": ")
+		var fld = pair[0]
+		var val = clean(pair[1])
+		if (fld == 'file') {
+			var song = {
+				'type': 'file',
+				'Name': val,
+				'Track': '0',
+				'Title': val,
+				'Artist': 'unknown',
+				'Album': 'unknown',
+				'Time' : 0
+			};
+			var d = data[i+1]
+			while (d && d.substr(0,6) != "file: ") {
+				pair = d.split(": ");
+				song[pair[0]] = clean(pair[1]);
+				--n;
+				var d = data[dl - n + 1]
+			};
+			song['Time'] = hmsFromSec(song['Time']);
+			db.push(song);
 		}
-	}
+		else if (fld == 'directory') {
+			var dir = val.split("/")
+			db.push({'type': 'dir', 'Name': val, 'Title': dir[dir.length-1]})			
+		}
+		else {
+			db.push({'type': fld.toLowerCase(), 'Name': val, 'Title': val})			
+		}
+	} while (--n)
 	return db
 }
 
