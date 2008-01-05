@@ -128,7 +128,7 @@ treechildren::-moz-tree-image(name playlist) {
     background-color: #E6E9EE;
     }
 #album_artBox {
-    width: 250px;
+    width: 170px;
     margin: 0px !important;
     border-left: 0px !important;
     border-right: 0px !important;
@@ -139,13 +139,10 @@ treechildren::-moz-tree-image(name playlist) {
     padding: 0px;
     border: 1px solid DarkGray;
     background-color: white;
-    background-image: url("chrome://webamp2/content/album_blank.png");
-    background-repeat: no-repeat;
-    background-position: center top;
     }
 #album_art.scaled {
-    max-width: 140px;
-    max-height: 140px;
+    max-width: 73px;
+    max-height: 73px;
     }
 .files {
     min-width: 200px;
