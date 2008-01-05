@@ -189,15 +189,17 @@ function dbRDF(items, about, filter){
 					'    xmlns:nc="http://home.netscape.com/NC-rdf#">\n\n'
 	var rdfSeq = ' <RDF:Seq about="'+about+'">\n'
     for (x in items){
-		var item = items[x]
-		if (filter[item.type]) {
-		    rdfString += ' <RDF:Description about="mpd://'+item.type+'/'+x+'">\n'
-			for (p in items[x]) {
-				rdfString += '   <s:'+p+'>'+xmlEscape(item[p])+'</s:'+p+'>\n'
+		try {
+			var item = items[x]
+			if (filter[item.type]) {
+			    rdfString += ' <RDF:Description about="mpd://'+item.type+'/'+x+'">\n'
+				for (p in items[x]) {
+					rdfString += '   <s:'+p+'>'+xmlEscape(item[p])+'</s:'+p+'>\n'
+				}
+				rdfString += ' </RDF:Description>\n'
+			    rdfSeq += '  <RDF:li resource="mpd://'+item.type+'/'+x+'"/>\n'
 			}
-			rdfString += ' </RDF:Description>\n'
-		    rdfSeq += '  <RDF:li resource="mpd://'+item.type+'/'+x+'"/>\n'
-		}
+		} catch(e) {debug("dbRDF item "+x+": "+e.description)}
     }
     var rdf = rdfString + rdfSeq + '</RDF:Seq></RDF:RDF>'
 	return parseRDFString(rdf, about+"/temp")
@@ -233,19 +235,29 @@ function _clean (item) {
     return item
 }
 function getCover(elem, song) {
-	elem.src = "chrome://webamp2/content/album_blank.png"
+	elem.src = ""
     var data = ""
     var asin = ""
-    var artist = _clean(song['Artist'])
-    var album = _clean(song['Album'])
+    if (song['Artist']) {
+		var artist = _clean(song['Artist'])
+	}
+	else {
+		var artist = ""
+	}
+    if (song['Album']) {
+		var album = _clean(song['Album'])
+	}
+	else {
+		var album = ""
+	}
     var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="+artist+"&title="+album+"&limit=1"
 	
 	if (typeof(art[search_url]) == 'string') {
 		elem.src = art[search_url]
 	}
 	else {
-		art[search_url] = "chrome://webamp2/content/album_blank.png"
 		var cb = function(data){
+			art[search_url] = "chrome://webamp2/content/album_blank.png"
 			if (data != "") {
 				var s = data.indexOf("<asin>") + 6
 				if (s > 6) {
@@ -256,10 +268,10 @@ function getCover(elem, song) {
 					if (asin.length == 10) {
 						base = "http://images.amazon.com/images/P/" + asin
 						art[search_url] = base + ".01.MZZZZZZZ.jpg"
-						elem.src = base + ".01.MZZZZZZZ.jpg"
 					}
 				}
 			}
+			elem.src = art[search_url]
 		}
 		sendCB(search_url, cb)
 	}

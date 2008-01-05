@@ -91,7 +91,7 @@ function talker(){
 				outstream.writeString(item.outputData);
 			}		
 			else if (this.data.slice(-3) == "OK\n") {
-				if (item.callBack) {item.callBack(this.data)}
+				if (item.callBack) {item.callBack(this.data.slice(0,this.data.length-3))}
 				done = true
 			}
 			else if (this.data.indexOf('ACK [') != -1) {
@@ -144,9 +144,9 @@ function parse_db (data) {
 	var n = dl
 	do {
 		var i = dl - n
-		var pair = data[i].split(": ")
-		var fld = pair[0]
-		var val = clean(pair[1])
+		var sep = data[i].indexOf(": ")
+		var fld = data[i].substr(0, sep)
+		var val = clean(data[i].slice(sep+2))
 		if (fld == 'file') {
 			var song = {
 				'type': 'file',
@@ -159,8 +159,8 @@ function parse_db (data) {
 			};
 			var d = data[i+1]
 			while (d && d.substr(0,6) != "file: ") {
-				pair = d.split(": ");
-				song[pair[0]] = clean(pair[1]);
+				var sep = d.indexOf(": ")
+				song[d.substr(0, sep)] = d.slice(sep+2);
 				--n;
 				var d = data[dl - n + 1]
 			};
@@ -201,12 +201,12 @@ function statusCallBack (data) {
 			val = pair[1]
 			try {
 				if (val != mpd[fld]) {
+					mpd[fld] = val
 					if (typeof(notify[fld]) == 'function') {
 						notify[fld](val)
 					}
 				}
 			} catch (e) {debug("notify '"+fld+"'="+val+" error: "+e)}
-			mpd[fld] = val
 		}
 	}
 	doStatus = false

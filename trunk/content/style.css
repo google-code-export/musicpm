@@ -16,12 +16,8 @@ box, tree, listbox  {
     margin-left: 12px;
     padding: 0px;
     border: 1px solid DarkGray;
-    height: 70px;
-    width: 70px;
-    background-color: white;
-    background-image: url("chrome://webamp2/content/album_blank.png");
-    background-repeat: no-repeat;
-    background-position: center top;
+    height: 73px;
+    width: 73px;
     }
 
 treecol, listheader {

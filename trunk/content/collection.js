@@ -71,13 +71,20 @@ function getDir(mytype, id) {
     if (wa2_history.length > 9) {wa2_history.length = 10}
     var f = $('files')
 	clearDS(f)
+	
+	if (mytype != 'album'){
+		$("album_artBox").collapsed = true
+		$('album').collapsed = false
+	}
 	if (id == "" && mytype != 'playlist') {
 		f.database.AddDataSource(db_ds[mytype])
 		f.ref = "mpd://" + mytype + "s"
 		f.builder.rebuild()
 	}
 	else {
-		id = id.replace(/"/g, '\\"')
+		if (id) {
+			id = id.replace(/"/g, '\\"')
+		}
 		if (mytype == 'dir') {
 			var cb = function(data){
 				db = parse_db(data)
@@ -91,32 +98,25 @@ function getDir(mytype, id) {
 		else 
 			if (mytype == 'playlist') {
 				if (id == '') {
-					var cb2 = function(data){
-						var db = {
-							'files': [],
-							'dirs': [],
-							'artists': [],
-							'albums': [],
-							'playlists': parse_db(data).playlists
-						}
+					var cb = function(data){
 						$('navtree').database.RemoveDataSource(playlists_ds)
-						playlists_ds = dbRDF(db, "mpd://playlists", {'playlist': true})
+						playlists_ds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
 						$('navtree').database.AddDataSource(playlists_ds)
 						f.database.AddDataSource(playlists_ds)
 						f.ref = "mpd://playlists"
 						f.builder.rebuild()
 					}
-					command('lsinfo', cb2)
+					command('lsinfo', cb)
 				}
 				else {
-					var cb2 = function(data){
+					var cb = function(data){
 						db = parse_db(data)
 						contents_ds = dbRDF(db, "mpd://contents", {'file': true})
 						f.database.AddDataSource(contents_ds)
 						f.ref = "mpd://contents"
 						f.builder.rebuild()
 					}
-					command('listplaylistinfo "'+id+'"', cb2)
+					command('listplaylistinfo "'+id+'"', cb)
 					
 				}
 			}
@@ -124,9 +124,21 @@ function getDir(mytype, id) {
 				var cb = function(data){
 					db = parse_db(data)
 					content_ds = dbRDF(db, "mpd://contents", {'file': true})
+					var f = $('files')
 					f.database.AddDataSource(content_ds)
 					f.ref = "mpd://contents"
 					f.builder.rebuild()
+					if (mytype == 'album') {
+						var elem = $("album_artBox")
+						var i = 0
+						do {
+							var song = db[i]
+							i++
+						} while (song && song.type != 'file')
+						getCover($("album_art"), song)
+						elem.collapsed = false
+						$('album').collapsed = true
+					}
 				}
 				command('find ' + mytype + ' "' + id + '"', cb)
 			}
@@ -184,12 +196,12 @@ function album_art_click(){
     var art = $('album_art')
     var artBox = $('album_artBox')
     if (art.className == "scaled") {
-        artBox.style.width = "250px"
+        artBox.style.width = "170px"
         art.className = ""
         }
     else {
         art.className = "scaled"
-        artBox.style.width = "150px"
+        artBox.style.width = "85px"
         }
 }
 function files_dblclick() {
@@ -325,13 +337,13 @@ function show_search(data){
       f.database.RemoveDataSource(content_ds)
       }
 	var db = parse_db(data)
-	content_ds = dbRDF(db, "mpd://search_results/contents")
+	content_ds = dbRDF(db, "mpd://search_results/contents", {'file': true})
     f.database.AddDataSource(content_ds)
     f.ref="mpd://search_results/contents"
     f.builder.rebuild()
 }
 function search (what, where){
-	if (what.length > 2) {
+	if (what.length > 1) {
 		command('search ' + where + ' "' + what + '"', show_search)
 	}
 	else {
