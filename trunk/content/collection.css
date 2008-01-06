@@ -2,63 +2,63 @@ treechildren::-moz-tree-image {
     margin: 0px 5px 0px 1px;
     }
 #mpm_search_clear {
-    list-style-image: url('chrome://webamp2/content/clear_find.png')
+    list-style-image: url('chrome://minion/content/clear_find.png')
     }
 
 /* ICONS for Navigation Tree */
 #files_home {
-    list-style-image: url('chrome://webamp2/content/home.png')
+    list-style-image: url('chrome://minion/content/home.png')
     }
 #files_rescan {
-    list-style-image: url('chrome://webamp2/content/rescan.png')
+    list-style-image: url('chrome://minion/content/rescan.png')
     }
 #files_settings {
-    list-style-image: url('chrome://webamp2/content/settings.png')
+    list-style-image: url('chrome://minion/content/settings.png')
     }
 
 /*ICONS for Files Tree */
 #files_back {
-    list-style-image: url('chrome://webamp2/content/back.png')
+    list-style-image: url('chrome://minion/content/back.png')
     }
 #files_forward {
-    list-style-image: url('chrome://webamp2/content/forward.png')
+    list-style-image: url('chrome://minion/content/forward.png')
     }
 #files_add {
-    list-style-image: url('chrome://webamp2/content/add.png')
+    list-style-image: url('chrome://minion/content/add.png')
     }
 #files_selectAll {
-    list-style-image: url('chrome://webamp2/content/yes.png')
+    list-style-image: url('chrome://minion/content/yes.png')
     }
 treechildren::-moz-tree-image(Name_Artist) {
-    list-style-image: url("chrome://webamp2/content/artist.png");
+    list-style-image: url("chrome://minion/content/artist.png");
     }
 treechildren::-moz-tree-image(Name_Album) {
-    list-style-image: url("chrome://webamp2/content/album.png");
+    list-style-image: url("chrome://minion/content/album.png");
     }
 treechildren::-moz-tree-image(Name_file) {
-    list-style-image: url("chrome://webamp2/content/song.png");
+    list-style-image: url("chrome://minion/content/song.png");
     }
 treechildren::-moz-tree-image(Name_directory) {
-    list-style-image: url("chrome://webamp2/content/folder.png");
+    list-style-image: url("chrome://minion/content/folder.png");
     }
 treechildren::-moz-tree-image(Name_playlist) {
-    list-style-image: url("chrome://webamp2/content/playlist.png");
+    list-style-image: url("chrome://minion/content/playlist.png");
     }
 
 treechildren::-moz-tree-image(Title_file) {
-    list-style-image: url("chrome://webamp2/content/song.png");
+    list-style-image: url("chrome://minion/content/song.png");
     }
 treechildren::-moz-tree-image(Title_Artist) {
-    list-style-image: url("chrome://webamp2/content/artist.png");
+    list-style-image: url("chrome://minion/content/artist.png");
     }
 treechildren::-moz-tree-image(Title_Album) {
-    list-style-image: url("chrome://webamp2/content/album.png");
+    list-style-image: url("chrome://minion/content/album.png");
     }
 treechildren::-moz-tree-image(Title_directory) {
-    list-style-image: url("chrome://webamp2/content/folder.png");
+    list-style-image: url("chrome://minion/content/folder.png");
     }
 treechildren::-moz-tree-image(Title_playlist) {
-    list-style-image: url("chrome://webamp2/content/playlist.png");
+    list-style-image: url("chrome://minion/content/playlist.png");
     }
 
 #album_artBox {
@@ -80,6 +80,6 @@ treechildren::-moz-tree-image(Title_playlist) {
 .files {
     min-width: 200px;
     background-color: white !important;
-	border-left: none !important;
-	margin-left: 0px !important;
+    border-left: none !important;
+    margin-left: 0px !important;
     }

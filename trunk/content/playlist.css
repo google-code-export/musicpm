@@ -1,25 +1,25 @@
 /* Playback control icons */
 .pause, .stop {
-    list-style-image: url('chrome://webamp2/content/play.png')
+    list-style-image: url('chrome://minion/content/play.png')
     }
 .play {
-    list-style-image: url('chrome://webamp2/content/pause.png')
+    list-style-image: url('chrome://minion/content/pause.png')
     }
 #prev {
-    list-style-image: url('chrome://webamp2/content/prev.png')
+    list-style-image: url('chrome://minion/content/prev.png')
     }
 #stop {
     margin: 0px;
     padding: 0px;
     min-height: 24px;
     min-width: 24px;
-    list-style-image: url('chrome://webamp2/content/stop.png')
+    list-style-image: url('chrome://minion/content/stop.png')
     }
 #next {
-    list-style-image: url('chrome://webamp2/content/next.png')
+    list-style-image: url('chrome://minion/content/next.png')
     }
 #vol {
-    list-style-image: url('chrome://webamp2/content/vol.png')
+    list-style-image: url('chrome://minion/content/vol.png')
     }
 #vol_slider {
     margin-top: 6px;
@@ -33,48 +33,48 @@
 
 /* Playlist toolbar icons */
 #playlist_menu {
-    list-style-image: url('chrome://webamp2/content/playlist.png')
+    list-style-image: url('chrome://minion/content/playlist.png')
     }
 #playlist_browse {
-    list-style-image: url('chrome://webamp2/content/artist.png')
+    list-style-image: url('chrome://minion/content/artist.png')
     }
 #main #playlist_browse {
     display: none;
     }
 #playlist_random {
-    list-style-image: url('chrome://webamp2/content/random.png')
+    list-style-image: url('chrome://minion/content/random.png')
     }
 #playlist_random.on {
-    list-style-image: url('chrome://webamp2/content/random-on.png')
+    list-style-image: url('chrome://minion/content/random-on.png')
     }
 #playlist_repeat {
-    list-style-image: url('chrome://webamp2/content/repeat.png')
+    list-style-image: url('chrome://minion/content/repeat.png')
     }
 #playlist_repeat.on {
-    list-style-image: url('chrome://webamp2/content/repeat-on.png')
+    list-style-image: url('chrome://minion/content/repeat-on.png')
     }
 #playlist_simple {
-    list-style-image: url('chrome://webamp2/content/playlist_simple.png')
+    list-style-image: url('chrome://minion/content/playlist_simple.png')
     }
 #playlist_extended {
-    list-style-image: url('chrome://webamp2/content/playlist_expand.png')
+    list-style-image: url('chrome://minion/content/playlist_expand.png')
     }
 #playlist_clear {
-    list-style-image: url('chrome://webamp2/content/playlist_new.png')
+    list-style-image: url('chrome://minion/content/playlist_new.png')
     }
 #playlist_remove {
-    list-style-image: url('chrome://webamp2/content/remove.png')
+    list-style-image: url('chrome://minion/content/remove.png')
     }
 #playlist_center {
     padding: 0px;
     margin: 0px;
     width: 17px !important;
     -moz-appearance: button;
-    list-style-image: url('chrome://webamp2/content/center.png')
+    list-style-image: url('chrome://minion/content/center.png')
     }
 
 /* Current Song Display */
-#wa2_playlist #cur_song {
+#mpm_playlist #cur_song {
     margin: 0px 6px 0px 4px;
     border-left: 2px ridge black;
     border-top: 2px ridge black;
@@ -96,7 +96,7 @@
     }
 #cur_song.stop {
     }
-#wa2_playlist #progress {
+#mpm_playlist #progress {
     min-width: 20px;
     min-height: 10px;
     max-height: 20px;
