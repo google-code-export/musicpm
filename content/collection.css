@@ -6,29 +6,14 @@ treechildren::-moz-tree-image {
     }
 
 /* ICONS for Navigation Tree */
-#nav_collapse {
-    list-style-image: url('chrome://webamp2/content/collapse.png')
+#files_home {
+    list-style-image: url('chrome://webamp2/content/home.png')
     }
-#nav_rescan {
+#files_rescan {
     list-style-image: url('chrome://webamp2/content/rescan.png')
     }
-treechildren::-moz-tree-image(navname dir) {
-    list-style-image: url("chrome://webamp2/content/folder.png");
-    }
-treechildren::-moz-tree-image(navname dir open) {
-    list-style-image: url("chrome://webamp2/content/folder_open.png");
-    }
-treechildren::-moz-tree-image(navname artist) {
-    list-style-image: url("chrome://webamp2/content/artist.png");
-    }
-treechildren::-moz-tree-image(navname artist open) {
-    list-style-image: url("chrome://webamp2/content/folder_open.png");
-    }
-treechildren::-moz-tree-image(navname album) {
-    list-style-image: url("chrome://webamp2/content/album.png");
-    }
-treechildren::-moz-tree-image(navname playlist) {
-    list-style-image: url("chrome://webamp2/content/playlist.png");
+#files_settings {
+    list-style-image: url('chrome://webamp2/content/settings.png')
     }
 
 /*ICONS for Files Tree */
@@ -44,94 +29,42 @@ treechildren::-moz-tree-image(navname playlist) {
 #files_selectAll {
     list-style-image: url('chrome://webamp2/content/yes.png')
     }
-treechildren::-moz-tree-image(name dir) {
-    list-style-image: url("chrome://webamp2/content/folder.png");
-    }
-treechildren::-moz-tree-cell(track dir) {
-    background-image: url("chrome://webamp2/content/folder.png");
-    background-repeat: no-repeat;
-    background-position: right;
-    }
-treechildren::-moz-tree-cell(track artist) {
-    background-image: url("chrome://webamp2/content/artist.png");
-    background-repeat: no-repeat;
-    background-position: right;
-    }
-treechildren::-moz-tree-cell(track album) {
-    background-image: url("chrome://webamp2/content/album.png");
-    background-repeat: no-repeat;
-    background-position: right;
-    }
-treechildren::-moz-tree-cell(track playlist) {
-    background-image: url("chrome://webamp2/content/playlist.png");
-    background-repeat: no-repeat;
-    background-position: right;
-    }
-treechildren::-moz-tree-image(name dir) {
-    list-style-image: url("chrome://webamp2/content/folder.png");
-    }
-treechildren::-moz-tree-image(name artist) {
+treechildren::-moz-tree-image(Name_Artist) {
     list-style-image: url("chrome://webamp2/content/artist.png");
     }
-treechildren::-moz-tree-image(name album) {
+treechildren::-moz-tree-image(Name_Album) {
     list-style-image: url("chrome://webamp2/content/album.png");
     }
-treechildren::-moz-tree-image(name file) {
+treechildren::-moz-tree-image(Name_file) {
     list-style-image: url("chrome://webamp2/content/song.png");
     }
-treechildren::-moz-tree-image(name playlist) {
+treechildren::-moz-tree-image(Name_directory) {
+    list-style-image: url("chrome://webamp2/content/folder.png");
+    }
+treechildren::-moz-tree-image(Name_playlist) {
     list-style-image: url("chrome://webamp2/content/playlist.png");
     }
 
-/* Layout styles for trees */
-.navtree treechildren::-moz-tree-row() {
-    background-color: #e1ecef;
-    color: #071e41;
-    border: 0px;
-    border-right: 1px solid #8ca6ac;
+treechildren::-moz-tree-image(Title_file) {
+    list-style-image: url("chrome://webamp2/content/song.png");
     }
-.navtree treechildren::-moz-tree-cell-text() {
-    color: #071e41;
-    font-style: normal;
+treechildren::-moz-tree-image(Title_Artist) {
+    list-style-image: url("chrome://webamp2/content/artist.png");
     }
-.navtree treechildren::-moz-tree-cell-text(selected) {
-    color: black;
+treechildren::-moz-tree-image(Title_Album) {
+    list-style-image: url("chrome://webamp2/content/album.png");
     }
-.navtree treechildren::-moz-tree-row(selected) {
-    background-color: white;
-    color: black;
-    border: 1px solid #8ca6ac;
-    border-right: 1px solid white;
+treechildren::-moz-tree-image(Title_directory) {
+    list-style-image: url("chrome://webamp2/content/folder.png");
     }
-.navtree {
-    min-width: 200px;
-    background-color: #afced5;
-    border-right: 0px !important;
-    margin-right: 0px !important;
-    padding-right: 0px !important;
+treechildren::-moz-tree-image(Title_playlist) {
+    list-style-image: url("chrome://webamp2/content/playlist.png");
     }
-/*.navtree treerows {
-    -moz-binding: url('chrome://webamp2/content/customtree.xml#treerows')
-    }
-*/
-.navsplit {
-    min-width: 4px;
-    width: 4px;
-    border-left: none;
-    border-right: none;
-    border-top: 2px ridge;
-    margin: 0px;
-    padding: 0px;
-    background-color: white;
-}
-.navsplit:hover {
-    background-color: #E6E9EE;
-    }
+
 #album_artBox {
     width: 170px;
     margin: 0px !important;
-    border-left: 0px !important;
-    border-right: 0px !important;
+    border-right: none !important;
     background-color: white !important;
     }
 #album_art {
@@ -146,7 +79,7 @@ treechildren::-moz-tree-image(name playlist) {
     }
 .files {
     min-width: 200px;
-    margin-left: 0px !important;
-    border-left: 0px !important;
     background-color: white !important;
+	border-left: none !important;
+	margin-left: 0px !important;
     }

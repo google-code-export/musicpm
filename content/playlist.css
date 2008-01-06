@@ -110,9 +110,9 @@
     }
 #playlist treechildren::-moz-tree-cell-text(top) {font-weight: bold;}
 #playlist treechildren::-moz-tree-cell-text(middle) {font-style: italic;}
-#playlist treechildren::-moz-tree-row(title) {
+#playlist treechildren::-moz-tree-row(Title) {
     border-top: 1px solid #BBBBBB;
     }
-#playlist treechildren::-moz-tree-row(album) {
+#playlist treechildren::-moz-tree-row(Album) {
     border-bottom: 1px solid #666;
     }

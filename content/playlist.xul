@@ -11,9 +11,7 @@
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:s="http://webamp2/RDF#"
     orient="vertical"
-    onload="init_mpd()"
-    onclose="cleanup()"
-    onunload="cleanup()">
+    onload="init_mpd()">
 
     <script src="common.js"></script>
     <script src="mpd.js"></script>

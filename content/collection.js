@@ -1,6 +1,31 @@
-var wa2_history = new Array()
-var wa2_future = new Array()
-
+var wa2_history = []
+var wa2_future = []
+var table = []
+var sort_natural = []
+var db = []
+var nav_btns = []
+var home = [
+	{
+		'type': 'directory',
+		'Name': '/',
+		'Title': 'Folders'
+	},
+	{
+		'type': 'Artist',
+		'Name': '',
+		'Title': 'Artists'
+	},
+	{
+		'type': 'Album',
+		'Name': '',
+		'Title': 'Albums'
+	},
+	{
+		'type': 'playlist',
+		'Name': '',
+		'Title': 'Playlists'
+	},
+]
 function clearDS(elem){
 	var list = elem.database.GetDataSources();
 	while (list.hasMoreElements()){
@@ -10,53 +35,136 @@ function clearDS(elem){
 		}
 	}
 }
-function setColDB(db) {
-    dbVersion = db
-    var f = $('files')
-    var n = $('navtree')
-    clearDS(f)
-	clearDS(n)
-	var root = rdfService.GetDataSource("chrome://webamp2/content/nav_root.xml")
-	n.database.AddDataSource(root)
-	var com = "command_list_begin\n" +
-				"lsinfo\n" +
-				"list artist\n" +
-				"list album\n" +
-				"command_list_end\n"
-	var cb = function(data){
-		db = parse_db(data)
-		
-		db_ds['dir'] = dbRDF(db, "mpd://dirs", {'dir': true})
-		n.database.AddDataSource(db_ds['dir'])
-		
-		db_ds['artist'] = dbRDF(db, "mpd://artists", {'artist': true})
-		n.database.AddDataSource(db_ds['artist'])
-		
-		db_ds['album'] = dbRDF(db, "mpd://albums", {'album': true})
-		n.database.AddDataSource(db_ds['album'])
-		
-		playlists_ds = dbRDF(db, "mpd://playlists", {'playlist': true})
-		n.database.AddDataSource(playlists_ds)
-		
-		n.builder.rebuild()
+
+function filter(lst, types){
+	var l = lst.length
+	if (l < 1) { return lst }
+	var n = l
+	var r = []
+	do {
+		if (types[lst[l-n].type]) {r.push(lst[l-n])}
+	} while (--n)
+	return r
+}
+function sort(column) {
+	var tree = $('files')
+	var columnName;
+	var sd = tree.getAttribute("sortDirection")
+	var order = 1
+	if (column) {
+		columnName = column.id;
+		if (tree.getAttribute("sortResource") == columnName) {
+			if (sd == "ascending") {
+				order = -1
+			}
+			else if (sd == "descending") {order = 0}
+		}
+		else {
+		}
+	} else {
+		columnName = tree.getAttribute("sortResource");
 	}
-	command(com, cb)
-    n.disabled = false
-    f.disabled = false
+	function columnSort(a, b) {
+		if (columnName == 'Track') {return (a.Track - b.Track) * order}
+		if (prepareForComparison(a[columnName]) > prepareForComparison(b[columnName])) return 1 * order;
+		if (prepareForComparison(a[columnName]) < prepareForComparison(b[columnName])) return -1 * order;
+		//tie breaker: name ascending is the second level sort
+		if (columnName != "Name") {
+			if (prepareForComparison(a["Name"]) > prepareForComparison(b["Name"])) return 1;
+			if (prepareForComparison(a["Name"]) < prepareForComparison(b["Name"])) return -1;
+		}
+		return 0;
+	}
+	if (order != 0) {
+		table.sort(columnSort);
+		//setting these will make the sort option persist
+		tree.setAttribute("sortDirection", order == 1 ? "ascending" : "descending");
+		tree.setAttribute("sortResource", columnName);
+		assignView()
+		//set the appropriate attributes to show to indicator
+		var cols = tree.getElementsByTagName("treecol");
+		for (var i = 0; i < cols.length; i++) {
+			cols[i].removeAttribute("sortDirection");
+		}
+		document.getElementById(columnName).setAttribute("sortDirection", order == 1 ? "ascending" : "descending");
+	}
+	else {
+		table = []
+		var l = sort_natural.length
+		var n = l
+		if (l > 0) {
+			do {
+				table.push(sort_natural[l-n])
+			} while (--n)
+		}
+		assignView()
+		tree.setAttribute("sortDirection", '');
+		tree.setAttribute("sortResource", '');
+		$(columnName).setAttribute("sortDirection", '');
+		
+	}
 }
 
-
-function navSelect(e) {
-	var tree = $('navtree')
-	try {var id = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('navname'))}
-	catch (err) {var id = ""}
-	try {
-		var mytype = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('navtype'))
-		getDir(mytype, id)
+//prepares an object for easy comparison against another. for strings, lowercases them
+function prepareForComparison(o) {
+	if (typeof o == "string") {
+		return o.toLowerCase();
 	}
-	catch (err){}
+	return o;
+}
+function setTable(data){
+	table = data
+	sort_natural = []
+	var l = table.length
+	var n = l
+	if (l > 0) {
+		do {
+			sort_natural.push(data[l-n])
+		} while (--n)
+	}
+	var tree = $('files')
+	assignView()
+	$(tree.getAttribute("sortResource")).setAttribute("sortDirection", '');
+	tree.setAttribute("sortDirection", '');
+	tree.setAttribute("sortResource", '');
+}
+function assignView() {
+	var tree = $('files')
+    tree.view = {
+        rowCount : table.length,
+        getCellText : function (R, C) {
+			if (!table[C.id]){table[C.id] = ""}
+            if (C.id=="Time" && table[R].Time > ''){return hmsFromSec(table[R]["Time"])}
+            else {return table[R][C.id]}
+        },
+        setTree: function(treebox){ this.treebox = treebox; },
+        isContainer: function(row){ return false; },
+        isSeparator: function(row){ return false; },
+        isSorted: function(){ return false; },
+        getLevel: function(row){ return 0; },
+        getImageSrc: function(row,col){ return null; },
+        getRowProperties: function(row,props){
+            props.AppendElement( aserv.getAtom(table[row].type) )
+		},
+        getCellProperties: function(row,col,props){
+            props.AppendElement( aserv.getAtom(col.id+"_"+table[row].type) )
+            props.AppendElement( aserv.getAtom(col.id) )
+        },
+        getColumnProperties: function(colid,col,props){
+		},
+		cycleHeader: function(col, elem) {return null}
+    };
+}
+function addnav(lbl, mytype, id) {
+	var e = document.createElement("button")
+	e.id = 'nav'+ nav_btns.length
+	nav_btns.push(e)
+	$('mpm_navbar').appendChild(e)
+	e.onclick = function(e){getDir(mytype, id)}
+	e.label = lbl
 }
 function getDir(mytype, id) {
+    var f = $('files')
     $('wa2_search').value='';
     $('search_deck').selectedIndex=0
     //Add to history only if it is a new location.
@@ -69,106 +177,93 @@ function getDir(mytype, id) {
     else {wa2_history.unshift([mytype, id])}
     $('files_back').disabled=false
     if (wa2_history.length > 9) {wa2_history.length = 10}
-    var f = $('files')
-	clearDS(f)
-	
-	if (mytype != 'album'){
+	if (mytype != 'Album'){
 		$("album_artBox").collapsed = true
-		$('album').collapsed = false
+		$('Album').collapsed = false
+		$('Track').collapsed = true
 	}
-	if (id == "" && mytype != 'playlist') {
-		f.database.AddDataSource(db_ds[mytype])
-		f.ref = "mpd://" + mytype + "s"
-		f.builder.rebuild()
+	while (nav_btns.length > 0) {
+		var e = nav_btns.pop()
+		$('mpm_navbar').removeChild(e)
+		e = null
 	}
-	else {
-		if (id) {
-			id = id.replace(/"/g, '\\"')
+	if (mytype == 'home') {setTable(home);return null}
+	var cb = function (data) {
+		setTable(filter(parse_db(data), {'directory':true, 'file':true}))
+	}
+	var cmd = "lsinfo"
+	
+	if (mytype == 'directory') {
+		addnav('Folders', 'directory', '')
+		var dirs = id.split("/")
+		var cd = []
+		while (dirs.length > 0) {
+			var cwd = dirs.shift()
+			cd.push(cwd)
+			if (cwd > "") {
+				addnav(cwd, 'directory', cd.join("/"))
+			}
 		}
-		if (mytype == 'dir') {
+	}
+	if (mytype == 'playlist') {
+		addnav("Playlists", 'playlist', '')
+		if (id.length > 0) {
+			addnav(id, 'playlist', id)
+			cmd = "listplaylistinfo"
+			var cb = function (data) {
+				setTable(filter(parse_db(data), {'file':true}))
+			}
+		}
+		else {
+			var cb = function (data) {
+				setTable(filter(parse_db(data), {'playlist':true}))
+			}
+		}
+	}
+	else if (mytype == 'Artist') {
+		addnav("Artists", 'Artist', '')
+		if (id.length > 0) {
+			addnav(id, 'Artist', id)
+			cmd = "find artist"
+			var cb = function (data) {
+				setTable(filter(parse_db(data), {'file':true}))
+			}
+		}
+		else {
+			cmd = "list artist"
+			var cb = function (data) {
+				setTable(filter(parse_db(data), {'Artist':true}))
+			}
+		}
+	}
+	else if (mytype == 'Album') {
+		addnav("Albums", "Album", '')
+		if (id.length > 0) {
+			addnav(id, "Album", id)
+			cmd = "find " + mytype
 			var cb = function(data){
-				db = parse_db(data)
-				contents_ds = dbRDF(db, "mpd://contents", {'dir': true, 'file': true})
-				f.database.AddDataSource(contents_ds)
-				f.ref = "mpd://contents"
-				f.builder.rebuild()
+				var db = filter(parse_db(data), {'file':true})
+				getCover($("album_art"), db[0])
+				$("album_artBox").collapsed = false
+				$('Album').collapsed = true
+				$('Track').collapsed = false
+				setTable(db)
 			}
-			command('lsinfo "' + id + '"', cb)
 		}
-		else 
-			if (mytype == 'playlist') {
-				if (id == '') {
-					var cb = function(data){
-						$('navtree').database.RemoveDataSource(playlists_ds)
-						playlists_ds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
-						$('navtree').database.AddDataSource(playlists_ds)
-						f.database.AddDataSource(playlists_ds)
-						f.ref = "mpd://playlists"
-						f.builder.rebuild()
-					}
-					command('lsinfo', cb)
-				}
-				else {
-					var cb = function(data){
-						db = parse_db(data)
-						contents_ds = dbRDF(db, "mpd://contents", {'file': true})
-						f.database.AddDataSource(contents_ds)
-						f.ref = "mpd://contents"
-						f.builder.rebuild()
-					}
-					command('listplaylistinfo "'+id+'"', cb)
-					
-				}
+		else {
+			$("album_artBox").collapsed = true
+			$('Album').collapsed = false
+			$('Track').collapsed = true
+			cmd = "list album"
+			var cb = function (data) {
+				setTable(filter(parse_db(data), {'Album':true}))
 			}
-			else {
-				var cb = function(data){
-					db = parse_db(data)
-					content_ds = dbRDF(db, "mpd://contents", {'file': true})
-					var f = $('files')
-					f.database.AddDataSource(content_ds)
-					f.ref = "mpd://contents"
-					f.builder.rebuild()
-					if (mytype == 'album') {
-						var elem = $("album_artBox")
-						var i = 0
-						do {
-							var song = db[i]
-							i++
-						} while (song && song.type != 'file')
-						getCover($("album_art"), song)
-						elem.collapsed = false
-						$('album').collapsed = true
-					}
-				}
-				command('find ' + mytype + ' "' + id + '"', cb)
-			}
+		}
 	}
-}
-function selectNav(mytype, id){
-    var tree = $('navtree')
-    var tid = -1
-    var ttype = -1
-    var ci = tree.currentIndex
-    if (ci >= 0) {
-        if (tree.view.selection.isSelected(ci)) {
-            tid = tree.view.getCellValue(ci, tree.columns.getNamedColumn('navname'))
-            ttype = tree.view.getCellValue(tree.currentIndex, tree.columns.getNamedColumn('navtype'))
-        }
-    }
-    if (tid != id || ttype != mytype) {
-        var builder = tree.builder
-        var node = rdfService.GetResource(NS + "/" + mytype + "/" + id)
-        var idx = builder.getIndexOfResource(node)
-        if (idx != -1) {
-            builder.root.view.selection.select(idx);
-            var boxobject = tree.boxObject;
-            boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-            boxobject.ensureRowIsVisible(idx)
-        }
-        else {
-            tree.view.selection.clearSelection()
-            }
-    }
+	if (id && id.length > 0) {
+		id = ' "'+id.replace(/"/g, '\\"')+'"'
+	}
+	command(cmd+id, cb)
 }
 function goBack(){
     if (wa2_history.length > 1) {
@@ -206,111 +301,65 @@ function album_art_click(){
 }
 function files_dblclick() {
   var tree = $('files')
-  var id = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('name'))
-  var mytype = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('type'))
+  var R = tree.currentIndex
+  var mytype = table[R].type
+  var id = table[R].Name
   if (mytype == "file") {command('add "'+id+'"', null)}
-  else {
-    var tree = $('navtree')
-    if (!tree.view.isContainerOpen(tree.currentIndex)) {
-        tree.view.toggleOpenState(tree.currentIndex)
-    }
-    getDir(mytype, id)
-    }
+  else {getDir(mytype, id)}
   }
 
 
 function files_googleIt() {
   var tree = $('files')
-  var id = tree.view.getCellText(tree.currentIndex,tree.columns.getNamedColumn('title'))
-  var mytype = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('type'))
+  var v = tree.currentIndex
+  var id = table[v].Name
+  var mytype = table[v].type
   google(id, mytype)
   }
 function files_lyricsfreak() {
   var tree = $('files')
-  var id = tree.view.getCellText(tree.currentIndex,tree.columns.getNamedColumn('title'))
-  var mytype = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('type'))
-  lyricsfreak(id, mytype)
-  }
-function files_info(){
-  var tree = $('files')
-  var id = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('name'))
-  openURL(base+"/song_info?id="+id)
-}
-function nav_googleIt() {
-  var tree = $('navtree')
-  var id = tree.view.getCellText(tree.currentIndex,tree.columns.getNamedColumn('navname'))
-  var mytype = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('navtype'))
-  google(id, mytype)
-  }
-function nav_lyricsfreak() {
-  var tree = $('navtree')
-  var id = tree.view.getCellText(tree.currentIndex,tree.columns.getNamedColumn('navname'))
-  var mytype = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('navtype'))
+  var v = tree.currentIndex
+  var id = table[v].Name
+  var mytype = table[v].type
   lyricsfreak(id, mytype)
   }
 
-
-function nav_add() {
-	var tree = $('navtree')
-	var id = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('navname'))
-	var mytype = tree.view.getCellValue(tree.currentIndex,tree.columns.getNamedColumn('navtype'))
-	var addCB = function (data){
-		db = parse_db(data)
-		for (i in db.files) {command('add "'+db.files[i].file+'"', null)}
-	}
-	switch (mytype) {
-		case "artist":
-			command('search artist "'+id+'"', addCB);
-			break;
-		case "album":
-			command('search album "'+id+'"', addCB);
-			break;
-		case "dir":
-			command('add "'+id+'"',null);
-			break;
-		case "file":
-			command('add "'+id+'"',null)
-			break;
-		case "playlist":
-			command('load "'+id+'"',null)
-			break;
-	}
-}
-function nav_replace() {
-    command("clear", null)
-	nav_add()
-  }
 function add() {
 	var tree=$("files")
 	var start = new Object();
 	var end = new Object();
 	var numRanges = tree.view.selection.getRangeCount();
 	var addCB = function (data){
-		db = parse_db(data)
-		for (i in db.files) {command('add "'+db.files[i].file+'"', null)}
+		var db = filter(parse_db(data), {'files':true})
+		var cmd = "command_list_begin\n"
+		for (i in db) {cmd += 'add "'+db[i].file+'"\n'}
+		command(cmd+'command_list_end', null)
 	}
 	
 	for (var t = 0; t < numRanges; t++) {
 		tree.view.selection.getRangeAt(t, start, end);
 		for (var v = start.value; v <= end.value; v++) {
-			var id = tree.view.getCellValue(v, tree.columns.getNamedColumn('name'))
-			var itemtype = tree.view.getCellValue(v, tree.columns.getNamedColumn('type'))
-			switch (itemtype) {
-				case "artist":
-					command('search artist "'+id+'"', addCB);
-					break;
-				case "album":
-					command('search album "'+id+'"', addCB);
-					break;
-				case "dir":
-					command('add "'+id+'"',null);
-					break;
-				case "file":
-					command('add "'+id+'"',null)
-					break;
-				case "playlist":
-					command('load "'+id+'"',null)
-					break;
+			var id = table[v].Name
+			if (id && id.length > 0) {
+				id = ' "' + id.replace(/"/g, '\\"') + '"'
+				var itemtype = table[v].type
+				switch (itemtype) {
+					case "Artist":
+						command('find artist' + id, addCB);
+						break;
+					case "Album":
+						command('find album' + id, addCB);
+						break;
+					case "directory":
+						command('add' + id, null);
+						break;
+					case "file":
+						command('add' + id, null)
+						break;
+					case "playlist":
+						command('load' + id, null)
+						break;
+				}
 			}
 		}
 	}
@@ -319,28 +368,16 @@ function replace(){
     command("clear", null)
 	add()
 }
-function nav_rescan(){
+function files_rescan(){
     command("update", null)
 }
-function nav_collapse() {
-    var treeView = $('navtree').view
-    for (var i=(treeView.rowCount-1);i>=0;i--) {
-        if (i>=treeView.rowCount) {i=treeView.rowCount-1}
-           if (treeView.isContainer(i) && treeView.isContainerOpen(i)){
-            treeView.toggleOpenState(i);
-            }
-        }
+function files_home() {	
+	getDir('home','')
     }
 function show_search(data){
-    var f = $('files')
-    if (content_ds) {
-      f.database.RemoveDataSource(content_ds)
-      }
-	var db = parse_db(data)
-	content_ds = dbRDF(db, "mpd://search_results/contents", {'file': true})
-    f.database.AddDataSource(content_ds)
-    f.ref="mpd://search_results/contents"
-    f.builder.rebuild()
+	$("album_artBox").collapsed = true
+	$('Album').collapsed = false
+    setTable(parse_db(data))
 }
 function search (what, where){
 	if (what.length > 1) {
@@ -358,7 +395,7 @@ function search_clear () {
 }
 function files_contextShowing(){
  	var tree = $('files')
- 	var mytype = tree.view.getCellValue(tree.currentIndex, tree.columns.getNamedColumn('type'))
+ 	var mytype = table[tree.currentIndex].type
  	if (mytype == 'playlist') {
  		$('files_context_delete').hidden = false
  		$('files_context_rename').hidden = false
@@ -383,8 +420,8 @@ function files_contextShowing(){
 	for (var t = 0; t < numRanges; t++) {
 		tree.view.selection.getRangeAt(t, start, end);
 		for (var v = start.value; v <= end.value; v++) {
-			var myname = tree.view.getCellValue(v, tree.columns.getNamedColumn('name'))
-			var mytype = tree.view.getCellValue(v, tree.columns.getNamedColumn('type'))
+			var myname = table[v].Name
+			var mytype = table[v].type
 			if (mytype == 'playlist') {
 				var cb = function (data) {
 					getDir('playlist', '')
@@ -396,16 +433,24 @@ function files_contextShowing(){
  }
  function rename_playlist(){
  	var tree = $('files')
- 	var mytype = tree.view.getCellValue(tree.currentIndex, tree.columns.getNamedColumn('type'))
-	var myname = tree.view.getCellValue(tree.currentIndex, tree.columns.getNamedColumn('name'))
+ 	var mytype = table[v].type
+	var myname = table[v].Name
  	if (mytype == 'playlist') {
 		var cb = function (data) {
 			getDir('playlist', '')
 		}
-	    var val = prompt("Please enter a name for this playlist", "NewPlaylist")
+	    var val = prompt("Please enter a new name for this playlist", "NewPlaylist")
 	    if (val != null) {
 	        command('rename "'+myname+'" "'+val+'"', null)
 	    }
  	}
  }
-notify['db_update'] = setColDB
+notify['db_update'] = function(v){
+    if (wa2_history.length > 0) {
+        var loc = wa2_history.shift()
+        var mytype = loc[0]
+        var id = loc[1]
+        getDir(mytype, id)
+    }
+	
+}

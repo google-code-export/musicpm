@@ -1,20 +1,10 @@
-var base='http://192.168.1.4:8081'
-var NS = "http://webamp2"
+var cfg = document.getElementById('settings')
 var dbVersion = 0
-var rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"].
-                   getService(Components.interfaces.nsIRDFService);
 var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
 						.getService(Components.interfaces.nsIConsoleService);
-var rdf_name = rdfService.GetResource("mpd_Name")
-var rdf_title = rdfService.GetResource("mpd_Title")
-var rdf_artist = rdfService.GetResource("mpd_Artist")
-var rdf_album = rdfService.GetResource("mpd_Album")
-var rdf_time = rdfService.GetResource("mpd_Time")
-
+var aserv = Components.classes["@mozilla.org/atom-service;1"]
+                .getService(Components.interfaces.nsIAtomService);
 var art = []
-var db_ds = {}
-var playlists_ds
-var content_ds
 
 var volTmr = false
 var seekTmr = false
@@ -28,6 +18,11 @@ var infoBrowser
 function $(e) {return document.getElementById(e)}
 function debug(s) {consoleService.logStringMessage(s)}
 
+function show_config() {
+	var cb = function (w) {try{w.close()}catch(e){}; mpd = 'reload'; init_mpd()}
+	window.openDialog("chrome://webamp2/content/settings.xul","showmore",
+                  "chrome", cb);
+}
 //send a command with callback on completion
 function sendCB(url, callBack){
   var send = new XMLHttpRequest()
