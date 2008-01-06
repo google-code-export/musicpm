@@ -1,8 +1,10 @@
 /**
  * @author cseickel
  */
-var host = "192.168.1.2"
-var port = 6600
+var host = "localhost" //about:config --> extensions.mpm.mpd_host, string type
+var port = 6600 //about:config --> extensions.mpm.mpd_port, integer type
+var PLmode = "extended" //about:config --> extensions.mpm.playlist_mode, string type
+
 var mpd
 var status_command = "command_list_begin\nstatus\nstats\ncommand_list_end\n"
 var queue = []
@@ -17,6 +19,23 @@ var transportService =
 
 function init_mpd () {
 	if (typeof(mpd) != 'object') {
+		var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch);
+		if (prefs.getPrefType("extensions.mpm.mpd_host") == prefs.PREF_STRING){
+			host = prefs.getCharPref("extensions.mpm.mpd_host");
+		} else {
+			prefs.setCharPref("extensions.mpm.mpd_host", host)
+		}
+		if (prefs.getPrefType("extensions.mpm.mpd_port") == prefs.PREF_INT){
+			port = prefs.getIntPref("extensions.mpm.mpd_port");
+		} else {
+			prefs.setIntPref("extensions.mpm.mpd_port", port)
+		}
+		if (prefs.getPrefType("extensions.mpm.playlist_mode") == prefs.PREF_STRING){
+			PLmode = prefs.getCharPref("extensions.mpm.playlist_mode");
+		} else {
+			prefs.setCharPref("extensions.mpm.playlist_mode", PLmode)
+		}
 		mpd = {
 			'volume': '-1',
 			'repeat': '-1',
@@ -42,6 +61,7 @@ function init_mpd () {
 		talker_active = false
 		doStatus = true
 		checkStatus()
+		if ($('files')) {getDir('home','')}
 	}
 }
 
@@ -164,15 +184,14 @@ function parse_db (data) {
 				--n;
 				var d = data[dl - n + 1]
 			};
-			song['Time'] = hmsFromSec(song['Time']);
 			db.push(song);
 		}
 		else if (fld == 'directory') {
 			var dir = val.split("/")
-			db.push({'type': 'dir', 'Name': val, 'Title': dir[dir.length-1]})			
+			db.push({'type': 'directory', 'Name': val, 'Title': dir[dir.length-1]})			
 		}
 		else {
-			db.push({'type': fld.toLowerCase(), 'Name': val, 'Title': val})			
+			db.push({'type': fld, 'Name': val, 'Title': val})			
 		}
 	} while (--n)
 	return db

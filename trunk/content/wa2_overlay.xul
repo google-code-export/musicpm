@@ -8,8 +8,6 @@
     <command id="cmd_replace" label="Replace Playlist" oncommand="replace();"/>
     <command id="cmd_delete_playlist" label="Delete" oncommand="delete_playlist();"/>
     <command id="cmd_rename_playlist" label="Rename" oncommand="rename_playlist();"/>
-    <command id="cmd_nav_add" label="Add to Playlist" oncommand="nav_add();"/>
-    <command id="cmd_nav_replace" label="Replace Playlist" oncommand="nav_replace();"/>
     <command id="cmd_selectAll" label="Select All" oncommand="$('files').view.selection.selectAll();"/>
     <command id="cmd_remove" label="Remove Song(s)" oncommand="remove()" />
     <command id="cmd_clear" label="Clear Playlist" oncommand="clear()" />
@@ -22,8 +20,9 @@
     <command id="cmd_browse" label="Collection" tooltiptext="Browse Music Collection" oncommand="playlist_browse()" />
     <command id="cmd_random" tooltiptext="Random" oncommand="playlist_random()" />
     <command id="cmd_repeat" tooltiptext="Repeat" oncommand="playlist_repeat()" />
-    <command id="cmd_collapse" tooltiptext="Collapse All" oncommand="nav_collapse()" />
-    <command id="cmd_rescan" tooltiptext="Scan Music Folders for Updates" oncommand="nav_rescan()" />
+    <command id="cmd_home" tooltiptext="Home" oncommand="files_home()" />
+    <command id="cmd_config" tooltiptext="Adjust Settings for Music Player Minion" label="Settings" oncommand="show_config()" />
+    <command id="cmd_rescan" label="Update" tooltiptext="Scan Music Folders for Updates" oncommand="files_rescan()" />
   </commandset>
 
   <broadcasterset id="playlistBroadcasterSet">
@@ -65,6 +64,8 @@
             <menuseparator></menuseparator>
             <menuitem id="playlist_menu_simple" command="cmd_simple"></menuitem>
             <menuitem id="playlist_menu_extened" command="cmd_extended"></menuitem>
+            <menuseparator></menuseparator>
+            <menuitem id="playlist_settings" command="cmd_config"></menuitem>
         </menupopup>
       </toolbarbutton>
       <spacer flex="1"/>
@@ -113,204 +114,109 @@
             oncommand="files_lyricsfreak()"></menuitem>
     </menupopup>
 
-    <menupopup id="nav_context" onpopupshowing="nav_contextShowing()">
-        <menuitem id="nav_context_add" command="cmd_nav_add"></menuitem>
-        <menuitem id="nav_context_replace" command="cmd_nav_replace"></menuitem>
-        <menuseparator></menuseparator>
-        <menuitem id="nav_context_google"
-            label="Search Google Music"
-            oncommand="nav_googleIt()"></menuitem>
-    </menupopup>
-
-    <grid id="wa2_browse" flex="1">
-        <columns>
-            <column flex="1"/>
-            <column width="4"/>
-            <column flex="4"/>
-        </columns>
-        <rows>
-            <row>
-                <toolbar id="nav_tlbr">
-                    <toolbarbutton id="files_back"
-                        disabled="true"
-                        oncommand="goBack()"
-                        tooltiptext="Go Back" />
-                    <toolbarbutton id="files_forward"
-                        disabled="true"
-                        oncommand="goForward()"
-                        tooltiptext="Go Forward" />
-                    <toolbarseparator></toolbarseparator>
-                    <toolbarbutton id="nav_collapse"
-                        command="cmd_collapse" />
-                    <toolbarbutton id="nav_rescan"
-                        command="cmd_rescan" />
-
-                </toolbar>
-                <toolbar flex="1"></toolbar>
-                <toolbar id="files_toolbar">
-                    <toolbarbutton id="files_add"
-                                   command="cmd_add"
-                                   crop="end" />
-                    <toolbarbutton id="files_selectAll"
-                                   command="cmd_selectAll"
-                                   crop="end" />
-                    <spacer flex="1"/>
-                    <deck id="search_deck">
-                        <textbox id="wa2_search_cover"
-                            onfocus="$('wa2_search').focus();$('search_deck').selectedIndex=1;"
-                            value="type here to search"/>
-                        <textbox id="wa2_search"
-                            type="timed"
-                            timeout="300"
-                            oncommand="search(this.value,'any')"/>
-                    </deck>
-                    <toolbarbutton id="wa2_search_clear"
-                        tooltiptext="Clear Search"
-                        oncommand="search_clear()"/>
-                </toolbar>
-            </row>
-            <row flex="1">
-                <tree id="navtree"
-                    class="navtree"
-                    flex="1"
-                    datasources="chrome://webamp2/content/nav_root.xml"
-                    ref="nav_root"
-                    onselect="navSelect(event)"
-                    flags="dont-build-content"
-                    hidecolumnpicker="true"
-                    context="nav_context">
-                    <treecols>
-                        <treecol id="navtype" hidden="true"/>
-                        <treecol id="navname"
-                                class="sortDirectionIndicator"
-                                src="colheader.png"
-                                label="Collection"
-                                flex="1"
-                                hidden="false"
-                                primary="true"
-                                sort="rdf:mpd_Name"/>
-                    </treecols>
-                    <template>
-                        <rule>
-                            <treechildren>
-                                <treeitem uri="rdf:*">
-                                    <treerow>
-                                        <treecell value="rdf:mpd_type"
-                                                  label="rdf:mpd_type"/>
-                                        <treecell value="rdf:mpd_Name"
-                                                  label="rdf:mpd_Title"
-                                                  properties="rdf:mpd_type"/>
-                                    </treerow>
-                                </treeitem>
-                            </treechildren>
-                        </rule>
-                    </template>
-                </tree>
-                <splitter id='navsplit' class="navsplit"/>
-                <hbox>
-                    <listbox id="album_artBox" collapsed="true">
-                        <listhead>
-                            <listheader label="Album Cover"
-                                onclick="album_art_click()">
-                            </listheader>
-                        </listhead>
-                        <listcols>
-                            <listcol flex="1"
-                                class="treecol-image"
-                                src="colheader.png"></listcol>
-                        </listcols>
-                        <listitem>
-                            <listcell>
-                                <spacer flex="1"></spacer>
-                                <hbox>
-                                    <spacer flex="1"></spacer>
-                                    <image id="album_art"></image>
-                                    <spacer flex="1"></spacer>
-                                </hbox>
-                                <spacer flex="1"></spacer>
-                            </listcell>
-                        </listitem>
-                    </listbox>
-                    <tree id="files"
-                        class="files"
-                        enableColumnDrag="true"
-                        flex="1"
-                        datasources="rdf:null"
-                        ondblclick="files_dblclick()"
-                        flags="dont-build-content"
-                        context="files_context">
-                        <treecols>
-                            <treecol id="type" label="Type" ordinal="0" hidden="true"
-                                    persist="width ordinal hidden"
-                                    sort="rdf:mpd_type"
-                                    class="sortDirectionIndicator"
-                                    src="colheader.png"/>
-                            <splitter class="tree-splitter"/>
-                            <treecol id="name" label="Name" ordinal="1" flex="3" hidden="true"
-                                    persist="width ordinal hidden"
-                                    sort="rdf:mpd_Name"
-                                    class="sortDirectionIndicator"
-                                    src="colheader.png"/>
-                            <splitter class="tree-splitter"/>
-                            <treecol id="track" label="Track" ordinal="2" width="30px"
-                                    persist="width ordinal hidden"
-                                    sort="rdf:mpd_Track"
-                                    style="text-align:right"
-                                    class="sortDirectionIndicator"
-                                    src="colheader.png"/>
-                            <splitter class="tree-splitter"/>
-                            <treecol id="title" label="Title" ordinal="2" flex="3"
-                                    persist="width ordinal hidden"
-                                    sort="rdf:mpd_Title"
-                                    class="sortDirectionIndicator"
-                                    src="colheader.png"/>
-                            <splitter class="tree-splitter"/>
-                            <treecol id="length" label="Time" ordinal="3" width="50px"
-                                    hidden="true"
-                                    persist="width ordinal hidden"
-                                    sort="rdf:mpd_Time"
-                                    class="sortDirectionIndicator"
-                                    src="colheader.png"/>
-                            <splitter class="tree-splitter"/>
-                            <treecol id="album" label="Album" ordinal="4" flex="1"
-                                    persist="width ordinal hidden"
-                                    sort="rdf:mpd_Album"
-                                    class="sortDirectionIndicator"
-                                    src="colheader.png"/>
-                            <splitter class="tree-splitter"/>
-                            <treecol id="artist" label="Artist" ordinal="5" flex="1"
-                                    persist="width ordinal hidden"
-                                    sort="rdf:mpd_Artist"
-                                    class="sortDirectionIndicator"
-                                    src="colheader.png"/>
-                        </treecols>
-                        <template>
-                            <rule>
-                                <treechildren>
-                                    <treeitem uri="rdf:*">
-                                      <treerow>
-                                            <treecell label="rdf:mpd_type"
-                                                    value="rdf:mpd_type"/>
-                                            <treecell label="rdf:mpd_Name"
-                                                    value="rdf:mpd_Name"
-                                                    properties="rdf:mpd_type"/>
-                                            <treecell label="rdf:mpd_Track"
-                                                    properties="track rdf:mpd_type"/>
-                                            <treecell label="rdf:mpd_Title"
-                                                    properties="title"/>
-                                            <treecell label="rdf:mpd_Time"/>
-                                            <treecell label="rdf:mpd_Album"
-                                                    properties="album"/>
-                                            <treecell label="rdf:mpd_Artist"
-                                                    properties="artist"/>
-                                        </treerow>
-                                    </treeitem>
-                                </treechildren>
-                            </rule>
-                        </template>
-                    </tree>
-                </hbox>
-            </row>
-        </rows>
-    </grid>
+    <vbox id="wa2_browse" flex="1">
+        <toolbar id="files_toolbar">
+            <toolbarbutton id="files_settings"
+                command="cmd_config" />
+            <toolbarbutton id="files_rescan"
+                command="cmd_rescan" />
+            <toolbarseparator></toolbarseparator>
+            <toolbarbutton id="files_selectAll"
+                           command="cmd_selectAll"
+                           crop="end" />
+            <toolbarbutton id="files_add"
+                           command="cmd_add"
+                           crop="end" />
+            <spacer flex="1"/>
+            <deck id="search_deck">
+                <textbox id="wa2_search_cover"
+                    onfocus="$('wa2_search').focus();$('search_deck').selectedIndex=1;"
+                    value="type here to search"/>
+                <textbox id="wa2_search"
+                    type="timed"
+                    timeout="300"
+                    oncommand="search(this.value,'any')"/>
+            </deck>
+            <toolbarbutton id="wa2_search_clear"
+                tooltiptext="Clear Search"
+                oncommand="search_clear()"/>
+        </toolbar>
+        <toolbar id="mpm_navbar">
+            <toolbarbutton id="files_back"
+                disabled="true"
+                oncommand="goBack()"
+                tooltiptext="Go Back" />
+            <toolbarbutton id="files_forward"
+                disabled="true"
+                oncommand="goForward()"
+                tooltiptext="Go Forward" />
+            <toolbarbutton id="files_home"
+                command="cmd_home" />
+        </toolbar>
+        <hbox flex="1">
+            <listbox id="album_artBox" collapsed="false">
+                <listhead>
+                    <listheader label="Album Cover"
+                        onclick="album_art_click()">
+                    </listheader>
+                </listhead>
+                <listcols>
+                    <listcol flex="1" class="treecol-image"></listcol>
+                </listcols>
+                <listitem>
+                    <listcell>
+                        <spacer flex="1"></spacer>
+                        <hbox>
+                            <spacer flex="1"></spacer>
+                            <image id="album_art"></image>
+                            <spacer flex="1"></spacer>
+                        </hbox>
+                        <spacer flex="1"></spacer>
+                    </listcell>
+                </listitem>
+            </listbox>
+            <tree id="files"
+                class="files"
+                enableColumnDrag="true"
+                flex="1"
+                ondblclick="files_dblclick()"
+                flags="dont-build-content"
+                context="files_context">
+                <treecols>
+                    <treecol id="Name" label="Name" ordinal="1" flex="3" hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Track" label="Track" ordinal="2" width="60px"
+                            persist="width ordinal hidden"
+                            style="text-align:right"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Title" label="Title" ordinal="2" flex="3"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Time" label="Time" ordinal="3" width="50px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Album" label="Album" ordinal="4" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Artist" label="Artist" ordinal="5" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                </treecols>
+                <treechildren id="files_data"/>
+            </tree>
+        </hbox>
+    </vbox>
 </overlay>

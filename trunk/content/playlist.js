@@ -1,15 +1,3 @@
-var rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                .getService(Components.interfaces.nsIRDFService);
-var serverSocket = Components.classes["@mozilla.org/network/server-socket;1"]
-                .createInstance(Components.interfaces.nsIServerSocket);
-var instream = Components.classes["@mozilla.org/scriptableinputstream;1"]
-                .createInstance(Components.interfaces.nsIScriptableInputStream);
-var pump = Components.classes["@mozilla.org/network/input-stream-pump;1"]
-                .createInstance(Components.interfaces.nsIInputStreamPump);
-var aserv = Components.classes["@mozilla.org/atom-service;1"]
-                .getService(Components.interfaces.nsIAtomService);
-
-
 var volTmr = false
 var seekTmr = false
 var seekMax = 0
@@ -19,7 +7,6 @@ var convertPercent = true
 var isLoaded = false
 var curSong = 0
 var State = "stop"
-var PLmode = "extended"
 var PL = []
 
 
@@ -438,17 +425,17 @@ function assignPLview() {
             getRowProperties: function(row,props){
                 var pos = Math.floor(row/3)
                 var r = row - (pos*3)
-                if (r==0){props.AppendElement( aserv.getAtom("title") )}
-                if (r==1){props.AppendElement( aserv.getAtom("artist") )}
-                if (r==2){props.AppendElement( aserv.getAtom("album") )}
+                if (r==0){props.AppendElement( aserv.getAtom("Title") )}
+                if (r==1){props.AppendElement( aserv.getAtom("Artist") )}
+                if (r==2){props.AppendElement( aserv.getAtom("Album") )}
                 },
             getCellProperties: function(row,col,props){
                 if (col.id=="PLsong") {
                 var pos = Math.floor(row/3)
                 var r = row - (pos*3)
-                if (r==0){props.AppendElement( aserv.getAtom("title") )}
-                if (r==1){props.AppendElement( aserv.getAtom("artist") )}
-                if (r==2){props.AppendElement( aserv.getAtom("album") )}
+                if (r==0){props.AppendElement( aserv.getAtom("Title") )}
+                if (r==1){props.AppendElement( aserv.getAtom("Artist") )}
+                if (r==2){props.AppendElement( aserv.getAtom("Album") )}
                 }
                 },
             getColumnProperties: function(colid,col,props){}
@@ -475,11 +462,11 @@ function assignPLview() {
             getLevel: function(row){ return 0; },
             getImageSrc: function(row,col){ return null; },
             getRowProperties: function(row,props){
-                props.AppendElement( aserv.getAtom("title") )
+                props.AppendElement( aserv.getAtom("Title") )
                 },
             getCellProperties: function(row,col,props){
                 if (col.id=="PLsong") {
-                    props.AppendElement( aserv.getAtom("title") )
+                    props.AppendElement( aserv.getAtom("Title") )
                     }
                 },
             getColumnProperties: function(colid,col,props){}
@@ -551,14 +538,14 @@ function playlist_googleIt() {
         var id = Math.floor($('playlist').currentIndex / 3)
         var r = $('playlist').currentIndex - (id*3)
         switch (r) {
-            case 0: google(PL[id]['title'], "file"); break;
-            case 1: google(PL[id]['artist'], "artist"); break;
-            case 2: google(PL[id]['album'], "album"); break;
+            case 0: google(PL[id]['Title'], "file"); break;
+            case 1: google(PL[id]['Artist'], "artist"); break;
+            case 2: google(PL[id]['Album'], "album"); break;
             }
     }
     else {
         var id = $('playlist').currentIndex
-        google(PL[id]['title'], "file")
+        google(PL[id]['Title'], "file")
     }
   }
 
@@ -567,14 +554,14 @@ function playlist_lyricsfreak()  {
         var id = Math.floor($('playlist').currentIndex / 3)
         var r = $('playlist').currentIndex - (id*3)
         switch (r) {
-            case 0: lyricsfreak(PL[id]['title'], "file"); break;
-            case 1: lyricsfreak(PL[id]['artist'], "artist"); break;
-            case 2: lyricsfreak(PL[id]['album'], "album"); break;
+            case 0: lyricsfreak(PL[id]['Title'], "file"); break;
+            case 1: lyricsfreak(PL[id]['Artist'], "artist"); break;
+            case 2: lyricsfreak(PL[id]['Album'], "album"); break;
             }
     }
     else {
         var id = $('playlist').currentIndex
-        lyricsfreak(PL[id]['title'], "file")
+        lyricsfreak(PL[id]['Title'], "file")
     }
   }
 

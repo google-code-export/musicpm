@@ -15,7 +15,7 @@ box, tree, listbox  {
     margin: 4px;
     margin-left: 12px;
     padding: 0px;
-    border: 1px solid DarkGray;
+    border: 1px solid Gray;
     height: 73px;
     width: 73px;
     }
@@ -27,15 +27,11 @@ treecol, listheader {
 treechildren::-moz-tree-cell-text() {
     color: #5a6264;
     }
-treechildren::-moz-tree-cell-text(title) {
+treechildren::-moz-tree-cell-text(Title) {
     color: Black;
     }
-treechildren::-moz-tree-cell-text(artist) {
+treechildren::-moz-tree-cell-text(Artist) {
     font-style: italic;
     color: #5a6264;
     }
-treechildren::-moz-tree-cell-text(album) {
-    color: #5a6264;
-    }
-
 
