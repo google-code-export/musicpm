@@ -85,7 +85,7 @@ function createURLranges(lst) {
 
 function getSong(id) {
     var song = {'name':'','title':'','artist':'','album':'','time':'','id':id}
-    var node = rdfService.GetResource("http://webamp2/song/"+id)
+    var node = rdfService.GetResource("http://minion/song/"+id)
 
     var target = files_ds.GetTarget(node, rdf_name, true);
     if (target instanceof Components.interfaces.nsIRDFLiteral){
@@ -211,7 +211,7 @@ function doPlay() {
     }
 }
 function doNext() {command("next", null)}
-function updateMe() {window.location=base+"/webamp2xul"}
+function updateMe() {window.location=base+"/minionxul"}
 
 function _clean (item) {
     var s = item.indexOf("(",0)
@@ -252,7 +252,7 @@ function getCover(elem, song) {
     }
     else {
         var cb = function(data){
-            art[search_url] = "chrome://webamp2/content/album_blank.png"
+            art[search_url] = "chrome://minion/content/album_blank.png"
             if (data != "") {
                 var s = data.indexOf("<asin>") + 6
                 if (s > 6) {

@@ -2,15 +2,15 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$bP9MY2"
+  <RDF:Description RDF:about="rdf:#$z3eyQ3"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="1.5"
-                   em:maxVersion="3.0" />
+                   em:maxVersion="3.0.*" />
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
-                   em:id="{d1039eac-a1c6-4448-aaa9-1c1d0e8be669}"
+                   em:id="Music_Player_Minion@code.google.com"
                    em:name="Music Player Minion"
-                   em:version="0.1"
+                   em:version="0.2"
                    em:creator="Chris Seickel">
-    <em:targetApplication RDF:resource="rdf:#$bP9MY2"/>
+    <em:targetApplication RDF:resource="rdf:#$z3eyQ3"/>
   </RDF:Description>
 </RDF:RDF>
