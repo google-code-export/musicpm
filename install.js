@@ -1,6 +1,6 @@
-initInstall("WebAMP2 XUL Client","webamp2","0.1");
+initInstall("Music Player Minion","minion","0.1");
 
-findDir = getFolder("Chrome","webamp2");
+findDir = getFolder("Chrome","minion");
 setPackageFolder(findDir);
 addDirectory("content");
 registerChrome(Install.CONTENT | INSTALL.DELAYED_CHROME, getFolder(findDir, "content"));
