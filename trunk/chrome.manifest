@@ -1,2 +1,2 @@
-content webamp2 content/
-overlay chrome://browser/content/browser.xul chrome://webamp2/content/overlay.xul
+content minion content/
+overlay chrome://browser/content/browser.xul chrome://minion/content/overlay.xul

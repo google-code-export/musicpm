@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<overlay id="wa2_overlay"
+<overlay id="mpm_overlay"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <commandset id="commandset_overlay">
@@ -26,12 +26,12 @@
   </commandset>
 
   <broadcasterset id="playlistBroadcasterSet">
-    <broadcaster id="wa2_random"
+    <broadcaster id="mpm_random"
                  label="Random"
                  autoCheck="false"
                  type="checkbox"
                  oncommand="playlist_random()"/>
-    <broadcaster id="wa2_repeat"
+    <broadcaster id="mpm_repeat"
                  label="Repeat"
                  autoCheck="false"
                  type="checkbox"
@@ -114,7 +114,7 @@
             oncommand="files_lyricsfreak()"></menuitem>
     </menupopup>
 
-    <vbox id="wa2_browse" flex="1">
+    <vbox id="mpm_browse" flex="1">
         <toolbar id="files_toolbar">
             <toolbarbutton id="files_settings"
                 command="cmd_config" />
@@ -129,15 +129,15 @@
                            crop="end" />
             <spacer flex="1"/>
             <deck id="search_deck">
-                <textbox id="wa2_search_cover"
-                    onfocus="$('wa2_search').focus();$('search_deck').selectedIndex=1;"
+                <textbox id="mpm_search_cover"
+                    onfocus="$('mpm_search').focus();$('search_deck').selectedIndex=1;"
                     value="type here to search"/>
-                <textbox id="wa2_search"
+                <textbox id="mpm_search"
                     type="timed"
                     timeout="300"
                     oncommand="search(this.value,'any')"/>
             </deck>
-            <toolbarbutton id="wa2_search_clear"
+            <toolbarbutton id="mpm_search_clear"
                 tooltiptext="Clear Search"
                 oncommand="search_clear()"/>
         </toolbar>

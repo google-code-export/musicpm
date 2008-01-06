@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://webamp2/content/style.css" type="text/css"?>
-<?xml-stylesheet href="chrome://webamp2/content/playlist.css" type="text/css"?>
-<?xml-stylesheet href="chrome://webamp2/content/collection.css" type="text/css"?>
-<?xul-overlay href="chrome://webamp2/content/wa2_overlay.xul"?>
+<?xml-stylesheet href="chrome://minion/content/style.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/playlist.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/collection.css" type="text/css"?>
+<?xul-overlay href="chrome://minion/content/mpm_overlay.xul"?>
 
 <window
     id="main"
-    title="WebAMP2"
+    title="Music Player Minion"
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
@@ -120,6 +120,6 @@
             </hbox>
         </vbox>
         <splitter id="tab_split" collapse="before" persist="width height" />
-        <vbox id="wa2_browse" flex="1"/>
+        <vbox id="mpm_browse" flex="1"/>
     </hbox>
 </window>
