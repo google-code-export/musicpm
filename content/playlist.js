@@ -425,6 +425,18 @@ function assignPLview() {
             getRowProperties: function(row,props){
                 var pos = Math.floor(row/3)
                 var r = row - (pos*3)
+                var eo1 = row % 2
+                var eo3 = pos % 2
+                if ( eo3 != eo1 ) {
+                    if (eo3 == 0) {
+                        props.RemoveElement( aserv.getAtom("odd") )
+                        props.AppendElement( aserv.getAtom("even") )
+                    }
+                    else {
+                        props.RemoveElement( aserv.getAtom("even") )
+                        props.AppendElement( aserv.getAtom("odd") )
+                    }
+                }
                 if (r==0){props.AppendElement( aserv.getAtom("Title") )}
                 if (r==1){props.AppendElement( aserv.getAtom("Artist") )}
                 if (r==2){props.AppendElement( aserv.getAtom("Album") )}
