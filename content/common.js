@@ -145,20 +145,24 @@ function openURL(url, attrName) {
   }
 }
 
-function google(id, type){
+function google(item){
+    var id = item.Artist
+    if (id != 'unknown' && id != "") {id += " "}
+    else {id = ""}
+    id += item.Title
     id = encodeURI(id)
     var url = "http://www.google.com/musicsearch?q="+id+"&ie=UTF-8&oe=UTF-8"
-    openURL(url, "wa2_infoBrowser")
+    openURL(url, "mpm_infoBrowser")
 }
 
 function lyricsfreak(id, type){
     id = encodeURI(id)
     switch (type){
-        case "file": var url = "http://www.lyricsfreak.com/search.php?type=title&q="+id;break
-        case "album": var url = "http://www.lyricsfreak.com/search.php?type=album&q="+id;break
-        case "artist": var url = "http://www.lyricsfreak.com/search.php?type=artist&q="+id;break
+        case "Album": var url = "http://www.lyricsfreak.com/search.php?type=album&q="+id;break
+        case "Artist": var url = "http://www.lyricsfreak.com/search.php?type=artist&q="+id;break
+        default: var url = "http://www.lyricsfreak.com/search.php?type=title&q="+id;break
     }
-    openURL(url, "wa2_infoBrowser")
+    openURL(url, "mpm_infoBrowser")
 }
 
 function parseRDFString(str, url){

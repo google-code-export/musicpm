@@ -1,10 +1,18 @@
 /* Style settings common to all minion pages/windows */
+window, page, toolbar, toolbarbutton, button {
+    -moz-appearance: none !important;
+    background-color: black;
+    color:white;
+    }
 box, tree, listbox  {
     -moz-appearance: none !important;
+    background-color: #232323;
+    border: none
     }
 
 .Title {
     font-weight: bold;
+    color: #FBFBC7;
     }
 .Artist {
   font-style: italic;
@@ -20,18 +28,62 @@ box, tree, listbox  {
     width: 73px;
     }
 
-treecol, listheader {
-    -moz-appearance: button;
-    margin: 0px;
-    }
+treecol, listheader, treecolpicker{
+    -moz-appearance:none !important;
+    background-color:black;
+    color:white;
+    border-bottom:3px solid black;
+    border-top:7px solid black;
+    border-right:1px solid black;
+    border-left:1px solid black;
+    -moz-border-bottom-colors:#151515 #333333 #222222;
+    -moz-border-top-colors:#333333 #444444 #666666 #555555 #444444 #333333 #151515;
+    -moz-border-left-colors:#444444;
+    -moz-border-right-colors:#444444;
+}
+#playback_controls {
+    color:white;
+    border-top: 9px solid black;
+    border-bottom: 4px solid black;
+    border-right: 2px solid black;
+    border-left: 2px solid black;
+    -moz-border-top-colors: black #202020 #444444 #606060 #555555 #444444 #303030 #202020 #101010;
+    -moz-border-left-colors: #000000 #303030;
+    -moz-border-right-colors:#000000 #303030;
+    -moz-border-bottom-colors: #101010 #303030 #222222 #111111;
+}
+#mpm_navbar {
+    background: #232323;
+    color:white;
+    border-bottom: 4px solid black;
+    border-top: 4px solid black;
+    border-right: 1px solid black;
+    border-left: 1px solid black;
+    -moz-border-bottom-colors: #000000 #101010 #202020 black;
+    -moz-border-top-colors: #000000 #101010 #202020 black;
+}
+#mpm_navbar > toolbarbutton, button {
+    background: #232323;
+}
 treechildren::-moz-tree-cell-text() {
-    color: #5a6264;
+    color: #EDEDED;
     }
 treechildren::-moz-tree-cell-text(Title) {
-    color: Black;
+    color: #FAFABE;
     }
 treechildren::-moz-tree-cell-text(Artist) {
     font-style: italic;
-    color: #5a6264;
+    }
+treechildren::-moz-tree-cell-text(Title_directory) {
+    color: white;
+    }
+treechildren::-moz-tree-cell-text(Title_Artist) {
+    color: white;
+    }
+treechildren::-moz-tree-cell-text(Title_Album) {
+    color: white;
+    }
+treechildren::-moz-tree-cell-text(Title_playlist) {
+    color: white;
     }
 

@@ -38,46 +38,46 @@ function prettyTime(sec) {
   try {sec = parseInt(sec)}
   catch (err) {debug("prettyTime: "+err.description);sec = 0}
   if (sec > 0) {
-  	var d = Math.floor(sec / 86400)
-	sec = sec % 86400
-  	var h = Math.floor(sec / 3600)
-  	sec = sec % 3600
-  	var m = Math.floor(sec / 60)
-  	var s = sec % 60
-	
-  	if (d > 0) {
-  		tm = d + " day"
-  		if (d > 1){tm +="s"}
-		var hs = " hr"
-		var ms = " min"
-		var ss = " sec"
-  	}
-	else {
-		var hs = " hour"
-		var ms = " minute"
-		var ss = " second"
-	}
-  	if (h > 0) {
-  		if (tm.length > 0) {
-  			tm += ", "
-  		}
-  		tm += h + hs
-  		if (h > 1){tm +="s"}
-  	}
-  	if (m > 0) {
-  		if (tm.length > 0) {
-  			tm += ", "
-  		}
-  		tm += m + ms
-  		if (m > 1){tm +="s"}
-  	}
-  	if (s > 0) {
-  		if (tm.length > 0) {
-  			tm += ", "
-  		}
-  		tm += s + ss
-  		if (s > 1){tm +="s"}
-  	}
+    var d = Math.floor(sec / 86400)
+    sec = sec % 86400
+    var h = Math.floor(sec / 3600)
+    sec = sec % 3600
+    var m = Math.floor(sec / 60)
+    var s = sec % 60
+
+    if (d > 0) {
+        tm = d + " day"
+        if (d > 1){tm +="s"}
+        var hs = " hr"
+        var ms = " min"
+        var ss = " sec"
+    }
+    else {
+        var hs = " hour"
+        var ms = " minute"
+        var ss = " second"
+    }
+    if (h > 0) {
+        if (tm.length > 0) {
+            tm += ", "
+        }
+        tm += h + hs
+        if (h > 1){tm +="s"}
+    }
+    if (m > 0) {
+        if (tm.length > 0) {
+            tm += ", "
+        }
+        tm += m + ms
+        if (m > 1){tm +="s"}
+    }
+    if (s > 0) {
+        if (tm.length > 0) {
+            tm += ", "
+        }
+        tm += s + ss
+        if (s > 1){tm +="s"}
+    }
   }
   return tm
 }
@@ -265,19 +265,19 @@ function setVol(val) {
   }
 
 function setTime(val) {
-	var t = val.split(":")
-	var val = parseInt(t[0])
-	var max = parseInt(t[1])
-	if (!seekTmr) {
-	    if (max) {
-			$('totalTm').value = hmsFromSec(max)
-			seekMax = max
-	    }
-	    $('elapsedTm').value = hmsFromSec(val)
-	    val = toPercent(val, seekMax)
-		noEchoSeek = val
-		$('progress').value=val
-	}
+    var t = val.split(":")
+    var val = parseInt(t[0])
+    var max = parseInt(t[1])
+    if (!seekTmr) {
+        if (max) {
+            $('totalTm').value = hmsFromSec(max)
+            seekMax = max
+        }
+        $('elapsedTm').value = hmsFromSec(val)
+        val = toPercent(val, seekMax)
+        noEchoSeek = val
+        $('progress').value=val
+    }
 }
 
 function mute(e) {
@@ -312,11 +312,11 @@ function setState(state) {
     State = state
     $('playpause').className = state
     $('cur_song').className = state
-	if (state == 'stop') {
-		setCurSong(-1)
-		setTime("0:0")
-	}
-	else {setCurSong(mpd.song)}
+    if (state == 'stop') {
+        setCurSong(-1)
+        setTime("0:0")
+    }
+    else {setCurSong(mpd.song)}
 }
 
 function setRandom(val) {
@@ -351,39 +351,39 @@ function parseRDFString(str, url){
     }
 
 function setCurSong(id) {
-	try {
-	    var t = $('lbl_title')
-	    var a = $('lbl_artist')
-	    var b = $('lbl_album')
-		var art = $("cur_album_art")
-	    if (id == -1){
-	        if (t) {t.value = "Not Playing"}
-	        if (a) {a.value = "Nobody"}
-	        if (b) {b.value = "Nowhere"}
-			if (art) {art.src = "", art.value = ""}
-	        $('progress').value = '0'
-	        }
-	    else {
-	        $('progress').mode = 'determined'
-	        centerPL()
-	        song = PL[parseInt(id)]
-	        if (typeof(song) == 'object') {
-	            if (t) {t.value = song['Title']}
-	            if (a) {a.value = song['Artist']}
-	            if (b) {b.value = song['Album']}
-	            if (art) {
-					art.value = song.Album
-					getCover(art, song)
-				}
-	        }
-			else {
-				setTimeout("setCurSong("+id+")", 222)
-			}
-	    }
-	} 
-	catch (e) {
-		debug("setCurSong: "+e.description)
-	}
+    try {
+        var t = $('lbl_title')
+        var a = $('lbl_artist')
+        var b = $('lbl_album')
+        var art = $("cur_album_art")
+        if (id == -1){
+            if (t) {t.value = "Not Playing"}
+            if (a) {a.value = "Nobody"}
+            if (b) {b.value = "Nowhere"}
+            if (art) {art.src = "", art.value = ""}
+            $('progress').value = '0'
+            }
+        else {
+            $('progress').mode = 'determined'
+            centerPL()
+            song = PL[parseInt(id)]
+            if (typeof(song) == 'object') {
+                if (t) {t.value = song['Title']}
+                if (a) {a.value = song['Artist']}
+                if (b) {b.value = song['Album']}
+                if (art) {
+                    art.value = song.Album
+                    getCover(art, song)
+                }
+            }
+            else {
+                setTimeout("setCurSong("+id+")", 222)
+            }
+        }
+    }
+    catch (e) {
+        debug("setCurSong: "+e.description)
+    }
 }
 
 
@@ -395,7 +395,7 @@ function assignPLview() {
             getCellText : function (R, C) {
                 var pos = Math.floor(R/3)
                 var r = R - (pos*3)
-				var item = PL[pos]
+                var item = PL[pos]
 
                 if (typeof(item) != 'object') {
                     return null
@@ -446,7 +446,7 @@ function assignPLview() {
             rowCount : PL.length,
             getCellText : function (R, C) {
                 if (typeof(PL[R]) != 'object') {
-					return null
+                    return null
                     }
                 if (C.id=="Position"){
                     return (R+1)+"."
@@ -487,40 +487,40 @@ function playlist_view(mode){
     }
 
 function setPlaylist(ver) {
-	var cb = function(data){
-		data = data.split("\n")
-		PL = []
-		var tm = 0
-		var dl = data.length
-		if (dl > 1) {
-			var n = dl
-			do {
-				var i = dl - n
-				var sep = data[i].indexOf(": ")
-				if (data[i].substr(0, sep) == 'file') {
-					var song = {
-						'Title': data[i].slice(sep+2),
-						'Artist': 'unknown',
-						'Album': 'unknown',
-						'Time': 0
-					};
-					var d = data[i + 1]
-					while (d && d.substr(0, 6) != "file: ") {
-						var sep = d.indexOf(": ")
-						song[d.substr(0, sep)] = d.slice(sep+2);
-						--n;
-						var d = data[dl - n + 1]
-					};
-					PL.push(song);
-					tm += parseInt(song['Time'])
-				}
-			}
-			while (--n)
-			$("pl_stats").value = prettyTime(tm)
-		}
-		playlist_view(PLmode)
-	}
-	command("playlistinfo", cb)
+    var cb = function(data){
+        data = data.split("\n")
+        PL = []
+        var tm = 0
+        var dl = data.length
+        if (dl > 1) {
+            var n = dl
+            do {
+                var i = dl - n
+                var sep = data[i].indexOf(": ")
+                if (data[i].substr(0, sep) == 'file') {
+                    var song = {
+                        'Title': data[i].slice(sep+2),
+                        'Artist': 'unknown',
+                        'Album': 'unknown',
+                        'Time': 0
+                    };
+                    var d = data[i + 1]
+                    while (d && d.substr(0, 6) != "file: ") {
+                        var sep = d.indexOf(": ")
+                        song[d.substr(0, sep)] = d.slice(sep+2);
+                        --n;
+                        var d = data[dl - n + 1]
+                    };
+                    PL.push(song);
+                    tm += parseInt(song['Time'])
+                }
+            }
+            while (--n)
+            $("pl_stats").value = prettyTime(tm)
+        }
+        playlist_view(PLmode)
+    }
+    command("playlistinfo", cb)
 }
 
 function playlist_dblclick() {
@@ -536,18 +536,12 @@ function playlist_dblclick() {
 function playlist_googleIt() {
     if (PLmode == "extended") {
         var id = Math.floor($('playlist').currentIndex / 3)
-        var r = $('playlist').currentIndex - (id*3)
-        switch (r) {
-            case 0: google(PL[id]['Title'], "file"); break;
-            case 1: google(PL[id]['Artist'], "artist"); break;
-            case 2: google(PL[id]['Album'], "album"); break;
-            }
     }
     else {
         var id = $('playlist').currentIndex
-        google(PL[id]['Title'], "file")
     }
-  }
+    google(PL[id])
+}
 
 function playlist_lyricsfreak()  {
     if (PLmode == "extended") {
@@ -555,8 +549,8 @@ function playlist_lyricsfreak()  {
         var r = $('playlist').currentIndex - (id*3)
         switch (r) {
             case 0: lyricsfreak(PL[id]['Title'], "file"); break;
-            case 1: lyricsfreak(PL[id]['Artist'], "artist"); break;
-            case 2: lyricsfreak(PL[id]['Album'], "album"); break;
+            case 1: lyricsfreak(PL[id]['Artist'], "Artist"); break;
+            case 2: lyricsfreak(PL[id]['Album'], "Album"); break;
             }
     }
     else {
@@ -619,28 +613,28 @@ function playlist_select(R) {
     }
 
 function remove() {
-	var tree=$("playlist")
-	var start = new Object();
-	var end = new Object();
-	var numRanges = tree.view.selection.getRangeCount();
-	var pos
-	var offset = 0
-	var pstart
-	var cmd = "command_list_begin"
-	
-	for (var t=0; t<numRanges; t++){
-		tree.view.selection.getRangeAt(t,start,end);
-		for (var v=start.value; v<=end.value; v++){
-		    pos = Math.floor(v/3)
-		    pstart = pos*3
-		    if (v==pstart){
-				cmd += "\ndelete "+ (pos-offset)
-				offset++
-			}
-		}
-	}
-	cmd += "\ncommand_list_end"
-	command(cmd, null)
+    var tree=$("playlist")
+    var start = new Object();
+    var end = new Object();
+    var numRanges = tree.view.selection.getRangeCount();
+    var pos
+    var offset = 0
+    var pstart
+    var cmd = "command_list_begin"
+
+    for (var t=0; t<numRanges; t++){
+        tree.view.selection.getRangeAt(t,start,end);
+        for (var v=start.value; v<=end.value; v++){
+            pos = Math.floor(v/3)
+            pstart = pos*3
+            if (v==pstart){
+                cmd += "\ndelete "+ (pos-offset)
+                offset++
+            }
+        }
+    }
+    cmd += "\ncommand_list_end"
+    command(cmd, null)
 }
 
 function clear() {
@@ -657,12 +651,12 @@ function centerPL() {
     }
 
 function playlist_openPopup(){
-	var cb = function(data) {
-		playlists_ds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
-	    $('playlist_open_popup').database.AddDataSource(playlists_ds)
-    	$('playlist_open_popup').ref="mpd://playlists"
-	}
-	command('lsinfo', cb)
+    var cb = function(data) {
+        playlists_ds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
+        $('playlist_open_popup').database.AddDataSource(playlists_ds)
+        $('playlist_open_popup').ref="mpd://playlists"
+    }
+    command('lsinfo', cb)
 }
 
 
