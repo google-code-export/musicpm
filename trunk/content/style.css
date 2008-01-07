@@ -6,8 +6,9 @@ window, page, toolbar, toolbarbutton, button {
     }
 box, tree, listbox  {
     -moz-appearance: none !important;
-    background-color: #232323;
-    border: none
+    background-color: #1C1C1C;
+    border: none;
+    color:white;
     }
 
 .Title {
@@ -20,25 +21,24 @@ box, tree, listbox  {
 
 
 #cur_album_art {
-    margin: 4px;
+    margin: 5px;
     margin-left: 12px;
     padding: 0px;
     border: 1px solid Gray;
-    height: 73px;
-    width: 73px;
+    height: 70px;
+    width: 70px;
     }
 
 treecol, listheader, treecolpicker{
     -moz-appearance:none !important;
     background-color:black;
     color:white;
-    border-bottom:3px solid black;
+    border-bottom: 1px solid black;
     border-top:7px solid black;
     border-right:1px solid black;
-    border-left:1px solid black;
-    -moz-border-bottom-colors:#151515 #333333 #222222;
+    border-left:0px solid black;
+    -moz-border-bottom-colors: #444444;
     -moz-border-top-colors:#333333 #444444 #666666 #555555 #444444 #333333 #151515;
-    -moz-border-left-colors:#444444;
     -moz-border-right-colors:#444444;
 }
 #playback_controls {
@@ -55,15 +55,79 @@ treecol, listheader, treecolpicker{
 #mpm_navbar {
     background: #232323;
     color:white;
-    border-bottom: 4px solid black;
-    border-top: 4px solid black;
+    border-bottom: 2px ridge #101010;
+    border-top: 2px ridge #101010;
     border-right: 1px solid black;
     border-left: 1px solid black;
-    -moz-border-bottom-colors: #000000 #101010 #202020 black;
-    -moz-border-top-colors: #000000 #101010 #202020 black;
 }
-#mpm_navbar > toolbarbutton, button {
+#mpm_navbar > toolbarbutton {
     background: #232323;
+    border: 3px solid #232323;
+}
+#mpm_navbar > button{
+    background: #303030;
+    color:white;
+    border-bottom: 3px solid black;
+    border-top: 3px solid black;
+    border-right: 3px solid black;
+    border-left: 3px solid black;
+    -moz-border-radius: 3px;
+    -moz-border-bottom-colors: #1a1a1a #272727 #333333;
+    -moz-border-top-colors: #1a1a1a #272727 #333333;
+    -moz-border-left-colors: #1a1a1a #272727 #333333;
+    -moz-border-right-colors: #1a1a1a #272727 #333333;
+}
+#mpm_navbar > toolbarbutton:hover, button:hover{
+    background: #404040;
+    color:white;
+    border-bottom: 3px solid black;
+    border-top: 3px solid black;
+    border-right: 3px solid black;
+    border-left: 3px solid black;
+    -moz-border-radius: 3px;
+    -moz-border-bottom-colors: #1a1a1a #272727 #333333;
+    -moz-border-top-colors: #1a1a1a #272727 #333333;
+    -moz-border-left-colors: #1a1a1a #272727 #333333;
+    -moz-border-right-colors: #1a1a1a #272727 #333333;
+}
+#mpm_navbar > button:hover{
+    background: #404040;
+    color:white;
+    border-bottom: 3px solid black;
+    border-top: 3px solid black;
+    border-right: 3px solid black;
+    border-left: 3px solid black;
+    -moz-border-radius: 3px;
+    -moz-border-bottom-colors: #1a1a1a #272727 #333333;
+    -moz-border-top-colors: #1a1a1a #272727 #333333;
+    -moz-border-left-colors: #1a1a1a #272727 #333333;
+    -moz-border-right-colors: #1a1a1a #272727 #333333;
+}
+#mpm_navbar > toolbarbutton:active, button:active{
+    background: #151515;
+    color:white;
+    border-bottom: 3px solid black;
+    border-top: 3px solid black;
+    border-right: 3px solid black;
+    border-left: 3px solid black;
+    -moz-border-radius: 3px;
+    -moz-border-bottom-colors: #303030 #272727 #1a1a1a;
+    -moz-border-top-colors: #303030 #272727 #1a1a1a;
+    -moz-border-left-colors: #303030 #272727 #1a1a1a;
+    -moz-border-right-colors: #303030 #272727 #1a1a1a;
+}
+#mpm_navbar > button:active{
+    background: #151515;
+    color:white;
+    border-bottom: 3px solid black;
+    border-top: 3px solid black;
+    border-right: 3px solid black;
+    border-left: 3px solid black;
+    -moz-border-radius: 3px;
+    -moz-border-bottom-colors: #303030 #272727 #1a1a1a;
+    -moz-border-top-colors: #303030 #272727 #1a1a1a;
+    -moz-border-left-colors: #303030 #272727 #1a1a1a;
+    -moz-border-right-colors: #303030 #272727 #1a1a1a;
 }
 treechildren::-moz-tree-cell-text() {
     color: #EDEDED;
@@ -87,3 +151,31 @@ treechildren::-moz-tree-cell-text(Title_playlist) {
     color: white;
     }
 
+
+treechildren::-moz-tree-row {
+  border: 1px solid transparent;
+  min-height: 18px;
+  height: 1.3em;
+}
+
+treechildren::-moz-tree-row(selected) {
+  background-color: black;
+}
+treechildren::-moz-tree-row(even) {
+  background-color: #303030;
+}
+treechildren::-moz-tree-row(odd) {
+  background-color: #232323;
+}
+
+treechildren::-moz-tree-row(selected, focus) {
+  background-color: black;
+}
+
+treechildren::-moz-tree-row(current, focus) {
+  border: 1px dotted #6D0505;
+}
+
+treechildren::-moz-tree-cell {
+  border-right: 1px dotted #444444;
+}

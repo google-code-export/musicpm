@@ -99,7 +99,7 @@
                 onselect="playlist_select(this.currentIndex)"
                 context="playlist_context">
                 <treecols>
-                    <treecol id="Position" label="#" width="30" ordinal="0"
+                    <treecol id="Position" label="#" width="35" ordinal="0"
                                 class=""
                                 src="colheader.png"/>
                     <splitter class="tree-splitter"/>
