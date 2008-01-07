@@ -26,16 +26,6 @@ var home = [
         'Title': 'Playlists'
     },
 ]
-function clearDS(elem){
-    var list = elem.database.GetDataSources();
-    while (list.hasMoreElements()){
-        var ds = list.getNext();
-        if (ds instanceof Components.interfaces.nsIRDFDataSource){
-            elem.database.RemoveDataSource(ds)
-        }
-    }
-}
-
 function filter(lst, types){
     var l = lst.length
     if (l < 1) { return lst }
@@ -285,8 +275,6 @@ function goForward(){
     }
     if (mpm_future.length == 0) {$('files_forward').disabled=true}
 }
-
-
 function album_art_click(){
     var art = $('album_art')
     var artBox = $('album_artBox')
@@ -307,23 +295,18 @@ function files_dblclick() {
   if (mytype == "file") {command('add "'+id+'"', null)}
   else {getDir(mytype, id)}
   }
-
-
 function files_googleIt() {
   var tree = $('files')
   var v = tree.currentIndex
-  var id = table[v].Name
-  var mytype = table[v].type
-  google(id, mytype)
+  google(table[v])
   }
 function files_lyricsfreak() {
   var tree = $('files')
   var v = tree.currentIndex
-  var id = table[v].Name
+  var id = table[v].Title
   var mytype = table[v].type
   lyricsfreak(id, mytype)
   }
-
 function add() {
     var tree=$("files")
     var start = new Object();

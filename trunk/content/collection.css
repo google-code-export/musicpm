@@ -65,13 +65,11 @@ treechildren::-moz-tree-image(Title_playlist) {
     width: 170px;
     margin: 0px !important;
     border-right: none !important;
-    background-color: white !important;
     }
 #album_art {
     margin: 4px;
     padding: 0px;
     border: 1px solid DarkGray;
-    background-color: white;
     }
 #album_art.scaled {
     max-width: 73px;
@@ -79,7 +77,6 @@ treechildren::-moz-tree-image(Title_playlist) {
     }
 .files {
     min-width: 200px;
-    background-color: white !important;
     border-left: none !important;
     margin-left: 0px !important;
     }
