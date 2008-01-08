@@ -57,7 +57,6 @@
                 <label id="totalTm" value="0:00"/>
             </hbox>
         </vbox>
-        <toolbarbutton id="playlist_center" command="cmd_centerPL"/>
     </hbox>
     <tree id="playlist"
         label="Playlist"

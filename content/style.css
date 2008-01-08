@@ -4,13 +4,16 @@ window, page, toolbar, toolbarbutton, button {
     background-color: black;
     color:white;
     }
-box, tree, listbox  {
+#files, #playlist, #album_artBox  {
     -moz-appearance: none !important;
     background-color: #1C1C1C;
-    border: none;
-    color:white;
+    border: none !important;
+    color: white;
     }
 
+listitem[selected="true"]{
+    background-color: #1C1C1C !important;
+}
 .Title {
     font-weight: bold;
     color: #FBFBC7;
@@ -25,10 +28,12 @@ box, tree, listbox  {
     margin-left: 12px;
     padding: 0px;
     border: 1px solid Gray;
-    height: 70px;
-    width: 70px;
+    height: 70px !important;
+    width: 70px !important;
     }
-
+toolbarbutton {
+    background-color: transparent;
+}
 treecol, listheader, treecolpicker{
     -moz-appearance:none !important;
     background-color:black;
@@ -38,27 +43,34 @@ treecol, listheader, treecolpicker{
     border-right:1px solid black;
     border-left:0px solid black;
     -moz-border-bottom-colors: #444444;
-    -moz-border-top-colors:#333333 #444444 #666666 #555555 #444444 #333333 #151515;
+    -moz-border-top-colors: #333333 #444444 #666666 #555555 #444444 #333333 #151515;
     -moz-border-right-colors:#444444;
 }
 #playback_controls {
+    background-image: url("chrome://minion/content/playback.png");
+    background-repeat: repeat-x;
     color:white;
-    border-top: 9px solid black;
-    border-bottom: 4px solid black;
-    border-right: 2px solid black;
-    border-left: 2px solid black;
-    -moz-border-top-colors: black #202020 #444444 #606060 #555555 #444444 #303030 #202020 #101010;
-    -moz-border-left-colors: #000000 #303030;
-    -moz-border-right-colors:#000000 #303030;
-    -moz-border-bottom-colors: #101010 #303030 #222222 #111111;
+    border-bottom: 5px solid black;
+    -moz-border-bottom-colors: #000000 #303030 #555555 #2a2a2a #1a1a1a;
+}
+#cur_song {
+    padding: 4px;
+}
+#playlist_toolbar, #files_toolbar{
+    background-image: url("chrome://minion/content/toolbar.png");
+    background-repeat: repeat-x;
+    height: 35px;
+    border: none;
 }
 #mpm_navbar {
     background: #232323;
     color:white;
-    border-bottom: 2px ridge #101010;
-    border-top: 2px ridge #101010;
+    border-bottom: 3px solid black;
+    border-top: 2px solid black;
     border-right: 1px solid black;
     border-left: 1px solid black;
+    -moz-border-bottom-colors: #000000 #555555 #000000;
+    -moz-border-top-colors: #555555 #000000;
 }
 #mpm_navbar > toolbarbutton {
     background: #232323;
@@ -153,11 +165,15 @@ treechildren::-moz-tree-cell-text(Title_playlist) {
 
 
 treechildren::-moz-tree-row {
-  border: 1px solid transparent;
+  border-bottom: 1px solid transparent;
   min-height: 18px;
   height: 1.3em;
 }
-
+#files > treechildren::-moz-tree-row {
+  border-bottom: 1px solid #151515;
+  min-height: 19px;
+  height: 1.3em;
+}
 treechildren::-moz-tree-row(selected) {
   background-color: black;
 }
