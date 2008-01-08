@@ -128,15 +128,19 @@
                            command="cmd_add"
                            crop="end" />
             <spacer flex="1"/>
-            <deck id="search_deck">
-                <textbox id="mpm_search_cover"
-                    onfocus="$('mpm_search').focus();$('search_deck').selectedIndex=1;"
-                    value="type here to search"/>
-                <textbox id="mpm_search"
-                    type="timed"
-                    timeout="300"
-                    oncommand="search(this.value,'any')"/>
-            </deck>
+            <vbox>
+                <spacer flex="1"/>
+                    <deck id="search_deck">
+                        <textbox id="mpm_search_cover"
+                            onfocus="$('mpm_search').focus();$('search_deck').selectedIndex=1;"
+                            value="type here to search"/>
+                        <textbox id="mpm_search"
+                            type="timed"
+                            timeout="300"
+                            oncommand="search(this.value,'any')"/>
+                    </deck>
+                <spacer flex="1"/>
+            </vbox>
             <toolbarbutton id="mpm_search_clear"
                 tooltiptext="Clear Search"
                 oncommand="search_clear()"/>

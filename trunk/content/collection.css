@@ -1,6 +1,7 @@
 treechildren::-moz-tree-image {
     margin: 0px 5px 0px 1px;
     }
+
 #mpm_search_clear {
     list-style-image: url('chrome://minion/content/clear_find.png')
     }
@@ -66,6 +67,9 @@ treechildren::-moz-tree-image(Title_playlist) {
     margin: 0px !important;
     border-right: none !important;
     }
+#album_artBox > listcell {
+    height: 170px;
+}
 #album_art {
     margin: 4px;
     padding: 0px;

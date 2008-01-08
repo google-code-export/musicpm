@@ -52,9 +52,13 @@
                         onmousedown="prgmtrChange(event)"/>
             </hbox>
         </vbox>
-        <image id="cur_album_art"
-            value="-1"
-            onclick="getDir('Album',this.value)"></image>
+        <vbox>
+            <spacer flex="1"/>
+            <image id="cur_album_art"
+                value="-1"
+                onclick="getDir('Album',this.value)"></image>
+            <spacer flex="1"/>
+        </vbox>
         <vbox id="cur_song" flex="1">
             <label id="lbl_title"
                 crop="right"
@@ -84,7 +88,6 @@
             </hbox>
             <spacer flex="1"/>
         </vbox>
-        <toolbarbutton id="playlist_center" command="cmd_centerPL" width="24"/>
     </toolbar>
 
     <hbox id="main" flex="1">
