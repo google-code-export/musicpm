@@ -37,7 +37,7 @@
 
 /* Playlist toolbar icons */
 #playlist_menu {
-    list-style-image: url('chrome://minion/content/playlist.png')
+    list-style-image: url('chrome://minion/content/playlist_large.png')
     }
 #playlist_browse {
     list-style-image: url('chrome://minion/content/artist.png')
@@ -79,13 +79,16 @@
 
 /* Current Song Display */
 
-#cur_song.play {
-    background-color: PaleGreen;
+#lbl_title.play {
+    color: PaleGreen;
+    font-weight: bold;
     }
-#cur_song.pause {
-    background-color: #fafb98;
+#lbl_title.pause {
+    color: #fafb98;
+    font-weight: bold;
     }
-#cur_song.stop {
+#lbl_title.stop {
+    font-weight: bold;
     }
 #mpm_playlist #progress {
     min-width: 20px;

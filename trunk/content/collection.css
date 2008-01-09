@@ -68,7 +68,7 @@ treechildren::-moz-tree-image(Title_playlist) {
     border-right: none !important;
     }
 #album_artBox > listcell {
-    height: 170px;
+    height: 160px;
 }
 #album_art {
     margin: 4px;
@@ -79,6 +79,12 @@ treechildren::-moz-tree-image(Title_playlist) {
     max-width: 73px;
     max-height: 73px;
     }
+listitem {
+    height: 150px;
+}
+listitem[selected="true"]{
+    background-color: #1C1C1C !important;
+}
 .files {
     min-width: 200px;
     border-left: none !important;

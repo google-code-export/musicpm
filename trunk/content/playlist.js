@@ -311,7 +311,7 @@ function setDB(db) {
 function setState(state) {
     State = state
     $('playpause').className = state
-    $('cur_song').className = state
+    $('lbl_title').className = state
     if (state == 'stop') {
         setCurSong(-1)
         setTime("0:0")
