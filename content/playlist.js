@@ -227,6 +227,10 @@ function scaleChange(elem, val) {
       }
     }
   if (elem.id == "progress") {
+    if (mpd.state == 'stop') {
+        elem.value = 0
+    }
+    else {
     if(elem.value != noEchoSeek) {
       if (seekTmr) {clearTimeout(seekTmr)}
       noEchoSeek = elem.value
@@ -234,6 +238,7 @@ function scaleChange(elem, val) {
       }
     }
   }
+}
 
 //Proxy function for progressmeter in < firefox 3
 function prgmtrChange(event) {
@@ -253,7 +258,7 @@ function volChange(){
 
 function seekChange(){
   var e = $('progress')
-  command('seek '+mpd.song+' '+fromPercent(e.value, seekMax), null)
+  if (mpd.state != 'stop') {command('seek '+mpd.song+' '+fromPercent(e.value, seekMax), null)}
   seekTmr = false
   }
 
@@ -634,17 +639,29 @@ function remove() {
     var pstart
     var cmd = "command_list_begin"
 
-    for (var t=0; t<numRanges; t++){
-        tree.view.selection.getRangeAt(t,start,end);
-        for (var v=start.value; v<=end.value; v++){
-            pos = Math.floor(v/3)
-            pstart = pos*3
-            if (v==pstart){
-                cmd += "\ndelete "+ (pos-offset)
+    if (PLmode == 'extended') {
+        for (var t=0; t<numRanges; t++){
+            tree.view.selection.getRangeAt(t,start,end);
+            for (var v=start.value; v<=end.value; v++){
+                pos = Math.floor(v/3)
+                pstart = pos*3
+                if (v==pstart){
+                    cmd += "\ndelete "+ (pos-offset)
+                    offset++
+                }
+            }
+        }
+    }
+    else {
+        for (var t=0; t<numRanges; t++){
+            tree.view.selection.getRangeAt(t,start,end);
+            for (var v=start.value; v<=end.value; v++){
+                cmd += "\ndelete "+ (v-offset)
                 offset++
             }
         }
     }
+
     cmd += "\ncommand_list_end"
     command(cmd, null)
 }

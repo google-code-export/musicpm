@@ -4,6 +4,25 @@ window, page, toolbar, toolbarbutton, button {
     background-color: black;
     color:white;
     }
+splitter, divider {
+-moz-border-left-colors: #250205 #530005;
+-moz-border-right-colors: #250205 #530005;
+background-color: #2D0003;
+}
+.progress-bar {
+    -moz-appearance: none !important;
+    background-image: url("chrome://minion/content/progress.png");
+    background-repeat: repeat;
+}
+progressmeter {
+    -moz-appearance: none !important;
+    background-color: black;
+    border: 2px solid transparent;
+    -moz-border-top-colors: #303030 #151515;
+    -moz-border-bottom-colors: #666666 #303030;
+    -moz-border-right-colors: #666666 #303030;
+    -moz-border-left-colors: #303030 #151515;
+}
 #files, #playlist, #album_artBox  {
     -moz-appearance: none !important;
     background-color: #1C1C1C;
@@ -28,20 +47,44 @@ window, page, toolbar, toolbarbutton, button {
     height: 70px !important;
     width: 70px !important;
     }
-toolbarbutton {
-    background-color: transparent;
-}
 .toolbarbutton-menu-dropmarker {
     margin-left: 4px;
     list-style-image: url("chrome://minion/content/drop.png")
 }
+toolbarbutton {
+    background-color: transparent;
+    border: 1px solid transparent;
+}
 toolbarbutton:hover {
-    border-color: #7A080C;
-    -moz-border-radius:6px;
+    background-image: url("chrome://minion/content/toolbar-high.png");
+    background-repeat: repeat;
+    border: 1px solid #BBBBBB;
 }
 toolbarbutton:active {
-    border-color: #400406;
-    -moz-border-radius:6px;
+    background-image: url("chrome://minion/content/toolbar-active.png");
+    background-repeat: repeat;
+    border: 1px solid black;
+}
+#files_toolbar > toolbarbutton, #playlist_toolbar > toolbarbutton {
+    background-image: none;
+    background-color: transparent;
+    border: 2px solid transparent;
+}
+#files_toolbar > toolbarbutton:hover, #playlist_toolbar > toolbarbutton:hover {
+    background-image: none;
+    background-color: #760008;
+    -moz-border-top-colors: #2B0002 #99000A;
+    -moz-border-bottom-colors: #2B0002 #99000A;
+    -moz-border-right-colors: #2B0002 #99000A;
+    -moz-border-left-colors: #2B0002 #99000A;
+}
+#files_toolbar > toolbarbutton:active, #playlist_toolbar > toolbarbutton:active {
+    background-image: none;
+    background-color: #4E0005;
+    -moz-border-top-colors: #1D0001 #390003;
+    -moz-border-bottom-colors: #1D0001 #390003;
+    -moz-border-right-colors: #1D0001 #390003;
+    -moz-border-left-colors: #1D0001 #390003;
 }
 treecol, listheader, treecolpicker{
     -moz-appearance:none !important;
