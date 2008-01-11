@@ -4,10 +4,26 @@ window, page, toolbar, toolbarbutton, button {
     background-color: black;
     color:white;
     }
-splitter, divider {
--moz-border-left-colors: #250205 #530005;
--moz-border-right-colors: #250205 #530005;
-background-color: #2D0003;
+toolbarseparator {
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    -moz-border-left-colors: #250205 #510004;
+    -moz-border-right-colors: #250205 #510004;
+    background-color: #370003;
+}
+splitter {
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    -moz-border-left-colors:#171717 #0A0A0A;
+    -moz-border-right-colors:#171717 #0A0A0A;
+    background-color:#040404;
+}
+splitter:hover {
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    -moz-border-left-colors:#202020 $151515;
+    -moz-border-right-colors:#202020 $151515;
+    background-color: #101010;
 }
 .progress-bar {
     -moz-appearance: none !important;

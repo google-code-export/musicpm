@@ -64,7 +64,8 @@
                 crop="right"
                 value="Not Playing."
                 class="Title"
-                style="font-size:1.5em"/>
+                style="font-size:1.5em"
+                onclick="centerPL()"/>
             <hbox flex="1">
                 <label value="by"></label>
                 <label id="lbl_artist" value="" class="Artist" crop="right" />
