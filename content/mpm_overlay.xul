@@ -158,6 +158,7 @@
                 command="cmd_home" />
         </toolbar>
         <hbox flex="1">
+            <spacer id="files_left_spacer" width="4px"/>
             <listbox id="album_artBox" collapsed="false">
                 <listhead>
                     <listheader label="Album Cover"

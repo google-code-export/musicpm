@@ -533,9 +533,9 @@ function setPlaylist(ver) {
                 }
             }
             while (--n)
-            $("pl_stats").value = prettyTime(tm)
         }
         playlist_view(PLmode)
+        $("pl_stats").value = prettyTime(tm)
     }
     command("playlistinfo", cb)
 }

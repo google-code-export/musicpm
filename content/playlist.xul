@@ -46,7 +46,11 @@
 
     <hbox id="cur_song" class="hidden">
         <vbox flex="1">
-            <label id="lbl_title" crop="right" value="Not Playing." class="Title"/>
+            <label id="lbl_title"
+                crop="right"
+                value="Not Playing."
+                class="Title"
+                onclick="centerPL()"/>
             <label id="lbl_artist" value="" class="Artist" crop="right" />
             <hbox flex="1">
                 <label id="elapsedTm" value="0:00"/>

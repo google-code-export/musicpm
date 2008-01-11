@@ -197,7 +197,15 @@ function getDir(mytype, id) {
     }
     if (mytype == 'playlist') {
         addnav("Playlists", 'playlist', '')
-        if (id.length > 0) {
+        if (id == '[current]') {
+            addnav('Current Playlist', 'playlist', id)
+            id = ""
+            cmd = "playlistinfo"
+            var cb = function (data) {
+                setTable(filter(parse_db(data), {'file':true}))
+            }
+        }
+        else if (id.length > 0) {
             addnav(id, 'playlist', id)
             cmd = "listplaylistinfo"
             var cb = function (data) {
@@ -206,7 +214,9 @@ function getDir(mytype, id) {
         }
         else {
             var cb = function (data) {
-                setTable(filter(parse_db(data), {'playlist':true}))
+                var db = filter(parse_db(data), {'playlist':true})
+                db.unshift({'type': 'playlist', 'Name': '[current]', 'Title': 'Current Playlist'})
+                setTable(db)
             }
         }
     }
@@ -313,9 +323,9 @@ function add() {
     var end = new Object();
     var numRanges = tree.view.selection.getRangeCount();
     var addCB = function (data){
-        var db = filter(parse_db(data), {'files':true})
+        var db = filter(parse_db(data), {'file':true})
         var cmd = "command_list_begin\n"
-        for (i in db) {cmd += 'add "'+db[i].file+'"\n'}
+        for (i in db) {cmd += 'add "'+db[i].Name+'"\n'}
         command(cmd+'command_list_end', null)
     }
 
