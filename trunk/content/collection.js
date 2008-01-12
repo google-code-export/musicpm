@@ -26,6 +26,8 @@ var home = [
         'Title': 'Playlists'
     },
 ]
+var active_item = null
+
 function filter(lst, types){
     var l = lst.length
     if (l < 1) { return lst }
@@ -114,36 +116,40 @@ function setTable(data){
     }
     var tree = $('files')
     assignView()
-    $(tree.getAttribute("sortResource")).setAttribute("sortDirection", '');
+    try {
+        $(tree.getAttribute("sortResource")).setAttribute("sortDirection", '');
+    } catch (e){}
     tree.setAttribute("sortDirection", '');
     tree.setAttribute("sortResource", '');
 }
 function assignView() {
     var tree = $('files')
-    tree.view = {
-        rowCount : table.length,
-        getCellText : function (R, C) {
-            if (!table[C.id]){table[C.id] = ""}
-            if (C.id=="Time" && table[R].Time > ''){return hmsFromSec(table[R]["Time"])}
-            else {return table[R][C.id]}
-        },
-        setTree: function(treebox){ this.treebox = treebox; },
-        isContainer: function(row){ return false; },
-        isSeparator: function(row){ return false; },
-        isSorted: function(){ return false; },
-        getLevel: function(row){ return 0; },
-        getImageSrc: function(row,col){ return null; },
-        getRowProperties: function(row,props){
-            props.AppendElement( aserv.getAtom(table[row].type) )
-        },
-        getCellProperties: function(row,col,props){
-            props.AppendElement( aserv.getAtom(col.id+"_"+table[row].type) )
-            props.AppendElement( aserv.getAtom(col.id) )
-        },
-        getColumnProperties: function(colid,col,props){
-        },
-        cycleHeader: function(col, elem) {return null}
-    };
+    if (table) {
+        tree.view = {
+            rowCount : table.length,
+            getCellText : function (R, C) {
+                if (!table[C.id]){table[C.id] = ""}
+                if (C.id=="Time" && table[R].Time > ''){return hmsFromSec(table[R]["Time"])}
+                else {return table[R][C.id]}
+            },
+            setTree: function(treebox){ this.treebox = treebox; },
+            isContainer: function(row){ return false; },
+            isSeparator: function(row){ return false; },
+            isSorted: function(){ return false; },
+            getLevel: function(row){ return 0; },
+            getImageSrc: function(row,col){ return null; },
+            getRowProperties: function(row,props){
+                props.AppendElement( aserv.getAtom(table[row].type) )
+            },
+            getCellProperties: function(row,col,props){
+                props.AppendElement( aserv.getAtom(col.id+"_"+table[row].type) )
+                props.AppendElement( aserv.getAtom(col.id) )
+            },
+            getColumnProperties: function(colid,col,props){
+            },
+            cycleHeader: function(col, elem) {return null}
+        };
+    }
 }
 function addnav(lbl, mytype, id) {
     var e = document.createElement("button")
@@ -236,6 +242,22 @@ function getDir(mytype, id) {
             }
         }
     }
+    else if (mytype == 'ArtistAlbum') {
+        addnav("Artists", 'Artist', '')
+        if (id.length > 0) {
+            addnav("Albums by "+id, 'ArtistAlbum', id)
+            cmd = "list album artist"
+            var cb = function (data) {
+                setTable(filter(parse_db(data), {'Album':true}))
+            }
+        }
+        else {
+            cmd = "list artist"
+            var cb = function (data) {
+                setTable(filter(parse_db(data), {'Artist':true}))
+            }
+        }
+    }
     else if (mytype == 'Album') {
         addnav("Albums", "Album", '')
         if (id.length > 0) {
@@ -305,17 +327,24 @@ function files_dblclick() {
   if (mytype == "file") {command('add "'+id+'"', null)}
   else {getDir(mytype, id)}
   }
+function find_album () {
+  getDir('Album', active_item.Album)
+}
+function find_artist_songs () {
+    if (active_item.type == "Artist") {var id = active_item.Title}
+    else {var id = active_item.Artist}
+    getDir('Artist', id)
+}
+function find_artist_albums () {
+    if (active_item.type == "Artist") {var id = active_item.Title}
+    else {var id = active_item.Artist}
+    getDir('ArtistAlbum', id)
+}
 function files_googleIt() {
-  var tree = $('files')
-  var v = tree.currentIndex
-  google(table[v])
-  }
+    google(active_item)
+}
 function files_lyricsfreak() {
-  var tree = $('files')
-  var v = tree.currentIndex
-  var id = table[v].Title
-  var mytype = table[v].type
-  lyricsfreak(id, mytype)
+  lyricsfreak(active_item.Title, active_item.type)
   }
 function add() {
     var tree=$("files")
@@ -387,23 +416,62 @@ function search_clear () {
     getDir(mytype, id)
 }
 function files_contextShowing(){
-    var tree = $('files')
-    var mytype = table[tree.currentIndex].type
-    if (mytype == 'playlist') {
-        $('files_context_delete').hidden = false
-        $('files_context_rename').hidden = false
+    active_item = table[$('files').currentIndex]
+    if (active_item.Name > "") {
+        var mytype = active_item.type
+        switch (mytype) {
+            case 'file':
+                $('files_context_delete').hidden = true;
+                $('files_context_rename').hidden = true;
+                $('files_context_lyricsfreak').hidden = false;
+                $('files_context_album').hidden = false;
+                $('files_context_artist_songs').hidden = false;
+                $('files_context_artist_albums').hidden = false;
+                break;
+            case 'directory':
+                $('files_context_delete').hidden = true;
+                $('files_context_rename').hidden = true;
+                $('files_context_lyricsfreak').hidden = true;
+                $('files_context_album').hidden = true;
+                $('files_context_artist_songs').hidden = true;
+                $('files_context_artist_albums').hidden = true;
+                break;
+            case 'Artist':
+                $('files_context_delete').hidden = true;
+                $('files_context_rename').hidden = true;
+                $('files_context_lyricsfreak').hidden = true;
+                $('files_context_album').hidden = true;
+                $('files_context_artist_songs').hidden = false;
+                $('files_context_artist_albums').hidden = false;
+                break;
+            case 'Album':
+                $('files_context_delete').hidden = true;
+                $('files_context_rename').hidden = true;
+                $('files_context_lyricsfreak').hidden = true;
+                $('files_context_album').hidden = true;
+                $('files_context_artist_songs').hidden = true;
+                $('files_context_artist_albums').hidden = true;
+                break;
+            case 'playlist':
+                $('files_context_delete').hidden = false;
+                $('files_context_rename').hidden = false;
+                $('files_context_lyricsfreak').hidden = true;
+                $('files_context_album').hidden = true;
+                $('files_context_artist_songs').hidden = true;
+                $('files_context_artist_albums').hidden = true;
+                break;
+        }
     }
     else {
-        $('files_context_delete').hidden = true
-        $('files_context_rename').hidden = true
+        $('files_context_delete').hidden = true;
+        $('files_context_rename').hidden = true;
+        $('files_context_google').hidden = true;
+        $('files_context_lyricsfreak').hidden = true;
+        $('files_context_album').hidden = true;
+        $('files_context_artist_songs').hidden = true;
+        $('files_context_artist_albums').hidden = true;
     }
-    if (mytype == 'file') {
-        $('files_context_lyricsfreak').hidden = false
-    }
-    else {
-        $('files_context_lyricsfreak').hidden = true
-    }
- }
+}
  function delete_playlist(){
     var tree = $('files')
     var start = new Object();
@@ -447,3 +515,4 @@ notify['db_update'] = function(v){
     }
 
 }
+

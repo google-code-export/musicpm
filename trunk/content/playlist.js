@@ -687,7 +687,24 @@ function playlist_openPopup(){
     }
     command('lsinfo', cb)
 }
-
+function playlist_contextShowing () {
+    if (typeof(active_item) != 'undefined') {
+        if (PLmode == "extended") {
+            active_item = PL[Math.floor($('playlist').currentIndex / 3)]
+        }
+        else {
+            active_item = PL[$('playlist').currentIndex]
+        }
+        $('playlist_context_album').hidden = false;
+        $('playlist_context_artist_songs').hidden = false;
+        $('playlist_context_artist_albums').hidden = false;
+    }
+    else {
+        $('playlist_context_album').hidden = true;
+        $('playlist_context_artist_songs').hidden = true;
+        $('playlist_context_artist_albums').hidden = true;
+    }
+}
 
 notify['song'] = setCurSong
 notify['state'] = setState
@@ -696,3 +713,5 @@ notify['volume'] = setVol
 notify['random'] = setRandom
 notify['repeat'] = setRepeat
 notify['playlist'] = setPlaylist
+
+
