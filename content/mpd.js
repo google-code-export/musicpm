@@ -10,7 +10,7 @@ var status_command = "command_list_begin\nstatus\nstats\ncommand_list_end\n"
 var queue = []
 var notify = {}
 var talker_active = false
-var doStatus = true
+var doStatus = false
 
 var transportService =
   Components.classes["@mozilla.org/network/socket-transport-service;1"]

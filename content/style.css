@@ -21,8 +21,8 @@ splitter {
 splitter:hover {
     border-left: 2px solid black;
     border-right: 2px solid black;
-    -moz-border-left-colors:#202020 $151515;
-    -moz-border-right-colors:#202020 $151515;
+    -moz-border-left-colors:#202020 #151515;
+    -moz-border-right-colors:#202020 #151515;
     background-color: #101010;
 }
 .progress-bar {
@@ -239,8 +239,8 @@ treechildren::-moz-tree-row {
 }
 #files > treechildren::-moz-tree-row {
   border-bottom: 1px solid #151515;
-  min-height: 19px;
-  height: 1.3em;
+  min-height: 20px;
+  height: 1.4em;
 }
 treechildren::-moz-tree-row(selected) {
   background-color: black;

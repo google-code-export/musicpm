@@ -8,6 +8,9 @@
     <command id="cmd_replace" label="Replace Playlist" oncommand="replace();"/>
     <command id="cmd_delete_playlist" label="Delete" oncommand="delete_playlist();"/>
     <command id="cmd_rename_playlist" label="Rename" oncommand="rename_playlist();"/>
+    <command id="cmd_find_album" label="Find: Album" oncommand="find_album();"/>
+    <command id="cmd_find_artist_songs" label="Find: Songs by Artist" oncommand="find_artist_songs();"/>
+    <command id="cmd_find_artist_albums" label="Find: Albums by Artist" oncommand="find_artist_albums();"/>
     <command id="cmd_selectAll" label="Select All" oncommand="$('files').view.selection.selectAll();"/>
     <command id="cmd_remove" label="Remove Song(s)" oncommand="remove()" />
     <command id="cmd_clear" label="Clear Playlist" oncommand="clear()" />
@@ -64,8 +67,6 @@
             <menuseparator></menuseparator>
             <menuitem id="playlist_menu_simple" command="cmd_simple"></menuitem>
             <menuitem id="playlist_menu_extened" command="cmd_extended"></menuitem>
-            <menuseparator></menuseparator>
-            <menuitem id="playlist_settings" command="cmd_config"></menuitem>
         </menupopup>
       </toolbarbutton>
       <spacer flex="1"/>
@@ -73,18 +74,21 @@
       <toolbarbutton id="playlist_repeat" command="cmd_repeat"/>
     </toolbar>
 
-    <menupopup id="playlist_context">
+    <menupopup id="playlist_context" onpopupshowing="playlist_contextShowing()">
         <menuitem id="playlist_context_play"
             label="Play"
             default="true"
             oncommand="playlist_dblclick()"></menuitem>
         <menuitem id="playlist_context_remove" command="cmd_remove"></menuitem>
         <menuseparator></menuseparator>
+        <menuitem id="playlist_context_album" command="cmd_find_album"></menuitem>
+        <menuitem id="playlist_context_artist_songs" command="cmd_find_artist_songs"></menuitem>
+        <menuitem id="playlist_context_artist_albums" command="cmd_find_artist_albums"></menuitem>
         <menuitem id="playlist_context_google"
-            label="Search Google Music"
+            label="Web Search: Google Music"
             oncommand="playlist_googleIt()"></menuitem>
         <menuitem id="playlist_context_lyricsfreak"
-            label="Search LyricsFreak.com"
+            label="Web Search: LyricsFreak.com"
             oncommand="playlist_lyricsfreak()"></menuitem>
         <menuseparator></menuseparator>
         <menuitem id="playlist_context_new" command="cmd_clear"></menuitem>
@@ -106,11 +110,14 @@
         <menuitem id="files_context_delete" command="cmd_delete_playlist"></menuitem>
         <menuitem id="files_context_rename" command="cmd_rename_playlist"></menuitem>
         <menuseparator></menuseparator>
+        <menuitem id="files_context_album" command="cmd_find_album"></menuitem>
+        <menuitem id="files_context_artist_songs" command="cmd_find_artist_songs"></menuitem>
+        <menuitem id="files_context_artist_albums" command="cmd_find_artist_albums"></menuitem>
         <menuitem id="files_context_google"
-            label="Search Google Music"
+            label="Web Search: Google Music"
             oncommand="files_googleIt()"></menuitem>
         <menuitem id="files_context_lyricsfreak"
-            label="Search LyricsFreak.com"
+            label="Web Search: LyricsFreak.com"
             oncommand="files_lyricsfreak()"></menuitem>
     </menupopup>
 

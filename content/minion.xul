@@ -19,7 +19,6 @@
     onunload="cleanup()">
 
     <script src="common.js"></script>
-    <script src="mpd.js"></script>
     <script src="playlist.js"></script>
     <script src="collection.js"></script>
     <script src="chrome://global/content/nsDragAndDrop.js"/>
@@ -68,9 +67,11 @@
                 onclick="centerPL()"/>
             <hbox flex="1">
                 <label value="by"></label>
-                <label id="lbl_artist" value="" class="Artist" crop="right" />
+                <label id="lbl_artist" value="" class="Artist" crop="right"
+                    onclick="getDir('Artist', this.value)" />
                 <label value="from"></label>
-                <label id="lbl_album" value="" class="Album" crop="right" />
+                <label id="lbl_album" value="" class="Album" crop="right"
+                    onclick="getDir('Album', this.value)"/>
                 <spacer flex="1"/>
             </hbox>
             <spacer flex="1"/>
