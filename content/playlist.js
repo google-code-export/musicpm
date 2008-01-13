@@ -679,6 +679,46 @@ function centerPL() {
     boxobject.ensureRowIsVisible(row)
     }
 
+function parseRDFString(str, url){
+    var memoryDS = Components.classes["@mozilla.org/rdf/datasource;1?name=in-memory-datasource"]
+                     .createInstance(Components.interfaces.nsIRDFDataSource);
+    var ios=Components.classes["@mozilla.org/network/io-service;1"]
+                    .getService(Components.interfaces.nsIIOService);
+    baseUri=ios.newURI(url,null,null);
+    var parser=Components.classes["@mozilla.org/rdf/xml-parser;1"]
+                         .createInstance(Components.interfaces.nsIRDFXMLParser);
+    parser.parseString(memoryDS,baseUri,str);
+    return memoryDS;
+    }
+
+function xmlEscape (s) {
+    if (!s) {return ''}
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g,"&quot;")
+}
+function dbRDF(items, about, filter){
+    var name = ""
+    var rdfString ='<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" \n' +
+                    '    xmlns:s="mpd_"\n' +
+                    '    xmlns:nc="http://home.netscape.com/NC-rdf#">\n\n'
+    var rdfSeq = ' <RDF:Seq about="'+about+'">\n'
+    for (x in items){
+        try {
+            var item = items[x]
+            if (filter[item.type]) {
+                rdfString += ' <RDF:Description about="mpd://'+item.type+'/'+x+'">\n'
+                for (p in items[x]) {
+                    rdfString += '   <s:'+p+'>'+xmlEscape(item[p])+'</s:'+p+'>\n'
+                }
+                rdfString += ' </RDF:Description>\n'
+                rdfSeq += '  <RDF:li resource="mpd://'+item.type+'/'+x+'"/>\n'
+            }
+        } catch(e) {debug("dbRDF item "+x+": "+e.description)}
+    }
+    var rdf = rdfString + rdfSeq + '</RDF:Seq></RDF:RDF>'
+    return parseRDFString(rdf, about+"/temp")
+}
+
+
 function playlist_openPopup(){
     var cb = function(data) {
         playlists_ds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
