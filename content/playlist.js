@@ -227,7 +227,7 @@ function setCurSong(id) {
 function assignPLview() {
     var tree = $('playlist')
     tree.view = null
-    if (typeof(PL) != 'undefined' && PL.length > 0) {var l = PL.length}
+    if (typeof(PL) != 'undefined') {var l = PL.length}
     else {var l = 0; PL = new Array();}
     if (PLmode=="extended"){
         tree.view = {
@@ -308,6 +308,7 @@ function assignPLview() {
         tree.view = {
             rowCount : l,
             getCellText : function (R, C) {
+                if (typeof(PL) == 'undefined') {return null}
                 if (typeof(PL[R]) != 'object') {
                     return null
                     }
@@ -359,7 +360,7 @@ function setPlaylist(ver) {
         data = data.split("\n")
         var tm = 0
         var dl = data.length
-        if (dl > 1) {
+        if (dl > 0) {
             var n = dl
             do {
                 var i = dl - n
@@ -369,12 +370,16 @@ function setPlaylist(ver) {
                         'Title': data[i].slice(sep+2),
                         'Artist': 'unknown',
                         'Album': 'unknown',
-                        'Time': 0
+                        'Time': 0,
+                        'Pos': 0
                     };
                     var d = data[i + 1]
                     while (d && d.substr(0, 6) != "file: ") {
                         var sep = d.indexOf(": ")
-                        song[d.substr(0, sep)] = d.slice(sep+2);
+                        var fld = d.substr(0, sep)
+                        if (typeof(song[fld]) != 'undefined') {
+                            song[fld] = d.slice(sep+2);
+                        }
                         --n;
                         var d = data[dl - n + 1]
                     };

@@ -5,7 +5,7 @@ var host = "localhost"  //about:config --> extensions.mpm.mpd_host, string type
 var port = 6600         //about:config --> extensions.mpm.mpd_port, integer type
 var PLmode = "extended" //about:config --> extensions.mpm.playlist_mode, string type
 var prefs = Components.classes["@mozilla.org/preferences-service;1"].
-        getService(Components.interfaces.nsIPrefBranch);
+                        getService(Components.interfaces.nsIPrefBranch);
 if (prefs.getPrefType("extensions.mpm.mpd_host") == prefs.PREF_STRING){
     host = prefs.getCharPref("extensions.mpm.mpd_host");
 } else {
@@ -21,29 +21,24 @@ if (prefs.getPrefType("extensions.mpm.playlist_mode") == prefs.PREF_STRING){
 } else {
     prefs.setCharPref("extensions.mpm.playlist_mode", PLmode)
 }
+prefs = null
 
 var mpd
 var status_command = "command_list_begin\nstatus\nstats\ncommand_list_end\n"
-var queue = []
 var notify = {}
 var talker_active = false
 var doStatus = false
-
-var transportService =
-  Components.classes["@mozilla.org/network/socket-transport-service;1"]
-    .getService(Components.interfaces.nsISocketTransportService);
 var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
                         .getService(Components.interfaces.nsIConsoleService);
 var art = []
-
 var volTmr = false
 var seekTmr = false
 var seekMax = 0
 var noEchoVol = 0
 var noEchoSeek = 0
 var convertPercent = true
-var isLoaded = false
 var infoBrowser
+
 
 function $(e) {return document.getElementById(e)}
 function debug(s) {
@@ -60,7 +55,6 @@ function show_config() {
     window.openDialog("chrome://minion/content/settings.xul","showmore",
                   "chrome", cb);
 }
-
 
 function init_mpd () {
     if (typeof(mpd) != 'object') {
@@ -85,8 +79,6 @@ function init_mpd () {
             'db_playtime': '0',
             'db_update': '0'
         }
-        queue = []
-        talker_active = false
         doStatus = true
         checkStatus()
         if (typeof(notify['init']) == 'function') {
@@ -95,23 +87,57 @@ function init_mpd () {
 
     }
 }
-
-function command(outputData, callBack){
-    queue.push({'outputData':outputData+"\n", 'callBack':callBack})
+function checkStatus() {
+    doStatus = true
+    var tm = 200
     if (!talker_active) {talker()}
-}
-
-function talker(){
-    talker_active = true
-    if (queue.length == 0 && doStatus) {
-        var item = {
-            'outputData': status_command,
-            'callBack': statusCallBack
+    try {
+        if (mpd.state == "stop") {
+            tm = 800
         }
     }
-    else {
-        var item = queue.shift()
+    catch (e) {
     }
+    setTimeout("checkStatus()", tm)
+}
+function statusCallBack (data) {
+    var pair, fld, val, dl
+    data = data.split("\n")
+    var dl = data.length
+    do {
+        pair = data[dl - 1].split(": ", 2)
+        if (pair.length == 2) {
+            fld = pair[0]
+            val = pair[1]
+            try {
+                if (val != mpd[fld]) {
+                    mpd[fld] = val
+                    if (typeof(notify[fld]) == 'function') {
+                        notify[fld](val)
+                    }
+                }
+            } catch (e) {debug(e)}
+        }
+    } while (--dl)
+    doStatus = false
+}
+var o, c
+function command(outputData, callBack){
+    if (talker_active) {
+        o = outputData
+        c = callBack
+        setTimeout('command(o,c)',10)
+    }
+    else{
+        o = null
+        c = null
+        talker(outputData, callBack)
+    }
+}
+function talker(outputData, callBack){
+    talker_active = true
+    var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
+    .getService(Components.interfaces.nsISocketTransportService);
     var transport = transportService.createTransport(null,0,host,port,null);
     var stream_out = transport.openOutputStream(0,0,0);
     var stream_in = transport.openInputStream(0,0,0);
@@ -130,11 +156,6 @@ function talker(){
                     },
           onStopRequest: function(request, context, status){
                     talker_active = false
-                    instream = null
-                    stream_in = null
-                    outstream = null
-                    stream_out = null
-                    this.data = null
                     },
           onDataAvailable: function(request, context, inputStream, offset, count){
             var str = {};
@@ -143,11 +164,15 @@ function talker(){
                 this.data += str.value
             }
             if (this.data.substr(0,6) == "OK MPD"){
-                this.data = ""
-                outstream.writeString(item.outputData);
+                if (typeof(outputData) == 'string') {
+                    this.data = ""
+                    outstream.writeString(outputData+"\n");
+                } else {done = true}
             }
             else if (this.data.slice(-3) == "OK\n") {
-                if (item.callBack) {item.callBack(this.data.slice(0,this.data.length-3))}
+                if (typeof(callBack) == 'function') {
+                    callBack(this.data.slice(0,this.data.length-3))
+                }
                 done = true
             }
             else if (this.data.indexOf('ACK [') != -1) {
@@ -156,29 +181,25 @@ function talker(){
             }
             if (done) {
                 this.data = ""
-                if (queue.length > 0) {
-                    item = queue.shift();
-                    outstream.writeString(item.outputData);
-                }
-                else if (doStatus) {
+                if (doStatus) {
                     doStatus = false
-                    item = {'outputData':status_command, 'callBack':statusCallBack}
-                    outstream.writeString(item.outputData)
+                    outputData = status_command
+                    callBack = statusCallBack
+                    outstream.writeString(outputData)
                 }
                 else {
-                    item = null
+                    this.data = null
                     instream.close()
-                    stream_in.close()
                     outstream.close()
-                    stream_out.close()
                 }
             }
         },
     };
     var pump = Components.classes["@mozilla.org/network/input-stream-pump;1"].
                 createInstance(Components.interfaces.nsIInputStreamPump);
-    pump.init(stream_in, -1, -1, 0, 0, false);
+    pump.init(stream_in, -1, -1, 0, 0, true);
     pump.asyncRead(dataListener,null);
+    return null
 }
 
 function clean(str){
@@ -232,42 +253,6 @@ function parse_db (data) {
     } while (--n)
     return db
 }
-
-function checkStatus() {
-    doStatus = true
-    var tm = 200
-    if (!talker_active) {talker()}
-    try {
-        if (mpd.state == "stop") {
-            tm = 600
-        }
-    }
-    catch (e) {
-    }
-    setTimeout("checkStatus()", tm)
-}
-function statusCallBack (data) {
-    var pair, fld, val, dl
-    data = data.split("\n")
-    var dl = data.length
-    do {
-        pair = data[dl - 1].split(": ", 2)
-        if (pair.length == 2) {
-            fld = pair[0]
-            val = pair[1]
-            try {
-                if (val != mpd[fld]) {
-                    mpd[fld] = val
-                    if (typeof(notify[fld]) == 'function') {
-                        notify[fld](val)
-                    }
-                }
-            } catch (e) {debug(e)}
-        }
-    } while (--dl)
-    doStatus = false
-}
-
 
 function doPrev() {command("previous", null)}
 function doStop() {command("stop", null)}
