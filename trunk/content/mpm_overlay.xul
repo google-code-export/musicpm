@@ -8,9 +8,9 @@
     <command id="cmd_replace" label="Replace Playlist" oncommand="replace();"/>
     <command id="cmd_delete_playlist" label="Delete" oncommand="delete_playlist();"/>
     <command id="cmd_rename_playlist" label="Rename" oncommand="rename_playlist();"/>
-    <command id="cmd_find_album" label="Find: Album" oncommand="find_album();"/>
-    <command id="cmd_find_artist_songs" label="Find: Songs by Artist" oncommand="find_artist_songs();"/>
-    <command id="cmd_find_artist_albums" label="Find: Albums by Artist" oncommand="find_artist_albums();"/>
+    <command id="cmd_find_album" label="Show this Album" oncommand="find_album();"/>
+    <command id="cmd_find_artist_songs" label="Show Songs by this Artist" oncommand="find_artist_songs();"/>
+    <command id="cmd_find_artist_albums" label="Show Albums by this Artist" oncommand="find_artist_albums();"/>
     <command id="cmd_selectAll" label="Select All" oncommand="$('files').view.selection.selectAll();"/>
     <command id="cmd_remove" label="Remove Song(s)" oncommand="remove()" />
     <command id="cmd_clear" label="Clear Playlist" oncommand="clear()" />
@@ -85,10 +85,10 @@
         <menuitem id="playlist_context_artist_songs" command="cmd_find_artist_songs"></menuitem>
         <menuitem id="playlist_context_artist_albums" command="cmd_find_artist_albums"></menuitem>
         <menuitem id="playlist_context_google"
-            label="Web Search: Google Music"
+            label="Search Google Music"
             oncommand="playlist_googleIt()"></menuitem>
         <menuitem id="playlist_context_lyricsfreak"
-            label="Web Search: LyricsFreak.com"
+            label="Search LyricsFreak.com"
             oncommand="playlist_lyricsfreak()"></menuitem>
         <menuseparator></menuseparator>
         <menuitem id="playlist_context_new" command="cmd_clear"></menuitem>
@@ -114,10 +114,10 @@
         <menuitem id="files_context_artist_songs" command="cmd_find_artist_songs"></menuitem>
         <menuitem id="files_context_artist_albums" command="cmd_find_artist_albums"></menuitem>
         <menuitem id="files_context_google"
-            label="Web Search: Google Music"
+            label="Search Google Music"
             oncommand="files_googleIt()"></menuitem>
         <menuitem id="files_context_lyricsfreak"
-            label="Web Search: LyricsFreak.com"
+            label="Search LyricsFreak.com"
             oncommand="files_lyricsfreak()"></menuitem>
     </menupopup>
 

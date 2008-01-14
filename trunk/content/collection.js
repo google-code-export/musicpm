@@ -2,7 +2,6 @@ var mpm_history = []
 var mpm_future = []
 var table = []
 var sort_natural = []
-var db = []
 var nav_btns = []
 var home = [
     {
@@ -128,6 +127,7 @@ function assignView() {
         tree.view = {
             rowCount : table.length,
             getCellText : function (R, C) {
+                if (typeof(table) == 'undefined') {return null}
                 if (!table[C.id]){table[C.id] = ""}
                 if (C.id=="Time" && table[R].Time > ''){return hmsFromSec(table[R]["Time"])}
                 else {return table[R][C.id]}
@@ -139,11 +139,21 @@ function assignView() {
             getLevel: function(row){ return 0; },
             getImageSrc: function(row,col){ return null; },
             getRowProperties: function(row,props){
+                try {
+                var aserv = Components.classes["@mozilla.org/atom-service;1"]
+                            .getService(Components.interfaces.nsIAtomService);
                 props.AppendElement( aserv.getAtom(table[row].type) )
+                aserv = null
+                } catch(e) {}
             },
             getCellProperties: function(row,col,props){
+                try {
+                var aserv = Components.classes["@mozilla.org/atom-service;1"]
+                            .getService(Components.interfaces.nsIAtomService);
                 props.AppendElement( aserv.getAtom(col.id+"_"+table[row].type) )
                 props.AppendElement( aserv.getAtom(col.id) )
+                aserv = null
+                } catch(e) {}
             },
             getColumnProperties: function(colid,col,props){
             },
@@ -506,6 +516,7 @@ function files_contextShowing(){
         }
     }
  }
+
 notify['db_update'] = function(v){
     if (mpm_history.length > 0) {
         var loc = mpm_history.shift()
@@ -513,6 +524,6 @@ notify['db_update'] = function(v){
         var id = loc[1]
         getDir(mytype, id)
     }
-
 }
+notify['init'] = function() {getDir('home', '')}
 

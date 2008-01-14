@@ -14,9 +14,7 @@
     height="550"
     width="780"
     onload="init_mpd()"
-    onopen="init_mpd()"
-    onclose="cleanup()"
-    onunload="cleanup()">
+    onopen="init_mpd()">
 
     <script src="common.js"></script>
     <script src="playlist.js"></script>
