@@ -34,8 +34,6 @@ var transportService =
     .getService(Components.interfaces.nsISocketTransportService);
 var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
                         .getService(Components.interfaces.nsIConsoleService);
-var aserv = Components.classes["@mozilla.org/atom-service;1"]
-                .getService(Components.interfaces.nsIAtomService);
 var art = []
 
 var volTmr = false
@@ -48,7 +46,15 @@ var isLoaded = false
 var infoBrowser
 
 function $(e) {return document.getElementById(e)}
-function debug(s) {consoleService.logStringMessage(s)}
+function debug(s) {
+    var str = s
+    if (typeof(s) == 'object') {
+        var str = ""
+        for (x in s) {str += x + ": " + s[x] + "\n"}
+    }
+    else {var str = s}
+    consoleService.logStringMessage(str)
+}
 function show_config() {
     var cb = function (w) {try{w.close()}catch(e){}; mpd = 'reload'; init_mpd()}
     window.openDialog("chrome://minion/content/settings.xul","showmore",
@@ -83,7 +89,9 @@ function init_mpd () {
         talker_active = false
         doStatus = true
         checkStatus()
-        if ($('files')) {getDir('home','')}
+        if (typeof(notify['init']) == 'function') {
+            notify['init']()
+        }
 
     }
 }
@@ -122,6 +130,11 @@ function talker(){
                     },
           onStopRequest: function(request, context, status){
                     talker_active = false
+                    instream = null
+                    stream_in = null
+                    outstream = null
+                    stream_out = null
+                    this.data = null
                     },
           onDataAvailable: function(request, context, inputStream, offset, count){
             var str = {};
@@ -234,10 +247,11 @@ function checkStatus() {
     setTimeout("checkStatus()", tm)
 }
 function statusCallBack (data) {
-    var pair, fld, val
+    var pair, fld, val, dl
     data = data.split("\n")
-    for (line in data) {
-        pair = data[line].split(": ", 2)
+    var dl = data.length
+    do {
+        pair = data[dl - 1].split(": ", 2)
         if (pair.length == 2) {
             fld = pair[0]
             val = pair[1]
@@ -248,9 +262,9 @@ function statusCallBack (data) {
                         notify[fld](val)
                     }
                 }
-            } catch (e) {debug("notify '"+fld+"'="+val+" error: "+e)}
+            } catch (e) {debug(e)}
         }
-    }
+    } while (--dl)
     doStatus = false
 }
 
@@ -317,16 +331,24 @@ function openURL(url, attrName) {
 
 //send a command with callback on completion
 function sendCB(url, callBack){
-  var send = new XMLHttpRequest()
-  send.open("GET", url, true)
-  send.onreadystatechange = function() {
-    if (send.readyState == 4) {
-        if (send.status == 200) {callBack(send.responseText)}
-        else {debug("Error sending command to "+base+url)}
-          }
+    var send = new XMLHttpRequest()
+    send.open("GET", url, true)
+    send.onreadystatechange = function() {
+        if (send.readyState == 4) {
+            if (send.status == 200) {
+                callBack(send.responseText)
+                send.onreadystatechange = null
+                send = null
+            }
+            else {
+                debug("Error in GET to "+base+url)
+                send.onreadystatechange = null
+                send = null
+            }
+        }
     }
-  send.send("")
-  }
+    send.send("")
+}
 
 function google(item){
     var id = item.Artist
