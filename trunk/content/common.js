@@ -121,21 +121,13 @@ function statusCallBack (data) {
     } while (--dl)
     doStatus = false
 }
-var o, c
+var queue = new Array()
 function command(outputData, callBack){
-    if (talker_active) {
-        o = outputData
-        c = callBack
-        setTimeout('command(o,c)',10)
-    }
-    else{
-        o = null
-        c = null
-        talker(outputData, callBack)
-    }
+    queue.push({'outputData':outputData+"\n", 'callBack':callBack})
+    if (!talker_active) {talker()}
 }
-function talker(outputData, callBack){
-    talker_active = true
+
+function talker(){
     var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
     .getService(Components.interfaces.nsISocketTransportService);
     var transport = transportService.createTransport(null,0,host,port,null);
@@ -156,48 +148,53 @@ function talker(outputData, callBack){
                     },
           onStopRequest: function(request, context, status){
                     talker_active = false
+                    request.cancel(0)
                     },
           onDataAvailable: function(request, context, inputStream, offset, count){
-            var str = {};
-            var done = false
-            while (instream.readString(4096, str) != 0) {
-                this.data += str.value
-            }
-            if (this.data.substr(0,6) == "OK MPD"){
-                if (typeof(outputData) == 'string') {
+            try {
+                var str = {};
+                var done = false
+                while (instream.readString(4096, str) != 0) {
+                    this.data += str.value
+                }
+                if (this.data.substr(0,6) == "OK MPD"){
+                    if (queue.length > 0) {
+                        this.data = ""
+                        outstream.writeString(queue[0].outputData);
+                    } else {done = true}
+                }
+                else if (this.data.slice(-3) == "OK\n") {
+                    if (typeof(queue[0].callBack) == 'function') {
+                        queue[0].callBack(this.data.slice(0,this.data.length-3))
+                    }
+                    done = true
+                }
+                else if (this.data.indexOf('ACK [') != -1) {
+                    alert(queue[0].outputData+"\n"+this.data)
+                    done = true
+                }
+                if (done) {
+                    queue.shift()
                     this.data = ""
-                    outstream.writeString(outputData+"\n");
-                } else {done = true}
-            }
-            else if (this.data.slice(-3) == "OK\n") {
-                if (typeof(callBack) == 'function') {
-                    callBack(this.data.slice(0,this.data.length-3))
+                    if (doStatus) {
+                        doStatus = false
+                        queue.push({'callBack': statusCallBack})
+                        outstream.writeString(status_command)
+                    }
+                    else {
+                        instream.close()
+                        outstream.close()
+                    }
                 }
-                done = true
-            }
-            else if (this.data.indexOf('ACK [') != -1) {
-                alert(item.outputData+"\n"+this.data)
-                done = true
-            }
-            if (done) {
-                this.data = ""
-                if (doStatus) {
-                    doStatus = false
-                    outputData = status_command
-                    callBack = statusCallBack
-                    outstream.writeString(outputData)
-                }
-                else {
-                    this.data = null
-                    instream.close()
-                    outstream.close()
-                }
+            } catch (e) {
+                debug(e)
+                if (queue.length > 0) {setTimeout('talker()', 1000)}
             }
         },
     };
     var pump = Components.classes["@mozilla.org/network/input-stream-pump;1"].
                 createInstance(Components.interfaces.nsIInputStreamPump);
-    pump.init(stream_in, -1, -1, 0, 0, true);
+    pump.init(stream_in, -1, -1, 0, 0, false);
     pump.asyncRead(dataListener,null);
     return null
 }
