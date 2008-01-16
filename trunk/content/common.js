@@ -92,7 +92,7 @@ function checkStatus() {
     var tm = 200
     if (!talker_active) {talker()}
     try {
-        if (mpd.state == "stop") {
+        if (mpd.state != "play") {
             tm = 800
         }
     }
@@ -124,10 +124,12 @@ function statusCallBack (data) {
 var queue = new Array()
 function command(outputData, callBack){
     queue.push({'outputData':outputData+"\n", 'callBack':callBack})
+    doStatus = true
     if (!talker_active) {talker()}
 }
 
 function talker(){
+    if (talker_active) { return null }
     var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
     .getService(Components.interfaces.nsISocketTransportService);
     var transport = transportService.createTransport(null,0,host,port,null);
@@ -148,7 +150,8 @@ function talker(){
                     },
           onStopRequest: function(request, context, status){
                     talker_active = false
-                    request.cancel(0)
+                    instream.close()
+                    outstream.close()
                     },
           onDataAvailable: function(request, context, inputStream, offset, count){
             try {
@@ -164,7 +167,7 @@ function talker(){
                     } else {done = true}
                 }
                 else if (this.data.slice(-3) == "OK\n") {
-                    if (typeof(queue[0].callBack) == 'function') {
+                    if (queue.length > 0 && typeof(queue[0].callBack) == 'function') {
                         queue[0].callBack(this.data.slice(0,this.data.length-3))
                     }
                     done = true
@@ -178,17 +181,20 @@ function talker(){
                     this.data = ""
                     if (doStatus) {
                         doStatus = false
-                        queue.push({'callBack': statusCallBack})
+                        queue.push({'outputData':status_command,
+                                    'callBack': statusCallBack})
                         outstream.writeString(status_command)
                     }
                     else {
-                        instream.close()
-                        outstream.close()
+                        request.cancel(0)
                     }
                 }
             } catch (e) {
                 debug(e)
-                if (queue.length > 0) {setTimeout('talker()', 1000)}
+                request.cancel(0)
+                if (queue.length > 0) {
+                    setTimeout('talker()', 1000)
+                }
             }
         },
     };
