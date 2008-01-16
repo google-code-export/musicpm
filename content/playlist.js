@@ -1,5 +1,6 @@
 var PL = new Array()
 var PLver = 0
+var pds
 
 function hmsFromSec(sec) {
   var hms = "0:00"
@@ -445,8 +446,7 @@ function playlist_lyricsfreak()  {
   }
 
 function load_playlist(id){
-    command("clear", null)
-    command('load "'+id+'"', null)
+    command('command_list_begin\nclear\nload "'+id+'"\ncommand_list_end\n', null)
 }
 function playlist_save(){
     var val = prompt("Please enter a name for this playlist", "NewPlaylist")
@@ -587,8 +587,10 @@ function dbRDF(items, about, filter){
 
 function playlist_openPopup(){
     var cb = function(data) {
-        playlists_ds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
-        $('playlist_open_popup').database.AddDataSource(playlists_ds)
+        var p = $('playlist_open_popup')
+        if (pds) {p.database.RemoveDataSource(pds)}
+        pds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
+        $('playlist_open_popup').database.AddDataSource(pds)
         $('playlist_open_popup').ref="mpd://playlists"
     }
     command('lsinfo', cb)
