@@ -119,6 +119,7 @@ treecol, listheader, treecolpicker{
     background-repeat: repeat-x;
     color:white;
     border-bottom: 5px solid black;
+    border-top: none;
     -moz-border-bottom-colors: #000000 #303030 #555555 #2a2a2a #1a1a1a;
 }
 #cur_song {
