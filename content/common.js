@@ -121,14 +121,15 @@ function statusCallBack (data) {
     } while (--dl)
     doStatus = false
 }
-var queue = new Array()
-function command(outputData, callBack){
-    queue.push({'outputData':outputData+"\n", 'callBack':callBack})
-    doStatus = true
-    if (!talker_active) {talker()}
-}
 
-function talker(){
+
+
+function command(outputData, callback){
+    if (typeof(queue) == 'undefined') {var queue = new Array()}
+    if (typeof(outputData) == 'string') {
+        queue.push({'outputData':outputData+"\n", 'callBack':callBack})
+        doStatus = true        
+    }
     if (talker_active) { return null }
     var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
     .getService(Components.interfaces.nsISocketTransportService);
@@ -150,16 +151,19 @@ function talker(){
                     },
           onStopRequest: function(request, context, status){
                     talker_active = false
+                    this.data = null
                     instream.close()
                     outstream.close()
+                    transport.close(0)
                     },
           onDataAvailable: function(request, context, inputStream, offset, count){
             try {
                 var str = {};
                 var done = false
-                while (instream.readString(4096, str) != 0) {
+                while (instream.readString(1024, str) != 0) {
                     this.data += str.value
                 }
+                str = null
                 if (this.data.substr(0,6) == "OK MPD"){
                     if (queue.length > 0) {
                         this.data = ""
@@ -192,9 +196,6 @@ function talker(){
             } catch (e) {
                 debug(e)
                 request.cancel(0)
-                if (queue.length > 0) {
-                    setTimeout('talker()', 1000)
-                }
             }
         },
     };

@@ -356,57 +356,58 @@ function playlist_view(mode){
     boxobject.scrollToRow(cur)
     }
 
-function setPlaylist(ver) {
-    var cb = function(data){
-        data = data.split("\n")
-        var tm = 0
-        var dl = data.length
-        if (dl > 0) {
-            var n = dl
-            do {
-                var i = dl - n
-                var sep = data[i].indexOf(": ")
-                if (data[i].substr(0, sep) == 'file') {
-                    var song = {
-                        'Title': data[i].slice(sep+2),
-                        'Artist': 'unknown',
-                        'Album': 'unknown',
-                        'Time': 0,
-                        'Pos': 0
-                    };
-                    var d = data[i + 1]
-                    while (d && d.substr(0, 6) != "file: ") {
-                        var sep = d.indexOf(": ")
-                        var fld = d.substr(0, sep)
-                        if (typeof(song[fld]) != 'undefined') {
-                            song[fld] = d.slice(sep+2);
-                        }
-                        --n;
-                        var d = data[dl - n + 1]
-                    };
-                    tm += parseInt(song['Time'])
-                    PL[parseInt(song.Pos)] = song
-                }
+function setPlaylist(data) {
+    data = data.split("\n")
+    var tm = 0
+    var dl = data.length
+    if (dl > 0) {
+        var n = dl
+        do {
+            var i = dl - n
+            var sep = data[i].indexOf(": ")
+            if (data[i].substr(0, sep) == 'file') {
+                var song = {
+                    'Title': data[i].slice(sep+2),
+                    'Artist': 'unknown',
+                    'Album': 'unknown',
+                    'Time': 0,
+                    'Pos': 0
+                };
+                var d = data[i + 1]
+                while (d && d.substr(0, 6) != "file: ") {
+                    var sep = d.indexOf(": ")
+                    var fld = d.substr(0, sep)
+                    if (typeof(song[fld]) != 'undefined') {
+                        song[fld] = d.slice(sep+2);
+                    }
+                    --n;
+                    var d = data[dl - n + 1]
+                };
+                tm += parseInt(song['Time'])
+                PL[parseInt(song.Pos)] = song
             }
-            while (--n)
-            playlist_view(PLmode)
         }
-        else {
-            if (PL.length != $('playlist').view.rowCount) {playlist_view(PLmode)}
-        }
-        var tm = 0
-        var l = PL.length
-        if (l > 0) {
-            var tm = 0
-            do {
-                try {tm += parseInt(PL[l-1]['Time'])}
-                catch (e) {debug(e)}
-            } while (--l)
-        }
-        $("pl_stats").value = prettyTime(tm)
-        PLver = ver
+        while (--n)
+        data = null
+        playlist_view(PLmode)
     }
-    command("plchanges "+PLver, cb)
+    else {
+        if (PL.length != $('playlist').view.rowCount) {playlist_view(PLmode)}
+    }
+    var tm = 0
+    var l = PL.length
+    if (l > 0) {
+        var tm = 0
+        do {
+            try {tm += parseInt(PL[l-1]['Time'])}
+            catch (e) {debug(e)}
+        } while (--l)
+    }
+    $("pl_stats").value = prettyTime(tm)
+}
+function getPlaylist(ver)
+    command("plchanges "+PLver, setPlaylist)
+    PLver = ver
 }
 
 function playlist_dblclick() {
@@ -620,7 +621,7 @@ notify['time'] = setTime
 notify['volume'] = setVol
 notify['random'] = setRandom
 notify['repeat'] = setRepeat
-notify['playlist'] = setPlaylist
+notify['playlist'] = getPlaylist
 notify['playlistlength'] = function (l) {PL.length = l}
 
 
