@@ -12,6 +12,7 @@ var mpd_stop = false
 var status_command = "command_list_begin\nstatus\nstats\ncommand_list_end\n"
 var notify = {}
 var talker_active = false
+var talker_cancel = false
 var doStatus = false
 var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
                         .getService(Components.interfaces.nsIConsoleService);
@@ -92,9 +93,15 @@ function init_mpd () {
             'db_update': '0'
         }
         queue.length = 0
-        mpd_stop = false
         doStatus = true
-        checkStatus()
+        if (typeof(transport) == 'object') {
+            talker_cancel = true
+            if (mpd_stop) {
+                mpd_stop = false
+                checkStatus()
+            }
+        }
+        else {checkStatus()}
         if (typeof(notify['init']) == 'function') {
             notify['init']()
         }
@@ -105,6 +112,9 @@ function checkStatus() {
     doStatus = true
     var tm = 200
     if (!talker_active) {talker()}
+    if (typeof(outstream) != 'undefined') {
+        if (idle) {outstream.writeString("\n")}
+    }
     try {
         if (mpd.state != "play") {
             tm = 800
@@ -139,94 +149,108 @@ var queue = new Array()
 function command(outputData, callBack){
     queue.push({'outputData':outputData+"\n", 'callBack':callBack})
     doStatus = true
-    if (!talker_active) {talker()}
+    if (typeof(outstream) != 'undefined') {
+        if (idle) {outstream.writeString(outputData+"\n")}
+    }
+    else  {talker()}
 }
+const replacementChar = Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
+var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
+.getService(Components.interfaces.nsISocketTransportService);
+var transport
+var stream_out
+var stream_in
+var instream
+var outstream
+var idle = false
+var dataListener  = {
+      data : "",
+      onStartRequest: function(request, context){
+                    talker_active = true
+                    idle = false
+                },
+      onStopRequest: function(request, context, status){
+                    outstream.close()
+                    instream.close()
+                    transport.close(0)
+                    talker_active = false
+                    idle = false
+                },
+      onDataAvailable: function(request, context, inputStream, offset, count){
+        try {
+            idle = false
+            if (talker_cancel) {talker_cancel = false;request.cancel(0); return null}
+            var str = {};
+            var done = false
+            while (instream.readString(4096, str) != 0) {
+                this.data += str.value
+            }
+            str = null
+            if (this.data.substr(0,6) == "OK MPD"){
+                this.data = ""
+                if (pass.length > 0) {
+                    queue.unshift({'outputData':'password '+pass+'\n',
+                                   'callBack': null})
+                }
+                if (queue.length > 0) {
+                    outstream.writeString(queue[0].outputData);
+                }
+                else {done = true}
+            }
+            else if (this.data.slice(-3) == "OK\n") {
+                if (queue.length > 0 && typeof(queue[0].callBack) == 'function') {
+                    queue[0].callBack(this.data.slice(0,this.data.length-3))
+                }
+                queue.shift()
+                if (queue.length > 0) {
+                    this.data = ""
+                    outstream.writeString(queue[0].outputData);
+                }
+                else { done = true }
+            }
+            else if (this.data.indexOf('ACK [') != -1) {
+                var msg = "An error has occured when communicating with MPD.\n" +
+                        "Click Cancel to continue sending commands, or\n" +
+                        "Click OK to prevent further attempts.\n\n\n" +
+                        "Command:\n" + queue[0].outputData + "\n\n" +
+                        "Response:\n"+ this.data
+                mpd_stop = confirm(msg)
+                queue.shift()
+                doStatus = false
+                done = true
+            }
+            if (done) {
+                this.data = ""
+                if (doStatus) {
+                    doStatus = false
+                    queue.push({'outputData':status_command,
+                                'callBack': statusCallBack})
+                    outstream.writeString(status_command)
+                }
+                else {
+                    idle = true
+                }
+            }
+        } catch (e) {
+            debug(e)
+        }
+    },
+};
+var s = 0
 function talker(){
     if (talker_active) { return null }
-    var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
-    .getService(Components.interfaces.nsISocketTransportService);
-    var transport = transportService.createTransport(null,0,host,port,null);
-    var stream_out = transport.openOutputStream(0,0,0);
-    var stream_in = transport.openInputStream(0,0,0);
-    const replacementChar = Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
-    var instream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+    s++
+    transport = transportService.createTransport(null,0,host,port,null);
+    stream_out = transport.openOutputStream(0,0,0);
+    stream_in = transport.openInputStream(0,0,0);
+    instream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
                    .createInstance(Components.interfaces.nsIConverterInputStream);
     instream.init(stream_in, 'UTF-8', 1024, replacementChar);
-    var outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
+    outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
                    .createInstance(Components.interfaces.nsIConverterOutputStream)
     outstream.init(stream_out, 'UTF-8', 0, 0x0000)
-
-    var dataListener  = {
-          data : "",
-          onStartRequest: function(request, context){
-                        talker_active = true
-                    },
-          onStopRequest: function(request, context, status){
-                        outstream.close()
-                        instream.close()
-                        talker_active = false
-                    },
-          onDataAvailable: function(request, context, inputStream, offset, count){
-            try {
-                var str = {};
-                var done = false
-                while (instream.readString(4096, str) != 0) {
-                    this.data += str.value
-                }
-                str = null
-                if (this.data.substr(0,6) == "OK MPD"){
-                    this.data = ""
-                    if (pass.length > 0) {
-                        queue.unshift({'outputData':'password '+pass+'\n',
-                                       'callBack': null})
-                    }
-                    if (queue.length > 0) {
-                        outstream.writeString(queue[0].outputData);
-                    }
-                    else {done = true}
-                }
-                else if (this.data.slice(-3) == "OK\n") {
-                    if (queue.length > 0 && typeof(queue[0].callBack) == 'function') {
-                        queue[0].callBack(this.data.slice(0,this.data.length-3))
-                    }
-                    queue.shift()
-                    if (queue.length > 0) {
-                        this.data = ""
-                        outstream.writeString(queue[0].outputData);
-                    }
-                    else { done = true }
-                }
-                else if (this.data.indexOf('ACK [') != -1) {
-                    var msg = "An error has occured when communicating with MPD.\n" +
-                            "Click OK to continue sending commands, or\n" +
-                            "Click Cancel to prevent further attempts.\n\n\n" +
-                            "Command:\n" + queue[0].outputData + "\n\n" +
-                            "Response:\n"+ this.data
-                    mpd_stop = confirm(msg)
-                    queue.shift()
-                    doStatus = false
-                    done = true
-                }
-                if (done) {
-                    this.data = ""
-                    if (doStatus) {
-                        doStatus = false
-                        queue.push({'outputData':status_command,
-                                    'callBack': statusCallBack})
-                        outstream.writeString(status_command)
-                    }
-                    else {
-                        request.cancel(0)
-                    }
-                }
-            } catch (e) {
-                debug(e)
-                request.cancel(0)
-            }
-        },
-    };
     var pump = Components.classes["@mozilla.org/network/input-stream-pump;1"].
-                createInstance(Components.interfaces.nsIInputStreamPump);
+            createInstance(Components.interfaces.nsIInputStreamPump);
     pump.init(stream_in, -1, -1, 0, 0, false);
     pump.asyncRead(dataListener,null);
     return null
