@@ -2,19 +2,19 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$GLwXM3"
+  <RDF:Description RDF:about="rdf:#$yJsQ4"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="1.5"
                    em:maxVersion="3.0b3" />
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:id="Music_Player_Minion@code.google.com"
                    em:name="Music Player Minion"
-                   em:version="0.6"
+                   em:version="0.7a"
                    em:creator="Chris Seickel"
                    em:description="Music Player Daemon client"
                    em:homepageURL="http://code.google.com/p/musicpm">
     <em:contributor>Alexandre Moore (icons)</em:contributor>
     <em:contributor>Tango Desktop Project (icons)</em:contributor>
-    <em:targetApplication RDF:resource="rdf:#$GLwXM3"/>
+    <em:targetApplication RDF:resource="rdf:#$yJsQ4"/>
   </RDF:Description>
 </RDF:RDF>

@@ -7,6 +7,28 @@ var pass = ""           //about:config --> extensions.mpm.mpd_password, string t
 var PLmode = "extended" //about:config --> extensions.mpm.playlist_mode, string type
 
 
+var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch);
+if (prefs.getPrefType("extensions.mpm.mpd_host") == prefs.PREF_STRING){
+    host = prefs.getCharPref("extensions.mpm.mpd_host");
+}
+else {
+    prefs.setCharPref("extensions.mpm.mpd_host", host)
+}
+if (prefs.getPrefType("extensions.mpm.mpd_port") == prefs.PREF_INT){
+    port = prefs.getIntPref("extensions.mpm.mpd_port");
+}
+else {
+    prefs.setIntPref("extensions.mpm.mpd_port", port)
+}
+if (prefs.getPrefType("extensions.mpm.mpd_password") == prefs.PREF_STRING){
+    pass = prefs.getCharPref("extensions.mpm.mpd_password");
+}
+else {
+    prefs.setCharPref("extensions.mpm.mpd_password", pass)
+}
+prefs = null
+
 var mpd
 var mpd_stop = false
 var status_command = "command_list_begin\nstatus\nstats\ncommand_list_end\n"
@@ -28,6 +50,7 @@ var infoBrowser
 
 function $(e) {return document.getElementById(e)}
 function debug(s) {
+    return null
     var str = s
     if (typeof(s) == 'object') {
         var str = ""
@@ -236,10 +259,72 @@ var dataListener  = {
         }
     },
 };
-var s = 0
+
+function simple_cmd (cmd) {
+    if (talker_active) {
+        debug("simple_cmd: '"+cmd+"' passed to existing transport")
+        command(cmd,null)}
+    else {
+        try {
+            cmd += "\n"
+            var smpl_transport = transportService.createTransport(null,0,host,port,null);
+            var smpl_outstream = smpl_transport.openOutputStream(0,0,0);
+            var smpl_stream = smpl_transport.openInputStream(0,0,0);
+            var smpl_instream = Components.classes["@mozilla.org/scriptableinputstream;1"]
+              .createInstance(Components.interfaces.nsIScriptableInputStream);
+            smpl_instream.init(smpl_stream);
+
+            var smpl_dataListener = {
+              data : "",
+              onStartRequest: function(request, context){
+              },
+              onStopRequest: function(request, context, status){
+                smpl_instream.close();
+                smpl_outstream.close()
+                smpl_transport.close(0);
+              },
+              onDataAvailable: function(request, context, inputStream, offset, count){
+                this.data += smpl_instream.read(count);
+                debug("simple stream data: "+this.data)
+                if (this.data.substr(0,6) == "OK MPD"){
+                    this.data = ""
+                    if (pass.length > 0) {
+                        pw = "password " + pass + "\n"
+                        smpl_outstream.write(pw, pw.length)
+                    }
+                    else {
+                        smpl_outstream.write(cmd, cmd.length)
+                    }
+                }
+                else if (this.data.slice(-3) == "OK\n") {
+                    if (pass.length > 0) {
+                        smpl_outstream.write(cmd, cmd.length)
+                    }
+                    else {
+                        cmd = "close\n"
+                        smpl_outstream.write(cmd, cmd.length)
+                    }
+                }
+                else if (this.data.indexOf('ACK [') != -1) {
+                    var msg = "An error has occured when communicating with MPD.\n\n" +
+                            "Command: " + cmd +
+                            "Response: "+ this.data
+                    alert(msg)
+                    request.cancel(0)
+                }
+              },
+            };
+
+            var smpl_pump = Components.
+              classes["@mozilla.org/network/input-stream-pump;1"].
+                createInstance(Components.interfaces.nsIInputStreamPump);
+            smpl_pump.init(smpl_stream, -1, -1, 0, 0, false);
+            smpl_pump.asyncRead(smpl_dataListener,null);
+        } catch (e) {debug(e)}
+    }
+}
 function talker(){
     if (talker_active) { return null }
-    s++
     transport = transportService.createTransport(null,0,host,port,null);
     stream_out = transport.openOutputStream(0,0,0);
     stream_in = transport.openInputStream(0,0,0);
@@ -308,31 +393,31 @@ function parse_db (data) {
     return db
 }
 
-function doPrev() {command("previous", null)}
-function doStop() {command("stop", null)}
+function doPrev() {simple_cmd("previous", null)}
+function doStop() {simple_cmd("stop", null)}
 function doPlay() {
-    if (mpd) {
+    if (typeof(mpd) != 'undefined') {
         if (mpd.state == "play") {
-            command("pause", null)
+            simple_cmd("pause")
         }
         else {
-            command("play", null)
+            simple_cmd("play")
         }
     }
-    else { command("play", null) }
+    else { simple_cmd("play") }
 }
 function doPause() {
-    if (mpd) {
+    if (typeof(mpd) != 'undefined') {
         if (mpd.state == "pause") {
-            command("play", null)
+            simple_cmd("play")
         }
         else {
-            command("pause", null)
+            simple_cmd("pause")
         }
     }
-    else { command("pause", null) }
+    else { simple_cmd("pause") }
 }
-function doNext() {command("next", null)}
+function doNext() {simple_cmd("next")}
 
 
 function openURL(url, attrName) {
