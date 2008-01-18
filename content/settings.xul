@@ -21,6 +21,9 @@ function getPrefs(){
     if (prefs.getPrefType("extensions.mpm.mpd_port") == prefs.PREF_INT){
         document.getElementById('mpd_port').value = prefs.getIntPref("extensions.mpm.mpd_port");
     }
+    if (prefs.getPrefType("extensions.mpm.mpd_password") == prefs.PREF_STRING){
+        document.getElementById('mpd_password').value = prefs.getCharPref("extensions.mpm.mpd_password");
+    }
     if (prefs.getPrefType("extensions.mpm.playlist_mode") == prefs.PREF_STRING){
         document.getElementById('plmode').selectedItem = document.getElementById(prefs.getCharPref("extensions.mpm.playlist_mode"))
     }
@@ -28,6 +31,7 @@ function getPrefs(){
 function doSave(){
  prefs.setCharPref("extensions.mpm.mpd_host", document.getElementById('mpd_host').value)
  prefs.setIntPref("extensions.mpm.mpd_port", parseInt(document.getElementById('mpd_port').value))
+ prefs.setCharPref("extensions.mpm.mpd_password", document.getElementById('mpd_password').value)
  prefs.setCharPref("extensions.mpm.playlist_mode", document.getElementById('plmode').selectedItem.id)
  window.arguments[0](window)
  return true;
@@ -43,6 +47,7 @@ function doCancel(){
     <rows>
       <row align="center"><label value="MPD Host:"/><textbox id="mpd_host"/></row>
       <row align="center"><label value="MPD Port:"/><textbox id="mpd_port" type="integer"/></row>
+      <row align="center"><label value="MPD Password (if needed):"/><textbox id="mpd_password"/></row>
       <row align="center">
         <label value="Select Default Playlist Mode"/>
         <radiogroup id="plmode">

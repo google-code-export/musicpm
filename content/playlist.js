@@ -388,7 +388,6 @@ function setPlaylist(data) {
             }
         }
         while (--n)
-        data = null
         playlist_view(PLmode)
     }
     else {
@@ -404,9 +403,18 @@ function setPlaylist(data) {
         } while (--l)
     }
     $("pl_stats").value = prettyTime(tm)
+    data = null
 }
-function getPlaylist(ver)
-    command("plchanges "+PLver, setPlaylist)
+function getPlaylist(ver) {
+    if (isNaN(PLver)) {
+        command("playlistinfo", setPlaylist)
+    }
+    else if (PLver < 0) {
+        command("playlistinfo", setPlaylist)
+    }
+    else {
+        command("plchanges " + PLver, setPlaylist)
+    }
     PLver = ver
 }
 

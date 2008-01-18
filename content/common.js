@@ -3,27 +3,12 @@
  */
 var host = "localhost"  //about:config --> extensions.mpm.mpd_host, string type
 var port = 6600         //about:config --> extensions.mpm.mpd_port, integer type
+var pass = ""           //about:config --> extensions.mpm.mpd_password, string type
 var PLmode = "extended" //about:config --> extensions.mpm.playlist_mode, string type
-var prefs = Components.classes["@mozilla.org/preferences-service;1"].
-                        getService(Components.interfaces.nsIPrefBranch);
-if (prefs.getPrefType("extensions.mpm.mpd_host") == prefs.PREF_STRING){
-    host = prefs.getCharPref("extensions.mpm.mpd_host");
-} else {
-    prefs.setCharPref("extensions.mpm.mpd_host", host)
-}
-if (prefs.getPrefType("extensions.mpm.mpd_port") == prefs.PREF_INT){
-    port = prefs.getIntPref("extensions.mpm.mpd_port");
-} else {
-    prefs.setIntPref("extensions.mpm.mpd_port", port)
-}
-if (prefs.getPrefType("extensions.mpm.playlist_mode") == prefs.PREF_STRING){
-    PLmode = prefs.getCharPref("extensions.mpm.playlist_mode");
-} else {
-    prefs.setCharPref("extensions.mpm.playlist_mode", PLmode)
-}
-prefs = null
+
 
 var mpd
+var mpd_stop = false
 var status_command = "command_list_begin\nstatus\nstats\ncommand_list_end\n"
 var notify = {}
 var talker_active = false
@@ -58,6 +43,33 @@ function show_config() {
 
 function init_mpd () {
     if (typeof(mpd) != 'object') {
+        var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                        getService(Components.interfaces.nsIPrefBranch);
+        if (prefs.getPrefType("extensions.mpm.mpd_host") == prefs.PREF_STRING){
+            host = prefs.getCharPref("extensions.mpm.mpd_host");
+        }
+        else {
+            prefs.setCharPref("extensions.mpm.mpd_host", host)
+        }
+        if (prefs.getPrefType("extensions.mpm.mpd_port") == prefs.PREF_INT){
+            port = prefs.getIntPref("extensions.mpm.mpd_port");
+        }
+        else {
+            prefs.setIntPref("extensions.mpm.mpd_port", port)
+        }
+        if (prefs.getPrefType("extensions.mpm.mpd_password") == prefs.PREF_STRING){
+            pass = prefs.getCharPref("extensions.mpm.mpd_password");
+        }
+        else {
+            prefs.setCharPref("extensions.mpm.mpd_password", pass)
+        }
+        if (prefs.getPrefType("extensions.mpm.playlist_mode") == prefs.PREF_STRING){
+            PLmode = prefs.getCharPref("extensions.mpm.playlist_mode");
+        }
+        else {
+            prefs.setCharPref("extensions.mpm.playlist_mode", PLmode)
+        }
+        prefs = null
         mpd = {
             'volume': '-1',
             'repeat': '-1',
@@ -79,6 +91,8 @@ function init_mpd () {
             'db_playtime': '0',
             'db_update': '0'
         }
+        queue.length = 0
+        mpd_stop = false
         doStatus = true
         checkStatus()
         if (typeof(notify['init']) == 'function') {
@@ -98,7 +112,7 @@ function checkStatus() {
     }
     catch (e) {
     }
-    setTimeout("checkStatus()", tm)
+    if (!mpd_stop) {setTimeout("checkStatus()", tm)}
 }
 function statusCallBack (data) {
     var pair, fld, val, dl
@@ -121,15 +135,13 @@ function statusCallBack (data) {
     } while (--dl)
     doStatus = false
 }
-
-
-
-function command(outputData, callback){
-    if (typeof(queue) == 'undefined') {var queue = new Array()}
-    if (typeof(outputData) == 'string') {
-        queue.push({'outputData':outputData+"\n", 'callBack':callBack})
-        doStatus = true        
-    }
+var queue = new Array()
+function command(outputData, callBack){
+    queue.push({'outputData':outputData+"\n", 'callBack':callBack})
+    doStatus = true
+    if (!talker_active) {talker()}
+}
+function talker(){
     if (talker_active) { return null }
     var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
     .getService(Components.interfaces.nsISocketTransportService);
@@ -147,41 +159,55 @@ function command(outputData, callback){
     var dataListener  = {
           data : "",
           onStartRequest: function(request, context){
-                    talker_active = true
+                        talker_active = true
                     },
           onStopRequest: function(request, context, status){
-                    talker_active = false
-                    this.data = null
-                    instream.close()
-                    outstream.close()
-                    transport.close(0)
+                        outstream.close()
+                        instream.close()
+                        talker_active = false
                     },
           onDataAvailable: function(request, context, inputStream, offset, count){
             try {
                 var str = {};
                 var done = false
-                while (instream.readString(1024, str) != 0) {
+                while (instream.readString(4096, str) != 0) {
                     this.data += str.value
                 }
                 str = null
                 if (this.data.substr(0,6) == "OK MPD"){
+                    this.data = ""
+                    if (pass.length > 0) {
+                        queue.unshift({'outputData':'password '+pass+'\n',
+                                       'callBack': null})
+                    }
                     if (queue.length > 0) {
-                        this.data = ""
                         outstream.writeString(queue[0].outputData);
-                    } else {done = true}
+                    }
+                    else {done = true}
                 }
                 else if (this.data.slice(-3) == "OK\n") {
                     if (queue.length > 0 && typeof(queue[0].callBack) == 'function') {
                         queue[0].callBack(this.data.slice(0,this.data.length-3))
                     }
-                    done = true
+                    queue.shift()
+                    if (queue.length > 0) {
+                        this.data = ""
+                        outstream.writeString(queue[0].outputData);
+                    }
+                    else { done = true }
                 }
                 else if (this.data.indexOf('ACK [') != -1) {
-                    alert(queue[0].outputData+"\n"+this.data)
+                    var msg = "An error has occured when communicating with MPD.\n" +
+                            "Click OK to continue sending commands, or\n" +
+                            "Click Cancel to prevent further attempts.\n\n\n" +
+                            "Command:\n" + queue[0].outputData + "\n\n" +
+                            "Response:\n"+ this.data
+                    mpd_stop = confirm(msg)
+                    queue.shift()
+                    doStatus = false
                     done = true
                 }
                 if (done) {
-                    queue.shift()
                     this.data = ""
                     if (doStatus) {
                         doStatus = false
@@ -379,13 +405,13 @@ function getCover(elem, song) {
     elem.src = ""
     var data = ""
     var asin = ""
-    if (song['Artist']) {
+    if (typeof(song['Artist']) != 'undefined') {
         var artist = _clean(song['Artist'])
     }
     else {
         var artist = ""
     }
-    if (song['Album']) {
+    if (typeof(song['Album']) != 'undefined') {
         var album = _clean(song['Album'])
     }
     else {
