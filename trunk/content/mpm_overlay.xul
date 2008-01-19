@@ -80,6 +80,20 @@
             default="true"
             oncommand="playlist_dblclick()"></menuitem>
         <menuitem id="playlist_context_remove" command="cmd_remove"></menuitem>
+        <menu id="playlist_move"
+            label="Move Song(s)">
+            <menupopup id="playlist_move_menu">
+                <menuitem id="playlist_move_first"
+                        label="to Begining"
+                        oncommand="playlist_move(0)"/>
+                <menuitem id="playlist_move_next"
+                        label="to Next in Queue"
+                        oncommand="playlist_move_next()"/>
+                <menuitem id="playlist_move_last"
+                        label="to End"
+                        oncommand="playlist_move(mpd.playlistlength-1)"/>
+            </menupopup>
+        </menu>
         <menuseparator></menuseparator>
         <menuitem id="playlist_context_album" command="cmd_find_album"></menuitem>
         <menuitem id="playlist_context_artist_songs" command="cmd_find_artist_songs"></menuitem>
