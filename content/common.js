@@ -131,12 +131,95 @@ function init_mpd () {
 
     }
 }
+const replacementChar = Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
+var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
+.getService(Components.interfaces.nsISocketTransportService);
+var transport
+var outstream
+var instream
+var utf_instream
+var utf_outstream
+var idle = false
+var dataListener  = {
+      data : "",
+      onStartRequest: function(request, context){
+                    talker_active = true
+                    idle = false
+                },
+      onStopRequest: function(request, context, status){
+                    utf_outstream.close()
+                    utf_instream.close()
+                    transport.close(0)
+                    talker_active = false
+                    idle = false
+                },
+      onDataAvailable: function(request, context, inputStream, offset, count){
+        try {
+            idle = false
+            if (talker_cancel) {talker_cancel = false;request.cancel(0); return null}
+            var str = {};
+            var done = false
+            while (utf_instream.readString(4096, str) != 0) {
+                this.data += str.value
+            }
+            str = null
+            if (this.data.slice(-3) == "OK\n") {
+                if (queue.length > 0 && typeof(queue[0].callBack) == 'function') {
+                    queue[0].callBack(this.data)
+                }
+                queue.shift()
+                this.data = ""
+                if (queue.length > 0) {
+                    utf_outstream.writeString(queue[0].outputData);
+                }
+                else { done = true }
+            }
+            else if (this.data.substr(0,6) == "OK MPD"){
+                this.data = ""
+                if (pass.length > 0) {
+                    queue.unshift({'outputData':'password '+pass+'\n',
+                                   'callBack': null})
+                }
+                if (queue.length > 0) {
+                    utf_outstream.writeString(queue[0].outputData);
+                }
+                else {done = true}
+            }
+            else if (this.data.indexOf('ACK [') != -1) {
+                var msg = "An error has occured when communicating with MPD.\n" +
+                        "Click Cancel to continue sending commands, or\n" +
+                        "Click OK to prevent further attempts.\n\n\n" +
+                        "Command:\n" + queue[0].outputData + "\n\n" +
+                        "Response:\n"+ this.data
+                mpd_stop = confirm(msg)
+                queue.shift()
+                doStatus = false
+                done = true
+            }
+            if (done) {
+                this.data = ""
+                if (doStatus) {
+                    doStatus = false
+                    queue.push({'outputData':status_command,
+                                'callBack': statusCallBack})
+                    utf_outstream.writeString(status_command)
+                }
+                else {
+                    idle = true
+                }
+            }
+        } catch (e) {
+            debug(e)
+        }
+    },
+};
+
 function checkStatus() {
     doStatus = true
     var tm = 200
     if (!talker_active) {talker()}
-    if (typeof(outstream) != 'undefined') {
-        if (idle) {outstream.writeString("\n")}
+    if (typeof(utf_outstream) != 'undefined') {
+        if (idle) {utf_outstream.writeString("\n")}
     }
     try {
         if (mpd.state != "play") {
@@ -168,97 +251,6 @@ function statusCallBack (data) {
     } while (--dl)
     doStatus = false
 }
-var queue = new Array()
-function command(outputData, callBack){
-    queue.push({'outputData':outputData+"\n", 'callBack':callBack})
-    doStatus = true
-    if (typeof(outstream) != 'undefined') {
-        if (idle) {outstream.writeString(outputData+"\n")}
-    }
-    else  {talker()}
-}
-const replacementChar = Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
-var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
-.getService(Components.interfaces.nsISocketTransportService);
-var transport
-var stream_out
-var stream_in
-var instream
-var outstream
-var idle = false
-var dataListener  = {
-      data : "",
-      onStartRequest: function(request, context){
-                    talker_active = true
-                    idle = false
-                },
-      onStopRequest: function(request, context, status){
-                    outstream.close()
-                    instream.close()
-                    transport.close(0)
-                    talker_active = false
-                    idle = false
-                },
-      onDataAvailable: function(request, context, inputStream, offset, count){
-        try {
-            idle = false
-            if (talker_cancel) {talker_cancel = false;request.cancel(0); return null}
-            var str = {};
-            var done = false
-            while (instream.readString(4096, str) != 0) {
-                this.data += str.value
-            }
-            str = null
-            if (this.data.substr(0,6) == "OK MPD"){
-                this.data = ""
-                if (pass.length > 0) {
-                    queue.unshift({'outputData':'password '+pass+'\n',
-                                   'callBack': null})
-                }
-                if (queue.length > 0) {
-                    outstream.writeString(queue[0].outputData);
-                }
-                else {done = true}
-            }
-            else if (this.data.slice(-3) == "OK\n") {
-                if (queue.length > 0 && typeof(queue[0].callBack) == 'function') {
-                    queue[0].callBack(this.data.slice(0,this.data.length-3))
-                }
-                queue.shift()
-                if (queue.length > 0) {
-                    this.data = ""
-                    outstream.writeString(queue[0].outputData);
-                }
-                else { done = true }
-            }
-            else if (this.data.indexOf('ACK [') != -1) {
-                var msg = "An error has occured when communicating with MPD.\n" +
-                        "Click Cancel to continue sending commands, or\n" +
-                        "Click OK to prevent further attempts.\n\n\n" +
-                        "Command:\n" + queue[0].outputData + "\n\n" +
-                        "Response:\n"+ this.data
-                mpd_stop = confirm(msg)
-                queue.shift()
-                doStatus = false
-                done = true
-            }
-            if (done) {
-                this.data = ""
-                if (doStatus) {
-                    doStatus = false
-                    queue.push({'outputData':status_command,
-                                'callBack': statusCallBack})
-                    outstream.writeString(status_command)
-                }
-                else {
-                    idle = true
-                }
-            }
-        } catch (e) {
-            debug(e)
-        }
-    },
-};
 
 function simple_cmd (cmd) {
     if (talker_active) {
@@ -323,20 +315,30 @@ function simple_cmd (cmd) {
         } catch (e) {debug(e)}
     }
 }
+
+var queue = new Array()
+function command(outputData, callBack){
+    queue.push({'outputData':outputData+"\n", 'callBack':callBack})
+    doStatus = true
+    if (typeof(utf_outstream) != 'undefined') {
+        if (idle) {utf_outstream.writeString(outputData+"\n")}
+    }
+    else  {talker()}
+}
 function talker(){
     if (talker_active) { return null }
     transport = transportService.createTransport(null,0,host,port,null);
-    stream_out = transport.openOutputStream(0,0,0);
-    stream_in = transport.openInputStream(0,0,0);
-    instream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+    outstream = transport.openOutputStream(0,0,0);
+    instream = transport.openInputStream(0,0,0);
+    utf_instream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
                    .createInstance(Components.interfaces.nsIConverterInputStream);
-    instream.init(stream_in, 'UTF-8', 1024, replacementChar);
-    outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
+    utf_instream.init(instream, 'UTF-8', 1024, replacementChar);
+    utf_outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
                    .createInstance(Components.interfaces.nsIConverterOutputStream)
-    outstream.init(stream_out, 'UTF-8', 0, 0x0000)
+    utf_outstream.init(outstream, 'UTF-8', 0, 0x0000)
     var pump = Components.classes["@mozilla.org/network/input-stream-pump;1"].
             createInstance(Components.interfaces.nsIInputStreamPump);
-    pump.init(stream_in, -1, -1, 0, 0, false);
+    pump.init(instream, -1, -1, 0, 0, false);
     pump.asyncRead(dataListener,null);
     return null
 }
@@ -351,7 +353,6 @@ function clean(str){
     } catch (e) {return ""}
     return str
 }
-
 function parse_db (data) {
     data = data.split("\n")
     var db = []
@@ -361,33 +362,43 @@ function parse_db (data) {
     do {
         var i = dl - n
         var sep = data[i].indexOf(": ")
-        var fld = data[i].substr(0, sep)
-        var val = clean(data[i].slice(sep+2))
-        if (fld == 'file') {
-            var song = {
-                'type': 'file',
-                'Name': val,
-                'Track': '0',
-                'Title': val,
-                'Artist': 'unknown',
-                'Album': 'unknown',
-                'Time' : 0
-            };
-            var d = data[i+1]
-            while (d && d.substr(0,6) != "file: ") {
-                var sep = d.indexOf(": ")
-                song[d.substr(0, sep)] = d.slice(sep+2);
-                --n;
-                var d = data[dl - n + 1]
-            };
-            db.push(song);
-        }
-        else if (fld == 'directory') {
-            var dir = val.split("/")
-            db.push({'type': 'directory', 'Name': val, 'Title': dir[dir.length-1]})
-        }
-        else if (fld != "OK") {
-            db.push({'type': fld, 'Name': val, 'Title': val})
+        if (sep > -1) {
+            var fld = data[i].substr(0, sep)
+            var val = clean(data[i].slice(sep+2))
+            if (fld == 'file') {
+                var song = {
+                    'type': 'file',
+                    'Name': val,
+                    'Track': '0',
+                    'Title': val,
+                    'Artist': 'unknown',
+                    'Album': 'unknown',
+                    'Time' : 0
+                };
+                var d = data[i+1]
+                while (d && d.substr(0,6) != "file: ") {
+                    var sep = d.indexOf(": ")
+                    song[d.substr(0, sep)] = d.slice(sep+2);
+                    --n;
+                    var d = data[dl - n + 1]
+                };
+                db.push(song);
+            }
+            else if (fld == 'directory') {
+                var dir = val.split("/")
+                db.push({
+                        'type': 'directory',
+                        'Name': val,
+                        'Title': dir[dir.length-1]
+                        })
+            }
+            else if (fld != "OK") {
+                db.push({
+                        'type': fld,
+                        'Name': val,
+                        'Title': val
+                        })
+            }
         }
     } while (--n)
     return db

@@ -404,6 +404,7 @@ function setPlaylist(data) {
     }
     $("pl_stats").value = prettyTime(tm)
     data = null
+    mpd.song = -1
 }
 function getPlaylist(ver) {
     if (isNaN(PLver)) {
@@ -543,6 +544,64 @@ function remove() {
     command(cmd, null)
 }
 
+function playlist_move_next() {
+    var moveto = parseInt(mpd.song)
+    var pos = $('playlist').currentIndex
+    if (PLmode == 'extended') {pos = Math.floor(pos/3)}
+    if (moveto < pos) { moveto++}
+    playlist_move(moveto)
+}
+function playlist_move(moveto) {
+    var tree=$("playlist")
+    var start = new Object();
+    var end = new Object();
+    var numRanges = tree.view.selection.getRangeCount();
+    var offset = 0
+    var cmd = "command_list_begin"
+    var back = false
+    moveto = parseInt(moveto)
+
+    if (PLmode == 'extended') {
+        var pstart
+        var pos
+        for (var t=0; t<numRanges; t++){
+            tree.view.selection.getRangeAt(t,start,end);
+            for (var v=start.value; v<=end.value; v++){
+                pos = Math.floor(v/3)
+                pstart = pos*3
+                if (v==pstart){
+                    if (pos < moveto) {
+                        cmd += "\nmove " + (pos-offset) + " " + moveto
+                        offset++
+                    }
+                    else {
+                        cmd += "\nmove " + pos + " " + (moveto + offset)
+                        offset++
+                    }
+                }
+            }
+        }
+    }
+    else {
+        for (var t=0; t<numRanges; t++){
+            tree.view.selection.getRangeAt(t,start,end);
+            for (var v=start.value; v<=end.value; v++){
+                if (v < moveto) {
+                    cmd += "\nmove "+ (v-offset) + " " + moveto
+                    offset++
+                }
+                else {
+                    cmd += "\nmove "+ v + " " + (moveto + offset)
+                    offset++
+                }
+            }
+        }
+    }
+
+    cmd += "\ncommand_list_end"
+    command(cmd, null)
+}
+
 function clear() {
   command("clear", null)
   }
@@ -605,13 +664,14 @@ function playlist_openPopup(){
     command('lsinfo', cb)
 }
 function playlist_contextShowing () {
+    if (PLmode == "extended") {
+        var pos = Math.floor($('playlist').currentIndex / 3)
+    }
+    else {
+        var pos = $('playlist').currentIndex
+    }
     if (typeof(active_item) != 'undefined') {
-        if (PLmode == "extended") {
-            active_item = PL[Math.floor($('playlist').currentIndex / 3)]
-        }
-        else {
-            active_item = PL[$('playlist').currentIndex]
-        }
+        active_item = PL[pos]
         $('playlist_context_album').hidden = false;
         $('playlist_context_artist_songs').hidden = false;
         $('playlist_context_artist_albums').hidden = false;
