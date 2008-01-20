@@ -67,7 +67,11 @@
         enablemultiselect="true"
         ondblclick="playlist_dblclick()"
         flags="dont-build-content"
-        onselect="playlist_select(this.currentIndex)">
+        onselect="playlist_select(this.currentIndex)"
+        ondraggesture="nsDragAndDrop.startDrag(event,plObserver)"
+        ondragover="nsDragAndDrop.dragOver(event,plObserver)"
+        ondragexit="nsDragAndDrop.dragExit(event,plObserver)"
+        ondragdrop="nsDragAndDrop.drop(event,plObserver)">
         <treecols>
             <treecol id="Position" label="#" width="30" ordinal="0"/>
             <splitter class="tree-splitter"/>

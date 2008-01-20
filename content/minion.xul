@@ -96,23 +96,20 @@
             <tree id="playlist"
                 label="Playlist"
                 flex="1"
-                enablemultiselect="true"
                 ondblclick="playlist_dblclick()"
                 flags="dont-build-content"
                 onselect="playlist_select(this.currentIndex)"
-                context="playlist_context">
+                context="playlist_context"
+                ondraggesture="nsDragAndDrop.startDrag(event,plObserver)"
+                ondragover="nsDragAndDrop.dragOver(event,plObserver)"
+                ondragexit="nsDragAndDrop.dragExit(event,plObserver)"
+                ondragdrop="nsDragAndDrop.drop(event,plObserver)">
                 <treecols>
-                    <treecol id="Position" label="#" width="35" ordinal="0"
-                                class=""
-                                src="colheader.png"/>
+                    <treecol id="Position" label="#" width="35" ordinal="0"/>
                     <splitter class="tree-splitter"/>
-                    <treecol id="PLsong" label="Song" ordinal="1" flex="1"
-                                class=""
-                                src="colheader.png"/>
+                    <treecol id="PLsong" label="Song" ordinal="1" flex="1"/>
                     <splitter class="tree-splitter"/>
-                    <treecol id="PLtime" label="Time" ordinal="2" width="50"
-                                class=""
-                                src="colheader.png"/>
+                    <treecol id="PLtime" label="Time" ordinal="2" width="50"/>
                 </treecols>
                 <treechildren id="PLdata"/>
             </tree>
