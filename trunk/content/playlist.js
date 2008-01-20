@@ -1,7 +1,32 @@
 var PL = new Array()
 var PLver = 0
 var pds
-
+var plDrag = false
+var plObserver = {
+    onDragStart: function (event, transferData, action) {
+        plDrag = true
+        var pos = $('playlist').currentIndex
+        if (PLmode == 'extended') { pos = Math.floor(pos/3) }
+        var song = PL[pos]
+        var plainText = song.Artist + " - " + song.Album + " - " + song.Title;
+        transferData.data = new TransferData();
+        transferData.data.addDataForFlavour("text/unicode",plainText);
+        transferData.data.addDataForFlavour("integer",pos);
+    },
+    onDragOver: function (event, flavour, session) {
+    },
+    onDragExit: function (event, session) {
+        plDrag = false
+    },
+    getSupportedFlavours : function () {
+        var flavours = new FlavourSet();
+        flavours.appendFlavour("integer");
+        return flavours;
+    },
+    onDrop: function (event, dropData, session) {
+        alert(dropData.data)
+    }
+}
 function hmsFromSec(sec) {
   var hms = "0:00"
   try {sec = parseInt(sec)}
@@ -301,8 +326,21 @@ function assignPLview() {
                     pos = null; r = null; aserv = null
                     } catch(e) {}
                 }
-                },
-            getColumnProperties: function(colid,col,props){}
+            },
+            getParentIndex: function(idx) {return -1},
+            getColumnProperties: function(colid,col,props){},
+            canDrop: function(row, orient) {return true},
+            drop: function(row, orient){
+                    if(plDrag){
+                        var offset = row % 3 + orient
+                        var moveto = Math.floor((row)/3)
+                        if (offset < 1) {moveto--}
+                        else if (offset > 1) {moveto++}
+                        if (row > tree.currentIndex) {moveto--}
+                        else {moveto++}
+                        playlist_move(moveto)
+                    }
+                }
             };
         }
     else {
@@ -338,7 +376,16 @@ function assignPLview() {
                     } catch(e) {}
                     }
                 },
-            getColumnProperties: function(colid,col,props){}
+            getParentIndex: function(idx) {return -1},
+            getColumnProperties: function(colid,col,props){},
+            canDrop: function(index, orient) {return true},
+            drop: function(row,orient){if(plDrag){
+                        var moveto = row+orient
+                        if (row > tree.currentIndex) {moveto--}
+                        else {moveto++}
+                        playlist_move(moveto)
+                    }
+                }
             };
         }
         l = null
@@ -560,6 +607,8 @@ function playlist_move(moveto) {
     var cmd = "command_list_begin"
     var back = false
     moveto = parseInt(moveto)
+    if (moveto < 0 ) {moveto = 0}
+    else if (moveto >= mpd.playlistlength) {moveto = mpd.playlistlength - 1}
 
     if (PLmode == 'extended') {
         var pstart
