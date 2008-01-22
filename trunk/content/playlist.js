@@ -11,7 +11,7 @@ var plObserver = {
         var plainText = song.Artist + " - " + song.Album + " - " + song.Title;
         transferData.data = new TransferData();
         transferData.data.addDataForFlavour("text/unicode",plainText);
-        transferData.data.addDataForFlavour("integer",pos);
+        transferData.data.addDataForFlavour("mpm/playlist",pos);
     },
     onDragOver: function (event, flavour, session) {
     },
@@ -20,13 +20,43 @@ var plObserver = {
     },
     getSupportedFlavours : function () {
         var flavours = new FlavourSet();
-        flavours.appendFlavour("integer");
+        flavours.appendFlavour("mpm/filename");
+        flavours.appendFlavour("text/unicode");
         return flavours;
     },
     onDrop: function (event, dropData, session) {
-        alert(dropData.data)
+        if (dropData.flavour.contentType == "mpm/filename") {
+            add()
+        }
+        event.stopPropagation()
     }
 }
+var csObserver = {
+    onDragStart: function (event, transferData, action) {
+        var song = PL[mpd.song]
+        var plainText = song.Artist + " - " + song.Album + " - " + song.Title;
+        transferData.data = new TransferData();
+        transferData.data.addDataForFlavour("text/unicode",plainText);
+    },
+    onDragOver: function (event, flavour, session) {
+    },
+    onDragExit: function (event, session) {
+    },
+    getSupportedFlavours : function () {
+        var flavours = new FlavourSet();
+        flavours.appendFlavour("mpm/filename");
+        return flavours;
+    },
+    onDrop: function (event, dropData, session) {
+        if (dropData.flavour.contentType == "mpm/filename") {
+            var l = mpd.playlistlength
+            add()
+            command('play '+l,null)
+        }
+        event.stopPropagation()
+    }
+}
+
 function hmsFromSec(sec) {
   var hms = "0:00"
   try {sec = parseInt(sec)}
@@ -329,7 +359,7 @@ function assignPLview() {
             },
             getParentIndex: function(idx) {return -1},
             getColumnProperties: function(colid,col,props){},
-            canDrop: function(row, orient) {return true},
+            canDrop: function(row, orient) {return plDrag},
             drop: function(row, orient){
                     if(plDrag){
                         var offset = row % 3 + orient
@@ -340,6 +370,7 @@ function assignPLview() {
                         else {moveto++}
                         playlist_move(moveto)
                     }
+                    else {}
                 }
             };
         }
@@ -378,7 +409,7 @@ function assignPLview() {
                 },
             getParentIndex: function(idx) {return -1},
             getColumnProperties: function(colid,col,props){},
-            canDrop: function(index, orient) {return true},
+            canDrop: function(index, orient) {return plDrag},
             drop: function(row,orient){if(plDrag){
                         var moveto = row+orient
                         if (row > tree.currentIndex) {moveto--}

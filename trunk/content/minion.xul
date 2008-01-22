@@ -56,7 +56,12 @@
                 onclick="getDir('Album',this.value)"></image>
             <spacer flex="1"/>
         </vbox>
-        <vbox id="cur_song" flex="1">
+        <vbox id="cur_song"
+            flex="1"
+            ondraggesture="nsDragAndDrop.startDrag(event,csObserver)"
+            ondragover="nsDragAndDrop.dragOver(event,csObserver)"
+            ondragexit="nsDragAndDrop.dragExit(event,csObserver)"
+            ondragdrop="nsDragAndDrop.drop(event,csObserver)">
             <label id="lbl_title"
                 crop="right"
                 value="Not Playing."

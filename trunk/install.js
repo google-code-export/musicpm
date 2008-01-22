@@ -1,4 +1,4 @@
-initInstall("Music Player Minion","minion","0.6");
+initInstall("Music Player Minion","minion","0.8");
 
 findDir = getFolder("Chrome","minion");
 setPackageFolder(findDir);

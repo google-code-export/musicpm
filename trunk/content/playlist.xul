@@ -43,7 +43,12 @@
             </vbox>
     </toolbar>
 
-    <hbox id="cur_song" class="hidden">
+    <hbox id="cur_song"
+            ondraggesture="nsDragAndDrop.startDrag(event,csObserver)"
+            ondragover="nsDragAndDrop.dragOver(event,csObserver)"
+            ondragexit="nsDragAndDrop.dragExit(event,csObserver)"
+            ondragdrop="nsDragAndDrop.drop(event,csObserver)"
+            class="hidden">
         <vbox flex="1">
             <label id="lbl_title"
                 crop="right"

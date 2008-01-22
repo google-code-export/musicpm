@@ -171,6 +171,7 @@ var dataListener  = {
                 this.data = ""
                 if (queue.length > 0) {
                     utf_outstream.writeString(queue[0].outputData);
+                    debug("OK..."+queue[0].outputData)
                 }
                 else { done = true }
             }
@@ -182,6 +183,7 @@ var dataListener  = {
                 }
                 if (queue.length > 0) {
                     utf_outstream.writeString(queue[0].outputData);
+                    debug("OK MPD..."+queue[0].outputData)
                 }
                 else {done = true}
             }
@@ -321,7 +323,10 @@ function command(outputData, callBack){
     queue.push({'outputData':outputData+"\n", 'callBack':callBack})
     doStatus = true
     if (typeof(utf_outstream) != 'undefined') {
-        if (idle) {utf_outstream.writeString(outputData+"\n")}
+        if (idle) {
+            utf_outstream.writeString(queue[0].outputData)
+            idle = false
+        }
     }
     else  {talker()}
 }
