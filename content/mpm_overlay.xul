@@ -207,7 +207,11 @@
                 flex="1"
                 ondblclick="files_dblclick()"
                 flags="dont-build-content"
-                context="files_context">
+                context="files_context"
+                ondraggesture="nsDragAndDrop.startDrag(event,fileObserver)"
+                ondragover="nsDragAndDrop.dragOver(event,fileObserver)"
+                ondragexit="nsDragAndDrop.dragExit(event,fileObserver)"
+                ondragdrop="nsDragAndDrop.drop(event,fileObserver)">
                 <treecols>
                     <treecol id="Name" label="Name" ordinal="1" flex="3" hidden="true"
                             persist="width ordinal hidden"

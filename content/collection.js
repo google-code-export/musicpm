@@ -27,6 +27,30 @@ var home = [
 ]
 var active_item = null
 
+var fileObserver = {
+    onDragStart: function (event, transferData, action) {
+        var plainText = table[$('files').currentIndex].Name
+        transferData.data = new TransferData();
+        transferData.data.addDataForFlavour("text/unicode",plainText);
+        transferData.data.addDataForFlavour("mpm/filename",plainText);
+    },
+    onDragOver: function (event, flavour, session) {
+    },
+    onDragExit: function (event, session) {
+    },
+    getSupportedFlavours : function () {
+        var flavours = new FlavourSet();
+        flavours.appendFlavour("mpm/playlist");
+        flavours.appendFlavour("text/unicode");
+        return flavours;
+    },
+    onDrop: function (event, dropData, session) {
+        if (dropData.flavour.contentType == "mpm/playlist") {
+            remove()
+        }
+        event.stopPropagation()
+    }
+}
 function filter(lst, types){
     var l = lst.length
     if (l < 1) { return lst }
@@ -157,7 +181,10 @@ function assignView() {
             },
             getColumnProperties: function(colid,col,props){
             },
-            cycleHeader: function(col, elem) {return null}
+            cycleHeader: function(col, elem) {return null},
+            getParentIndex: function(idx) {return -1},
+            canDrop: function(index, orient) {return false},
+            drop: function(row,orient){}
         };
     }
 }
