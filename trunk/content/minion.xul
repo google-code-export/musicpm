@@ -24,8 +24,9 @@
     <stringbundleset id="strbundles">
         <stringbundle id="settings" src="minion.settings"/>
     </stringbundleset>
-    <commandset id="commandset_overlay" />
-    <menupopup id="playlist_context" />
+    <commandset id="commandset_overlay"/>
+    <keyset id="mpm_keyset"/>
+    <menupopup id="playlist_context"/>
     <menupopup id="files_context"/>
     <menupopup id="nav_context"/>
 
@@ -98,31 +99,7 @@
     <hbox id="main" flex="1">
         <vbox style="min-width:240px">
             <toolbar id="playlist_toolbar"/>
-            <tree id="playlist"
-                label="Playlist"
-                flex="1"
-                ondblclick="playlist_dblclick()"
-                flags="dont-build-content"
-                onselect="playlist_select(this.currentIndex)"
-                context="playlist_context"
-                ondraggesture="nsDragAndDrop.startDrag(event,plObserver)"
-                ondragover="nsDragAndDrop.dragOver(event,plObserver)"
-                ondragexit="nsDragAndDrop.dragExit(event,plObserver)"
-                ondragdrop="nsDragAndDrop.drop(event,plObserver)">
-                <treecols>
-                    <treecol id="Position" label="#" width="35" ordinal="0"/>
-                    <splitter class="tree-splitter"/>
-                    <treecol id="PLsong" label="Song" ordinal="1" flex="1"/>
-                    <splitter class="tree-splitter"/>
-                    <treecol id="PLtime" label="Time" ordinal="2" width="50"/>
-                </treecols>
-                <treechildren id="PLdata"/>
-            </tree>
-            <hbox>
-                <spacer flex="1"/>
-                <label id="pl_stats" value=""/>
-                <spacer flex="1"/>
-            </hbox>
+            <vbox id="playlist_tree"/>
         </vbox>
         <splitter id="tab_split" collapse="before" persist="width height" />
         <vbox id="mpm_browse" flex="1"/>

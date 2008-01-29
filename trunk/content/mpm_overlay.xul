@@ -28,6 +28,21 @@
     <command id="cmd_rescan" label="Update" tooltiptext="Scan Music Folders for Updates" oncommand="files_rescan()" />
   </commandset>
 
+  <keyset id="mpm_keyset">
+    <key id="mpm_key_play" key=" " oncommand="doPlay();"/>
+    <key id="mpm_key_stop" keycode="VK_ESCAPE" oncommand="doStop();"/>
+    <key id="mpm_key_goPL" keycode="VK_LEFT" oncommand="$('playlist').focus()"/>
+    <key id="mpm_key_goFiles" keycode="VK_RIGHT" oncommand="$('files').focus()"/>
+    <key id="mpm_key_upvol1" modifiers="accel" keycode="VK_UP" oncommand="upVol();"/>
+    <key id="mpm_key_upvol2" key="+" oncommand="upVol()"/>
+    <key id="mpm_key_upvol3" key="=" oncommand="upVol();"/>
+    <key id="mpm_key_downvol1" modifiers="accel" keycode="VK_DOWN" oncommand="downVol();"/>
+    <key id="mpm_key_downvol2" key="-" oncommand="downVol()"/>
+    <key id="mpm_key_next" modifiers="accel" keycode="VK_RIGHT" oncommand="doNext();"/>
+    <key id="mpm_key_prev" modifiers="accel" keycode="VK_LEFT" oncommand="doPrev();"/>
+    <key id="mpm_key_add" keycode="VK_INSERT" oncommand="add();"/>
+    <key id="mpm_key_rm" keycode="VK_DELETE" oncommand="remove();"/>
+  </keyset>
   <broadcasterset id="playlistBroadcasterSet">
     <broadcaster id="mpm_random"
                  label="Random"
@@ -45,10 +60,11 @@
     <toolbar id="playlist_toolbar">
       <toolbarbutton id="playlist_menu"
         label="Playlist"
-        type="menu">
+        type="menu"
+        accesskey="p">
         <menupopup id="playlist_menu_popup">
-            <menuitem id="playlist_menu_new" command="cmd_clear"></menuitem>
-            <menu id="playlist_menu_open" label="Open Playlist">
+            <menuitem id="playlist_menu_new" command="cmd_clear" accesskey="c"></menuitem>
+            <menu id="playlist_menu_open" label="Open Playlist" accesskey="o">
                 <menupopup id="playlist_open_popup"
                     datasources="rdf:null"
                     onpopupshowing="playlist_openPopup()">
@@ -61,19 +77,46 @@
                     </template>
                 </menupopup>
             </menu>
-            <menuitem id="playlist_menu_save" command="cmd_save"></menuitem>
-            <menuitem id="playlist_menu_remove" command="cmd_remove"></menuitem>
-            <menuitem id="playlist_menu_shuffle" command="cmd_shuffle"></menuitem>
+            <menuitem id="playlist_menu_save" command="cmd_save" accesskey="S"></menuitem>
+            <menuitem id="playlist_menu_remove" command="cmd_remove" accesskey="r"></menuitem>
+            <menuitem id="playlist_menu_shuffle" command="cmd_shuffle" accesskey="h"></menuitem>
             <menuseparator></menuseparator>
-            <menuitem id="playlist_menu_simple" command="cmd_simple"></menuitem>
-            <menuitem id="playlist_menu_extened" command="cmd_extended"></menuitem>
+            <menuitem id="playlist_menu_simple" command="cmd_simple" accesskey="i"></menuitem>
+            <menuitem id="playlist_menu_extened" command="cmd_extended" accesskey="x"></menuitem>
         </menupopup>
       </toolbarbutton>
       <spacer flex="1"/>
-      <toolbarbutton id="playlist_random" command="cmd_random"/>
-      <toolbarbutton id="playlist_repeat" command="cmd_repeat"/>
+      <toolbarbutton id="playlist_random" command="cmd_random" accesskey="n"/>
+      <toolbarbutton id="playlist_repeat" command="cmd_repeat" accesskey="t"/>
     </toolbar>
-
+    <vbox id="playlist_tree" flex="1">
+        <tree id="playlist"
+            label="Playlist"
+            flex="1"
+            ondblclick="playlist_dblclick()"
+            flags="dont-build-content"
+            onselect="playlist_select(event, this.currentIndex)"
+            onkeydown="playlist_keydown(event)"
+            context="playlist_context"
+            ondraggesture="nsDragAndDrop.startDrag(event,plObserver)"
+            ondragover="nsDragAndDrop.dragOver(event,plObserver)"
+            ondragexit="nsDragAndDrop.dragExit(event,plObserver)"
+            ondragdrop="nsDragAndDrop.drop(event,plObserver)">
+            <treecols>
+                <treecol id="Position" label="#" width="35" ordinal="0"/>
+                <splitter class="tree-splitter"/>
+                <treecol id="PLsong" label="Song" ordinal="1" flex="1"/>
+                <splitter class="tree-splitter"/>
+                <treecol id="PLtime" label="Time" ordinal="2" width="50"/>
+            </treecols>
+            <treechildren id="PLdata"/>
+        </tree>
+        <hbox>
+            <spacer flex="1"/>
+            <label id="pl_stats" value=""/>
+            <spacer flex="1"/>
+        </hbox>
+    </vbox>
     <menupopup id="playlist_context" onpopupshowing="playlist_contextShowing()">
         <menuitem id="playlist_context_play"
             label="Play"
@@ -206,6 +249,7 @@
                 enableColumnDrag="true"
                 flex="1"
                 ondblclick="files_dblclick()"
+                onkeypress="(event.keyCode==13)?files_dblclick():null"
                 flags="dont-build-content"
                 context="files_context"
                 ondraggesture="nsDragAndDrop.startDrag(event,fileObserver)"
