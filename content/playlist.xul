@@ -18,6 +18,7 @@
     <script src="chrome://global/content/nsDragAndDrop.js"/>
     <script src="chrome://global/content/nsTransferable.js"/>
     <commandset id="commandset_overlay" />
+    <keyset id="mpm_keyset"/>
 
     <toolbar id="playlist_toolbar" />
     <menupopup id="playlist_context" />
@@ -66,30 +67,5 @@
             </hbox>
         </vbox>
     </hbox>
-    <tree id="playlist"
-        label="Playlist"
-        flex="1"
-        enablemultiselect="true"
-        ondblclick="playlist_dblclick()"
-        flags="dont-build-content"
-        onselect="playlist_select(this.currentIndex)"
-        ondraggesture="nsDragAndDrop.startDrag(event,plObserver)"
-        ondragover="nsDragAndDrop.dragOver(event,plObserver)"
-        ondragexit="nsDragAndDrop.dragExit(event,plObserver)"
-        ondragdrop="nsDragAndDrop.drop(event,plObserver)">
-        <treecols>
-            <treecol id="Position" label="#" width="30" ordinal="0"/>
-            <splitter class="tree-splitter"/>
-            <treecol id="PLsong" label="Song" ordinal="1" flex="1"/>
-            <splitter class="tree-splitter"/>
-            <treecol id="PLtime" label="Time" ordinal="2" width="50"/>
-        </treecols>
-        <treechildren id="PLdata" context="playlist_context"/>
-    </tree>
-
-    <hbox>
-        <spacer flex="1"/>
-        <label id="pl_stats" value=""/>
-        <spacer flex="1"/>
-    </hbox>
+    <vbox id="playlist_tree"/>
 </window>

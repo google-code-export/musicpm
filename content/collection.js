@@ -29,6 +29,11 @@ var active_item = null
 
 var fileObserver = {
     onDragStart: function (event, transferData, action) {
+        var row = { }
+        var col = { }
+        var child = { }
+        $('files').treeBoxObject.getCellAt(event.pageX, event.pageY, row, col, child)
+        if (!col.value) {  return }
         var plainText = table[$('files').currentIndex].Name
         transferData.data = new TransferData();
         transferData.data.addDataForFlavour("text/unicode",plainText);

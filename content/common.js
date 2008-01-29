@@ -147,9 +147,9 @@ var dataListener  = {
                     idle = false
                 },
       onStopRequest: function(request, context, status){
-                    utf_outstream.close()
-                    utf_instream.close()
-                    transport.close(0)
+                    try { utf_outstream.close() } catch (e) {}
+                    try { utf_instream.close() } catch (e) {}
+                    try { transport.close(0) } catch (e) {}
                     talker_active = false
                     idle = false
                 },

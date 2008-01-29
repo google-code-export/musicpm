@@ -4,6 +4,11 @@ var pds
 var plDrag = false
 var plObserver = {
     onDragStart: function (event, transferData, action) {
+        var row = { }
+        var col = { }
+        var child = { }
+        $('playlist').treeBoxObject.getCellAt(event.pageX, event.pageY, row, col, child)
+        if (!col.value) {  return }
         plDrag = true
         var pos = $('playlist').currentIndex
         if (PLmode == 'extended') { pos = Math.floor(pos/3) }
@@ -186,6 +191,16 @@ function setVol(val) {
         $('vol_slider').value=val
     }
 }
+function upVol() {
+    var v = $('vol_slider')
+    v.value = parseInt(v.value) + 5
+    scaleChange(v)
+}
+function downVol() {
+    var v = $('vol_slider')
+    v.value -= 5
+    scaleChange(v)
+}
 
 function setTime(val) {
     if (!seekTmr) {
@@ -257,8 +272,6 @@ function setCurSong(id) {
             $('progress').value = '0'
             }
         else {
-            $('progress').mode = 'determined'
-            centerPL()
             song = PL[parseInt(id)]
             if (typeof(song) == 'object') {
                 if (t) {t.value = song['Title']}
@@ -268,6 +281,7 @@ function setCurSong(id) {
                     art.value = song.Album
                     getCover(art, song)
                 }
+                if (mpd.state == 'play') {centerPL()}
             }
             else {
                 setTimeout("setCurSong("+id+")", 222)
@@ -359,15 +373,19 @@ function assignPLview() {
             },
             getParentIndex: function(idx) {return -1},
             getColumnProperties: function(colid,col,props){},
-            canDrop: function(row, orient) {return plDrag},
+            canDrop: function(row, orient) {
+                    return plDrag
+                },
             drop: function(row, orient){
                     if(plDrag){
-                        var offset = row % 3 + orient
+                        var offset = row % 3
                         var moveto = Math.floor((row)/3)
-                        if (offset < 1) {moveto--}
-                        else if (offset > 1) {moveto++}
-                        if (row > tree.currentIndex) {moveto--}
-                        else {moveto++}
+                        if (row < tree.currentIndex){
+                            if (offset > 1) {moveto++}
+                        }
+                        else {
+                            if (offset < 1) {moveto--}
+                        }
                         playlist_move(moveto)
                     }
                     else {}
@@ -410,13 +428,7 @@ function assignPLview() {
             getParentIndex: function(idx) {return -1},
             getColumnProperties: function(colid,col,props){},
             canDrop: function(index, orient) {return plDrag},
-            drop: function(row,orient){if(plDrag){
-                        var moveto = row+orient
-                        if (row > tree.currentIndex) {moveto--}
-                        else {moveto++}
-                        playlist_move(moveto)
-                    }
-                }
+            drop: function(row,orient){ if(plDrag){playlist_move(row)} }
             };
         }
         l = null
@@ -507,6 +519,24 @@ function playlist_dblclick() {
   command('play '+id,null)
   }
 
+function playlist_keydown(event) {
+    switch (event.keyCode){
+        case 13: playlist_dblclick(); break;
+        case 38:
+            if (PLmode=="extended") {
+                var tree = $('playlist')
+                tree.currentIndex = (Math.floor(tree.currentIndex/3)*3)-2
+            };
+            break;
+        case 40:
+            if (PLmode=="extended") {
+                var tree = $('playlist')
+                tree.currentIndex = (Math.floor(tree.currentIndex/3)*3)+4
+            };
+            break;
+    }
+}
+
 function playlist_googleIt() {
     if (PLmode == "extended") {
         var id = Math.floor($('playlist').currentIndex / 3)
@@ -566,7 +596,7 @@ function selectItem(pos) {
             }
         }
     }
-function playlist_select(R) {
+function playlist_select(event, R) {
     if (PLmode=="extended"){
         var tree = $('playlist')
         var pos = Math.floor(R/3)
@@ -581,7 +611,7 @@ function playlist_select(R) {
         if (numRanges > 1) {tree.view.selection.getRangeAt(numRanges-1,start,end)}
         pos = Math.floor(end.value/3)
         selectItem(pos)
-        $('playlist').currentIndex = R
+        tree.currentIndex = R
         }
     }
 
