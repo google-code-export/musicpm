@@ -1,5 +1,5 @@
 /* Style settings common to all minion pages/windows */
-window, page, toolbar, toolbarbutton, button {
+window, page, toolbar, toolbarbutton, button, menubar {
     -moz-appearance: none !important;
     background-color: black;
     color:white;
@@ -130,6 +130,9 @@ treecol, listheader, treecolpicker{
     background-repeat: repeat-x;
     height: 35px;
     border: none;
+}
+#playlist_menu {
+    color: white;
 }
 #mpm_navbar {
     background: #232323;
