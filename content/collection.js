@@ -549,6 +549,17 @@ function files_contextShowing(){
     }
  }
 
+function files_keypress (event) {
+    switch (event.which){
+        case 13: files_dblclick(); break;
+        case 65:
+            if (event.ctrlKey) {
+                $('files').view.selection.selectAll()
+            }; break;
+        default: //alert(event.which);
+            break;
+    }
+}
 notify['db_update'] = function(v){
     if (mpm_history.length > 0) {
         var loc = mpm_history.shift()

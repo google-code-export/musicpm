@@ -520,7 +520,7 @@ function playlist_dblclick() {
   }
 
 function playlist_keydown(event) {
-    switch (event.keyCode){
+    switch (event.which){
         case 13: playlist_dblclick(); break;
         case 38:
             if (PLmode=="extended") {
@@ -533,6 +533,12 @@ function playlist_keydown(event) {
                 var tree = $('playlist')
                 tree.currentIndex = (Math.floor(tree.currentIndex/3)*3)+4
             };
+            break;
+        case 65:
+            if (event.ctrlKey) {
+                $('playlist').view.selection.selectAll()
+            }; break;
+        default: //alert(event.which);
             break;
     }
 }

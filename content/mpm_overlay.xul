@@ -14,8 +14,8 @@
     <command id="cmd_selectAll" label="Select All" oncommand="$('files').view.selection.selectAll();"/>
     <command id="cmd_remove" label="Remove Song(s)" oncommand="remove()" />
     <command id="cmd_clear" label="Clear Playlist" oncommand="clear()" />
-    <command id="cmd_extended" label="Title/Artist/Album" oncommand="playlist_view('extended')" />
-    <command id="cmd_simple" label="Show Title Only" oncommand="playlist_view('simple')" />
+    <command id="cmd_extended" label="Extended View" oncommand="playlist_view('extended')" />
+    <command id="cmd_simple" label="Simple View" oncommand="playlist_view('simple')" />
     <command id="cmd_centerPL" tooltiptext="Scroll Playlist to Next Song" oncommand="centerPL()" />
     <command id="cmd_files" label="Open" oncommand="files_cmd()" />
     <command id="cmd_save" label="Save Playlist" oncommand="playlist_save()" />
@@ -29,19 +29,20 @@
   </commandset>
 
   <keyset id="mpm_keyset">
+    <key id="mpm_playlist_menu" modifiers="alt" key="p"
+        oncommand="$('playlist_menu_popup').showPopup($('playlist_menu'),-1,-1,'popup');"/>
     <key id="mpm_key_play" key=" " oncommand="doPlay();"/>
     <key id="mpm_key_stop" keycode="VK_ESCAPE" oncommand="doStop();"/>
     <key id="mpm_key_goPL" keycode="VK_LEFT" oncommand="$('playlist').focus()"/>
     <key id="mpm_key_goFiles" keycode="VK_RIGHT" oncommand="$('files').focus()"/>
-    <key id="mpm_key_upvol1" modifiers="accel" keycode="VK_UP" oncommand="upVol();"/>
-    <key id="mpm_key_upvol2" key="+" oncommand="upVol()"/>
-    <key id="mpm_key_upvol3" key="=" oncommand="upVol();"/>
-    <key id="mpm_key_downvol1" modifiers="accel" keycode="VK_DOWN" oncommand="downVol();"/>
-    <key id="mpm_key_downvol2" key="-" oncommand="downVol()"/>
+    <key id="mpm_key_upvol1" key="+" oncommand="upVol()"/>
+    <key id="mpm_key_upvol2" key="=" oncommand="upVol();"/>
+    <key id="mpm_key_downvol" key="-" oncommand="downVol()"/>
     <key id="mpm_key_next" modifiers="accel" keycode="VK_RIGHT" oncommand="doNext();"/>
     <key id="mpm_key_prev" modifiers="accel" keycode="VK_LEFT" oncommand="doPrev();"/>
     <key id="mpm_key_add" keycode="VK_INSERT" oncommand="add();"/>
     <key id="mpm_key_rm" keycode="VK_DELETE" oncommand="remove();"/>
+    <key id="mpm_key_stop" keycode="VK_F5" command="cmd_rescan"/>
   </keyset>
   <broadcasterset id="playlistBroadcasterSet">
     <broadcaster id="mpm_random"
@@ -249,7 +250,7 @@
                 enableColumnDrag="true"
                 flex="1"
                 ondblclick="files_dblclick()"
-                onkeypress="(event.keyCode==13)?files_dblclick():null"
+                onkeydown="files_keypress(event)"
                 flags="dont-build-content"
                 context="files_context"
                 ondraggesture="nsDragAndDrop.startDrag(event,fileObserver)"
