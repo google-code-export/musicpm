@@ -374,7 +374,10 @@ function assignPLview() {
                     var r = row - (pos*3)
                     var aserv = Components.classes["@mozilla.org/atom-service;1"]
                             .getService(Components.interfaces.nsIAtomService);
-                    if (r==0){props.AppendElement( aserv.getAtom("Title") )}
+                    if (r==0){
+                        props.AppendElement( aserv.getAtom("Title") )
+                        props.AppendElement( aserv.getAtom("Title_song") )
+                    }
                     if (r==1){props.AppendElement( aserv.getAtom("Artist") )}
                     if (r==2){props.AppendElement( aserv.getAtom("Album") )}
                     pos = null; r = null; aserv = null
@@ -436,6 +439,7 @@ function assignPLview() {
                     var aserv = Components.classes["@mozilla.org/atom-service;1"]
                             .getService(Components.interfaces.nsIAtomService);
                     props.AppendElement( aserv.getAtom("Title") )
+                    props.AppendElement( aserv.getAtom("Title_song") )
                     } catch(e) {}
                     }
                 },

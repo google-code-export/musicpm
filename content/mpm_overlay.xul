@@ -30,12 +30,13 @@
   </commandset>
 
   <keyset id="mpm_keyset">
-    <key id="mpm_playlist_menu" modifiers="alt" key="p"
+    <key id="mpm_key_playlist_menu" modifiers="alt" key="p"
         oncommand="$('playlist_menu_popup').showPopup($('playlist_menu'),-1,-1,'popup');"/>
     <key id="mpm_key_play" key=" " oncommand="doPlay();"/>
     <key id="mpm_key_next" modifiers="accel" key="z" oncommand="$('mpm_search').focus();$('search_deck').selectedIndex=1;"/>
     <key id="mpm_key_escape" keycode="VK_ESCAPE" oncommand="$('files').focus();"/>
-    <key id="mpm_key_stop" keycode="VK_BACK" oncommand="doStop();"/>
+    <key id="mpm_key_stop" modifiers="accel" keycode="VK_BACK" oncommand="doStop();"/>
+    <key id="mpm_key_back" keycode="VK_BACK" oncommand="goBack();"/>
     <key id="mpm_key_goPL" keycode="VK_LEFT" oncommand="$('playlist').focus()"/>
     <key id="mpm_key_goFiles" keycode="VK_RIGHT" oncommand="$('files').focus()"/>
     <key id="mpm_key_goCmd" keycode="VK_F2" oncommand="$('mpd_sent').focus()"/>
@@ -44,7 +45,8 @@
     <key id="mpm_key_downvol" key="-" oncommand="downVol()"/>
     <key id="mpm_key_next" modifiers="accel" keycode="VK_RIGHT" oncommand="doNext();"/>
     <key id="mpm_key_prev" modifiers="accel" keycode="VK_LEFT" oncommand="doPrev();"/>
-    <key id="mpm_key_stop" keycode="VK_F5" command="cmd_rescan"/>
+    <key id="mpm_key_bookmark" modifiers="accel" key="d" command="cmd_bookmark"/>
+    <key id="mpm_key_update" keycode="VK_F5" command="cmd_rescan"/>
   </keyset>
   <broadcasterset id="playlistBroadcasterSet">
     <broadcaster id="mpm_random"

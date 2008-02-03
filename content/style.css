@@ -206,22 +206,16 @@ treechildren::-moz-tree-cell-text() {
     color: #EDEDED;
     }
 treechildren::-moz-tree-cell-text(Title) {
-    color: #FAFABE;
+    color: white;
     }
 treechildren::-moz-tree-cell-text(Artist) {
     font-style: italic;
     }
-treechildren::-moz-tree-cell-text(Title_directory) {
-    color: white;
+treechildren::-moz-tree-cell-text(Title_file) {
+    color: #FAFABE;
     }
-treechildren::-moz-tree-cell-text(Title_Artist) {
-    color: white;
-    }
-treechildren::-moz-tree-cell-text(Title_Album) {
-    color: white;
-    }
-treechildren::-moz-tree-cell-text(Title_playlist) {
-    color: white;
+treechildren::-moz-tree-cell-text(Title_song) {
+    color: #FAFABE;
     }
 
 
@@ -255,4 +249,7 @@ treechildren::-moz-tree-row(current, focus) {
 
 treechildren::-moz-tree-cell {
   border-right: 1px dotted #444444;
+}
+.tree-columnpicker-icon {
+    list-style-image: url("chrome://minion/content/columnpicker.png");
 }
