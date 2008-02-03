@@ -6,12 +6,12 @@
   <commandset id="commandset_overlay">
     <command id="cmd_add" label="Add to Playlist" oncommand="add();"/>
     <command id="cmd_replace" label="Replace Playlist" oncommand="replace();"/>
-    <command id="cmd_delete_playlist" label="Delete" oncommand="delete_playlist();"/>
-    <command id="cmd_rename_playlist" label="Rename" oncommand="rename_playlist();"/>
+    <command id="cmd_delete_item" label="Delete" oncommand="delete_item();"/>
+    <command id="cmd_rename_item" label="Rename" oncommand="rename_item();"/>
     <command id="cmd_find_album" label="Show this Album" oncommand="find_album();"/>
     <command id="cmd_find_artist_songs" label="Show Songs by this Artist" oncommand="find_artist_songs();"/>
     <command id="cmd_find_artist_albums" label="Show Albums by this Artist" oncommand="find_artist_albums();"/>
-    <command id="cmd_selectAll" label="Select All" oncommand="$('files').view.selection.selectAll();"/>
+    <command id="cmd_selectAll" label="Select All" oncommand="$('files').focus();$('files').view.selection.selectAll();"/>
     <command id="cmd_remove" label="Remove Song(s)" oncommand="remove()" />
     <command id="cmd_clear" label="Clear Playlist" oncommand="clear()" />
     <command id="cmd_extended" label="Extended View" oncommand="playlist_view('extended')" />
@@ -26,22 +26,24 @@
     <command id="cmd_home" tooltiptext="Home" oncommand="files_home()" />
     <command id="cmd_config" tooltiptext="Adjust Settings for Music Player Minion" label="Settings" oncommand="show_config()" />
     <command id="cmd_rescan" label="Update" tooltiptext="Scan Music Folders for Updates" oncommand="files_rescan()" />
+    <command id="cmd_bookmark" tooltiptext="Bookmark This Location" oncommand="files_addBookmark()" />
   </commandset>
 
   <keyset id="mpm_keyset">
     <key id="mpm_playlist_menu" modifiers="alt" key="p"
         oncommand="$('playlist_menu_popup').showPopup($('playlist_menu'),-1,-1,'popup');"/>
     <key id="mpm_key_play" key=" " oncommand="doPlay();"/>
-    <key id="mpm_key_stop" keycode="VK_ESCAPE" oncommand="doStop();"/>
+    <key id="mpm_key_next" modifiers="accel" key="z" oncommand="$('mpm_search').focus();$('search_deck').selectedIndex=1;"/>
+    <key id="mpm_key_escape" keycode="VK_ESCAPE" oncommand="$('files').focus();"/>
+    <key id="mpm_key_stop" keycode="VK_BACK" oncommand="doStop();"/>
     <key id="mpm_key_goPL" keycode="VK_LEFT" oncommand="$('playlist').focus()"/>
     <key id="mpm_key_goFiles" keycode="VK_RIGHT" oncommand="$('files').focus()"/>
+    <key id="mpm_key_goCmd" keycode="VK_F2" oncommand="$('mpd_sent').focus()"/>
     <key id="mpm_key_upvol1" key="+" oncommand="upVol()"/>
     <key id="mpm_key_upvol2" key="=" oncommand="upVol();"/>
     <key id="mpm_key_downvol" key="-" oncommand="downVol()"/>
     <key id="mpm_key_next" modifiers="accel" keycode="VK_RIGHT" oncommand="doNext();"/>
     <key id="mpm_key_prev" modifiers="accel" keycode="VK_LEFT" oncommand="doPrev();"/>
-    <key id="mpm_key_add" keycode="VK_INSERT" oncommand="add();"/>
-    <key id="mpm_key_rm" keycode="VK_DELETE" oncommand="remove();"/>
     <key id="mpm_key_stop" keycode="VK_F5" command="cmd_rescan"/>
   </keyset>
   <broadcasterset id="playlistBroadcasterSet">
@@ -78,6 +80,7 @@
                     </template>
                 </menupopup>
             </menu>
+            <menuitem id="playlist_menu_addURL" label="Add URL" oncommand="playlist_addURL()" accesskey="U"></menuitem>
             <menuitem id="playlist_menu_save" command="cmd_save" accesskey="S"></menuitem>
             <menuitem id="playlist_menu_remove" command="cmd_remove" accesskey="r"></menuitem>
             <menuitem id="playlist_menu_shuffle" command="cmd_shuffle" accesskey="h"></menuitem>
@@ -112,7 +115,7 @@
             </treecols>
             <treechildren id="PLdata"/>
         </tree>
-        <hbox>
+        <hbox class="mpm_statusbar">
             <spacer flex="1"/>
             <label id="pl_stats" value=""/>
             <spacer flex="1"/>
@@ -165,8 +168,8 @@
         <menuitem id="files_context_add" command="cmd_add"></menuitem>
         <menuitem id="files_context_replace" command="cmd_replace"></menuitem>
         <menuitem id="files_context_selectAll" command="cmd_selectAll"></menuitem>
-        <menuitem id="files_context_delete" command="cmd_delete_playlist"></menuitem>
-        <menuitem id="files_context_rename" command="cmd_rename_playlist"></menuitem>
+        <menuitem id="files_context_delete" command="cmd_delete_item"></menuitem>
+        <menuitem id="files_context_rename" command="cmd_rename_item"></menuitem>
         <menuseparator></menuseparator>
         <menuitem id="files_context_album" command="cmd_find_album"></menuitem>
         <menuitem id="files_context_artist_songs" command="cmd_find_artist_songs"></menuitem>
@@ -182,9 +185,11 @@
     <vbox id="mpm_browse" flex="1">
         <toolbar id="files_toolbar">
             <toolbarbutton id="files_settings"
-                command="cmd_config" />
+                command="cmd_config"
+                crop="end"/>
             <toolbarbutton id="files_rescan"
-                command="cmd_rescan" />
+                command="cmd_rescan"
+                crop="end"/>
             <toolbarseparator></toolbarseparator>
             <toolbarbutton id="files_selectAll"
                            command="cmd_selectAll"
@@ -192,16 +197,17 @@
             <toolbarbutton id="files_add"
                            command="cmd_add"
                            crop="end" />
-            <spacer flex="1"/>
+            <spacer id="files_toolbarspacer" flex="1"/>
             <vbox>
                 <spacer flex="1"/>
                     <deck id="search_deck">
-                        <textbox id="mpm_search_cover"
+                        <textbox class="search" id="mpm_search_cover"
                             onfocus="$('mpm_search').focus();$('search_deck').selectedIndex=1;"
                             value="type here to search"/>
-                        <textbox id="mpm_search"
+                        <textbox class="search" id="mpm_search"
                             type="timed"
                             timeout="300"
+                            onblur="$('search_deck').selectedIndex=0;"
                             oncommand="search(this.value,'any')"/>
                     </deck>
                 <spacer flex="1"/>
@@ -221,6 +227,8 @@
                 tooltiptext="Go Forward" />
             <toolbarbutton id="files_home"
                 command="cmd_home" />
+            <toolbarbutton id="files_bookmark"
+                command="cmd_bookmark" />
         </toolbar>
         <hbox flex="1">
             <spacer id="files_left_spacer" width="4px"/>
@@ -258,40 +266,78 @@
                 ondragexit="nsDragAndDrop.dragExit(event,fileObserver)"
                 ondragdrop="nsDragAndDrop.drop(event,fileObserver)">
                 <treecols>
-                    <treecol id="Name" label="Name" ordinal="1" flex="3" hidden="true"
-                            persist="width ordinal hidden"
-                            class="sortDirectionIndicator"
-                            onclick="sort(this)"/>
-                    <splitter class="tree-splitter"/>
-                    <treecol id="Track" label="Track" ordinal="2" width="60px"
-                            persist="width ordinal hidden"
-                            style="text-align:right"
-                            class="sortDirectionIndicator"
-                            onclick="sort(this)"/>
-                    <splitter class="tree-splitter"/>
-                    <treecol id="Title" label="Title" ordinal="2" flex="3"
-                            persist="width ordinal hidden"
-                            class="sortDirectionIndicator"
-                            onclick="sort(this)"/>
-                    <splitter class="tree-splitter"/>
-                    <treecol id="Time" label="Time" ordinal="3" width="50px"
+                    <treecol id="Name" label="Name" ordinal="1" flex="3"
                             hidden="true"
                             persist="width ordinal hidden"
                             class="sortDirectionIndicator"
                             onclick="sort(this)"/>
                     <splitter class="tree-splitter"/>
-                    <treecol id="Album" label="Album" ordinal="4" flex="1"
+                    <treecol id="Disc" label="Disc" ordinal="2" width="60px"
+                            hidden="true"
                             persist="width ordinal hidden"
                             class="sortDirectionIndicator"
                             onclick="sort(this)"/>
                     <splitter class="tree-splitter"/>
-                    <treecol id="Artist" label="Artist" ordinal="5" flex="1"
+                    <treecol id="Track" label="Track" ordinal="3" width="60px"
+                            persist="width ordinal hidden"
+                            style="text-align:right"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Title" label="Title" ordinal="4" flex="3"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Time" label="Time" ordinal="5" width="60px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Album" label="Album" ordinal="6" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Artist" label="Artist" ordinal="7" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Genre" label="Genre" ordinal="8" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Composer" label="Composer" ordinal="9" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
+                    <treecol id="Date" label="Date" ordinal="10" width="60px"
+                            hidden="true"
                             persist="width ordinal hidden"
                             class="sortDirectionIndicator"
                             onclick="sort(this)"/>
                 </treecols>
                 <treechildren id="files_data"/>
             </tree>
+        </hbox>
+        <hbox class="mpm_statusbar">
+            <label class="mpm_statuslabel" value="Last Command:" crop="end"/>
+            <textbox class="mpm_statuslabel"
+                flex="1"
+                id="mpd_sent"
+                value=""
+                onfocus="this.style.color='white'; this.select()"
+                onblur="this.style.color='#888888'"
+                onkeypress="(event.keyCode==13)?getDir('custom',this.value):null"/>
+            <label class="mpm_statuslabel" id="mpd_response" crop="end" value=""/>
+            <label class="mpm_statuslabel" id="mpd_hostport" value="" crop="end"/>
+            <label id="mpd_status" value=""/>
         </hbox>
     </vbox>
 </overlay>

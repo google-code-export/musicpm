@@ -11,7 +11,8 @@
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:s="http://minion/RDF#"
     orient="vertical"
-    onload="init_mpd()">
+    onload="init_mpd()"
+    onopen="init_mpd()">
 
     <script src="common.js"></script>
     <script src="playlist.js"></script>
