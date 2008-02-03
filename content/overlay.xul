@@ -19,23 +19,38 @@
         ]]>
     </script>
     <menubar id="main-menubar">
-        <menu id="menu_mpm" label="Music Player Minion">
+        <menu id="menu_mpm" label="Music Player Minion" accesskey="M">
             <menupopup id="menu_mpmPopup">
-              <menuitem observes="viewmpm_PlaylistSidebar" />
+              <menuitem observes="viewmpm_PlaylistSidebar" accesskey="l"/>
               <menuitem label="Open Music Player Minion"
                  oncommand="mpm.open('chrome://minion/content/minion.xul', event)"
-                 onclick="checkForMiddleClick(this, event)"/>
+                 onclick="checkForMiddleClick(this, event)"
+                 accesskey="O"/>
               <menuitem label="Launch in New Window"
-                oncommand="window.open('chrome://minion/content/minion.xul', 'mpm_standalone','chrome,resizable=yes')"/>
+                oncommand="window.open('chrome://minion/content/minion.xul', 'mpm_standalone','chrome,resizable=yes')"
+               accesskey="L" />
               <menuseparator/>
-              <menuitem label="Play" oncommand="doPlay()" />
-              <menuitem label="Pause" oncommand="doPause()" />
-              <menuitem label="Stop" oncommand="doStop()" />
-              <menuitem label="Next Track" oncommand="doNext()" />
-              <menuitem label="Previous Track" oncommand="doPrev()" />
+              <menuitem label="Play" oncommand="doPlay()" accesskey="P"/>
+              <menuitem label="Pause" oncommand="doPause()" accesskey="a"/>
+              <menuitem label="Stop" oncommand="doStop()" accesskey="t"/>
+              <menuitem label="Next Track" oncommand="doNext()" accesskey="n"/>
+              <menuitem label="Previous Track" oncommand="doPrev()" accesskey="r"/>
               <menuseparator/>
               <menuitem label="Settings"
-                oncommand="mpm.doConfig()"/>
+                oncommand="mpm.doConfig()"
+                accesskey="S"/>
+              <menuitem label="Authors"
+                 oncommand="mpm.open('chrome://minion/content/AUTHORS.txt', event)"
+                 onclick="checkForMiddleClick(this, event)"
+                 accesskey="u"/>
+              <menuitem label="License"
+                 oncommand="mpm.open('chrome://minion/content/COPYING.txt', event)"
+                 onclick="checkForMiddleClick(this, event)"
+                 accesskey="i"/>
+              <menuitem label="Help"
+                 oncommand="mpm.open('http://code.google.com/p/musicpm/wiki/Help', event)"
+                 onclick="checkForMiddleClick(this, event)"
+                 accesskey="H"/>
             </menupopup>
         </menu>
     </menubar>
