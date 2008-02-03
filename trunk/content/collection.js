@@ -3,28 +3,6 @@ var mpm_future = []
 var table = []
 var sort_natural = []
 var nav_btns = []
-var home = [
-    {
-        'type': 'directory',
-        'Name': '/',
-        'Title': 'Folders'
-    },
-    {
-        'type': 'Artist',
-        'Name': '',
-        'Title': 'Artists'
-    },
-    {
-        'type': 'Album',
-        'Name': '',
-        'Title': 'Albums'
-    },
-    {
-        'type': 'playlist',
-        'Name': '',
-        'Title': 'Playlists'
-    },
-]
 var active_item = null
 
 var fileObserver = {
@@ -188,8 +166,25 @@ function assignView() {
             },
             cycleHeader: function(col, elem) {return null},
             getParentIndex: function(idx) {return -1},
-            canDrop: function(index, orient) {return false},
-            drop: function(row,orient){}
+            canDrop: function(index, orient) {
+                return (table==home);
+            },
+            drop: function(row,orient){
+                if (table==home) {
+                    if (tree.currentIndex < row) {
+                        if (orient == -1) {row--}
+                    }
+                    else {
+                        if (orient == 1) {row++}
+                    }
+                    var mv = home.splice(tree.currentIndex,1)
+                    home.splice(row,0,mv[0])
+                    var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                            getService(Components.interfaces.nsIPrefBranch);
+                    prefs.setCharPref("extensions.mpm.home", home.toSource())
+                    setTable(home)
+                }
+            }
         };
     }
 }
@@ -201,8 +196,18 @@ function addnav(lbl, mytype, id) {
     e.onclick = function(e){getDir(mytype, id)}
     e.label = lbl
 }
+
 function getDir(mytype, id) {
     var f = $('files')
+    f.focus()
+    if (mytype=='custom'){
+        var cc = "<"+id.split(" ")[0]+">"
+        var vc = "<search><find><lsinfo><plchanges>" +
+                "<list><listall><listallinfo><listplaylistinfo>" +
+                "<playlistsearch><playlistinfo><playlistfind>"
+        if (vc.indexOf(cc) < 0) {simple_cmd(id); return null}
+    }
+
     $('mpm_search').value='';
     $('search_deck').selectedIndex=0
     //Add to history only if it is a new location.
@@ -215,6 +220,13 @@ function getDir(mytype, id) {
     else {mpm_history.unshift([mytype, id])}
     $('files_back').disabled=false
     if (mpm_history.length > 9) {mpm_history.length = 10}
+
+    var fb = $('files_bookmark')
+    fb.disabled = false
+    for (x in home) {
+        (home[x].type==mytype && home[x].Name==id)?fb.disabled=true:null
+    }
+
     if (mytype != 'Album'){
         $("album_artBox").collapsed = true
         $('Album').collapsed = false
@@ -225,13 +237,13 @@ function getDir(mytype, id) {
         $('mpm_navbar').removeChild(e)
         e = null
     }
-    if (mytype == 'home') {setTable(home);return null}
-    var cb = function (data) {
-        setTable(filter(parse_db(data), {'directory':true, 'file':true}))
-    }
-    var cmd = "lsinfo"
+    if (mytype == 'home') {setTable(home);fb.disabled=true;return null}
 
     if (mytype == 'directory') {
+        var cb = function (data) {
+            setTable(filter(parse_db(data), {'directory':true, 'file':true}))
+        }
+        var cmd = "lsinfo"
         addnav('Folders', 'directory', '')
         var dirs = id.split("/")
         var cd = []
@@ -243,7 +255,7 @@ function getDir(mytype, id) {
             }
         }
     }
-    if (mytype == 'playlist') {
+    else if (mytype == 'playlist') {
         addnav("Playlists", 'playlist', '')
         if (id == '[current]') {
             addnav('Current Playlist', 'playlist', id)
@@ -261,6 +273,7 @@ function getDir(mytype, id) {
             }
         }
         else {
+            cmd = 'lsinfo'
             var cb = function (data) {
                 var db = filter(parse_db(data), {'playlist':true})
                 db.unshift({'type': 'playlist', 'Name': '[current]', 'Title': 'Current Playlist'})
@@ -324,10 +337,39 @@ function getDir(mytype, id) {
             }
         }
     }
+    else if (mytype == 'custom') {
+        addnav('Command: '+id, 'custom', id)
+        cmd = id
+        id = ""
+        var cb = function (data) {
+            setTable(parse_db(data))
+        }
+    }
+    else {
+        addnav(mytype+': '+id, 'custom', id)
+        cmd = "find " + mytype
+        var cb = function (data) {
+            setTable(parse_db(data))
+        }
+    }
+
     if (id && id.length > 0) {
         id = ' "'+id.replace(/"/g, '\\"')+'"'
     }
     command(cmd+id, cb)
+}
+function files_addBookmark() {
+    if (mpm_history.length > 0) {
+        var loc = mpm_history[0]
+        var mytype = loc[0]
+        var id = loc[1]
+        var ttl = nav_btns[nav_btns.length-1].label
+        home.push({'type':mytype, 'Name':id, 'Title':ttl})
+        var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch);
+        prefs.setCharPref("extensions.mpm.home", home.toSource())
+    }
+    $('files_bookmark').disabled = true
 }
 function goBack(){
     if (mpm_history.length > 1) {
@@ -362,13 +404,17 @@ function album_art_click(){
         }
 }
 function files_dblclick() {
-  var tree = $('files')
-  var R = tree.currentIndex
-  var mytype = table[R].type
-  var id = table[R].Name
-  if (mytype == "file") {command('add "'+id+'"', null)}
-  else {getDir(mytype, id)}
-  }
+    var tree = $('files')
+    var R = tree.currentIndex
+    var mytype = table[R].type
+    var id = table[R].Name
+    if (mytype == "file") {
+        var l = mpd.playlistlength
+        simple_cmd('add "'+id+'"')
+        simple_cmd('play '+l)
+    }
+    else {getDir(mytype, id)}
+}
 function find_album () {
   getDir('Album', active_item.Album)
 }
@@ -399,14 +445,17 @@ function add() {
         for (i in db) {cmd += 'add "'+db[i].Name+'"\n'}
         command(cmd+'command_list_end', null)
     }
+    var cmd_list = ""
 
     for (var t = 0; t < numRanges; t++) {
         tree.view.selection.getRangeAt(t, start, end);
         for (var v = start.value; v <= end.value; v++) {
             var id = table[v].Name
             if (id && id.length > 0) {
-                id = ' "' + id.replace(/"/g, '\\"') + '"'
                 var itemtype = table[v].type
+                if (itemtype != 'custom') {
+                    id = ' "' + id.replace(/"/g, '\\"') + '"'
+                }
                 switch (itemtype) {
                     case "Artist":
                         command('find artist' + id, addCB);
@@ -415,17 +464,24 @@ function add() {
                         command('find album' + id, addCB);
                         break;
                     case "directory":
-                        command('add' + id, null);
+                        cmd_list += 'add' + id +"\n"
                         break;
                     case "file":
-                        command('add' + id, null)
+                        cmd_list += 'add' + id +"\n"
                         break;
                     case "playlist":
-                        command('load' + id, null)
+                        cmd_list += 'load' + id +"\n"
                         break;
+                    case "custom":
+                        command(id, addCB);
+                        break;
+
                 }
             }
         }
+    }
+    if (cmd_list.length > 0) {
+        simple_cmd("command_list_begin\n"+cmd_list+"command_list_end")
     }
 }
 function replace(){
@@ -502,6 +558,16 @@ function files_contextShowing(){
                 $('files_context_artist_songs').hidden = true;
                 $('files_context_artist_albums').hidden = true;
                 break;
+            case 'custom':
+                $('files_context_delete').hidden = false;
+                $('files_context_rename').hidden = false;
+                $('files_context_selectAll').hidden = true;
+                $('files_context_google').hidden = true;
+                $('files_context_lyricsfreak').hidden = true;
+                $('files_context_album').hidden = true;
+                $('files_context_artist_songs').hidden = true;
+                $('files_context_artist_albums').hidden = true;
+                break;
         }
     }
     else {
@@ -513,11 +579,16 @@ function files_contextShowing(){
         $('files_context_artist_songs').hidden = true;
         $('files_context_artist_albums').hidden = true;
     }
+    if (table==home) {
+        $('files_context_delete').hidden = false;
+    }
+
 }
- function delete_playlist(){
+ function delete_item(){
     var tree = $('files')
     var start = new Object();
     var end = new Object();
+    var homeDirty = false
     var numRanges = tree.view.selection.getRangeCount();
 
     for (var t = 0; t < numRanges; t++) {
@@ -525,17 +596,35 @@ function files_contextShowing(){
         for (var v = start.value; v <= end.value; v++) {
             var myname = table[v].Name
             var mytype = table[v].type
-            if (mytype == 'playlist') {
+            if (mytype == 'playlist' && myname > '') {
                 var cb = function (data) {
                     getDir('playlist', '')
                 }
                 command('rm "'+myname+'"', cb)
             }
+            else if (myname > '') {
+                homeDirty = true
+                table[v] = "[deleted]"
+            }
         }
     }
+    if (homeDirty) {
+        home = new Array()
+        var l = 0
+        for (x in table) {
+            if (table[x]!="[deleted]" && typeof(table[x])=='object') {
+                home.push(table[x])
+            }
+        }
+        var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch);
+        prefs.setCharPref("extensions.mpm.home", home.toSource())
+        files_home()
+    }
  }
- function rename_playlist(){
+ function rename_item(){
     var tree = $('files')
+    var v = tree.currentIndex
     var mytype = table[v].type
     var myname = table[v].Name
     if (mytype == 'playlist') {
@@ -544,7 +633,17 @@ function files_contextShowing(){
         }
         var val = prompt("Please enter a new name for this playlist", "NewPlaylist")
         if (val != null) {
-            command('rename "'+myname+'" "'+val+'"', null)
+            command('rename "'+myname+'" "'+val+'"', cb)
+        }
+    }
+    else if (mytype == 'custom') {
+        var val = prompt("Please enter a new name for this command", table[v].Title)
+        if (val != null) {
+            table[v].Title = val
+            var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                    getService(Components.interfaces.nsIPrefBranch);
+            prefs.setCharPref("extensions.mpm.home", home.toSource())
+            files_home()
         }
     }
  }
@@ -556,6 +655,7 @@ function files_keypress (event) {
             if (event.ctrlKey) {
                 $('files').view.selection.selectAll()
             }; break;
+        case 45: add(); break;
         default: //alert(event.which);
             break;
     }

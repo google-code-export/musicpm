@@ -5,7 +5,28 @@ var host = "localhost"  //about:config --> extensions.mpm.mpd_host, string type
 var port = 6600         //about:config --> extensions.mpm.mpd_port, integer type
 var pass = ""           //about:config --> extensions.mpm.mpd_password, string type
 var PLmode = "extended" //about:config --> extensions.mpm.playlist_mode, string type
-
+var home = [            //about:config --> extensions.mpm.home, string type
+    {
+        'type': 'directory',
+        'Name': '',
+        'Title': 'Folders'
+    },
+    {
+        'type': 'Artist',
+        'Name': '',
+        'Title': 'Artists'
+    },
+    {
+        'type': 'Album',
+        'Name': '',
+        'Title': 'Albums'
+    },
+    {
+        'type': 'playlist',
+        'Name': '',
+        'Title': 'Playlists'
+    },
+]
 
 var prefs = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefBranch);
@@ -26,6 +47,20 @@ if (prefs.getPrefType("extensions.mpm.mpd_password") == prefs.PREF_STRING){
 }
 else {
     prefs.setCharPref("extensions.mpm.mpd_password", pass)
+}
+if (prefs.getPrefType("extensions.mpm.home") == prefs.PREF_STRING){
+    try {
+        var _home = eval(prefs.getCharPref("extensions.mpm.home"))
+        if (typeof(_home) == 'object') {home = _home}
+        else {prefs.setCharPref("extensions.mpm.home", home.toSource())}
+    }
+    catch (e) {
+        prefs.setCharPref("extensions.mpm.home", home.toSource())
+        debug(e)
+    }
+}
+else {
+    prefs.setCharPref("extensions.mpm.home", home.toSource())
 }
 prefs = null
 
@@ -125,8 +160,11 @@ function init_mpd () {
             }
         }
         else {checkStatus()}
+        // init is used by collection.xul
         if (typeof(notify['init']) == 'function') {
             notify['init']()
+            $('mpd_hostport').value = host+":"+port
+            $('mpd_status').value = "Not Connected"
         }
 
     }
@@ -164,6 +202,12 @@ var dataListener  = {
             }
             str = null
             if (this.data.slice(-3) == "OK\n") {
+                try {
+                    if(queue[0].outputData != status_command) {
+                        $('mpd_response').value = "OK"
+                    }
+                } catch (e) {}
+
                 if (queue.length > 0 && typeof(queue[0].callBack) == 'function') {
                     queue[0].callBack(this.data)
                 }
@@ -171,11 +215,18 @@ var dataListener  = {
                 this.data = ""
                 if (queue.length > 0) {
                     utf_outstream.writeString(queue[0].outputData);
+                    try {
+                        $('mpd_sent').value = queue[0].outputData
+                        $('mpd_response').value = "Working..."
+                    } catch (e) {}
                     debug("OK..."+queue[0].outputData)
                 }
                 else { done = true }
             }
             else if (this.data.substr(0,6) == "OK MPD"){
+                try {
+                    $('mpd_status').value = this.data.substr(3)
+                } catch (e) {debug(e)}
                 this.data = ""
                 if (pass.length > 0) {
                     queue.unshift({'outputData':'password '+pass+'\n',
@@ -183,17 +234,24 @@ var dataListener  = {
                 }
                 if (queue.length > 0) {
                     utf_outstream.writeString(queue[0].outputData);
+                    try {
+                        $('mpd_sent').value = queue[0].outputData
+                        $('mpd_response').value = "Working..."
+                    } catch (e) {}
                     debug("OK MPD..."+queue[0].outputData)
                 }
                 else {done = true}
             }
             else if (this.data.indexOf('ACK [') != -1) {
+                try {
+                    $('mpd_response').value = this.data
+                } catch (e) {}
                 var msg = "An error has occured when communicating with MPD.\n" +
                         "Click Cancel to continue sending commands, or\n" +
                         "Click OK to prevent further attempts.\n\n\n" +
                         "Command:\n" + queue[0].outputData + "\n\n" +
                         "Response:\n"+ this.data
-                mpd_stop = confirm(msg)
+                //mpd_stop = confirm(msg)
                 queue.shift()
                 doStatus = false
                 done = true
@@ -325,6 +383,10 @@ function command(outputData, callBack){
     if (typeof(utf_outstream) != 'undefined') {
         if (idle) {
             utf_outstream.writeString(queue[0].outputData)
+            try {
+                $('mpd_sent').value = queue[0].outputData
+                $('mpd_response').value = "Working..."
+            } catch (e) {}
             idle = false
         }
     }
@@ -567,4 +629,7 @@ function getCover(elem, song) {
         }
         sendCB(search_url, cb)
     }
+}
+function mpdOpenURL() {
+    simple_cmd('add '+gContextMenu.linkURL)
 }

@@ -1,5 +1,7 @@
 /* Style settings common to all minion pages/windows */
 window, page, toolbar, toolbarbutton, button, menubar {
+    font-family: Sans, Tahoma;
+    font-size: 12px;
     -moz-appearance: none !important;
     background-color: black;
     color:white;
@@ -174,19 +176,6 @@ treecol, listheader, treecolpicker{
     -moz-border-left-colors: #1a1a1a #272727 #333333;
     -moz-border-right-colors: #1a1a1a #272727 #333333;
 }
-#mpm_navbar > button:hover{
-    background: #404040;
-    color:white;
-    border-bottom: 3px solid black;
-    border-top: 3px solid black;
-    border-right: 3px solid black;
-    border-left: 3px solid black;
-    -moz-border-radius: 3px;
-    -moz-border-bottom-colors: #1a1a1a #272727 #333333;
-    -moz-border-top-colors: #1a1a1a #272727 #333333;
-    -moz-border-left-colors: #1a1a1a #272727 #333333;
-    -moz-border-right-colors: #1a1a1a #272727 #333333;
-}
 #mpm_navbar > toolbarbutton:active, button:active{
     background: #151515;
     color:white;
@@ -200,7 +189,7 @@ treecol, listheader, treecolpicker{
     -moz-border-left-colors: #303030 #272727 #1a1a1a;
     -moz-border-right-colors: #303030 #272727 #1a1a1a;
 }
-#mpm_navbar > button:active{
+#mpm_navbar > button:active {
     background: #151515;
     color:white;
     border-bottom: 3px solid black;

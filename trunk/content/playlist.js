@@ -26,12 +26,22 @@ var plObserver = {
     getSupportedFlavours : function () {
         var flavours = new FlavourSet();
         flavours.appendFlavour("mpm/filename");
+        flavours.appendFlavour("application/x-moz-url");
+        flavours.appendFlavour("application/x-moz-file");
         flavours.appendFlavour("text/unicode");
         return flavours;
     },
     onDrop: function (event, dropData, session) {
         if (dropData.flavour.contentType == "mpm/filename") {
             add()
+        }
+        else {
+            try {
+                var s = dropData.data.replace(/"/g, "")
+                var v = new RegExp();
+                v.compile("^[A-Za-z]+://[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\?\/.=]+$");
+                if (v.test(s)) {simple_cmd('add '+s)}
+            } catch (e) {debug(e)}
         }
         event.stopPropagation()
     }
@@ -415,12 +425,16 @@ function assignPLview() {
             getImageSrc: function(row,col){ return null; },
             getRowProperties: function(row,props){
                 try {
-                props.AppendElement( aserv.getAtom("Title") )
+                    var aserv = Components.classes["@mozilla.org/atom-service;1"]
+                            .getService(Components.interfaces.nsIAtomService);
+                    props.AppendElement( aserv.getAtom("Title") )
                 } catch(e) {}
                 },
             getCellProperties: function(row,col,props){
                 if (col.id=="PLsong") {
                     try {
+                    var aserv = Components.classes["@mozilla.org/atom-service;1"]
+                            .getService(Components.interfaces.nsIAtomService);
                     props.AppendElement( aserv.getAtom("Title") )
                     } catch(e) {}
                     }
@@ -428,7 +442,16 @@ function assignPLview() {
             getParentIndex: function(idx) {return -1},
             getColumnProperties: function(colid,col,props){},
             canDrop: function(index, orient) {return plDrag},
-            drop: function(row,orient){ if(plDrag){playlist_move(row)} }
+            drop: function(row,orient){
+                if(plDrag){
+                    if (tree.currentIndex < row) {
+                        if (orient == -1) {row--}
+                    }
+                    else {
+                        if (orient == 1) {row++}
+                    }
+                    playlist_move(row)}
+                }
             };
         }
         l = null
@@ -538,6 +561,7 @@ function playlist_keydown(event) {
             if (event.ctrlKey) {
                 $('playlist').view.selection.selectAll()
             }; break;
+        case 46: remove(); break
         default: //alert(event.which);
             break;
     }
@@ -571,6 +595,14 @@ function playlist_lyricsfreak()  {
 
 function load_playlist(id){
     command('command_list_begin\nclear\nload "'+id+'"\ncommand_list_end\n', null)
+}
+function playlist_addURL(){
+    var val = prompt("Please enter a URL to add to the playlist.", "http://")
+    if (val != null) {
+        var v = new RegExp();
+        v.compile("^[A-Za-z]+://[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\?\/.=]+$");
+        if (v.test(val)) {simple_cmd('add '+val)}
+    }
 }
 function playlist_save(){
     var val = prompt("Please enter a name for this playlist", "NewPlaylist")

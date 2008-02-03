@@ -6,15 +6,16 @@
     <script src="chrome://minion/content/common.js"></script>
     <script type="text/javascript">
         <![CDATA[
-        var myload = {
+        var mpm = {
             open: function(url, event) {
                 openUILink(url, event, false, true);
-                }
+            },
+            doConfig: function() {
+                var cb = function (w){try{w.close}catch(e){}}
+                window.openDialog("chrome://minion/content/settings.xul",
+                                    "showmore", "chrome", cb)
             }
-        function doConfig() {
-            var cb = function (w){try{w.close}catch(e){}}
-            window.openDialog("chrome://minion/content/settings.xul",
-                                "showmore", "chrome", cb)}
+        }
         ]]>
     </script>
     <menubar id="main-menubar">
@@ -22,7 +23,7 @@
             <menupopup id="menu_mpmPopup">
               <menuitem observes="viewmpm_PlaylistSidebar" />
               <menuitem label="Open Music Player Minion"
-                 oncommand="myload.open('chrome://minion/content/minion.xul', event)"
+                 oncommand="mpm.open('chrome://minion/content/minion.xul', event)"
                  onclick="checkForMiddleClick(this, event)"/>
               <menuitem label="Launch in New Window"
                 oncommand="window.open('chrome://minion/content/minion.xul', 'mpm_standalone','chrome,resizable=yes')"/>
@@ -34,7 +35,7 @@
               <menuitem label="Previous Track" oncommand="doPrev()" />
               <menuseparator/>
               <menuitem label="Settings"
-                oncommand="doConfig()"/>
+                oncommand="mpm.doConfig()"/>
             </menupopup>
         </menu>
     </menubar>
@@ -64,7 +65,7 @@
             class="toolbarbutton-1"
             label="Open MPM"
             tooltiptext="Open Music Player Minion in Firefox"
-            oncommand="myload.open('chrome://minion/content/minion.xul', event)"
+            oncommand="mpm.open('chrome://minion/content/minion.xul', event)"
             onclick="checkForMiddleClick(this, event)"/>
         <toolbarbutton
             id="mpm_launchWindow_button"
