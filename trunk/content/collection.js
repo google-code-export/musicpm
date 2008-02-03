@@ -656,6 +656,7 @@ function files_keypress (event) {
                 $('files').view.selection.selectAll()
             }; break;
         case 45: add(); break;
+        case 46: delete_item(); break;
         default: //alert(event.which);
             break;
     }
