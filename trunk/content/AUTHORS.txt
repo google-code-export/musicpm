@@ -1,12 +1,15 @@
+
+
 Project: Music Player Minion
 License: GPL3 (see COPYING)
-Files: All files not otherwise noted below.
+Files: *.xul; *.css; *.js
 Name: Chris Seickel
 E-mail: cseickel(at)gmail.com
+
 _______________________________________________
 
 
-Project: NuoveXT-2.2
+Project: NuoveXT
 License: GPL3 (see COPYING)
 Files: All icons not otherwise noted below.
 Name: Alexandre Moore
@@ -16,6 +19,7 @@ E-mail: alexandre.moore(at)gmail.com
 Website(s): http://sa-ki.deviantart.com/
             http://iconsdesigns.com/
             http://nuovext.pwsp.net/
+
 _______________________________________________
 
 
