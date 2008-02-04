@@ -4,7 +4,7 @@
 = Introduction =
 Content coming soon
 
-
+----
 = Keyboard Shortcuts =
 *Note:*  Where "Control" is mentioned, this may be a different accelerator key depending on your operating system.
 
@@ -33,10 +33,10 @@ Content coming soon
 || Delete Item(s) || Delete ||
 || Add to Playlist || Insert ||
 
-
+----
 = Drag and drop =
 
-
+----
 = Custom Commands =
 Commands sent to MPD will be displayed in the status bar where it says "Last Command".  In addition to being informative, this location is also a textbox where you can enter your own commands.  This can be useful for using mpd features not implemented by MPM.  Commands entered here are the same as MPD's telnet protocol, see http://mpd.wikia.com/wiki/Protocol_Reference for details.
 
@@ -54,6 +54,6 @@ play
 command_list_end
 }}}
 
-
+----
 = Bookmarks =
 Bookmarking a location will add it to the Home page in Minion.  This can be especially useful when used with custom commands, creating a sort of "macro" feature.  Bookmarks for custom commands can be renamed after the bookmark has been created by right clicking on it and choosing Rename.
