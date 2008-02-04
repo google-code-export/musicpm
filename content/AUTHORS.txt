@@ -1,7 +1,7 @@
 
 
 Project: Music Player Minion
-License: GPL3 (see COPYING)
+License: GPL3 (see COPYING.txt)
 Files: *.xul; *.css; *.js
 Name: Chris Seickel
 E-mail: cseickel(at)gmail.com
@@ -10,7 +10,7 @@ _______________________________________________
 
 
 Project: NuoveXT
-License: GPL3 (see COPYING)
+License: GPL3 (see COPYING.NuoveXT)
 Files: All icons not otherwise noted below.
 Name: Alexandre Moore
 Nickname: Saki

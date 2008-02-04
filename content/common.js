@@ -1,6 +1,20 @@
-/**
- * @author cseickel
- */
+//      Music Player Minion  Copyright 2008, Chris Seickel
+//
+//      This program is free software; you can redistribute it and/or modify
+//      it under the terms of the GNU General Public License as published by
+//      the Free Software Foundation; either version 2 of the License, or
+//      (at your option) any later version.
+//
+//      This program is distributed in the hope that it will be useful,
+//      but WITHOUT ANY WARRANTY; without even the implied warranty of
+//      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//      GNU General Public License for more details.
+//
+//      You should have received a copy of the GNU General Public License
+//      along with this program; if not, write to the Free Software
+//      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+//      MA 02110-1301, USA.
+
 var host = "localhost"  //about:config --> extensions.mpm.mpd_host, string type
 var port = 6600         //about:config --> extensions.mpm.mpd_port, integer type
 var pass = ""           //about:config --> extensions.mpm.mpd_password, string type
@@ -203,7 +217,8 @@ var dataListener  = {
             str = null
             if (this.data.slice(-3) == "OK\n") {
                 try {
-                    if(queue[0].outputData != status_command) {
+                    var snd = queue[0].outputData
+                    if(snd != status_command && snd.substr(0,9) != "plchanges") {
                         $('mpd_response').value = "OK"
                     }
                 } catch (e) {}
@@ -216,8 +231,11 @@ var dataListener  = {
                 if (queue.length > 0) {
                     utf_outstream.writeString(queue[0].outputData);
                     try {
-                        $('mpd_sent').value = queue[0].outputData
-                        $('mpd_response').value = "Working..."
+                        var snd = queue[0].outputData
+                        if(snd != status_command && snd.substr(0,9) != "plchanges") {
+                            $('mpd_sent').value = snd;
+                            $('mpd_response').value = "Working...";
+                        }
                     } catch (e) {}
                     debug("OK..."+queue[0].outputData)
                 }
@@ -235,8 +253,11 @@ var dataListener  = {
                 if (queue.length > 0) {
                     utf_outstream.writeString(queue[0].outputData);
                     try {
-                        $('mpd_sent').value = queue[0].outputData
-                        $('mpd_response').value = "Working..."
+                        var snd = queue[0].outputData
+                        if(snd != status_command && snd.substr(0,9) != "plchanges") {
+                            $('mpd_sent').value = snd;
+                            $('mpd_response').value = "Working...";
+                        }
                     } catch (e) {}
                     debug("OK MPD..."+queue[0].outputData)
                 }
