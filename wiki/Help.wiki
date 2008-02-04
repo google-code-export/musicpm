@@ -10,29 +10,29 @@ Content coming soon
 *Note:*  Where "Control" is mentioned, this may be a different accelerator key depending on your operating system.
 
 == Application Level ==
-  * Play/Pause: Spacebar
-  * Next Track: Control + Right
-  * Previous Track: Control + Left
-  * Stop Playback: Control + Backspace
-  * Volume Up: = or +
-  * Volume Down: -
-  * Focus Search: Control + Z
-  * Focus Playlist: Left
-  * Focus Browse: Right or Escape
-  * Focus MPD Command: F2
-  * Browse Back: Backspace
-  * Bookmark Current Location: Control + D
-  * Update Library: F5
-  * Playlist Menu: Alt + P
+|| Play/Pause || Spacebar ||
+|| Next Track || Control + Right ||
+|| Previous Track || Control + Left ||
+|| Stop Playback || Control + Backspace ||
+|| Volume Up || = or + ||
+|| Volume Down || - ||
+|| Focus Search || Control + Z ||
+|| Focus Playlist || Left ||
+|| Focus Browse || Right or Escape ||
+|| Focus MPD Command || F2 ||
+|| Browse Back || Backspace ||
+|| Bookmark Current Location || Control + D ||
+|| Update Library || F5 ||
+|| Playlist Menu || Alt + P ||
 
 == Playlist ===
-  * Select All: Control + a
-  * Delete Item(s): Delete
+|| Select All || Control + A ||
+|| Delete Item(s) || Delete ||
 
 == Browse ==
-  * Select All: Control + a
-  * Delete Item(s): Delete
-  * Add to Playlist: Insert
+|| Select All || Control + A ||
+|| Delete Item(s) || Delete ||
+|| Add to Playlist || Insert ||
 
 
 = Drag and drop =
