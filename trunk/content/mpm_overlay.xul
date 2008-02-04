@@ -336,7 +336,7 @@
                 value=""
                 onfocus="this.style.color='white'; this.select()"
                 onblur="this.style.color='#888888'"
-                onkeypress="(event.keyCode==13)?getDir('custom',this.value):null"/>
+                onkeypress="mpd_sent_keypress(this, event)"/>
             <label class="mpm_statuslabel" id="mpd_response" crop="end" value=""/>
             <label class="mpm_statuslabel" id="mpd_hostport" value="" crop="end"/>
             <label id="mpd_status" value=""/>
