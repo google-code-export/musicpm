@@ -38,7 +38,22 @@ Content coming soon
 = Drag and drop =
 
 
-= Bookmarks =
-
-
 = Custom Commands =
+Commands sent to MPD will be displayed in the status bar where it says "Last Command".  In addition to be informative, this location is also a textbox where you can enter your own commands.  This can be useful for using mpd features not implemented by MPM.  Commands entered here are the same as MPD's telnet protocol, see http://mpd.wikia.com/wiki/Protocol_Reference for details.
+
+Commands that return results from the database will be displayed in the Browse section above.  An example of how this could be used is to enter the command "list genre" to browse by  Genre, or "list date" to browse by release year.
+
+Also, multiple commands can be strung together using MPD's {{{command_list_begin}}} and {{{command_list_end}}} commands.  The important thing to remember when doing this is that you will need to {{{\n}}} for newlines instead of hitting enter, as hitting enter will execute the command.  The following example will play the entire library on random:
+{{{command_list_begin\nclear\nadd "/"\nrandom 1\nplay\ncommand_list_end}}}
+More clearly, that command with {{{\n}}} replaced by newlines would be:
+{{{
+command_list_begin
+clear
+add "/"
+random 1
+play
+command_list_end
+}}}
+
+= Bookmarks =
+Bookmarking a location will add it to the Home page in Minion.  This can be especially useful when used with custom commands, creating a sort of "macro" feature.  Bookmarks for custom commands can be renamed after the bookmark has been created by right clicking on it and choosing Rename.
