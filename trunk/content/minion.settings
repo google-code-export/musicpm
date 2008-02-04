@@ -1,4 +1,0 @@
-mpd_host=localhost
-mpd_port=6600
-mpd_password=Password is not currently supported, sorry.
-playlist_view=extended

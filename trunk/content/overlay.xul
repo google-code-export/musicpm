@@ -39,14 +39,10 @@
               <menuitem label="Settings"
                 oncommand="mpm.doConfig()"
                 accesskey="S"/>
-              <menuitem label="Authors"
-                 oncommand="mpm.open('chrome://minion/content/AUTHORS.txt', event)"
+              <menuitem label="About"
+                 oncommand="mpm.open('chrome://minion/content/about.html', event)"
                  onclick="checkForMiddleClick(this, event)"
                  accesskey="u"/>
-              <menuitem label="License"
-                 oncommand="mpm.open('chrome://minion/content/COPYING.txt', event)"
-                 onclick="checkForMiddleClick(this, event)"
-                 accesskey="i"/>
               <menuitem label="Help"
                  oncommand="mpm.open('http://code.google.com/p/musicpm/wiki/Help', event)"
                  onclick="checkForMiddleClick(this, event)"
