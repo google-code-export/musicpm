@@ -2,7 +2,6 @@
 #labels Featured,Help
 
 = Introduction =
-
 Content coming soon
 
 
@@ -54,6 +53,7 @@ random 1
 play
 command_list_end
 }}}
+
 
 = Bookmarks =
 Bookmarking a location will add it to the Home page in Minion.  This can be especially useful when used with custom commands, creating a sort of "macro" feature.  Bookmarks for custom commands can be renamed after the bookmark has been created by right clicking on it and choosing Rename.
