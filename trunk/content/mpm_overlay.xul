@@ -334,6 +334,7 @@
                 flex="1"
                 id="mpd_sent"
                 value=""
+                multiline="true"
                 onfocus="this.style.color='white'; this.select()"
                 onblur="this.style.color='#888888'"
                 onkeypress="mpd_sent_keypress(this, event)"/>

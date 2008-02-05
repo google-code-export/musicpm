@@ -130,7 +130,8 @@ listitem[selected="true"]{
     border: none !important;
     background-color: black !important;
     min-height: 0px !important;
-    min-width: 25px !important;
+    max-height: 1.3em;
+    min-width: 50px !important;
     padding-top: 1px !important;
     margin-top: 0px !important;
     padding-bottom: 0px !important;
