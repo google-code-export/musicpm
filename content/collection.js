@@ -356,7 +356,7 @@ function getDir(mytype, id) {
     }
     else if (mytype == 'custom') {
         addnav('Command: '+id, 'custom', id)
-        cmd = id.replace(/\\n/g, "\n")
+        cmd = id.replace(/\\\\n/g, "\n")
         id = ""
         var cb = function (data) {
             setTable(parse_db(data))
@@ -680,10 +680,14 @@ function files_keypress (event) {
 }
 function mpd_sent_keypress (e, event) {
     if (event.altKey) {
-        if (event.keyCode == 13) { e.value += "\n" }
+        if (event.keyCode == 13) {
+            e.value += "\n"
+        }
     }
     else {
-        (event.keyCode == 13) ? getDir('custom',e.value):null
+        if (event.keyCode == 13) {
+            getDir('custom',e.value)
+        }
     }
 }
 notify['db_update'] = function(v){
