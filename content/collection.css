@@ -137,3 +137,7 @@ listitem[selected="true"]{
     padding-bottom: 0px !important;
     margin-bottom: 0px !important;
 }
+#mpd_sent [active] {
+    min-width: 100px !important;
+    color: white;
+    }
