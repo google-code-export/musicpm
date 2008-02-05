@@ -45,8 +45,11 @@ Examples of how this feature could be used is to enter the command "list genre" 
 _*Coming in next release:*_
 
 _Also, multiple commands can be strung together using MPD's {{{command_list_begin}}} and {{{command_list_end}}} commands.  The important thing to remember when doing this is that you will need to use Alt + Enter for newlines instead of hitting enter, as hitting enter will execute the command._
+
 _As a convenience, you can omit the command_list_begin/end commands.  If you hit Alt + Enter, command_list_begin will be inserted if it is not already there.  Also, command_list_end will be automatically added if you hit enter and the command starts with command_list_begin._
+
 _The following example will play the entire library on random:_
+
 {{{
 command_list_begin
 clear
