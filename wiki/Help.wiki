@@ -53,7 +53,7 @@ random 1
 play
 command_list_end
 }}}
-
+As a convenience, you can omit the command_list_begin/end commands.  If you hit Alt + Enter, command_list_begin will be inserted if it is not already there.  Also, command_list_end will be automatically added if you hit enter and the command starts with command_list_begin.<br>
 ----
 = Bookmarks =
 Bookmarking a location will add it to the Home page in Minion.  This can be especially useful when used with custom commands, creating a sort of "macro" feature.  Bookmarks for custom commands can be renamed after the bookmark has been created by right clicking on it and choosing Rename.
