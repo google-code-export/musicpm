@@ -328,7 +328,7 @@
                 <treechildren id="files_data"/>
             </tree>
         </hbox>
-        <hbox class="mpm_statusbar">
+        <hbox id="mpm_statusbar">
             <label class="mpm_statuslabel" value="Last Command:" crop="end"/>
             <textbox class="mpm_statuslabel"
                 flex="1"

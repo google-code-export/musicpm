@@ -218,11 +218,16 @@ function getDir(mytype, id) {
     var f = $('files')
     f.focus()
     if (mytype=='custom'){
-        var cc = "<"+id.split(" ")[0]+">"
-        var vc = "<search><find><lsinfo><plchanges>" +
-                "<list><listall><listallinfo><listplaylistinfo>" +
-                "<playlistsearch><playlistinfo><playlistfind>"
-        if (vc.indexOf(cc) < 0) {simple_cmd(id); return null}
+        var dbc = ["search ", "find ", "lsinfo", "plchanges ",
+                "list ", "listall", "listallinfo", "listplaylistinfo ",
+                "playlistsearch ", "playlistinfo", "playlistfind "]
+        var is_dbc = false
+        for (x in dbc) {
+            if (!dbc) {
+                if (id.indexOf(dbc[x]) > -1) {dbc = true}
+            }
+        }
+        if (!dbc) {simple_cmd(id); return null}
     }
 
     $('mpm_search').value='';
@@ -681,15 +686,25 @@ function files_keypress (event) {
 function mpd_sent_keypress (e, event) {
     if (event.altKey) {
         if (event.keyCode == 13) {
+            if (e.value.indexOf('command_list_begin') < 0) {
+                e.value = "command_list_begin\n"+e.value
+                $('mpd_response').value="Command List"
+            }
             e.value += "\n"
         }
     }
     else {
         if (event.keyCode == 13) {
+            if (e.value.indexOf('command_list_') > -1) {
+                if  (e.value.indexOf('command_list_end') < 0) {
+                    e.value += "\ncommand_list_end"
+                }
+            }
             getDir('custom',e.value)
         }
     }
 }
+
 notify['db_update'] = function(v){
     if (mpm_history.length > 0) {
         var loc = mpm_history.shift()
