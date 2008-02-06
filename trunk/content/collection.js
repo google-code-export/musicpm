@@ -687,6 +687,19 @@ function files_keypress (event) {
             break;
     }
 }
+function check_cmd_list (e) {
+    if (e.value.indexOf('command_list_begin') > -1) {
+        if  (e.value.indexOf('command_list_end') < 0) {
+            e.value += "\ncommand_list_end"
+        }
+    }
+    else if (e.value.indexOf(';') > -1) {
+        e.value = "command_list_begin;"+e.value
+        if  (e.value.indexOf('command_list_end') < 0) {
+            e.value += ";command_list_end"
+        }
+    }
+}
 function mpd_sent_keypress (e, event) {
     if (event.altKey) {
         if (event.keyCode == 13) {
@@ -695,20 +708,30 @@ function mpd_sent_keypress (e, event) {
                 $('mpd_response').value="Command List"
             }
             e.value += "\n"
+            var l = e.value.length
+            e.setSelectionRange(l, l)
         }
     }
     else {
         if (event.keyCode == 13) {
-            if (e.value.indexOf('command_list_') > -1) {
-                if  (e.value.indexOf('command_list_end') < 0) {
-                    e.value += "\ncommand_list_end"
-                }
-            }
+            check_cmd_list(e)
             getDir('custom',e.value)
         }
     }
 }
 
+function cmd_save () {
+    var e = $('mpd_sent')
+    check_cmd_list(e)
+    var val = prompt("Please enter a name for this command", e.value)
+    if (val != null) {
+        home.push({'type': 'custom', 'Name': e.value, 'Title': val})
+        var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch);
+        prefs.setCharPref("extensions.mpm.home", home.toSource())
+        files_home()
+    }
+}
 notify['db_update'] = function(v){
     if (mpm_history.length > 0) {
         var loc = mpm_history.shift()

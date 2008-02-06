@@ -335,12 +335,20 @@
                 id="mpd_sent"
                 value=""
                 multiline="true"
+                rows="1"
                 onfocus="$('mpm_cmd_deck').selectedIndex=1;this.style.color='white';this.select();"
                 onblur="this.style.color='#888888';$('mpm_cmd_deck').selectedIndex=0"
                 onkeypress="mpd_sent_keypress(this, event)"/>
             <deck id="mpm_cmd_deck">
                 <label class="mpm_statuslabel" id="mpd_response" crop="end" value=""/>
-                <toolbarbutton id="mpm_cmd_save" oncommand="cmd_save()"/>
+                <hbox>
+                    <spacer flex="1"/>
+                    <toolbarbutton id="mpm_cmd_save"
+                        pack="center"
+                        align="center"
+                        oncommand="cmd_save()"/>
+                    <spacer flex="1"/>
+                </hbox>
             </deck>
             <label class="mpm_statuslabel" id="mpd_hostport" value="" crop="end"/>
             <label id="mpd_status" value=""/>
