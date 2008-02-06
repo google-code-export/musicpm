@@ -141,3 +141,12 @@ listitem[selected="true"]{
     min-width: 100px !important;
     color: white;
     }
+#mpm_cmd_save {
+    border-top: none;
+    border-bottom: none;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    list-style-image: url("chrome://minion/content/save.png");
+}
