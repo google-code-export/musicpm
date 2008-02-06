@@ -223,11 +223,15 @@ function getDir(mytype, id) {
                 "playlistsearch ", "playlistinfo", "playlistfind "]
         var is_dbc = false
         for (x in dbc) {
-            if (!dbc) {
-                if (id.indexOf(dbc[x]) > -1) {dbc = true}
+            if (id.indexOf(dbc[x]) > -1) {
+                is_dbc = true
             }
         }
-        if (!dbc) {simple_cmd(id); return null}
+        if (!is_dbc) {
+            cmd = id.replace(/\\\\n/g, "\n").replace(/\;/g,"\n")
+            simple_cmd(cmd)
+            return null
+        }
     }
 
     $('mpm_search').value='';
@@ -361,7 +365,7 @@ function getDir(mytype, id) {
     }
     else if (mytype == 'custom') {
         addnav('Command: '+id, 'custom', id)
-        cmd = id.replace(/\\\\n/g, "\n")
+        cmd = id.replace(/\\\\n/g, "\n").replace(/\;/g,"\n")
         id = ""
         var cb = function (data) {
             setTable(parse_db(data))
