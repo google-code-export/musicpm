@@ -44,10 +44,12 @@ Examples of how this feature could be used is to enter the command "list genre" 
 
 *Available in 1.0.2:*
 
-Also, multiple commands can be strung together to create macros or queries using mpd's command_list feature.  As a convenience, you can omit the command_list_begin/end commands.    To enter multiple commands, separate each command with a semicolon {{{;}}} (or use Alt + Enter to force a newline).  If you omit the command_list_begin or command_list_end statements they will be automatically added in before the commnds are run.
+Also, multiple commands can be strung together to create macros or queries using mpd's command_list feature.  As a convenience, you can omit the command_list_begin/end commands.    To enter multiple commands, separate each command with a semicolon {{{;}}} (or use Alt + Enter to force a newline).  If you omit the command_list_begin or command_list_end statements they will be automatically added in before the commands are run.
 
 The following example will play the entire library on random:
-{{{clear;add "/";random 1;play}}}
+{{{
+clear;add "/";random 1;play
+}}}
 which is the same as:
 {{{
 command_list_begin
