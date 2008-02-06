@@ -42,14 +42,13 @@ Commands sent to MPD will be displayed in the status bar where it says "Last Com
 
 Examples of how this feature could be used is to enter the command "list genre" to browse by  Genre,"crossfade 3" to add a 3 second crossfade, or advanced find and list commands.
 
-_*Coming in next release:*_
+*Available in 1.0.2:*
 
-_Also, multiple commands can be strung together using MPD's {{{command_list_begin}}} and {{{command_list_end}}} commands.  The important thing to remember when doing this is that you will need to use Alt + Enter for newlines instead of hitting enter, as hitting enter will execute the command._
+Also, multiple commands can be strung together to create macros or queries using mpd's command_list feature.  As a convenience, you can omit the command_list_begin/end commands.  If you hit Alt + Enter, command_list_begin will be inserted if it is not already there.  To enter multiple commands, separate each command with a semicolon {{{;}}} (or use Alt + Enter to force a newline).  If you omit the command_list_begin or command_list_end statements they will be automatically added in before the commnds are run.
 
-_As a convenience, you can omit the command_list_begin/end commands.  If you hit Alt + Enter, command_list_begin will be inserted if it is not already there.  Also, command_list_end will be automatically added if you hit enter and the command starts with command_list_begin._
-
-_The following example will play the entire library on random:_
-
+The following example will play the entire library on random:
+{{{clear;add "/";random 1;play}}}
+which is the same as:
 {{{
 command_list_begin
 clear
@@ -58,7 +57,6 @@ random 1
 play
 command_list_end
 }}}
-
 
 ----
 = Bookmarks =
