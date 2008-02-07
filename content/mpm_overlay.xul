@@ -344,8 +344,7 @@
                 <hbox>
                     <spacer flex="1"/>
                     <toolbarbutton id="mpm_cmd_save"
-                        pack="center"
-                        align="center"
+                        label="Save (Ctrl+D)"
                         oncommand="cmd_save()"/>
                     <spacer flex="1"/>
                 </hbox>

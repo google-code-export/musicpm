@@ -120,6 +120,7 @@
     border-top: 1px solid #666;
     margin-top: 0px;
     padding-top: 0px;
+    min-height: 400px;
     }
 #playlist treechildren::-moz-tree-cell-text(top) {font-weight: bold;}
 #playlist treechildren::-moz-tree-cell-text(middle) {font-style: italic;}
