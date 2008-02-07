@@ -214,7 +214,7 @@ function addnav(lbl, mytype, id) {
     e.label = lbl
 }
 
-function getDir(mytype, id) {
+function getDir(mytype, id, lbl) {
     var f = $('files')
     f.focus()
     if (mytype=='custom'){
@@ -364,7 +364,8 @@ function getDir(mytype, id) {
         }
     }
     else if (mytype == 'custom') {
-        addnav('Command: '+id, 'custom', id)
+        if (typeof(lbl) == 'undefined') {lbl = 'Command: '+id}
+        addnav(lbl, 'custom', id)
         cmd = id.replace(/\\\\n/g, "\n").replace(/\;/g,"\n")
         id = ""
         var cb = function (data) {
@@ -434,12 +435,13 @@ function files_dblclick() {
     var R = tree.currentIndex
     var mytype = table[R].type
     var id = table[R].Name
+    var lbl = table[R].Title
     if (mytype == "file") {
         var l = mpd.playlistlength
         simple_cmd('add "'+id+'"')
         simple_cmd('play '+l)
     }
-    else {getDir(mytype, id)}
+    else {getDir(mytype, id, lbl)}
 }
 function find_album () {
   getDir('Album', active_item.Album)
@@ -711,6 +713,12 @@ function mpd_sent_keypress (e, event) {
             var l = e.value.length
             e.setSelectionRange(l, l)
         }
+    }
+    else if (event.ctrlKey && event.charCode==100) {
+        check_cmd_list(e)
+        cmd_save()
+        event.stopPropagation()
+        return false
     }
     else {
         if (event.keyCode == 13) {

@@ -11,10 +11,8 @@
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
-    height="550"
-    width="780"
     onload="init_mpd()"
-    onopen="init_mpd()">
+    onopen="init_mpd();window.sizeToContent()">
 
     <script src="common.js"></script>
     <script src="playlist.js"></script>
