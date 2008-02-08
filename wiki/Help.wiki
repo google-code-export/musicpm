@@ -38,14 +38,14 @@ Welcome to the Music Player Minion help page.  This page is a work in progress. 
 
 The following drag and drop combinations are possible within Music player Minion:
 
-* Drag to reorder within playlist.
-* Drag to reorder items on the Home page.
-* Drag from playlist to browse section to remove playlist items.
-* Drag from browse section to playlist to add items.
-* Drag from browse to the current song section at the top to add to playlist and play those items immediately.
-* Drag from playlist to other destinations will drop text in the format:  artist - album - title
-* Drag from browse section to other destinations will drop the object name in text format.  For files this will be the filename, for all others it will be what is displayed in the Title column.
-* Links can be dropped into Minion's playlist.  Minion will only check that it is a valid URL before it is added, it won't check if it is a supported format.  This is a useful feature if you are using the sidebar version and want to drop a link from a web page.
+  * Drag to reorder within playlist.
+  * Drag to reorder items on the Home page.
+  * Drag from playlist to browse section to remove playlist items.
+  * Drag from browse section to playlist to add items.
+  * Drag from browse to the current song section at the top to add to playlist and play those items immediately.
+  * Drag from playlist to other destinations will drop text in the format:  artist - album - title
+  * Drag from browse section to other destinations will drop the object name in text format.  For files this will be the filename, for all others it will be what is displayed in the Title column.
+  * Links can be dropped into Minion's playlist.  Minion will only check that it is a valid URL before it is added, it won't check if it is a supported format.  This is a useful feature if you are using the sidebar version and want to drop a link from a web page.
 
 ----
 = Custom Commands =
