@@ -4,6 +4,8 @@
 = Introduction =
 Welcome to the Music Player Minion help page.  This page is a work in progress.  If you don't see what you are looking for yet, please feel free to post your question in the comments section at the bottom of this page in at [http://groups.google.com/group/music-player-minion]
 
+*This page will always refer to the most recent version available.*
+
 ----
 = Keyboard Shortcuts =
 *Note:*  Where "Control" is mentioned, this may be a different accelerator key depending on your operating system.
@@ -54,8 +56,6 @@ The following drag and drop combinations are possible within Music player Minion
 Commands sent to MPD will be displayed in the status bar where it says "Last Command".  In addition to being informative, this location is also a textbox where you can enter your own commands.  This can be useful for using mpd features not implemented by MPM.  Commands entered here are the same as MPD's telnet protocol, see [http://mpd.wikia.com/wiki/Protocol_Reference] for details.  Commands that return results from the database will be displayed in the Browse section above.  
 
 Examples of how this feature could be used is to enter the command "list genre" to browse by  Genre,"crossfade 3" to add a 3 second crossfade, or advanced find and list commands.
-
-*Available in 1.0.2:*
 
 Also, multiple commands can be strung together to create macros or queries using mpd's command_list feature.  As a convenience, you can omit the command_list_begin/end commands.    To enter multiple commands, separate each command with a semicolon {{{;}}} (or use Alt + Enter to force a newline).  If you omit the command_list_begin or command_list_end statements they will be automatically added in before the commands are run.
 
