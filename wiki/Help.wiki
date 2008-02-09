@@ -17,7 +17,7 @@ Welcome to the Music Player Minion help page.  This page is a work in progress. 
 || Volume Down || - ||
 || Focus Search || Control + Z ||
 || Focus Playlist || Left ||
-|| Focus Browse || Right or Escape ||
+|| Focus Browse || Right ||
 || Focus MPD Command || F2 ||
 || Browse Back || Backspace ||
 || Bookmark Current Location || Control + D ||
@@ -32,6 +32,8 @@ Welcome to the Music Player Minion help page.  This page is a work in progress. 
 || Select All || Control + A ||
 || Delete Item(s) || Delete ||
 || Add to Playlist || Insert ||
+|| Replace Playlist || Shift + Insert ||
+|| Filter || any printable characters ||
 
 ----
 = Drag and drop =
