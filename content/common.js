@@ -98,9 +98,14 @@ var infoBrowser
 
 
 function $(e) {return document.getElementById(e)}
+
+function hasFocus (e) {
+    if (typeof(e)=='string') e = $(e)
+    return (e == document.commandDispatcher.focusedElement)
+}
+
 function debug(s) {
     return null
-    var str = s
     if (typeof(s) == 'object') {
         var str = ""
         for (x in s) {str += x + ": " + s[x] + "\n"}
@@ -108,10 +113,17 @@ function debug(s) {
     else {var str = s}
     consoleService.logStringMessage(str)
 }
+
 function show_config() {
     var cb = function (w) {try{w.close()}catch(e){}; mpd = 'reload'; init_mpd()}
     window.openDialog("chrome://minion/content/settings.xul","showmore",
                   "chrome", cb);
+}
+
+function shorten(cmd){
+    // Convert command_list to single line
+    cmd = cmd.replace(/command_list.+?\n/g,"").replace(/\n/g,"; ")
+    return cmd.substr(0, cmd.length-2)
 }
 
 function init_mpd () {
@@ -183,6 +195,7 @@ function init_mpd () {
 
     }
 }
+
 const replacementChar = Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
 var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
 .getService(Components.interfaces.nsISocketTransportService);
@@ -218,7 +231,7 @@ var dataListener  = {
             if (this.data.slice(-3) == "OK\n") {
                 try {
                     var snd = queue[0].outputData
-                    if(snd != status_command && snd.substr(0,9) != "plchanges") {
+                    if(snd != status_command) {
                         $('mpd_response').value = "OK"
                     }
                 } catch (e) {}
@@ -232,8 +245,10 @@ var dataListener  = {
                     utf_outstream.writeString(queue[0].outputData);
                     try {
                         var snd = queue[0].outputData
-                        if(snd != status_command && snd.substr(0,9) != "plchanges") {
-                            $('mpd_sent').value = snd;
+                        if(snd != status_command) {
+                            if (snd.substr(0, 9) != "plchanges") {
+                                $('mpd_sent').value = shorten(snd);
+                            }
                             $('mpd_response').value = "Working...";
                         }
                     } catch (e) {}
@@ -254,8 +269,10 @@ var dataListener  = {
                     utf_outstream.writeString(queue[0].outputData);
                     try {
                         var snd = queue[0].outputData
-                        if(snd != status_command && snd.substr(0,9) != "plchanges") {
-                            $('mpd_sent').value = snd;
+                        if(snd != status_command) {
+                            if (snd.substr(0, 9) != "plchanges") {
+                                $('mpd_sent').value = shorten(snd)
+                            }
                             $('mpd_response').value = "Working...";
                         }
                     } catch (e) {}
@@ -267,12 +284,15 @@ var dataListener  = {
                 try {
                     $('mpd_response').value = this.data
                 } catch (e) {}
-                var msg = "An error has occured when communicating with MPD.\n" +
-                        "Click Cancel to continue sending commands, or\n" +
-                        "Click OK to prevent further attempts.\n\n\n" +
-                        "Command:\n" + queue[0].outputData + "\n\n" +
-                        "Response:\n"+ this.data
-                //mpd_stop = confirm(msg)
+                if (snd == status_command) {
+                    var msg = "An error has occured when communicating with MPD,\n" +
+                            "do you want to halt execution?\n\n" +
+                            "Click Cancel to continue sending commands, or\n" +
+                            "Click OK to prevent further attempts.\n\n\n" +
+                            "Command:\n" + queue[0].outputData + "\n\n" +
+                            "Response:\n"+ this.data
+                    mpd_stop = confirm(msg)
+                }
                 queue.shift()
                 doStatus = false
                 done = true
@@ -405,7 +425,7 @@ function command(outputData, callBack){
         if (idle) {
             utf_outstream.writeString(queue[0].outputData)
             try {
-                $('mpd_sent').value = queue[0].outputData
+                $('mpd_sent').value = shorten(queue[0].outputData)
                 $('mpd_response').value = "Working..."
             } catch (e) {}
             idle = false
