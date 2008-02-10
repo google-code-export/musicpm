@@ -115,7 +115,7 @@ listitem[selected="true"]{
 }
 .files {
     min-width: 200px;
-    min-height: 375px;
+    height: 375px;
     border-left: none !important;
     margin-left: 0px !important;
     }

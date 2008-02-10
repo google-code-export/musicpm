@@ -32,9 +32,8 @@
   <keyset id="mpm_keyset">
     <key id="mpm_key_playlist_menu" modifiers="alt" key="p"
         oncommand="$('playlist_menu_popup').showPopup($('playlist_menu'),-1,-1,'popup');"/>
-    <key id="mpm_key_play" key=" " oncommand="doPlay();"/>
-    <key id="mpm_key_next" modifiers="accel" key="z" oncommand="$('mpm_search').focus();$('search_deck').selectedIndex=1;"/>
-    <key id="mpm_key_escape" keycode="VK_ESCAPE" oncommand="$('files').focus();"/>
+    <key id="mpm_key_play" key=" " oncommand="(hasFocus('files'))?null:doPlay();"/>
+    <key id="mpm_key_search" modifiers="accel" key="z" oncommand="$('mpm_search').focus();$('search_deck').selectedIndex=1;"/>
     <key id="mpm_key_stop" modifiers="accel" keycode="VK_BACK" oncommand="doStop();"/>
     <key id="mpm_key_back" keycode="VK_BACK" oncommand="goBack();"/>
     <key id="mpm_key_goPL" keycode="VK_LEFT" oncommand="$('playlist').focus()"/>
@@ -209,6 +208,7 @@
                         <textbox class="search" id="mpm_search"
                             type="timed"
                             timeout="300"
+                            onkeydown="(event.keyCode==27)?$('files').focus():null"
                             onblur="$('search_deck').selectedIndex=0;"
                             oncommand="search(this.value,'any')"/>
                     </deck>
@@ -260,7 +260,8 @@
                 enableColumnDrag="true"
                 flex="1"
                 ondblclick="files_dblclick()"
-                onkeydown="files_keypress(event)"
+                onkeydown="files_keydown(event)"
+                onkeypress="files_keypress(event)"
                 flags="dont-build-content"
                 context="files_context"
                 ondraggesture="nsDragAndDrop.startDrag(event,fileObserver)"
@@ -338,6 +339,7 @@
                 rows="1"
                 onfocus="$('mpm_cmd_deck').selectedIndex=1;this.style.color='white';this.select();"
                 onblur="this.style.color='#888888';$('mpm_cmd_deck').selectedIndex=0"
+                onkeydown="(event.keyCode==27)?$('files').focus():null"
                 onkeypress="mpd_sent_keypress(this, event)"/>
             <deck id="mpm_cmd_deck">
                 <label class="mpm_statuslabel" id="mpd_response" crop="end" value=""/>

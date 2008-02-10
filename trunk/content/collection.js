@@ -19,6 +19,8 @@ var mpm_history = []
 var mpm_future = []
 var table = []
 var sort_natural = []
+var ftable = []
+var fltr = ""
 var nav_btns = []
 var active_item = null
 
@@ -127,6 +129,54 @@ function prepareForComparison(o) {
     }
     return o;
 }
+function filter_table(chr){
+    var tbl = new Array()
+    var l = 1
+    if (fltr.length > 0) {
+        fltr += chr.toLowerCase()
+        l = fltr.length
+        nav_btns[nav_btns.length-1].label = "Filter: "+fltr+'*'
+    }
+    else {
+        fltr = chr.toLowerCase()
+        addnav("Filter: "+fltr, mpm_history[0][0], mpm_history[0][1])
+    }
+    if (fltr.substr(0,1) == '*') {
+        var s = fltr.substr(1)
+        for (x in table) {
+            try {
+                if (table[x].Title.toLowerCase().indexOf(s) > -1) {
+                    tbl.push(table[x])
+                }
+            } catch (e) {}
+        }
+    }
+    else {
+        for (x in table) {
+            try {
+                if (table[x].Title.toLowerCase().substr(0, l) == fltr) {
+                    tbl.push(table[x])
+                }
+            } catch (e) {}
+        }
+    }
+    if (tbl.length > 0) {
+        table = null
+        setTable(tbl)
+        $('files').view.selection.select(0)
+    }
+    else {
+        fltr = fltr.substr(0, fltr.length - 1)
+        if (fltr.length > 0) {
+            nav_btns[nav_btns.length - 1].label = "Filter: " + fltr + '*'
+        }
+        else {
+            var e = nav_btns.pop()
+            $('mpm_navbar').removeChild(e)
+            e = null
+        }
+    }
+}
 function setTable(data){
     table = data
     sort_natural = []
@@ -151,7 +201,7 @@ function assignView() {
         tree.view = {
             rowCount : table.length,
             getCellText : function (R, C) {
-                if (typeof(table) == 'undefined') {return null}
+                if (typeof(table) == 'undefined') {return ""}
                 if (!table[C.id]){table[C.id] = ""}
                 if (C.id=="Time" && table[R].Time > ''){return hmsFromSec(table[R]["Time"])}
                 else {return table[R][C.id]}
@@ -215,6 +265,7 @@ function addnav(lbl, mytype, id) {
 }
 
 function getDir(mytype, id, lbl) {
+    fltr = ""
     var f = $('files')
     f.focus()
     if (mytype=='custom'){
@@ -399,7 +450,15 @@ function files_addBookmark() {
     $('files_bookmark').disabled = true
 }
 function goBack(){
-    if (mpm_history.length > 1) {
+    if (fltr.length > 0){
+        if (mpm_history.length > 0) {
+            var loc = mpm_history.shift()
+            var mytype = loc[0]
+            var id = loc[1]
+            getDir(mytype, id)
+        }
+    }
+    else if (mpm_history.length > 1) {
         mpm_future.unshift(mpm_history.shift())
         var loc = mpm_history.shift()
         var mytype = loc[0]
@@ -679,13 +738,28 @@ function files_contextShowing(){
 function files_keypress (event) {
     switch (event.which){
         case 13: files_dblclick(); break;
+        default:
+            if (!event.ctrlKey && !event.altKey && event.charCode > 0) {
+                filter_table(String.fromCharCode(event.charCode))
+                event.stopPropagation()
+                return false
+            }
+            break;
+    }
+}
+function files_keydown(event){
+    switch (event.which) {
         case 65:
-            if (event.ctrlKey) {
-                $('files').view.selection.selectAll()
-            }; break;
-        case 45: add(); break;
-        case 46: delete_item(); break;
-        default: //alert(event.which);
+            (event.ctrlKey) ? $('files').view.selection.selectAll() : null;
+            break;
+        case 27:
+            $('playlist').focus();
+            break;
+        case 45:
+            (event.shiftKey) ? replace() : add();
+            break;
+        case 46:
+            delete_item();
             break;
     }
 }
@@ -706,25 +780,28 @@ function mpd_sent_keypress (e, event) {
     if (event.altKey) {
         if (event.keyCode == 13) {
             if (e.value.indexOf('command_list_begin') < 0) {
-                e.value = "command_list_begin\n"+e.value
-                $('mpd_response').value="Command List"
+                e.value = "command_list_begin\n" + e.value
+                $('mpd_response').value = "Command List"
             }
             e.value += "\n"
             var l = e.value.length
             e.setSelectionRange(l, l)
         }
     }
-    else if (event.ctrlKey && event.charCode==100) {
-        check_cmd_list(e)
-        cmd_save()
-        event.stopPropagation()
-        return false
+    else if (event.ctrlKey) {
+            if (event.charCode == 100) {
+                check_cmd_list(e)
+                cmd_save()
+                event.stopPropagation()
+                return false
+            }
     }
-    else {
-        if (event.keyCode == 13) {
+    else if (event.keyCode == 13) {
             check_cmd_list(e)
             getDir('custom',e.value)
         }
+    else {
+
     }
 }
 
