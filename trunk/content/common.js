@@ -104,6 +104,21 @@ function hasFocus (e) {
     return (e == document.commandDispatcher.focusedElement)
 }
 
+function cpyArray (oldArray) {
+    if (typeof(oldArray)=='object') {
+        var l = oldArray.length
+        var n = l
+        var newArray = new Array()
+        if (l > 0) {
+            do {
+                newArray.push(oldArray[l-n])
+            } while (--n)
+        }
+        return newArray
+    }
+    else return oldArray
+}
+
 function debug(s) {
     return null
     if (typeof(s) == 'object') {
@@ -114,6 +129,12 @@ function debug(s) {
     consoleService.logStringMessage(str)
 }
 
+function tmRun(f) {
+    var st = new Date()
+    f(); f(); f(); f(); f(); f(); f(); f(); f(); f();
+    var end = new Date()
+    alert((end.getTime()-st.getTime()))
+}
 function show_config() {
     var cb = function (w) {try{w.close()}catch(e){}; mpd = 'reload'; init_mpd()}
     window.openDialog("chrome://minion/content/settings.xul","showmore",
@@ -510,6 +531,27 @@ function parse_db (data) {
         }
     } while (--n)
     return db
+}
+
+function dbOR(db) {
+    var rdb = []
+    var dl = db.length
+    if (dl < 1) {return db}
+    var n = dl
+
+    var srt = function(a,b) {
+        if (a.Name.substr(i,1)<b.Name.substr(i,1)) return -1
+        if (a.Name.substr(i,1)>b.Name.substr(i,1)) return 1
+        return 0
+    }
+
+    db.sort(srt)
+    do {
+        var i = dl - n
+        if (n==1) {rdb.push(db[i])}
+        else if (db[i].Name != db[i+1].Name) {rdb.push(db[i])}
+    } while (--n)
+    return rdb
 }
 
 function doPrev() {simple_cmd("previous", null)}
