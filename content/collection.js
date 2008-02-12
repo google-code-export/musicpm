@@ -31,14 +31,18 @@ var fileObserver = {
         var child = { }
         $('files').treeBoxObject.getCellAt(event.pageX, event.pageY, row, col, child)
         if (!col.value) {  return }
-        var plainText = table[$('files').currentIndex].Name
+        var item = table[$('files').currentIndex]
+        var plainText = item.Name
+        if (item.type=='file') plainText = item.Artist+" - "+item.Album+" - "+item.Title
         transferData.data = new TransferData();
         transferData.data.addDataForFlavour("text/unicode",plainText);
-        transferData.data.addDataForFlavour("mpm/filename",plainText);
+        transferData.data.addDataForFlavour("mpm/filename",item.Name);
+        plDrag = (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]')
     },
     onDragOver: function (event, flavour, session) {
     },
     onDragExit: function (event, session) {
+        plDrag = false
     },
     getSupportedFlavours : function () {
         var flavours = new FlavourSet();
@@ -85,15 +89,15 @@ function sort(column) {
         if (columnName == 'Track') {return (a.Track - b.Track) * order}
         if (prepareForComparison(a[columnName]) > prepareForComparison(b[columnName])) return 1 * order;
         if (prepareForComparison(a[columnName]) < prepareForComparison(b[columnName])) return -1 * order;
-        //tie breaker: name ascending is the second level sort
+        //tie breaker: name is the second level sort
         if (columnName != "Name") {
-            if (prepareForComparison(a["Name"]) > prepareForComparison(b["Name"])) return 1;
-            if (prepareForComparison(a["Name"]) < prepareForComparison(b["Name"])) return -1;
+            if (prepareForComparison(a["Name"]) > prepareForComparison(b["Name"])) return 1 * order;
+            if (prepareForComparison(a["Name"]) < prepareForComparison(b["Name"])) return -1 * order;
         }
         return 0;
     }
     if (order != 0) {
-        table.sort(columnSort);
+        table.sort(columnSort)
         //setting these will make the sort option persist
         tree.setAttribute("sortDirection", order == 1 ? "ascending" : "descending");
         tree.setAttribute("sortResource", columnName);
@@ -179,14 +183,7 @@ function filter_table(chr){
 }
 function setTable(data){
     table = data
-    sort_natural = []
-    var l = table.length
-    var n = l
-    if (l > 0) {
-        do {
-            sort_natural.push(data[l-n])
-        } while (--n)
-    }
+    sort_natural = cpyArray(data)
     var tree = $('files')
     assignView()
     try {
@@ -234,7 +231,8 @@ function assignView() {
             cycleHeader: function(col, elem) {return null},
             getParentIndex: function(idx) {return -1},
             canDrop: function(index, orient) {
-                return (table==home);
+                if (table==home) {return true}
+                else return (plDrag && mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]')
             },
             drop: function(row,orient){
                 if (table==home) {
@@ -251,10 +249,48 @@ function assignView() {
                     prefs.setCharPref("extensions.mpm.home", home.toSource())
                     setTable(home)
                 }
+                else if (plDrag && mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]') {
+                    if (tree.currentIndex < row) {
+                        if (orient == -1) {row--}
+                    }
+                    else {
+                        if (orient == 1) {row++}
+                    }
+                    files_playlist_move(row)
+                }
             }
         };
     }
 }
+
+function files_playlist_move(moveto) {
+    var tree=$("files")
+    var start = new Object();
+    var end = new Object();
+    var numRanges = tree.view.selection.getRangeCount();
+    var offset = 0
+    var cmd = "command_list_begin"
+    var back = false
+    moveto = parseInt(moveto)
+    if (moveto < 0 ) {moveto = 0}
+    else if (moveto >= mpd.playlistlength) {moveto = mpd.playlistlength - 1}
+    for (var t=0; t<numRanges; t++){
+        tree.view.selection.getRangeAt(t,start,end);
+        for (var v=start.value; v<=end.value; v++){
+            if (v < moveto) {
+                cmd += "\nmove "+ (v-offset) + " " + moveto
+                offset++
+            }
+            else {
+                cmd += "\nmove "+ v + " " + (moveto + offset)
+                offset++
+            }
+        }
+    }
+    cmd += "\ncommand_list_end"
+    simple_cmd(cmd)
+}
+
 function addnav(lbl, mytype, id) {
     var e = document.createElement("button")
     e.id = 'nav'+ nav_btns.length
@@ -273,9 +309,17 @@ function getDir(mytype, id, lbl) {
                 "list ", "listall", "listallinfo", "listplaylistinfo ",
                 "playlistsearch ", "playlistinfo", "playlistfind "]
         var is_dbc = false
+        var chkDupes = false
         for (x in dbc) {
             if (id.indexOf(dbc[x]) > -1) {
                 is_dbc = true
+            }
+        }
+        if (is_dbc) {
+            for (x in dbc) {
+                if (id.indexOf(dbc[x]) > -1) {
+                    chkDupes = true
+                }
             }
         }
         if (!is_dbc) {
@@ -419,8 +463,11 @@ function getDir(mytype, id, lbl) {
         addnav(lbl, 'custom', id)
         cmd = id.replace(/\\\\n/g, "\n").replace(/\;/g,"\n")
         id = ""
-        var cb = function (data) {
-            setTable(parse_db(data))
+        if (chkDupes) {
+            var cb = function (data) {setTable(dbOR(parse_db(data)))}
+        }
+        else {
+            var cb = function (data) {setTable(parse_db(data))}
         }
     }
     else {
@@ -496,9 +543,14 @@ function files_dblclick() {
     var id = table[R].Name
     var lbl = table[R].Title
     if (mytype == "file") {
-        var l = mpd.playlistlength
-        simple_cmd('add "'+id+'"')
-        simple_cmd('play '+l)
+        if (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]') {
+            simple_cmd('play '+R)
+        }
+        else {
+            var l = mpd.playlistlength
+            simple_cmd('add "'+id+'"')
+            simple_cmd('play '+l)
+        }
     }
     else {getDir(mytype, id, lbl)}
 }
@@ -600,115 +652,159 @@ function search_clear () {
     var id = loc[1]
     getDir(mytype, id)
 }
-function files_contextShowing(){
+function files_contextShowing(event){
     active_item = table[$('files').currentIndex]
-    if (active_item.Name > "") {
-        var mytype = active_item.type
-        switch (mytype) {
-            case 'file':
-                $('files_context_delete').hidden = true;
-                $('files_context_rename').hidden = true;
-                $('files_context_lyricsfreak').hidden = false;
-                $('files_context_album').hidden = false;
-                $('files_context_artist_songs').hidden = false;
-                $('files_context_artist_albums').hidden = false;
-                break;
-            case 'directory':
-                $('files_context_delete').hidden = true;
-                $('files_context_rename').hidden = true;
-                $('files_context_lyricsfreak').hidden = true;
-                $('files_context_album').hidden = true;
-                $('files_context_artist_songs').hidden = true;
-                $('files_context_artist_albums').hidden = true;
-                break;
-            case 'Artist':
-                $('files_context_delete').hidden = true;
-                $('files_context_rename').hidden = true;
-                $('files_context_lyricsfreak').hidden = true;
-                $('files_context_album').hidden = true;
-                $('files_context_artist_songs').hidden = false;
-                $('files_context_artist_albums').hidden = false;
-                break;
-            case 'Album':
-                $('files_context_delete').hidden = true;
-                $('files_context_rename').hidden = true;
-                $('files_context_lyricsfreak').hidden = true;
-                $('files_context_album').hidden = true;
-                $('files_context_artist_songs').hidden = true;
-                $('files_context_artist_albums').hidden = true;
-                break;
-            case 'playlist':
-                $('files_context_delete').hidden = false;
-                $('files_context_rename').hidden = false;
-                $('files_context_lyricsfreak').hidden = true;
-                $('files_context_album').hidden = true;
-                $('files_context_artist_songs').hidden = true;
-                $('files_context_artist_albums').hidden = true;
-                break;
-            case 'custom':
-                $('files_context_delete').hidden = false;
-                $('files_context_rename').hidden = false;
-                $('files_context_selectAll').hidden = true;
-                $('files_context_google').hidden = true;
-                $('files_context_lyricsfreak').hidden = true;
-                $('files_context_album').hidden = true;
-                $('files_context_artist_songs').hidden = true;
-                $('files_context_artist_albums').hidden = true;
-                break;
-        }
+    var isCP = (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]')
+    var notCP = !isCP
+    if (typeof(active_item) == "undefined") {
+        if (notCP) {event.preventDefault(); return false}
+        var mytype = ''
+        var myname = ''
     }
     else {
-        $('files_context_delete').hidden = true;
-        $('files_context_rename').hidden = true;
+        var mytype = active_item.type
+        var myname = active_item.Name
+    }
+    $('files_context_open').label = 'Open'
+    switch (mytype) {
+        case 'file':
+            $('files_context_open').label = 'Play'
+            $('files_context_delete').hidden = notCP;
+            $('files_context_rename').hidden = true;
+            $('files_context_lyricsfreak').hidden = false;
+            $('files_context_album').hidden = false;
+            $('files_context_artist_songs').hidden = false;
+            $('files_context_artist_albums').hidden = false;
+            break;
+        case 'directory':
+            $('files_context_delete').hidden = true;
+            $('files_context_rename').hidden = true;
+            $('files_context_lyricsfreak').hidden = true;
+            $('files_context_album').hidden = true;
+            $('files_context_artist_songs').hidden = true;
+            $('files_context_artist_albums').hidden = true;
+            break;
+        case 'Artist':
+            $('files_context_delete').hidden = true;
+            $('files_context_rename').hidden = true;
+            $('files_context_lyricsfreak').hidden = true;
+            $('files_context_album').hidden = true;
+            $('files_context_artist_songs').hidden = false;
+            $('files_context_artist_albums').hidden = false;
+            break;
+        case 'Album':
+            $('files_context_delete').hidden = true;
+            $('files_context_rename').hidden = true;
+            $('files_context_lyricsfreak').hidden = true;
+            $('files_context_album').hidden = true;
+            $('files_context_artist_songs').hidden = true;
+            $('files_context_artist_albums').hidden = true;
+            break;
+        case 'playlist':
+            $('files_context_delete').hidden = false;
+            $('files_context_rename').hidden = false;
+            $('files_context_lyricsfreak').hidden = true;
+            $('files_context_album').hidden = true;
+            $('files_context_artist_songs').hidden = true;
+            $('files_context_artist_albums').hidden = true;
+            break;
+        case 'custom':
+            $('files_context_delete').hidden = false;
+            $('files_context_rename').hidden = false;
+            $('files_context_selectAll').hidden = true;
+            $('files_context_google').hidden = true;
+            $('files_context_lyricsfreak').hidden = true;
+            $('files_context_album').hidden = true;
+            $('files_context_artist_songs').hidden = true;
+            $('files_context_artist_albums').hidden = true;
+            break;
+        case '':
+            $('files_context_open').hidden = true;
+            $('files_context_delete').hidden = true;
+            $('files_context_rename').hidden = true;
+            $('files_context_google').hidden = true;
+            $('files_context_lyricsfreak').hidden = true;
+            $('files_context_album').hidden = true;
+            $('files_context_artist_songs').hidden = true;
+            $('files_context_artist_albums').hidden = true;
+            break;
+    }
+
+    if (table==home) {
+        $('files_context_delete').hidden = (myname=='');
+        $('files_context_selectAll').hidden = true;
         $('files_context_google').hidden = true;
         $('files_context_lyricsfreak').hidden = true;
         $('files_context_album').hidden = true;
         $('files_context_artist_songs').hidden = true;
         $('files_context_artist_albums').hidden = true;
     }
-    if (table==home) {
-        $('files_context_delete').hidden = false;
-    }
-
+    $('files_context_add').hidden = isCP;
+    $('files_context_replace').hidden = isCP;
+    $('files_playlist_sep').hidden = notCP;
+    $('files_context_new').hidden = notCP;
+    $('files_context_save').hidden = notCP;
+    $('files_context_shuffle').hidden = notCP;
 }
- function delete_item(){
+
+function delete_item(){
     var tree = $('files')
     var start = new Object();
     var end = new Object();
     var homeDirty = false
     var numRanges = tree.view.selection.getRangeCount();
 
-    for (var t = 0; t < numRanges; t++) {
-        tree.view.selection.getRangeAt(t, start, end);
-        for (var v = start.value; v <= end.value; v++) {
-            var myname = table[v].Name
-            var mytype = table[v].type
-            if (mytype == 'playlist' && myname > '') {
-                var cb = function (data) {
-                    getDir('playlist', '')
+    if (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]') {
+        var cmd = "command_list_begin"
+        for (var t=0; t<numRanges; t++){
+            tree.view.selection.getRangeAt(t,start,end);
+            for (var v=start.value; v<=end.value; v++){
+                table[v].Pos = -1
+            }
+        }
+        var offset = 0
+        for (x in sort_natural) {
+            if (sort_natural[x].Pos == -1) {
+                cmd += "\ndelete "+ (x-offset)
+                offset++
+            }
+        }
+        cmd += "\ncommand_list_end"
+        simple_cmd(cmd)
+    }
+    else {
+        for (var t = 0; t < numRanges; t++) {
+            tree.view.selection.getRangeAt(t, start, end);
+            for (var v = start.value; v <= end.value; v++) {
+                var myname = table[v].Name
+                var mytype = table[v].type
+                if (mytype == 'playlist' && myname > '') {
+                    var cb = function (data) {
+                        getDir('playlist', '')
+                    }
+                    command('rm "'+myname+'"', cb)
                 }
-                command('rm "'+myname+'"', cb)
-            }
-            else if (myname > '') {
-                homeDirty = true
-                table[v] = "[deleted]"
-            }
-        }
-    }
-    if (homeDirty) {
-        home = new Array()
-        var l = 0
-        for (x in table) {
-            if (table[x]!="[deleted]" && typeof(table[x])=='object') {
-                home.push(table[x])
+                else if (table == home && myname > '') {
+                    homeDirty = true
+                    table[v] = "[deleted]"
+                }
             }
         }
-        var prefs = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch);
-        prefs.setCharPref("extensions.mpm.home", home.toSource())
-        files_home()
+        if (homeDirty) {
+            home = new Array()
+            var l = 0
+            for (x in table) {
+                if (table[x]!="[deleted]" && typeof(table[x])=='object') {
+                    home.push(table[x])
+                }
+            }
+            var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+                    getService(Components.interfaces.nsIPrefBranch);
+            prefs.setCharPref("extensions.mpm.home", home.toSource())
+            files_home()
+        }
     }
- }
+}
  function rename_item(){
     var tree = $('files')
     var v = tree.currentIndex
@@ -825,5 +921,5 @@ notify['db_update'] = function(v){
         getDir(mytype, id)
     }
 }
-notify['init'] = function() {getDir('home', '')}
+notify['init'] = function() { getDir('home', '') }
 

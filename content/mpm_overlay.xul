@@ -161,7 +161,7 @@
         <menuitem id="playlist_context_extened" command="cmd_extended"></menuitem>
     </menupopup>
 
-    <menupopup id="files_context" onpopupshowing="files_contextShowing()">
+    <menupopup id="files_context" onpopupshowing="files_contextShowing(event)">
         <menuitem id="files_context_open"
             label="Open"
             default="true"
@@ -181,6 +181,10 @@
         <menuitem id="files_context_lyricsfreak"
             label="Search LyricsFreak.com"
             oncommand="files_lyricsfreak()"></menuitem>
+        <menuseparator id='files_playlist_sep' hidden='true'></menuseparator>
+        <menuitem id="files_context_new" command="cmd_clear" hidden='true'></menuitem>
+        <menuitem id="files_context_save" command="cmd_save" hidden='true'></menuitem>
+        <menuitem id="files_context_shuffle" command="cmd_shuffle" hidden='true'></menuitem>
     </menupopup>
 
     <vbox id="mpm_browse" flex="1">

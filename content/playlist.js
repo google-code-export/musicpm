@@ -501,6 +501,7 @@ function setPlaylist(data) {
             var sep = data[i].indexOf(": ")
             if (data[i].substr(0, sep) == 'file') {
                 var song = {
+                    'type': 'file',
                     'Title': data[i].slice(sep+2),
                     'Artist': 'unknown',
                     'Album': 'unknown',
@@ -539,6 +540,11 @@ function setPlaylist(data) {
     $("pl_stats").value = prettyTime(tm)
     data = null
     mpd.song = -1
+    if (typeof(table) != 'undefined') {
+        if (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]') {
+            setTable(cpyArray(PL))
+        }
+    }
 }
 function getPlaylist(ver) {
     if (isNaN(PLver)) {
@@ -570,17 +576,20 @@ function playlist_keydown(event) {
             if (PLmode=="extended") {
                 var tree = $('playlist')
                 tree.currentIndex = (Math.floor(tree.currentIndex/3)*3)-2
+                event.stopPropagation()
             };
             break;
         case 40:
             if (PLmode=="extended") {
                 var tree = $('playlist')
                 tree.currentIndex = (Math.floor(tree.currentIndex/3)*3)+4
+                event.stopPropagation()
             };
             break;
         case 65:
             if (event.ctrlKey) {
                 $('playlist').view.selection.selectAll()
+                event.stopPropagation()
             }; break;
         case 46: remove(); break
         default: //alert(event.which);
@@ -671,6 +680,7 @@ function playlist_select(event, R) {
         pos = Math.floor(end.value/3)
         selectItem(pos)
         tree.currentIndex = R
+        event.stopPropagation()
         }
     }
 
