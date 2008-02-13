@@ -203,6 +203,7 @@ function assignView() {
                 if (typeof(table) == 'undefined') {return ""}
                 if (!table[C.id]){table[C.id] = ""}
                 if (C.id=="Time" && table[R].Time > ''){return hmsFromSec(table[R]["Time"])}
+                if (C.id=="Pos" && table[R].Pos > ''){return parseInt(table[R].Pos)+1}
                 else {return table[R][C.id]}
             },
             setTree: function(treebox){ this.treebox = treebox; },
@@ -321,6 +322,7 @@ function getDir(mytype, id, lbl) {
     fltr = ""
     var f = $('files')
     f.focus()
+	$('Pos').collapsed = (id != '[current]')
     if (mytype=='custom'){
         var dbc = ["search ", "find ", "lsinfo", "plchanges ",
                 "list ", "listall", "listallinfo", "listplaylistinfo ",
@@ -561,7 +563,7 @@ function files_dblclick() {
     var lbl = table[R].Title
     if (mytype == "file") {
         if (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]') {
-            simple_cmd('play '+R)
+            simple_cmd('play '+table[R].Pos)
         }
         else {
             var l = mpd.playlistlength
@@ -672,11 +674,6 @@ function search_clear () {
 }
 function files_contextShowing(event){
     active_item = table[$('files').currentIndex]
-    var loc = mpm_history[0]
-    var isPL = (loc[0]=='playlist' && loc[1]>'')
-    var isCP = (loc[0]=='playlist' && loc[1]=='[current]')
-    var notPL = !isPL
-    var notCP = !isCP
     if (typeof(active_item) == "undefined") {
         if (notCP) {event.preventDefault(); return false}
         var mytype = ''
@@ -686,10 +683,18 @@ function files_contextShowing(event){
         var mytype = active_item.type
         var myname = active_item.Name
     }
+    var loc = mpm_history[0]
+    var isPL = (loc[0]=='playlist')
+    var isCP = (isPL && loc[1]=='[current]')
+	var isCPIcon = (myname=='[current]')
+    var notPL = !isPL
+    var notCP = !isCP
+	
     $('files_context_open').label = 'Open'
     switch (mytype) {
         case 'file':
             $('files_context_open').label = 'Play'
+            $("files_menu_add").hidden = false;
             $('files_context_delete').hidden = notPL;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = false;
@@ -698,6 +703,7 @@ function files_contextShowing(event){
             $('files_context_artist_albums').hidden = false;
             break;
         case 'directory':
+            $("files_menu_add").hidden = false;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = true;
@@ -706,6 +712,7 @@ function files_contextShowing(event){
             $('files_context_artist_albums').hidden = true;
             break;
         case 'Artist':
+            $("files_menu_add").hidden = false;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = true;
@@ -714,6 +721,7 @@ function files_contextShowing(event){
             $('files_context_artist_albums').hidden = false;
             break;
         case 'Album':
+            $("files_menu_add").hidden = false;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = true;
@@ -722,14 +730,17 @@ function files_contextShowing(event){
             $('files_context_artist_albums').hidden = true;
             break;
         case 'playlist':
-            $('files_context_delete').hidden = false;
-            $('files_context_rename').hidden = false;
+            $("files_menu_add").hidden = true;
+		    $('files_context_add').hidden = isCPIcon;
+            $('files_context_delete').hidden = isCPIcon;
+            $('files_context_rename').hidden = isCPIcon;
             $('files_context_lyricsfreak').hidden = true;
             $('files_context_album').hidden = true;
             $('files_context_artist_songs').hidden = true;
             $('files_context_artist_albums').hidden = true;
             break;
         case 'custom':
+            $("files_menu_add").hidden = false;
             $('files_context_delete').hidden = false;
             $('files_context_rename').hidden = false;
             $('files_context_selectAll').hidden = true;
@@ -740,6 +751,7 @@ function files_contextShowing(event){
             $('files_context_artist_albums').hidden = true;
             break;
         case '':
+            $("files_menu_add").hidden = true;
             $('files_context_open').hidden = true;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
@@ -752,7 +764,12 @@ function files_contextShowing(event){
     }
 
     if (table==home) {
-        $('files_context_delete').hidden = (myname=='');
+		var isCat = (myname=='')
+	    $("files_menu_add").hidden = true;
+	    $('files_context_add').hidden = (mytype=='playlist' && (isCat || isCPIcon));
+	    $('files_context_replace').hidden = (mytype=='playlist' && (isCat || isCPIcon));
+        $('files_context_delete').hidden = isCat;
+        $('files_context_rename').hidden = isCat;
         $('files_context_selectAll').hidden = true;
         $('files_context_google').hidden = true;
         $('files_context_lyricsfreak').hidden = true;
@@ -760,12 +777,15 @@ function files_contextShowing(event){
         $('files_context_artist_songs').hidden = true;
         $('files_context_artist_albums').hidden = true;
     }
-    $('files_context_add').hidden = isCP;
-    $('files_context_replace').hidden = isCP;
-    $('files_playlist_sep').hidden = notCP;
-    $('files_context_new').hidden = notCP;
-    $('files_context_save').hidden = notCP;
-    $('files_context_shuffle').hidden = notCP;
+	else {
+	    $("files_menu_add").hidden = (isCPIcon);
+	    $('files_context_add').hidden = (isCP || isCPIcon);
+	    $('files_context_replace').hidden = (isCP || isCPIcon);
+	    $('files_playlist_sep').hidden = notCP;
+	    $('files_context_new').hidden = notCP;
+	    $('files_context_save').hidden = notCP;
+	    $('files_context_shuffle').hidden = notCP;
+	}
 }
 
 function delete_item(){

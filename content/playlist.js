@@ -330,7 +330,7 @@ function assignPLview() {
         tree.view = {
             rowCount : l*3,
             getCellText : function (R, C) {
-                if (typeof(PL) == 'undefined') {return null}
+                if (typeof(PL) == 'undefined') {return ''}
                 var pos = Math.floor(R/3)
                 var r = R - (pos*3)
                 var item = PL[pos]
@@ -426,9 +426,9 @@ function assignPLview() {
         tree.view = {
             rowCount : l,
             getCellText : function (R, C) {
-                if (typeof(PL) == 'undefined') {return null}
+                if (typeof(PL) == 'undefined') {return ''}
                 if (typeof(PL[R]) != 'object') {
-                    return null
+                    return ''
                     }
                 if (C.id=="Position"){
                     return (R+1)+"."
