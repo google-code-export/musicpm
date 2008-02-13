@@ -167,6 +167,19 @@
             default="true"
             oncommand="files_dblclick()"></menuitem>
         <menuitem id="files_context_add" command="cmd_add"></menuitem>
+        <menu id="files_menu_add" label="Add to Saved Playlist" accesskey="o">
+            <menupopup id="files_playlist_add_popup"
+                datasources="rdf:null"
+                onpopupshowing="files_playlist_openPopup()">
+                <template>
+                    <rule>
+                        <menuitem uri="rdf:*"
+                            label="rdf:mpd_Name"
+                            oncommand="add('rdf:mpd_Name^')"/>
+                    </rule>
+                </template>
+            </menupopup>
+        </menu>
         <menuitem id="files_context_replace" command="cmd_replace"></menuitem>
         <menuitem id="files_context_selectAll" command="cmd_selectAll"></menuitem>
         <menuitem id="files_context_delete" command="cmd_delete_item"></menuitem>
