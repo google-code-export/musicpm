@@ -275,6 +275,7 @@
             <tree id="files"
                 class="files"
                 enableColumnDrag="true"
+                disableKeyNavigation="true"
                 flex="1"
                 ondblclick="files_dblclick()"
                 onkeydown="files_keydown(event)"
@@ -286,6 +287,13 @@
                 ondragexit="nsDragAndDrop.dragExit(event,fileObserver)"
                 ondragdrop="nsDragAndDrop.drop(event,fileObserver)">
                 <treecols>
+                    <treecol id="Pos" label="#" ordinal="0" width="30px"
+                            hidden="false"
+                            collapsed="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="sort(this)"/>
+                    <splitter class="tree-splitter"/>
                     <treecol id="Name" label="Name" ordinal="1" flex="3"
                             hidden="true"
                             persist="width ordinal hidden"
