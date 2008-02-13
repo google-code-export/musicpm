@@ -37,7 +37,7 @@ var fileObserver = {
         transferData.data = new TransferData();
         transferData.data.addDataForFlavour("text/unicode",plainText);
         transferData.data.addDataForFlavour("mpm/filename",item.Name);
-        plDrag = (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]')
+        plDrag = (mpm_history[0][0]=='playlist' && mpm_history[0][1]>'')
     },
     onDragOver: function (event, flavour, session) {
     },
@@ -136,20 +136,22 @@ function prepareForComparison(o) {
 function filter_table(chr){
     var tbl = new Array()
     var l = 1
+    var columnName = $('files').getAttribute("sortResource")
+    if (columnName == '') {columnName = 'Title'}
     if (fltr.length > 0) {
         fltr += chr.toLowerCase()
         l = fltr.length
-        nav_btns[nav_btns.length-1].label = "Filter: "+fltr+'*'
+        nav_btns[nav_btns.length-1].label = "Filter "+columnName+": "+fltr+'*'
     }
     else {
         fltr = chr.toLowerCase()
-        addnav("Filter: "+fltr, mpm_history[0][0], mpm_history[0][1])
+        addnav("Filter "+columnName+": "+fltr+'*', mpm_history[0][0], mpm_history[0][1])
     }
     if (fltr.substr(0,1) == '*') {
         var s = fltr.substr(1)
         for (x in table) {
             try {
-                if (table[x].Title.toLowerCase().indexOf(s) > -1) {
+                if (table[x][columnName].toLowerCase().indexOf(s) > -1) {
                     tbl.push(table[x])
                 }
             } catch (e) {}
@@ -158,7 +160,7 @@ function filter_table(chr){
     else {
         for (x in table) {
             try {
-                if (table[x].Title.toLowerCase().substr(0, l) == fltr) {
+                if (table[x][columnName].toLowerCase().substr(0, l) == fltr) {
                     tbl.push(table[x])
                 }
             } catch (e) {}
@@ -172,7 +174,7 @@ function filter_table(chr){
     else {
         fltr = fltr.substr(0, fltr.length - 1)
         if (fltr.length > 0) {
-            nav_btns[nav_btns.length - 1].label = "Filter: " + fltr + '*'
+            nav_btns[nav_btns.length - 1].label = "Filter "+columnName+": " + fltr + '*'
         }
         else {
             var e = nav_btns.pop()
@@ -232,7 +234,7 @@ function assignView() {
             getParentIndex: function(idx) {return -1},
             canDrop: function(index, orient) {
                 if (table==home) {return true}
-                else return (plDrag && mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]')
+                else return (plDrag && mpm_history[0][0]=='playlist' && mpm_history[0][1]>'')
             },
             drop: function(row,orient){
                 if (table==home) {
@@ -249,21 +251,21 @@ function assignView() {
                     prefs.setCharPref("extensions.mpm.home", home.toSource())
                     setTable(home)
                 }
-                else if (plDrag && mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]') {
+                else if (plDrag && mpm_history[0][0]=='playlist' && mpm_history[0][1]>'') {
                     if (tree.currentIndex < row) {
                         if (orient == -1) {row--}
                     }
                     else {
                         if (orient == 1) {row++}
                     }
-                    files_playlist_move(row)
+                    files_playlist_move(row, mpm_history[0][1])
                 }
             }
         };
     }
 }
 
-function files_playlist_move(moveto) {
+function files_playlist_move(moveto, id) {
     var tree=$("files")
     var start = new Object();
     var end = new Object();
@@ -273,24 +275,39 @@ function files_playlist_move(moveto) {
     var back = false
     moveto = parseInt(moveto)
     if (moveto < 0 ) {moveto = 0}
-    else if (moveto >= mpd.playlistlength) {moveto = mpd.playlistlength - 1}
+    if (id=='[current]') {
+        if (moveto >= mpd.playlistlength) {moveto = mpd.playlistlength - 1}
+        var pcmd = '\nmove '
+    }
+    else {
+        var pcmd = '\nplaylistmove "'+id+'" '
+    }
     for (var t=0; t<numRanges; t++){
         tree.view.selection.getRangeAt(t,start,end);
         for (var v=start.value; v<=end.value; v++){
             if (v < moveto) {
-                cmd += "\nmove "+ (v-offset) + " " + moveto
+                cmd += pcmd + (v-offset) + " " + moveto
                 offset++
             }
             else {
-                cmd += "\nmove "+ v + " " + (moveto + offset)
+                cmd += pcmd + v + " " + (moveto + offset)
                 offset++
             }
         }
     }
     cmd += "\ncommand_list_end"
-    simple_cmd(cmd)
+    command(cmd, function(){getDir(mpm_history[0][0], mpm_history[0][1])})
 }
-
+function files_playlist_openPopup(){
+    var cb = function(data) {
+        var p = $('files_playlist_add_popup')
+        if (pds) {p.database.RemoveDataSource(pds)}
+        pds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
+        p.database.AddDataSource(pds)
+        p.ref="mpd://playlists"
+    }
+    command('lsinfo', cb)
+}
 function addnav(lbl, mytype, id) {
     var e = document.createElement("button")
     e.id = 'nav'+ nav_btns.length
@@ -573,15 +590,16 @@ function files_googleIt() {
 function files_lyricsfreak() {
   lyricsfreak(active_item.Title, active_item.type)
   }
-function add() {
+function add(plname) {
     var tree=$("files")
+    var add = (typeof(plname)=='undefined')?'add':'playlistadd "'+plname+'"'
     var start = new Object();
     var end = new Object();
     var numRanges = tree.view.selection.getRangeCount();
     var addCB = function (data){
         var db = filter(parse_db(data), {'file':true})
         var cmd = "command_list_begin\n"
-        for (i in db) {cmd += 'add "'+db[i].Name+'"\n'}
+        for (i in db) {cmd += add+' "'+db[i].Name+'"\n'}
         command(cmd+'command_list_end', null)
     }
     var cmd_list = ""
@@ -603,10 +621,10 @@ function add() {
                         command('find album' + id, addCB);
                         break;
                     case "directory":
-                        cmd_list += 'add' + id +"\n"
+                        cmd_list += add + id +"\n"
                         break;
                     case "file":
-                        cmd_list += 'add' + id +"\n"
+                        cmd_list += add + id +"\n"
                         break;
                     case "playlist":
                         cmd_list += 'load' + id +"\n"
@@ -654,7 +672,10 @@ function search_clear () {
 }
 function files_contextShowing(event){
     active_item = table[$('files').currentIndex]
-    var isCP = (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]')
+    var loc = mpm_history[0]
+    var isPL = (loc[0]=='playlist' && loc[1]>'')
+    var isCP = (loc[0]=='playlist' && loc[1]=='[current]')
+    var notPL = !isPL
     var notCP = !isCP
     if (typeof(active_item) == "undefined") {
         if (notCP) {event.preventDefault(); return false}
@@ -669,7 +690,7 @@ function files_contextShowing(event){
     switch (mytype) {
         case 'file':
             $('files_context_open').label = 'Play'
-            $('files_context_delete').hidden = notCP;
+            $('files_context_delete').hidden = notPL;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = false;
             $('files_context_album').hidden = false;
@@ -754,7 +775,9 @@ function delete_item(){
     var homeDirty = false
     var numRanges = tree.view.selection.getRangeCount();
 
-    if (mpm_history[0][0]=='playlist' && mpm_history[0][1]=='[current]') {
+    var loc = mpm_history[0]
+    if (loc[0]=='playlist' && loc[1]>'') {
+        var pcmd = (loc[1]=='[current]')?'\ndelete ':'\nplaylistdelete "'+loc[1]+'" '
         var cmd = "command_list_begin"
         for (var t=0; t<numRanges; t++){
             tree.view.selection.getRangeAt(t,start,end);
@@ -765,12 +788,12 @@ function delete_item(){
         var offset = 0
         for (x in sort_natural) {
             if (sort_natural[x].Pos == -1) {
-                cmd += "\ndelete "+ (x-offset)
+                cmd += pcmd + (x-offset)
                 offset++
             }
         }
         cmd += "\ncommand_list_end"
-        simple_cmd(cmd)
+        command(cmd,function(){getDir(loc[0], loc[1])})
     }
     else {
         for (var t = 0; t < numRanges; t++) {
