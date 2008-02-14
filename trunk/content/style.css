@@ -235,6 +235,18 @@ treechildren::-moz-tree-cell-text(Title_file) {
 treechildren::-moz-tree-cell-text(Title_song) {
     color: #FAFABE;
     }
+treechildren::-moz-tree-cell-text(currentsong) {
+    font-weight: bold;
+    }
+treechildren::-moz-tree-image(play_currentsong) {
+    list-style-image: url("chrome://minion/content/play_small.png");
+    }
+treechildren::-moz-tree-image(pause_currentsong) {
+    list-style-image: url("chrome://minion/content/pause_small.png");
+    }
+treechildren::-moz-tree-image(stop_currentsong) {
+    list-style-image: none;
+    }
 
 
 treechildren::-moz-tree-row {

@@ -53,7 +53,17 @@ treechildren::-moz-tree-image {
 #files_bookmark {
     list-style-image: url('chrome://minion/content/folder_favorites.png')
     }
+treechildren::-moz-tree-image(Name) {
+    list-style-image: url("chrome://minion/content/unknown.png");
+    }
+treechildren::-moz-tree-image(Title_song) {
+    list-style-image: none;
+    }
 treechildren::-moz-tree-image(Name_Artist) {
+    list-style-image: url("chrome://minion/content/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(Name_Composer) {
     list-style-image: url("chrome://minion/content/artist.png");
     margin: 0px 3px 0px 1px;
     }
@@ -74,6 +84,10 @@ treechildren::-moz-tree-image(Title_file) {
     list-style-image: url("chrome://minion/content/song.png");
     }
 treechildren::-moz-tree-image(Title_Artist) {
+    list-style-image: url("chrome://minion/content/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(Title_Composer) {
     list-style-image: url("chrome://minion/content/artist.png");
     margin: 0px 3px 0px 1px;
     }

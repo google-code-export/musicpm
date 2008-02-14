@@ -86,7 +86,9 @@ function sort(column) {
         columnName = tree.getAttribute("sortResource");
     }
     function columnSort(a, b) {
-        if (columnName == 'Track') {return (a.Track - b.Track) * order}
+        if (columnName == 'Track' || columnName == 'Pos' || columnName == 'Time') {
+			return (a[columnName] - b[columnName]) * order
+		}
         if (prepareForComparison(a[columnName]) > prepareForComparison(b[columnName])) return 1 * order;
         if (prepareForComparison(a[columnName]) < prepareForComparison(b[columnName])) return -1 * order;
         //tie breaker: name is the second level sort
@@ -122,7 +124,6 @@ function sort(column) {
         tree.setAttribute("sortDirection", '');
         tree.setAttribute("sortResource", '');
         $(columnName).setAttribute("sortDirection", '');
-
     }
 }
 
@@ -158,18 +159,35 @@ function filter_table(chr){
         }
     }
     else {
-        for (x in table) {
-            try {
-                if (table[x][columnName].toLowerCase().substr(0, l) == fltr) {
-                    tbl.push(table[x])
-                }
-            } catch (e) {}
-        }
+		if (columnName == 'Pos') {
+			for (x in table) {
+				try {
+					var p = parseInt(table[x][columnName])+1
+					if (p.toString().substr(0, l) == fltr) {
+						tbl.push(table[x])
+					}
+				} 
+				catch (e) {
+				}
+			}
+		}
+		else {
+			for (x in table) {
+				try {
+					if (table[x][columnName].toLowerCase().substr(0, l) == fltr) {
+						tbl.push(table[x])
+					}
+				} 
+				catch (e) {
+				}
+			}
+		}
     }
     if (tbl.length > 0) {
         table = null
         setTable(tbl)
         $('files').view.selection.select(0)
+        if (columnName != 'Title') $('files').setAttribute("sortResource", columnName);
     }
     else {
         fltr = fltr.substr(0, fltr.length - 1)
@@ -225,6 +243,10 @@ function assignView() {
                 var aserv = Components.classes["@mozilla.org/atom-service;1"]
                             .getService(Components.interfaces.nsIAtomService);
                 props.AppendElement( aserv.getAtom(col.id+"_"+table[row].type) )
+                if (table[row].type == 'file' && table[row].Name == mpd.currentsong) {
+					if (col.id=='Title') props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+					props.AppendElement(aserv.getAtom("currentsong"))
+				}
                 props.AppendElement( aserv.getAtom(col.id) )
                 aserv = null
                 } catch(e) {}
@@ -629,6 +651,7 @@ function add(plname) {
                         cmd_list += add + id +"\n"
                         break;
                     case "playlist":
+						lastPlaylistName = table[v].Name
                         cmd_list += 'load' + id +"\n"
                         break;
                     case "custom":

@@ -18,6 +18,7 @@
 var PL = new Array()
 var PLver = 0
 var pds
+var lastPlaylistName = "NewPlaylist"
 var plDrag = false
 var plObserver = {
     onDragStart: function (event, transferData, action) {
@@ -263,6 +264,19 @@ function setState(state) {
     if (state == 'stop') {
         setCurSong(-1)
         setTime("0:0")
+		mpd.currentsong = ""
+		var tree = $('files')
+		if (tree) {
+			var boxobject = tree.boxObject;
+			boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+			boxobject.invalidate()
+		}
+		var tree = $('playlist')
+		if (tree) {
+			var boxobject = tree.boxObject;
+			boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+			boxobject.invalidate()
+		}
     }
     else {setCurSong(mpd.song)}
 }
@@ -299,20 +313,41 @@ function setCurSong(id) {
             $('progress').value = '0'
             }
         else {
-            song = PL[parseInt(id)]
-            if (typeof(song) == 'object') {
-                if (t) {t.value = song['Title']}
-                if (a) {a.value = song['Artist']}
-                if (b) {b.value = song['Album']}
-                if (art) {
-                    art.value = song.Album
-                    getCover(art, song)
-                }
-                if (mpd.state == 'play') {centerPL()}
-            }
-            else {
-                setTimeout("setCurSong("+id+")", 222)
-            }
+			var cb = function(data){
+				song = parse_db(data)[0]
+				if (t) {
+					t.value = song['Title']
+				}
+				if (a) {
+					a.value = song['Artist']
+				}
+				if (b) {
+					b.value = song['Album']
+				}
+				if (art) {
+					art.value = song.Album
+					getCover(art, song)
+				}
+				if (mpd.state == 'play') {
+					centerPL()
+				}
+				mpd.currentsong = song.Name
+				var tree = $('files')
+				if (tree) {
+					var boxobject = tree.boxObject;
+					boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+					boxobject.invalidate()
+				}
+				var tree = $('playlist')
+				if (tree) {
+					var boxobject = tree.boxObject;
+					boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+					boxobject.invalidate()
+				}
+				//$('playlist').view.invalidate()
+				//$('files').view.invalidate()
+			}
+			command('currentsong', cb)
         }
     }
     catch (e) {
@@ -385,20 +420,24 @@ function assignPLview() {
                 } catch(e) {}
                 },
             getCellProperties: function(row,col,props){
+                var pos = Math.floor(row/3)
+                var r = row % 3
                 if (col.id=="PLsong") {
                     try {
-                    var pos = Math.floor(row/3)
-                    var r = row - (pos*3)
                     var aserv = Components.classes["@mozilla.org/atom-service;1"]
                             .getService(Components.interfaces.nsIAtomService);
                     if (r==0){
                         props.AppendElement( aserv.getAtom("Title") )
                         props.AppendElement( aserv.getAtom("Title_song") )
+		                if (PL[pos].Name == mpd.currentsong) {
+							props.AppendElement(aserv.getAtom(mpd.state+"_currentsong"))
+							props.AppendElement(aserv.getAtom("currentsong"))
+						}
                     }
                     if (r==1){props.AppendElement( aserv.getAtom("Artist") )}
                     if (r==2){props.AppendElement( aserv.getAtom("Album") )}
                     pos = null; r = null; aserv = null
-                    } catch(e) {}
+                    } catch(e) {debug(e)}
                 }
             },
             getParentIndex: function(idx) {return -1},
@@ -448,17 +487,23 @@ function assignPLview() {
                     var aserv = Components.classes["@mozilla.org/atom-service;1"]
                             .getService(Components.interfaces.nsIAtomService);
                     props.AppendElement( aserv.getAtom("Title") )
-                } catch(e) {}
+                } catch(e) {debug(e)}
                 },
             getCellProperties: function(row,col,props){
-                if (col.id=="PLsong") {
-                    try {
-                    var aserv = Components.classes["@mozilla.org/atom-service;1"]
-                            .getService(Components.interfaces.nsIAtomService);
-                    props.AppendElement( aserv.getAtom("Title") )
-                    props.AppendElement( aserv.getAtom("Title_song") )
-                    } catch(e) {}
-                    }
+                if (col.id == "PLsong") {
+					try {
+						var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
+						props.AppendElement(aserv.getAtom("Title"))
+						props.AppendElement(aserv.getAtom("Title_song"))
+						if (PL[row].Name == mpd.currentsong) {
+							props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+							props.AppendElement(aserv.getAtom("currentsong"))
+						}
+					} 
+					catch (e) {
+						debug(e)
+					}
+				}					
                 },
             getParentIndex: function(idx) {return -1},
             getColumnProperties: function(colid,col,props){},
@@ -500,9 +545,11 @@ function setPlaylist(data) {
             var i = dl - n
             var sep = data[i].indexOf(": ")
             if (data[i].substr(0, sep) == 'file') {
+				var fname = data[i].slice(sep+2)
                 var song = {
                     'type': 'file',
-                    'Title': data[i].slice(sep+2),
+					'Name': fname,
+                    'Title': fname,
                     'Artist': 'unknown',
                     'Album': 'unknown',
                     'Time': 0,
@@ -624,6 +671,7 @@ function playlist_lyricsfreak()  {
   }
 
 function load_playlist(id){
+	lastPlaylistName = id
     command('command_list_begin\nclear\nload "'+id+'"\ncommand_list_end\n', null)
 }
 function playlist_addURL(){
@@ -635,8 +683,9 @@ function playlist_addURL(){
     }
 }
 function playlist_save(){
-    var val = prompt("Please enter a name for this playlist", "NewPlaylist")
+    var val = prompt("Please enter a name for this playlist", lastPlaylistName)
     if (val != null) {
+		lastPlaylistName = val
         command('save "'+val+'"', null)
     }
 }
@@ -781,9 +830,10 @@ function playlist_move(moveto) {
     command(cmd, null)
 }
 
-function clear() {
-  command("clear", null)
-  }
+function clear(){
+	lastPlaylistName = "NewPlaylist"
+	command("clear", null)
+}
 
 function centerPL() {
     var row = (mpd.song)
