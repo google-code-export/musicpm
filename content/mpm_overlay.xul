@@ -35,7 +35,7 @@
     <key id="mpm_key_play" key=" " oncommand="(hasFocus('files'))?null:doPlay();"/>
     <key id="mpm_key_search" modifiers="accel" key="z" oncommand="$('mpm_search').focus();$('search_deck').selectedIndex=1;"/>
     <key id="mpm_key_stop" modifiers="accel" keycode="VK_BACK" oncommand="doStop();"/>
-    <key id="mpm_key_back" keycode="VK_BACK" oncommand="goBack();"/>
+    <key id="mpm_key_back" keycode="VK_BACK" oncommand="(hasFocus('files'))?goBack():doStop();"/>
     <key id="mpm_key_goPL" keycode="VK_LEFT" oncommand="$('playlist').focus()"/>
     <key id="mpm_key_goFiles" keycode="VK_RIGHT" oncommand="$('files').focus()"/>
     <key id="mpm_key_goCmd" keycode="VK_F2" oncommand="$('mpd_sent').focus()"/>

@@ -120,7 +120,7 @@ function cpyArray (oldArray) {
 }
 
 function debug(s) {
-    return null
+    //return null
     if (typeof(s) == 'object') {
         var str = ""
         for (x in s) {str += x + ": " + s[x] + "\n"}
@@ -195,7 +195,8 @@ function init_mpd () {
             'uptime': '0',
             'playtime': '0',
             'db_playtime': '0',
-            'db_update': '0'
+            'db_update': '0',
+			'currentsong': null
         }
         queue.length = 0
         doStatus = true
