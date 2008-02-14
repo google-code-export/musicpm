@@ -1,0 +1,17 @@
+#summary Things on my "to do" list for MPM.
+
+= 1.2 =
+
+  * Move submenu in Current Playlist context.
+  * Update current directory in context menu.
+  * Relocate Playlist toolbar functions when playlist is collapsed.
+
+
+= Beyond 1.2 =
+
+  * Load values from /etc/mpd.conf if available.
+  * Edit tags if files are reachable, using external program.
+  * Wake On Lan command.
+  * Add custom scripts feature for context menu.
+  * Add query builder.
+  * Add Details page for songs. (all tags, album art, lyrics, helpful links.)
