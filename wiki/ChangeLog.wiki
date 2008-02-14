@@ -2,3 +2,4 @@
 
 = 1.1 =
   * Added filter feature.  Will now filter on the Title field as you type when browsing the library.
+  * Standalone version now sizes itself to fit the content when it opens.  Prior to this it was set to display at a fixed size which cut off the clear search button on the right hand side.
