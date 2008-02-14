@@ -11,7 +11,8 @@
 
   * Load values from /etc/mpd.conf if available.
   * Edit tags if files are reachable, using external program.
-  * Wake On Lan command.
+  * Wake On Lan command?
+  * Automatic Discovery of MPD server?
   * Add custom scripts feature for context menu.
   * Add query builder.
   * Add Details page for songs. (all tags, album art, lyrics, helpful links.)
