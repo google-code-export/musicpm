@@ -1,0 +1,4 @@
+#summary A history of changes made for each release.
+
+= 1.1 =
+  * Added filter feature.  Will now filter on the Title field as you type when browsing the library.
