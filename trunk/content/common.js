@@ -213,6 +213,7 @@ function init_mpd () {
             notify['init']()
             $('mpd_hostport').value = host+":"+port
             $('mpd_status').value = "Not Connected"
+			$('main_playlist').addEventListener('DOMAttrModified',playlist_resize,false)
         }
 
     }
@@ -355,6 +356,9 @@ function checkStatus() {
 }
 function statusCallBack (data) {
     var pair, fld, val, dl
+	if (data.indexOf('updating_db') < 0) {
+		data += "\nupdating_db: 0"
+	}
     data = data.split("\n")
     var dl = data.length
     do {

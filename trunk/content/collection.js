@@ -240,14 +240,20 @@ function assignView() {
             },
             getCellProperties: function(row,col,props){
                 try {
+				var t = table[row].type
                 var aserv = Components.classes["@mozilla.org/atom-service;1"]
                             .getService(Components.interfaces.nsIAtomService);
                 props.AppendElement( aserv.getAtom(col.id+"_"+table[row].type) )
-                if (table[row].type == 'file' && table[row].Name == mpd.currentsong) {
-					if (col.id=='Title') props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+                if (t == 'file' && table[row].Name == mpd.currentsong) {
+					if (col.id == 'Title' && mpd.state != 'stop') {
+						props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+					}
 					props.AppendElement(aserv.getAtom("currentsong"))
 				}
                 props.AppendElement( aserv.getAtom(col.id) )
+				if (t !='file' && t !='playlist' && mpd.updating_db > 0) {
+					props.AppendElement(aserv.getAtom(col.id+"_updating"))
+				}
                 aserv = null
                 } catch(e) {}
             },
@@ -287,7 +293,12 @@ function assignView() {
         };
     }
 }
-
+function files_playlist_move_next() {
+    var moveto = parseInt(mpd.song)
+    var pos = $('files').currentIndex
+    if (moveto < pos) { moveto++}
+    files_playlist_move(moveto)
+}
 function files_playlist_move(moveto, id) {
     var tree=$("files")
     var start = new Object();
@@ -298,6 +309,7 @@ function files_playlist_move(moveto, id) {
     var back = false
     moveto = parseInt(moveto)
     if (moveto < 0 ) {moveto = 0}
+	if (typeof(id) == 'undefined') id = '[current]'
     if (id=='[current]') {
         if (moveto >= mpd.playlistlength) {moveto = mpd.playlistlength - 1}
         var pcmd = '\nmove '
@@ -330,6 +342,21 @@ function files_playlist_openPopup(){
         p.ref="mpd://playlists"
     }
     command('lsinfo', cb)
+}
+function playlist_resize(event) {
+	if ($('main_playlist').collapsed) {
+		if ($('playlist_toolbar').firstChild == $("playlist_menu")) {
+			var e = $('playlist_toolbar').removeChild($("playlist_menu"))
+			$("files_toolbar").insertBefore(e, $("files_settings"))
+		}
+	}
+	else {
+		if ($('files_toolbar').firstChild == $("playlist_menu")) {
+			var pt = $("playlist_toolbar")
+			var e = $('files_toolbar').removeChild($("playlist_menu"))
+			pt.insertBefore(e, pt.firstChild)
+		}
+	}
 }
 function addnav(lbl, mytype, id) {
     var e = document.createElement("button")
@@ -670,8 +697,22 @@ function replace(){
     command("clear", null)
     add()
 }
-function files_rescan(){
-    command("update", null)
+function files_update(dir){
+	if (typeof(dir)!='undefined') {
+		dir = ' "' + dir.replace(/"/g, '\\"') + '"'
+	}
+	else dir = ' /'
+	mpd.updating_db = 1
+    command("update"+dir, null)
+}
+function files_rescan(event){
+    var loc = mpm_history[0]
+	if (loc[0]=='directory') {
+		dir = ' "' + loc[1].replace(/"/g, '\\"') + '"'
+	}
+	else dir = ' /'
+	mpd.updating_db = 1
+    command("update"+dir, null)
 }
 function files_home() {
     getDir('home','')
@@ -716,8 +757,10 @@ function files_contextShowing(event){
     $('files_context_open').label = 'Open'
     switch (mytype) {
         case 'file':
-            $('files_context_open').label = 'Play'
+            $('files_context_open').label = 'Play';
+			$('files_playlist_move').hidden = (notCP || fltr > '');
             $("files_menu_add").hidden = false;
+            $("files_context_update").hidden = true;
             $('files_context_delete').hidden = notPL;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = false;
@@ -727,6 +770,9 @@ function files_contextShowing(event){
             break;
         case 'directory':
             $("files_menu_add").hidden = false;
+			$('files_playlist_move').hidden = true;
+            $("files_context_update").hidden = false;
+            $("files_context_update").value = myname;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = true;
@@ -736,6 +782,8 @@ function files_contextShowing(event){
             break;
         case 'Artist':
             $("files_menu_add").hidden = false;
+			$('files_playlist_move').hidden = true;
+            $("files_context_update").hidden = true;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = true;
@@ -745,6 +793,8 @@ function files_contextShowing(event){
             break;
         case 'Album':
             $("files_menu_add").hidden = false;
+			$('files_playlist_move').hidden = true;
+            $("files_context_update").hidden = true;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
             $('files_context_lyricsfreak').hidden = true;
@@ -754,6 +804,8 @@ function files_contextShowing(event){
             break;
         case 'playlist':
             $("files_menu_add").hidden = true;
+			$('files_playlist_move').hidden = true;
+            $("files_context_update").hidden = true;
 		    $('files_context_add').hidden = isCPIcon;
             $('files_context_delete').hidden = isCPIcon;
             $('files_context_rename').hidden = isCPIcon;
@@ -764,6 +816,8 @@ function files_contextShowing(event){
             break;
         case 'custom':
             $("files_menu_add").hidden = false;
+			$('files_playlist_move').hidden = true;
+            $("files_context_update").hidden = true;
             $('files_context_delete').hidden = false;
             $('files_context_rename').hidden = false;
             $('files_context_selectAll').hidden = true;
@@ -775,6 +829,8 @@ function files_contextShowing(event){
             break;
         case '':
             $("files_menu_add").hidden = true;
+			$('files_playlist_move').hidden = true;
+            $("files_context_update").hidden = true;
             $('files_context_open').hidden = true;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
@@ -979,13 +1035,21 @@ function cmd_save () {
         files_home()
     }
 }
-notify['db_update'] = function(v){
-    if (mpm_history.length > 0) {
-        var loc = mpm_history.shift()
-        var mytype = loc[0]
-        var id = loc[1]
-        getDir(mytype, id)
-    }
+notify['updating_db'] = function(v){
+    if (v == 0 && mpm_history.length > 0) {
+		var loc = mpm_history.shift()
+		var mytype = loc[0]
+		var id = loc[1]
+		getDir(mytype, id)
+	}
+	else {
+		var tree = $('files')
+		if (tree) {
+			var boxobject = tree.boxObject;
+			boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+			boxobject.invalidate()
+		}
+	}
 }
 notify['init'] = function() { getDir('home', '') }
 

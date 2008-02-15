@@ -27,6 +27,7 @@
     <menupopup id="playlist_context"/>
     <menupopup id="files_context"/>
     <menupopup id="nav_context"/>
+    <broadcasterset id="playlistBroadcasterSet"/>
 
     <toolbar id="playback_controls">
         <vbox pack="center" style="min-width:155px">
@@ -95,7 +96,7 @@
     </toolbar>
 
     <hbox id="main" flex="1">
-        <vbox style="min-width:240px">
+        <vbox style="min-width:240px" id="main_playlist">
             <toolbar id="playlist_toolbar"/>
             <vbox id="playlist_tree"/>
         </vbox>
