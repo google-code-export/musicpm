@@ -5,6 +5,7 @@
   * ~~"Move" submenu in Current Playlist context.~~
   * ~~Update current directory in context menu.~~
   * Relocate Playlist toolbar functions when playlist is collapsed.
+  * Use <scale> for volume control when available.
 
 
 = Beyond 1.2 =
