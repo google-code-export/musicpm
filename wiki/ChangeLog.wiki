@@ -1,6 +1,8 @@
 #summary A history of changes made for each release.
 
-= 1.2 = _Not yet released, coming soon_
+= 1.2 = 
+_Not yet released, coming soon_
+
   * Improved filtering and sorting.  Sorting now sorts Time, Position, and Track as a number.  Filter as you type will filter on the sorted column.  Using * is now allowed at beginging of filter.
   * Playlists can now be edited without loading them.  Current Playlist has all of the features and controls of the playlist sidebar.
   * Added context menu command for "Add to Saved Playlist".
