@@ -2,7 +2,7 @@
 
 = 1.2 =
 
-  * "Move" submenu in Current Playlist context.
+  * ~~"Move" submenu in Current Playlist context.~~
   * ~~Update current directory in context menu.~~
   * Relocate Playlist toolbar functions when playlist is collapsed.
 
