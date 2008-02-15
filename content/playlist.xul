@@ -20,6 +20,7 @@
     <script src="chrome://global/content/nsTransferable.js"/>
     <commandset id="commandset_overlay" />
     <keyset id="mpm_keyset"/>
+    <broadcasterset id="playlistBroadcasterSet"/>
 
     <toolbar id="playlist_toolbar" />
     <menupopup id="playlist_context" />

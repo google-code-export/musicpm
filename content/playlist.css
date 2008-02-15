@@ -67,14 +67,18 @@
 #playlist_random {
     list-style-image: url('chrome://minion/content/random.png')
     }
-#playlist_random.on {
-    list-style-image: url('chrome://minion/content/random-on.png')
+#playlist_random[checked="true"] {
+    -moz-appearance: none !important;
+    list-style-image: url('chrome://minion/content/random-on.png');
+    border: 1px solid transparent !important;
     }
 #playlist_repeat {
     list-style-image: url('chrome://minion/content/repeat.png')
     }
-#playlist_repeat.on {
-    list-style-image: url('chrome://minion/content/repeat-on.png')
+#playlist_repeat[checked="true"] {
+    -moz-appearance: none !important;
+    list-style-image: url('chrome://minion/content/repeat-on.png');
+    border: 1px solid transparent !important;
     }
 #playlist_simple {
     list-style-image: url('chrome://minion/content/playlist_simple.png')

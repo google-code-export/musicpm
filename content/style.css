@@ -247,6 +247,12 @@ treechildren::-moz-tree-image(pause_currentsong) {
 treechildren::-moz-tree-image(stop_currentsong) {
     list-style-image: none;
     }
+treechildren::-moz-tree-image(Name_updating) {
+    list-style-image: url("chrome://minion/content/rescan_small.png");
+    }
+treechildren::-moz-tree-image(Title_updating) {
+    list-style-image: url("chrome://minion/content/rescan_small.png");
+    }
 
 
 treechildren::-moz-tree-row {

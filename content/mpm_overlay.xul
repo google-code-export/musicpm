@@ -49,14 +49,14 @@
   </keyset>
   <broadcasterset id="playlistBroadcasterSet">
     <broadcaster id="mpm_random"
-                 label="Random"
                  autoCheck="false"
                  type="checkbox"
+                 accesskey="n"
                  oncommand="playlist_random()"/>
     <broadcaster id="mpm_repeat"
-                 label="Repeat"
                  autoCheck="false"
                  type="checkbox"
+                 accesskey="t"
                  oncommand="playlist_repeat()"/>
 
   </broadcasterset>
@@ -86,13 +86,15 @@
             <menuitem id="playlist_menu_remove" command="cmd_remove" accesskey="r"></menuitem>
             <menuitem id="playlist_menu_shuffle" command="cmd_shuffle" accesskey="h"></menuitem>
             <menuseparator></menuseparator>
+            <menuitem id="playlist_menu_random" observes="mpm_random" label="Random"/>
+            <menuitem id="playlist_menu_repeat" observes="mpm_repeat" label="Repeat"/>
             <menuitem id="playlist_menu_simple" command="cmd_simple" accesskey="i"></menuitem>
             <menuitem id="playlist_menu_extened" command="cmd_extended" accesskey="x"></menuitem>
         </menupopup>
       </toolbarbutton>
       <spacer flex="1"/>
-      <toolbarbutton id="playlist_random" command="cmd_random" accesskey="n"/>
-      <toolbarbutton id="playlist_repeat" command="cmd_repeat" accesskey="t"/>
+      <toolbarbutton id="playlist_random" observes="mpm_random"/>
+      <toolbarbutton id="playlist_repeat" observes="mpm_repeat"/>
     </toolbar>
     <vbox id="playlist_tree" flex="1">
         <tree id="playlist"
@@ -180,10 +182,28 @@
                 </template>
             </menupopup>
         </menu>
+        <menu id="files_playlist_move"
+            label="Move Song(s)">
+            <menupopup id="files_playlist_move_menu">
+                <menuitem id="files_playlist_move_first"
+                        label="to Begining"
+                        oncommand="files_playlist_move(0)"/>
+                <menuitem id="files_playlist_move_next"
+                        label="to Next in Queue"
+                        oncommand="files_playlist_move_next()"/>
+                <menuitem id="files_playlist_move_last"
+                        label="to End"
+                        oncommand="files_playlist_move(mpd.playlistlength-1)"/>
+            </menupopup>
+        </menu>
         <menuitem id="files_context_replace" command="cmd_replace"></menuitem>
         <menuitem id="files_context_selectAll" command="cmd_selectAll"></menuitem>
         <menuitem id="files_context_delete" command="cmd_delete_item"></menuitem>
         <menuitem id="files_context_rename" command="cmd_rename_item"></menuitem>
+        <menuitem id="files_context_update" 
+            label="Update Folder"
+            value="/"
+            oncommand="files_update(this.value)"></menuitem>
         <menuseparator></menuseparator>
         <menuitem id="files_context_album" command="cmd_find_album"></menuitem>
         <menuitem id="files_context_artist_songs" command="cmd_find_artist_songs"></menuitem>

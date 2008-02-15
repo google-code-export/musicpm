@@ -283,36 +283,46 @@ function setState(state) {
 
 function setRandom(val) {
     if (val == "1" || val == 1) {
-        $('playlist_random').className = "on"
+		$('mpm_random').setAttribute('checked','true')
     }
     else {
-        $('playlist_random').className = ""
+		$('mpm_random').setAttribute('checked','false')
     }
 }
 
 function setRepeat(val) {
     if (val == "1" || val == 1) {
-        $('playlist_repeat').className = "on"
+		$('mpm_repeat').setAttribute('checked','true')
     }
     else {
-        $('playlist_repeat').className = ""
+		$('mpm_repeat').setAttribute('checked','false')
     }
 }
 
 function setCurSong(id) {
     try {
-        var t = $('lbl_title')
-        var a = $('lbl_artist')
-        var b = $('lbl_album')
-        var art = $("cur_album_art")
         if (id == -1){
-            if (t) {t.value = "Not Playing"}
-            if (a) {a.value = "Nobody"}
-            if (b) {b.value = "Nowhere"}
-            if (art) {art.src = "", art.value = ""}
             $('progress').value = '0'
-            }
+			var tree = $('files')
+			if (tree) {
+				var boxobject = tree.boxObject;
+				boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+				boxobject.invalidate()
+			}
+			var tree = $('playlist')
+			if (tree) {
+				if (!tree.collpased) {
+					var boxobject = tree.boxObject;
+					boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+					boxobject.invalidate()
+				}
+			}
+        }
         else {
+	        var t = $('lbl_title')
+	        var a = $('lbl_artist')
+	        var b = $('lbl_album')
+	        var art = $("cur_album_art")
 			var cb = function(data){
 				song = parse_db(data)[0]
 				if (t) {
@@ -340,12 +350,12 @@ function setCurSong(id) {
 				}
 				var tree = $('playlist')
 				if (tree) {
-					var boxobject = tree.boxObject;
-					boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-					boxobject.invalidate()
+					if (!tree.collpased) {
+						var boxobject = tree.boxObject;
+						boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+						boxobject.invalidate()
+					}
 				}
-				//$('playlist').view.invalidate()
-				//$('files').view.invalidate()
 			}
 			command('currentsong', cb)
         }
@@ -437,7 +447,7 @@ function assignPLview() {
                     if (r==1){props.AppendElement( aserv.getAtom("Artist") )}
                     if (r==2){props.AppendElement( aserv.getAtom("Album") )}
                     pos = null; r = null; aserv = null
-                    } catch(e) {debug(e)}
+                    } catch(e) {}
                 }
             },
             getParentIndex: function(idx) {return -1},
@@ -524,6 +534,10 @@ function assignPLview() {
   }
 
 function playlist_view(mode){
+	if ($('playlist').collapsed) {
+		assignPLview()
+		return null
+	}
     var cur = 0
     var boxobject = $('playlist').boxObject;
     boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
