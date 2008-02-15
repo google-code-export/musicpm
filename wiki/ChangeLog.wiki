@@ -1,5 +1,17 @@
 #summary A history of changes made for each release.
 
+= 1.2 = _Not yet released, coming soon_
+  * Improved filtering and sorting.  Sorting now sorts Time, Position, and Track as a number.  Filter as you type will filter on the sorted column.  Using * is now allowed at beginging of filter.
+  * Playlists can now be edited without loading them.  Current Playlist has all of the features and controls of the playlist sidebar.
+  * Added context menu command for "Add to Saved Playlist".
+  * Playlist menu will remain visible if the playlist sidebar is collapsed.  The playlist sidebar has become an optional feature.
+  * Context menus have been improved to only show relevant commands for the item clicked on.
+  * "Update" (F5) will now update only the current directory when browsing Folders.  Container icons will change to the update icon while an update is in progress.
+  * Added indicators for the currently playing song.  Current song will always be bolded with an icon to indicate playing or paused.
+  * An icon will be displayed for all tag types.
+  * Numerous small bug fixes and tweaks.
+  
+
 = 1.1 =
   * Added filter feature.  Will now filter on the Title field as you type when browsing the library.
   * Standalone version now sizes itself to fit the content when it opens.  Prior to this it was set to display at a fixed size which cut off the clear search button on the right hand side.
