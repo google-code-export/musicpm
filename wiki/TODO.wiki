@@ -1,12 +1,10 @@
 #summary Things on my "to do" list for MPM.
 
-= 1.2 =
+= 1.3 =
 
-  * ~~"Move" submenu in Current Playlist context.~~
-  * ~~Update current directory in context menu.~~
-  * ~~Relocate Playlist toolbar functions when playlist is collapsed.~~
+  * Parse pls and m3u playlists.
 
-= Beyond 1.2 =
+= Wishlist =
 
   * Edit tags if files are reachable, using external program.
   * Wake On Lan command?
