@@ -2,7 +2,7 @@
 
 = 1.2 = 
 
-  * Playback controls added to statusbar/
+  * Playback controls added to statusbar.
   * Improved filtering and sorting.  Sorting now sorts Time, Position, and Track as a number.  Filter as you type will filter on the sorted column.  Using {{{*}}} is now allowed at beginging of filter.
   * Playlists can now be edited without loading them.  Current Playlist has all of the features and controls of the playlist sidebar.
   * Added context menu command for "Add to Saved Playlist".
