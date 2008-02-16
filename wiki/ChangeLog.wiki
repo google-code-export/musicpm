@@ -1,7 +1,6 @@
 #summary A history of changes made for each release.
 
 = 1.2 = 
-_Not yet released, coming soon..._
 
   * Playback controls added to statusbar/
   * Improved filtering and sorting.  Sorting now sorts Time, Position, and Track as a number.  Filter as you type will filter on the sorted column.  Using {{{*}}} is now allowed at beginging of filter.
