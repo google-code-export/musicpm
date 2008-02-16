@@ -1,5 +1,10 @@
 #summary A history of changes made for each release.
 
+= 1.3 =
+
+  * Added support for loading m3u and pls internet radio streams from URLs.
+  * Cleaned up navigation buttons when browsing via tag types.
+
 = 1.2 = 
 
   * Playback controls added to statusbar.
