@@ -1,9 +1,5 @@
 #summary Things on my "to do" list for MPM.
 
-= 1.3 =
-
-  * Parse pls and m3u playlists.
-
 = Wishlist =
 
   * Edit tags if files are reachable, using external program.
