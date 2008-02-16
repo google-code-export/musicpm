@@ -80,6 +80,13 @@ treechildren::-moz-tree-image(Name_playlist) {
     list-style-image: url("chrome://minion/content/playlist.png");
     }
 
+
+treechildren::-moz-tree-image(Title_Genre) {
+    list-style-image: url("chrome://minion/content/unknown.png");
+    }
+treechildren::-moz-tree-image(Title_Date) {
+    list-style-image: url("chrome://minion/content/unknown.png");
+    }
 treechildren::-moz-tree-image(Title_file) {
     list-style-image: url("chrome://minion/content/song.png");
     }
