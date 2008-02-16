@@ -215,7 +215,6 @@ function init_mpd () {
             $('mpd_status').value = "Not Connected"
 			$('main_playlist').addEventListener('DOMAttrModified',playlist_resize,false)
         }
-
     }
 }
 

@@ -65,6 +65,30 @@
                  oncommand="toggleSidebar('viewmpm_PlaylistSidebar');" />
     </broadcasterset>
 
+    <statusbar id="status-bar">
+        <statusbarpanel id="mpm_status-bar_controls">
+            <toolbarbutton
+                id="mpm_sb_prev_button"
+                oncommand="doPrev()"
+                tooltiptext="Previous Track"/>
+            <toolbarbutton
+                id="mpm_sb_pause_button"
+                oncommand="doPause()"
+                tooltiptext="Pause"/>
+            <toolbarbutton
+                id="mpm_sb_play_button"
+                oncommand="doPlay()"
+                tooltiptext="Play"/>
+            <toolbarbutton
+                id="mpm_sb_stop_button"
+                oncommand="doStop()"
+                tooltiptext="Stop"/>
+            <toolbarbutton
+                id="mpm_sb_next_button"
+                oncommand="doNext()"
+                tooltiptext="Next Track"/>
+        </statusbarpanel>
+    </statusbar>
     <toolbarpalette id="BrowserToolbarPalette">
         <toolbarbutton
             id="mpm_sidebar_button"
