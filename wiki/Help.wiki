@@ -11,7 +11,7 @@ Welcome to the Music Player Minion help page.  This page is a work in progress. 
 *Note:*  Where "Control" is mentioned, this may be a different accelerator key depending on your operating system.
 
 === Application Level ===
-|| Play/Pause || Spacebar ||
+|| Play/Pause || Spacebar (if not in textbox or browsing collection) ||
 || Next Track || Control + Right ||
 || Previous Track || Control + Left ||
 || Stop Playback || Control + Backspace ||
@@ -23,7 +23,7 @@ Welcome to the Music Player Minion help page.  This page is a work in progress. 
 || Focus MPD Command || F2 ||
 || Browse Back || Backspace ||
 || Bookmark Current Location || Control + D ||
-|| Update Library || F5 ||
+|| Update Library / Current Folder || F5 ||
 || Playlist Menu || Alt + P ||
 
 === Playlist ====
@@ -35,14 +35,14 @@ Welcome to the Music Player Minion help page.  This page is a work in progress. 
 || Delete Item(s) || Delete ||
 || Add to Playlist || Insert ||
 || Replace Playlist || Shift + Insert ||
-|| Filter || any printable characters ||
+|| Filter || Type any printable characters ||
 
 ----
 == Drag and drop ==
 
 The following drag and drop combinations are possible within Music player Minion:
 
-  * Drag to reorder within playlist.
+  * Drag to reorder within a playlist.
   * Drag to reorder items on the Home page.
   * Drag from playlist to browse section to remove playlist items.
   * Drag from browse section to playlist to add items.
@@ -72,6 +72,8 @@ random 1
 play
 command_list_end
 }}}
+
+When a command list will return multiple sets of database results, those results will be joined and the duplicates removed.
 
 ----
 == Bookmarks ==
