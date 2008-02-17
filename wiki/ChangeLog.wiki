@@ -1,4 +1,5 @@
 #summary A history of changes made for each release.
+#labels Featured
 
 = 1.3.1 = 
 
