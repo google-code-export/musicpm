@@ -1,5 +1,10 @@
 #summary A history of changes made for each release.
 
+= 1.3.1 = 
+
+  * Fixed drag and drop loading for playlist to handle URLs the same as the menu command does.
+  * Added "Add Link to MPD Playlist" and "Play with MPD" commands to Firefox's context menu for supported links.
+
 = 1.3 =
 
   * Added support for loading m3u and pls internet radio streams from URLs.
