@@ -49,7 +49,7 @@ The following drag and drop combinations are possible within Music player Minion
   * Drag from browse to the current song section at the top to add to playlist and play those items immediately.
   * Drag from playlist to other destinations will drop text in the format:  artist - album - title
   * Drag from browse section to other destinations will drop the object name in text format.  For files this will be the filename, for all others it will be what is displayed in the Title column.
-  * Links can be dropped into Minion's playlist.  Minion will only check that it is a valid URL before it is added, it won't check if it is a supported format.  This is a useful feature if you are using the sidebar version and want to drop a link from a web page.
+  * Links to supported audio files or playlists (.m3u or .pls) can be dropped into Minion's playlist.  This is a useful feature if you are using the sidebar version and want to drop a link from a web page.
 
 ----
 == Custom Commands ==
