@@ -1,5 +1,10 @@
 #summary Things on my "to do" list for MPM.
 
+= 1.4 =
+
+  * Mini-Player (winamp/xmms style).
+
+
 = Wishlist =
 
   * Edit tags if files are reachable, using external program.
