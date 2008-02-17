@@ -120,7 +120,7 @@ function cpyArray (oldArray) {
 }
 
 function debug(s) {
-    //return null
+    return null
     if (typeof(s) == 'object') {
         var str = ""
         for (x in s) {str += x + ": " + s[x] + "\n"}
@@ -196,7 +196,7 @@ function init_mpd () {
             'playtime': '0',
             'db_playtime': '0',
             'db_update': '0',
-			'currentsong': null
+            'currentsong': null
         }
         queue.length = 0
         doStatus = true
@@ -213,7 +213,7 @@ function init_mpd () {
             notify['init']()
             $('mpd_hostport').value = host+":"+port
             $('mpd_status').value = "Not Connected"
-			$('main_playlist').addEventListener('DOMAttrModified',playlist_resize,false)
+            $('main_playlist').addEventListener('DOMAttrModified',playlist_resize,false)
         }
     }
 }
@@ -355,9 +355,9 @@ function checkStatus() {
 }
 function statusCallBack (data) {
     var pair, fld, val, dl
-	if (data.indexOf('updating_db') < 0) {
-		data += "\nupdating_db: 0"
-	}
+    if (data.indexOf('updating_db') < 0) {
+        data += "\nupdating_db: 0"
+    }
     data = data.split("\n")
     var dl = data.length
     do {
@@ -583,7 +583,72 @@ function doPause() {
     else { simple_cmd("pause") }
 }
 function doNext() {simple_cmd("next")}
+function load_pls_stream(data, action) {
+    if (typeof(action) == 'undefined') action = "add"
+    var urls = data.match(/(?:File\d+=)(.+)(?:[\n|\r])/ig)
+    var cmd = 'command_list_begin'
+    if (action == "play") cmd += "\nclear"
+    for (x in urls) {
+        cmd += '\nadd ' + urls[x].replace("\n","").replace(/File\d+=/gi,"")
+    }
+    if (action == "play") cmd += "\nplay"
+    cmd += '\ncommand_list_end'
+    simple_cmd(cmd)
+}
+function load_m3u_stream(data, action) {
+    if (typeof(action) == 'undefined') action = "add"
+    urls = data.replace(/#.+\n/g,"").split("\n")
+    var cmd = 'command_list_begin'
+    if (action == "play") cmd += "\nclear"
+    for (x in urls) {
+        cmd += '\nadd ' + urls[x].replace("\n","").replace(/File\d+=/gi,"")
+    }
+    if (action == "play") cmd += "\nplay"
+    cmd += '\ncommand_list_end'
+    simple_cmd(cmd)
+}
+function playlist_addURL(){
+    var val = prompt("Please enter a URL to add to the playlist.", "http://")
+    if (val != null) {
+        var v = new RegExp();
+        v.compile(/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/);
+        if (v.test(val)) {
+            mpm_handleURL(val)
+        }
+        else alert("'"+val+"' is not a valid URL.")
+    }
+}
 
+function mpm_handleURL(url, action) {
+    if (typeof(url) != 'string') return null
+    if (typeof(action) == 'undefined') action = "add"
+    if (url.length < 4) return null
+    switch (url.substr(-4).toLocaleLowerCase()) {
+        case ".pls": sendCB(url, load_pls_stream, action); break;
+        case ".m3u": sendCB(url, load_m3u_stream, action); break;
+        case ".mp3": simple_cmd('add '+url); break;
+        case ".ogg": simple_cmd('add '+url); break;
+        case ".wav": simple_cmd('add '+url); break;
+        case "flac": simple_cmd('add '+url); break;
+        case ".acc": simple_cmd('add '+url); break;
+        case ".mod": simple_cmd('add '+url); break;
+        default: alert("I don't know what to do with that URL."); break;
+    }
+}
+function mpm_linkHandlerAction(action) {
+    if (gContextMenu.onLink) {
+        var t = gContextMenu.target
+        // Handles images wrapped in hyperlinks.
+        var val = (t.hasAttribute('href')) ? t.href : t.parentNode.href
+        if (val != null) {
+            var v = new RegExp();
+            v.compile(/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/);
+            if (v.test(val)) {
+                mpm_handleURL(val, action)
+            }
+        }
+    }
+}
 
 function openURL(url, attrName) {
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
@@ -619,13 +684,13 @@ function openURL(url, attrName) {
 }
 
 //send a command with callback on completion
-function sendCB(url, callBack){
+function sendCB(url, callBack, arg){
     var send = new XMLHttpRequest()
     send.open("GET", url, true)
     send.onreadystatechange = function() {
         if (send.readyState == 4) {
             if (send.status == 200) {
-                callBack(send.responseText)
+                callBack(send.responseText, arg)
                 send.onreadystatechange = null
                 send = null
             }
@@ -716,7 +781,4 @@ function getCover(elem, song) {
         }
         sendCB(search_url, cb)
     }
-}
-function mpdOpenURL() {
-    simple_cmd('add '+gContextMenu.linkURL)
 }

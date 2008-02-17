@@ -7,6 +7,10 @@
     <script type="text/javascript">
         <![CDATA[
         var mpm = {
+            onLoad: function (e) {
+                var cm = document.getElementById("contentAreaContextMenu")
+                if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, false)
+            },
             open: function(url, event) {
                 openUILink(url, event, false, true);
             },
@@ -14,8 +18,33 @@
                 var cb = function (w){try{w.close}catch(e){}}
                 window.openDialog("chrome://minion/content/settings.xul",
                                     "showmore", "chrome", cb)
+            },
+            linkHandler: function(event) {
+                var ma = document.getElementById('mpm_linkHandlerAdd')
+                var mp = document.getElementById('mpm_linkHandlerPlay')
+                if (!gContextMenu.onLink) {
+                    ma.hidden = mp.hidden = true
+                }
+                else {
+                    var url = gContextMenu.linkURL
+                    if (typeof(url) != 'string') url = "none"
+                    if (url.length < 4) url = "none"
+                    switch (url.substr(-4).toLocaleLowerCase()) {
+                        case "none": ma.hidden = mp.hidden = true; break;
+                        case ".pls": ma.hidden = mp.hidden = false; break;
+                        case ".m3u": ma.hidden = mp.hidden = false; break;
+                        case ".mp3": ma.hidden = mp.hidden = false; break;
+                        case ".ogg": ma.hidden = mp.hidden = false; break;
+                        case ".wav": ma.hidden = mp.hidden = false; break;
+                        case "flac": ma.hidden = mp.hidden = false; break;
+                        case ".acc": ma.hidden = mp.hidden = false; break;
+                        case ".mod": ma.hidden = mp.hidden = false; break;
+                        default: ma.hidden = mp.hidden = true; break;
+                    }
+                }
             }
         }
+        window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
         ]]>
     </script>
     <menubar id="main-menubar">
@@ -50,10 +79,21 @@
             </menupopup>
         </menu>
     </menubar>
+
     <menupopup id="viewSidebarMenu">
         <menuitem observes="mpm_PlaylistSidebar" />
     </menupopup>
 
+    <popup id="contentAreaContextMenu">
+      <menuitem id="mpm_linkHandlerAdd"
+            label="Add Link to MPD Playlist"
+            oncommand="mpm_linkHandlerAction('add');"
+            insertafter="context-openlinkintab" />
+      <menuitem id="mpm_linkHandlerPlay"
+            label="Play Link with MPD"
+            oncommand="mpm_linkHandlerAction('play');"
+            insertafter="context-openlinkintab" />
+    </popup>
     <broadcasterset id="mainBroadcasterSet">
         <broadcaster id="viewmpm_PlaylistSidebar"
                  label="Playlist (Sidebar)"
@@ -139,4 +179,5 @@
             label="MPM Next Track"
             tooltiptext="Next Track"/>
     </toolbarpalette>
+
 </overlay>

@@ -57,8 +57,10 @@ var plObserver = {
             try {
                 var s = dropData.data.replace(/"/g, "")
                 var v = new RegExp();
-                v.compile("^[A-Za-z]+://[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\?\/.=]+$");
-                if (v.test(s)) {simple_cmd('add '+s)}
+                v.compile(/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/);
+                if (v.test(s)) {
+                    mpm_handleURL(s)
+                }
             } catch (e) {debug(e)}
         }
         event.stopPropagation()
@@ -264,38 +266,38 @@ function setState(state) {
     if (state == 'stop') {
         setCurSong(-1)
         setTime("0:0")
-		mpd.currentsong = ""
-		var tree = $('files')
-		if (tree) {
-			var boxobject = tree.boxObject;
-			boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-			boxobject.invalidate()
-		}
-		var tree = $('playlist')
-		if (tree) {
-			var boxobject = tree.boxObject;
-			boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-			boxobject.invalidate()
-		}
+        mpd.currentsong = ""
+        var tree = $('files')
+        if (tree) {
+            var boxobject = tree.boxObject;
+            boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+            boxobject.invalidate()
+        }
+        var tree = $('playlist')
+        if (tree) {
+            var boxobject = tree.boxObject;
+            boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+            boxobject.invalidate()
+        }
     }
     else {setCurSong(mpd.song)}
 }
 
 function setRandom(val) {
     if (val == "1" || val == 1) {
-		$('mpm_random').setAttribute('checked','true')
+        $('mpm_random').setAttribute('checked','true')
     }
     else {
-		$('mpm_random').setAttribute('checked','false')
+        $('mpm_random').setAttribute('checked','false')
     }
 }
 
 function setRepeat(val) {
     if (val == "1" || val == 1) {
-		$('mpm_repeat').setAttribute('checked','true')
+        $('mpm_repeat').setAttribute('checked','true')
     }
     else {
-		$('mpm_repeat').setAttribute('checked','false')
+        $('mpm_repeat').setAttribute('checked','false')
     }
 }
 
@@ -303,61 +305,61 @@ function setCurSong(id) {
     try {
         if (id == -1){
             $('progress').value = '0'
-			var tree = $('files')
-			if (tree) {
-				var boxobject = tree.boxObject;
-				boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-				boxobject.invalidate()
-			}
-			var tree = $('playlist')
-			if (tree) {
-				if (!tree.collpased) {
-					var boxobject = tree.boxObject;
-					boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-					boxobject.invalidate()
-				}
-			}
+            var tree = $('files')
+            if (tree) {
+                var boxobject = tree.boxObject;
+                boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+                boxobject.invalidate()
+            }
+            var tree = $('playlist')
+            if (tree) {
+                if (!tree.collpased) {
+                    var boxobject = tree.boxObject;
+                    boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+                    boxobject.invalidate()
+                }
+            }
         }
         else {
-	        var t = $('lbl_title')
-	        var a = $('lbl_artist')
-	        var b = $('lbl_album')
-	        var art = $("cur_album_art")
-			var cb = function(data){
-				song = parse_db(data)[0]
-				if (t) {
-					t.value = song['Title']
-				}
-				if (a) {
-					a.value = song['Artist']
-				}
-				if (b) {
-					b.value = song['Album']
-				}
-				if (art) {
-					art.value = song.Album
-					getCover(art, song)
-				}
-				if (mpd.state == 'play') {
-					centerPL()
-				}
-				mpd.currentsong = song.Name
-				var tree = $('files')
-				if (tree) {
-					var boxobject = tree.boxObject;
-					boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-					boxobject.invalidate()
-				}
-				var tree = $('playlist')
-				if (tree) {
-					if (!tree.collpased) {
-						var boxobject = tree.boxObject;
-						boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-						boxobject.invalidate()
-					}
-				}
-			}
-			command('currentsong', cb)
+            var t = $('lbl_title')
+            var a = $('lbl_artist')
+            var b = $('lbl_album')
+            var art = $("cur_album_art")
+            var cb = function(data){
+                song = parse_db(data)[0]
+                if (t) {
+                    t.value = song['Title']
+                }
+                if (a) {
+                    a.value = song['Artist']
+                }
+                if (b) {
+                    b.value = song['Album']
+                }
+                if (art) {
+                    art.value = song.Album
+                    getCover(art, song)
+                }
+                if (mpd.state == 'play') {
+                    centerPL()
+                }
+                mpd.currentsong = song.Name
+                var tree = $('files')
+                if (tree) {
+                    var boxobject = tree.boxObject;
+                    boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+                    boxobject.invalidate()
+                }
+                var tree = $('playlist')
+                if (tree) {
+                    if (!tree.collpased) {
+                        var boxobject = tree.boxObject;
+                        boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+                        boxobject.invalidate()
+                    }
+                }
+            }
+            command('currentsong', cb)
         }
     }
     catch (e) {
@@ -439,10 +441,10 @@ function assignPLview() {
                     if (r==0){
                         props.AppendElement( aserv.getAtom("Title") )
                         props.AppendElement( aserv.getAtom("Title_song") )
-		                if (PL[pos].Name == mpd.currentsong) {
-							props.AppendElement(aserv.getAtom(mpd.state+"_currentsong"))
-							props.AppendElement(aserv.getAtom("currentsong"))
-						}
+                        if (PL[pos].Name == mpd.currentsong) {
+                            props.AppendElement(aserv.getAtom(mpd.state+"_currentsong"))
+                            props.AppendElement(aserv.getAtom("currentsong"))
+                        }
                     }
                     if (r==1){props.AppendElement( aserv.getAtom("Artist") )}
                     if (r==2){props.AppendElement( aserv.getAtom("Album") )}
@@ -501,19 +503,19 @@ function assignPLview() {
                 },
             getCellProperties: function(row,col,props){
                 if (col.id == "PLsong") {
-					try {
-						var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-						props.AppendElement(aserv.getAtom("Title"))
-						props.AppendElement(aserv.getAtom("Title_song"))
-						if (PL[row].Name == mpd.currentsong) {
-							props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
-							props.AppendElement(aserv.getAtom("currentsong"))
-						}
-					} 
-					catch (e) {
-						debug(e)
-					}
-				}					
+                    try {
+                        var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
+                        props.AppendElement(aserv.getAtom("Title"))
+                        props.AppendElement(aserv.getAtom("Title_song"))
+                        if (PL[row].Name == mpd.currentsong) {
+                            props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+                            props.AppendElement(aserv.getAtom("currentsong"))
+                        }
+                    }
+                    catch (e) {
+                        debug(e)
+                    }
+                }
                 },
             getParentIndex: function(idx) {return -1},
             getColumnProperties: function(colid,col,props){},
@@ -534,10 +536,10 @@ function assignPLview() {
   }
 
 function playlist_view(mode){
-	if ($('playlist').collapsed) {
-		assignPLview()
-		return null
-	}
+    if ($('playlist').collapsed) {
+        assignPLview()
+        return null
+    }
     var cur = 0
     var boxobject = $('playlist').boxObject;
     boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
@@ -559,10 +561,10 @@ function setPlaylist(data) {
             var i = dl - n
             var sep = data[i].indexOf(": ")
             if (data[i].substr(0, sep) == 'file') {
-				var fname = data[i].slice(sep+2)
+                var fname = data[i].slice(sep+2)
                 var song = {
                     'type': 'file',
-					'Name': fname,
+                    'Name': fname,
                     'Title': fname,
                     'Artist': 'unknown',
                     'Album': 'unknown',
@@ -685,21 +687,14 @@ function playlist_lyricsfreak()  {
   }
 
 function load_playlist(id){
-	lastPlaylistName = id
+    lastPlaylistName = id
     command('command_list_begin\nclear\nload "'+id+'"\ncommand_list_end\n', null)
 }
-function playlist_addURL(){
-    var val = prompt("Please enter a URL to add to the playlist.", "http://")
-    if (val != null) {
-        var v = new RegExp();
-        v.compile("^[A-Za-z]+://[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\?\/.=]+$");
-        if (v.test(val)) {simple_cmd('add '+val)}
-    }
-}
+
 function playlist_save(){
     var val = prompt("Please enter a name for this playlist", lastPlaylistName)
     if (val != null) {
-		lastPlaylistName = val
+        lastPlaylistName = val
         command('save "'+val+'"', null)
     }
 }
@@ -845,8 +840,8 @@ function playlist_move(moveto) {
 }
 
 function clear(){
-	lastPlaylistName = "NewPlaylist"
-	command("clear", null)
+    lastPlaylistName = "NewPlaylist"
+    command("clear", null)
 }
 
 function centerPL() {

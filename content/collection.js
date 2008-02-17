@@ -368,6 +368,7 @@ function addnav(lbl, mytype, id) {
 }
 
 function getDir(mytype, id, lbl) {
+	id = (typeof(id)=='undefined') ? '' : id
     fltr = ""
     var f = $('files')
     f.focus()
@@ -470,22 +471,6 @@ function getDir(mytype, id, lbl) {
             }
         }
     }
-    else if (mytype == 'Artist') {
-        addnav("Artists", 'Artist', '')
-        if (id.length > 0) {
-            addnav(id, 'Artist', id)
-            cmd = "find artist"
-            var cb = function (data) {
-                setTable(filter(parse_db(data), {'file':true}))
-            }
-        }
-        else {
-            cmd = "list artist"
-            var cb = function (data) {
-                setTable(filter(parse_db(data), {'Artist':true}))
-            }
-        }
-    }
     else if (mytype == 'ArtistAlbum') {
         addnav("Artists", 'Artist', '')
         if (id.length > 0) {
@@ -539,8 +524,15 @@ function getDir(mytype, id, lbl) {
         }
     }
     else {
-        addnav(mytype+': '+id, 'custom', id)
-        cmd = "find " + mytype
+        addnav(mytype+"s", mytype, '')
+		if (id.length > 0) {
+			addnav(id, mytype, id)
+			cmd = "find " + mytype
+		}
+		else {
+			cmd = "list "
+			id = mytype
+		}
         var cb = function (data) {
             setTable(parse_db(data))
         }
