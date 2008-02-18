@@ -48,15 +48,18 @@
         ]]>
     </script>
     <menubar id="main-menubar">
-        <menu id="menu_mpm" label="Music Player Minion" accesskey="M">
+        <menu id="menu_mpm" label="Minion" accesskey="M">
             <menupopup id="menu_mpmPopup">
               <menuitem observes="viewmpm_PlaylistSidebar" accesskey="l"/>
-              <menuitem label="Open Music Player Minion"
+              <menuitem label="Open in Browser"
                  oncommand="mpm.open('chrome://minion/content/minion.xul', event)"
                  onclick="checkForMiddleClick(this, event)"
                  accesskey="O"/>
               <menuitem label="Launch in New Window"
-                oncommand="window.open('chrome://minion/content/minion.xul', 'mpm_standalone','chrome,resizable=yes')"
+                oncommand="window.open('chrome://minion/content/minion.xul', 'mpm_main','chrome,resizable=yes')"
+               accesskey="L" />
+              <menuitem label="Launch Mini-Player"
+                oncommand="window.open('chrome://minion/content/mini.xul', 'mpm_mini','chrome,alwaysRaised=yes')"
                accesskey="L" />
               <menuseparator/>
               <menuitem label="Play" oncommand="doPlay()" accesskey="P"/>

@@ -286,6 +286,12 @@ function playlist_openPopup(){
     command('lsinfo', cb)
 }
 
+/* windowMove method inspired by Alex Eng's <ateng@users.sourceforge.net>
+ * implimentation in his Clippings extension:
+ * clippings-2.99.3+_20071215.xpi, content/hostappToolbar.js,
+ * released under MPL 1.1, http://www.mozilla.org/MPL/ for original license.
+ * This version has been adapted to fit MPM and improved.
+*/
 var windowMove = {
   isMoving: false,
   x: null,
@@ -296,23 +302,16 @@ var windowMove = {
     this.isMoving = true;
     this.x = aEvent.clientX;
     this.y = aEvent.clientY;
+    // MPD polling loop interferes with smooth movement of window.
     mpd_stop = true
   },
 
   stop: function (aEvent)
   {
     this.isMoving = false;
+    // Restore MPD polling loop.
     mpd_stop = false
     checkStatus()
-  },
-
-  moveBy: function (aEvent)
-  {
-    if (this.isMoving) {
-        var dx = aEvent.clientX - this.x
-        var dy = aEvent.clientY - this.y
-        window.moveBy(dx, dy)
-    }
   },
 
   moveTo: function (aEvent)
