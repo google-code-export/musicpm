@@ -120,7 +120,7 @@ function cpyArray (oldArray) {
 }
 
 function debug(s) {
-    return null
+    //return null
     if (typeof(s) == 'object') {
         var str = ""
         for (x in s) {str += x + ": " + s[x] + "\n"}
@@ -213,7 +213,6 @@ function init_mpd () {
             notify['init']()
             $('mpd_hostport').value = host+":"+port
             $('mpd_status').value = "Not Connected"
-            $('main_playlist').addEventListener('DOMAttrModified',playlist_resize,false)
         }
     }
 }
@@ -563,10 +562,10 @@ function doStop() {simple_cmd("stop", null)}
 function doPlay() {
     if (typeof(mpd) != 'undefined') {
         if (mpd.state == "play") {
-            simple_cmd("pause")
+            command("pause", null)
         }
         else {
-            simple_cmd("play")
+            command("play", null)
         }
     }
     else { simple_cmd("play") }
@@ -574,10 +573,10 @@ function doPlay() {
 function doPause() {
     if (typeof(mpd) != 'undefined') {
         if (mpd.state == "pause") {
-            simple_cmd("play")
+            command("play", null)
         }
         else {
-            simple_cmd("pause")
+            command("pause", null)
         }
     }
     else { simple_cmd("pause") }

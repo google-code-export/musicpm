@@ -23,6 +23,15 @@ treechildren::-moz-tree-image {
 #mpm_search_clear {
     list-style-image: url('chrome://minion/content/clear_find.png')
     }
+#mpm_mini {
+    list-style-image: url('chrome://minion/content/mini.png')
+    }
+#mpm_about {
+    list-style-image: url('chrome://minion/content/artist.png')
+    }
+#mpm_help {
+    list-style-image: url('chrome://minion/content/help.png')
+    }
 .search {
     min-width: 20px !important
 }

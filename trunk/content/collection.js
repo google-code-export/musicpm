@@ -57,6 +57,12 @@ var fileObserver = {
         event.stopPropagation()
     }
 }
+
+function init_main () {
+    $('main_playlist').addEventListener('DOMAttrModified',playlist_resize,false)
+    $('vol_slider').addEventListener("DOMMouseScroll", volScroll, false)
+    $('progress').addEventListener("DOMMouseScroll", songScroll, false)
+}
 function filter(lst, types){
     var l = lst.length
     if (l < 1) { return lst }
@@ -87,8 +93,8 @@ function sort(column) {
     }
     function columnSort(a, b) {
         if (columnName == 'Track' || columnName == 'Pos' || columnName == 'Time') {
-			return (a[columnName] - b[columnName]) * order
-		}
+            return (a[columnName] - b[columnName]) * order
+        }
         if (prepareForComparison(a[columnName]) > prepareForComparison(b[columnName])) return 1 * order;
         if (prepareForComparison(a[columnName]) < prepareForComparison(b[columnName])) return -1 * order;
         //tie breaker: name is the second level sort
@@ -159,29 +165,29 @@ function filter_table(chr){
         }
     }
     else {
-		if (columnName == 'Pos') {
-			for (x in table) {
-				try {
-					var p = parseInt(table[x][columnName])+1
-					if (p.toString().substr(0, l) == fltr) {
-						tbl.push(table[x])
-					}
-				} 
-				catch (e) {
-				}
-			}
-		}
-		else {
-			for (x in table) {
-				try {
-					if (table[x][columnName].toLowerCase().substr(0, l) == fltr) {
-						tbl.push(table[x])
-					}
-				} 
-				catch (e) {
-				}
-			}
-		}
+        if (columnName == 'Pos') {
+            for (x in table) {
+                try {
+                    var p = parseInt(table[x][columnName])+1
+                    if (p.toString().substr(0, l) == fltr) {
+                        tbl.push(table[x])
+                    }
+                }
+                catch (e) {
+                }
+            }
+        }
+        else {
+            for (x in table) {
+                try {
+                    if (table[x][columnName].toLowerCase().substr(0, l) == fltr) {
+                        tbl.push(table[x])
+                    }
+                }
+                catch (e) {
+                }
+            }
+        }
     }
     if (tbl.length > 0) {
         table = null
@@ -240,20 +246,20 @@ function assignView() {
             },
             getCellProperties: function(row,col,props){
                 try {
-				var t = table[row].type
+                var t = table[row].type
                 var aserv = Components.classes["@mozilla.org/atom-service;1"]
                             .getService(Components.interfaces.nsIAtomService);
                 props.AppendElement( aserv.getAtom(col.id+"_"+table[row].type) )
                 if (t == 'file' && table[row].Name == mpd.currentsong) {
-					if (col.id == 'Title' && mpd.state != 'stop') {
-						props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
-					}
-					props.AppendElement(aserv.getAtom("currentsong"))
-				}
+                    if (col.id == 'Title' && mpd.state != 'stop') {
+                        props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+                    }
+                    props.AppendElement(aserv.getAtom("currentsong"))
+                }
                 props.AppendElement( aserv.getAtom(col.id) )
-				if (t !='file' && t !='playlist' && mpd.updating_db > 0) {
-					props.AppendElement(aserv.getAtom(col.id+"_updating"))
-				}
+                if (t !='file' && t !='playlist' && mpd.updating_db > 0) {
+                    props.AppendElement(aserv.getAtom(col.id+"_updating"))
+                }
                 aserv = null
                 } catch(e) {}
             },
@@ -309,7 +315,7 @@ function files_playlist_move(moveto, id) {
     var back = false
     moveto = parseInt(moveto)
     if (moveto < 0 ) {moveto = 0}
-	if (typeof(id) == 'undefined') id = '[current]'
+    if (typeof(id) == 'undefined') id = '[current]'
     if (id=='[current]') {
         if (moveto >= mpd.playlistlength) {moveto = mpd.playlistlength - 1}
         var pcmd = '\nmove '
@@ -344,19 +350,19 @@ function files_playlist_openPopup(){
     command('lsinfo', cb)
 }
 function playlist_resize(event) {
-	if ($('main_playlist').collapsed) {
-		if ($('playlist_toolbar').firstChild == $("playlist_menu")) {
-			var e = $('playlist_toolbar').removeChild($("playlist_menu"))
-			$("files_toolbar").insertBefore(e, $("files_settings"))
-		}
-	}
-	else {
-		if ($('files_toolbar').firstChild == $("playlist_menu")) {
-			var pt = $("playlist_toolbar")
-			var e = $('files_toolbar').removeChild($("playlist_menu"))
-			pt.insertBefore(e, pt.firstChild)
-		}
-	}
+    if ($('main_playlist').collapsed) {
+        if ($('playlist_toolbar').firstChild == $("playlist_menu")) {
+            var e = $('playlist_toolbar').removeChild($("playlist_menu"))
+            $("files_toolbar").insertBefore(e, $("files_settings"))
+        }
+    }
+    else {
+        if ($('files_toolbar').firstChild == $("playlist_menu")) {
+            var pt = $("playlist_toolbar")
+            var e = $('files_toolbar').removeChild($("playlist_menu"))
+            pt.insertBefore(e, pt.firstChild)
+        }
+    }
 }
 function addnav(lbl, mytype, id) {
     var e = document.createElement("button")
@@ -368,11 +374,11 @@ function addnav(lbl, mytype, id) {
 }
 
 function getDir(mytype, id, lbl) {
-	id = (typeof(id)=='undefined') ? '' : id
+    id = (typeof(id)=='undefined') ? '' : id
     fltr = ""
     var f = $('files')
     f.focus()
-	$('Pos').collapsed = (id != '[current]')
+    $('Pos').collapsed = (id != '[current]')
     if (mytype=='custom'){
         var dbc = ["search ", "find ", "lsinfo", "plchanges ",
                 "list ", "listall", "listallinfo", "listplaylistinfo ",
@@ -525,14 +531,14 @@ function getDir(mytype, id, lbl) {
     }
     else {
         addnav(mytype+"s", mytype, '')
-		if (id.length > 0) {
-			addnav(id, mytype, id)
-			cmd = "find " + mytype
-		}
-		else {
-			cmd = "list "
-			id = mytype
-		}
+        if (id.length > 0) {
+            addnav(id, mytype, id)
+            cmd = "find " + mytype
+        }
+        else {
+            cmd = "list "
+            id = mytype
+        }
         var cb = function (data) {
             setTable(parse_db(data))
         }
@@ -670,7 +676,7 @@ function add(plname) {
                         cmd_list += add + id +"\n"
                         break;
                     case "playlist":
-						lastPlaylistName = table[v].Name
+                        lastPlaylistName = table[v].Name
                         cmd_list += 'load' + id +"\n"
                         break;
                     case "custom":
@@ -690,20 +696,20 @@ function replace(){
     add()
 }
 function files_update(dir){
-	if (typeof(dir)!='undefined') {
-		dir = ' "' + dir.replace(/"/g, '\\"') + '"'
-	}
-	else dir = ' /'
-	mpd.updating_db = 1
+    if (typeof(dir)!='undefined') {
+        dir = ' "' + dir.replace(/"/g, '\\"') + '"'
+    }
+    else dir = ' /'
+    mpd.updating_db = 1
     command("update"+dir, null)
 }
 function files_rescan(event){
     var loc = mpm_history[0]
-	if (loc[0]=='directory') {
-		dir = ' "' + loc[1].replace(/"/g, '\\"') + '"'
-	}
-	else dir = ' /'
-	mpd.updating_db = 1
+    if (loc[0]=='directory') {
+        dir = ' "' + loc[1].replace(/"/g, '\\"') + '"'
+    }
+    else dir = ' /'
+    mpd.updating_db = 1
     command("update"+dir, null)
 }
 function files_home() {
@@ -742,15 +748,15 @@ function files_contextShowing(event){
     var loc = mpm_history[0]
     var isPL = (loc[0]=='playlist')
     var isCP = (isPL && loc[1]=='[current]')
-	var isCPIcon = (myname=='[current]')
+    var isCPIcon = (myname=='[current]')
     var notPL = !isPL
     var notCP = !isCP
-	
+
     $('files_context_open').label = 'Open'
     switch (mytype) {
         case 'file':
             $('files_context_open').label = 'Play';
-			$('files_playlist_move').hidden = (notCP || fltr > '');
+            $('files_playlist_move').hidden = (notCP || fltr > '');
             $("files_menu_add").hidden = false;
             $("files_context_update").hidden = true;
             $('files_context_delete').hidden = notPL;
@@ -762,7 +768,7 @@ function files_contextShowing(event){
             break;
         case 'directory':
             $("files_menu_add").hidden = false;
-			$('files_playlist_move').hidden = true;
+            $('files_playlist_move').hidden = true;
             $("files_context_update").hidden = false;
             $("files_context_update").value = myname;
             $('files_context_delete').hidden = true;
@@ -774,7 +780,7 @@ function files_contextShowing(event){
             break;
         case 'Artist':
             $("files_menu_add").hidden = false;
-			$('files_playlist_move').hidden = true;
+            $('files_playlist_move').hidden = true;
             $("files_context_update").hidden = true;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
@@ -785,7 +791,7 @@ function files_contextShowing(event){
             break;
         case 'Album':
             $("files_menu_add").hidden = false;
-			$('files_playlist_move').hidden = true;
+            $('files_playlist_move').hidden = true;
             $("files_context_update").hidden = true;
             $('files_context_delete').hidden = true;
             $('files_context_rename').hidden = true;
@@ -796,9 +802,9 @@ function files_contextShowing(event){
             break;
         case 'playlist':
             $("files_menu_add").hidden = true;
-			$('files_playlist_move').hidden = true;
+            $('files_playlist_move').hidden = true;
             $("files_context_update").hidden = true;
-		    $('files_context_add').hidden = isCPIcon;
+            $('files_context_add').hidden = isCPIcon;
             $('files_context_delete').hidden = isCPIcon;
             $('files_context_rename').hidden = isCPIcon;
             $('files_context_lyricsfreak').hidden = true;
@@ -808,7 +814,7 @@ function files_contextShowing(event){
             break;
         case 'custom':
             $("files_menu_add").hidden = false;
-			$('files_playlist_move').hidden = true;
+            $('files_playlist_move').hidden = true;
             $("files_context_update").hidden = true;
             $('files_context_delete').hidden = false;
             $('files_context_rename').hidden = false;
@@ -821,7 +827,7 @@ function files_contextShowing(event){
             break;
         case '':
             $("files_menu_add").hidden = true;
-			$('files_playlist_move').hidden = true;
+            $('files_playlist_move').hidden = true;
             $("files_context_update").hidden = true;
             $('files_context_open').hidden = true;
             $('files_context_delete').hidden = true;
@@ -835,10 +841,10 @@ function files_contextShowing(event){
     }
 
     if (table==home) {
-		var isCat = (myname=='')
-	    $("files_menu_add").hidden = true;
-	    $('files_context_add').hidden = (mytype=='playlist' && (isCat || isCPIcon));
-	    $('files_context_replace').hidden = (mytype=='playlist' && (isCat || isCPIcon));
+        var isCat = (myname=='')
+        $("files_menu_add").hidden = true;
+        $('files_context_add').hidden = (mytype=='playlist' && (isCat || isCPIcon));
+        $('files_context_replace').hidden = (mytype=='playlist' && (isCat || isCPIcon));
         $('files_context_delete').hidden = isCat;
         $('files_context_rename').hidden = isCat;
         $('files_context_selectAll').hidden = true;
@@ -848,15 +854,15 @@ function files_contextShowing(event){
         $('files_context_artist_songs').hidden = true;
         $('files_context_artist_albums').hidden = true;
     }
-	else {
-	    $("files_menu_add").hidden = (isCPIcon);
-	    $('files_context_add').hidden = (isCP || isCPIcon);
-	    $('files_context_replace').hidden = (isCP || isCPIcon);
-	    $('files_playlist_sep').hidden = notCP;
-	    $('files_context_new').hidden = notCP;
-	    $('files_context_save').hidden = notCP;
-	    $('files_context_shuffle').hidden = notCP;
-	}
+    else {
+        $("files_menu_add").hidden = (isCPIcon);
+        $('files_context_add').hidden = (isCP || isCPIcon);
+        $('files_context_replace').hidden = (isCP || isCPIcon);
+        $('files_playlist_sep').hidden = notCP;
+        $('files_context_new').hidden = notCP;
+        $('files_context_save').hidden = notCP;
+        $('files_context_shuffle').hidden = notCP;
+    }
 }
 
 function delete_item(){
@@ -1029,19 +1035,25 @@ function cmd_save () {
 }
 notify['updating_db'] = function(v){
     if (v == 0 && mpm_history.length > 0) {
-		var loc = mpm_history.shift()
-		var mytype = loc[0]
-		var id = loc[1]
-		getDir(mytype, id)
-	}
-	else {
-		var tree = $('files')
-		if (tree) {
-			var boxobject = tree.boxObject;
-			boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
-			boxobject.invalidate()
-		}
-	}
+        var loc = mpm_history.shift()
+        var mytype = loc[0]
+        var id = loc[1]
+        getDir(mytype, id)
+    }
+    else {
+        var tree = $('files')
+        if (tree) {
+            var boxobject = tree.boxObject;
+            boxobject.QueryInterface(Components.interfaces.nsITreeBoxObject);
+            boxobject.invalidate()
+        }
+    }
 }
 notify['init'] = function() { getDir('home', '') }
+window.minimize = function () {
+    var flags = 'chrome,resizable=no,alwaysRaised=yes'
+    var mini = window.open('chrome://minion/content/mini.xul','mpm_mini',flags);
+    mini.moveTo(window.screenX, window.screenY)
+    window.close()
+}
 

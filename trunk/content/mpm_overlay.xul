@@ -52,11 +52,13 @@
                  autoCheck="false"
                  type="checkbox"
                  accesskey="n"
+                 tooltiptext="Random"
                  oncommand="playlist_random()"/>
     <broadcaster id="mpm_repeat"
                  autoCheck="false"
                  type="checkbox"
                  accesskey="t"
+                 tooltiptext="Repeat"
                  oncommand="playlist_repeat()"/>
 
   </broadcasterset>
@@ -200,7 +202,7 @@
         <menuitem id="files_context_selectAll" command="cmd_selectAll"></menuitem>
         <menuitem id="files_context_delete" command="cmd_delete_item"></menuitem>
         <menuitem id="files_context_rename" command="cmd_rename_item"></menuitem>
-        <menuitem id="files_context_update" 
+        <menuitem id="files_context_update"
             label="Update Folder"
             value="/"
             oncommand="files_update(this.value)"></menuitem>

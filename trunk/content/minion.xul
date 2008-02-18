@@ -11,8 +11,8 @@
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
-    onload="init_mpd()"
-    onopen="init_mpd();window.sizeToContent()">
+    onload="init_mpd();init_main()"
+    onopen="init_mpd();init_main()">
 
     <script src="common.js"></script>
     <script src="playlist.js"></script>
@@ -92,6 +92,17 @@
                 <label id="totalTm" value="0:00"/>
             </hbox>
             <spacer flex="1"/>
+        </vbox>
+        <vbox>
+            <toolbarbutton id="mpm_mini"
+                oncommand="window.minimize()"
+                tooltiptext="Collapse to Mini-Player"/>
+            <toolbarbutton id="mpm_about"
+                oncommand="openURL('chrome://minion/content/about.html','mpm_info')"
+                tooltiptext="About Music Player Minion"/>
+            <toolbarbutton id="mpm_help"
+                oncommand="openURL('http://code.google.com/p/musicpm/wiki/Help','mpm_info')"
+                tooltiptext="Help"/>
         </vbox>
     </toolbar>
 
