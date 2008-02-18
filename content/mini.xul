@@ -11,18 +11,47 @@
     orient="horizontal"
     resizeable="false"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    onload="init_mpd();window.sizeToContent();mini_init()">
+    onload="init_mpd();window.sizeToContent();mini_init()"
+    context="playlist_menu_popup">
 
     <script src="common.js"></script>
     <script src="mini.js"></script>
+    <commandset id="commandset_overlay" />
     <broadcasterset id="playlistBroadcasterSet"/>
 
+    <menupopup id="playlist_menu_popup">
+        <menuitem id="playlist_menu_new" command="cmd_clear" accesskey="c"></menuitem>
+        <menu id="playlist_menu_open" label="Open Playlist" accesskey="o">
+            <menupopup id="playlist_open_popup"
+                datasources="rdf:null"
+                onpopupshowing="playlist_openPopup()">
+                <template>
+                    <rule>
+                        <menuitem uri="rdf:*"
+                            label="rdf:mpd_Name"
+                            oncommand="load_playlist('rdf:mpd_Name^')"/>
+                    </rule>
+                </template>
+            </menupopup>
+        </menu>
+        <menuitem id="playlist_menu_addURL" label="Add URL" oncommand="playlist_addURL()" accesskey="U"></menuitem>
+        <menuitem id="playlist_menu_save" command="cmd_save" accesskey="S"></menuitem>
+        <menuitem id="playlist_menu_shuffle" command="cmd_shuffle" accesskey="h"></menuitem>
+        <menuseparator></menuseparator>
+        <menuitem id="playlist_menu_random" observes="mpm_random" label="Random"/>
+        <menuitem id="playlist_menu_repeat" observes="mpm_repeat" label="Repeat"/>
+        <menuitem label="Stop Playback" oncommand="doStop()" accesskey="t"/>
+    </menupopup>
+
     <toolbarbutton id="prev"
+                tooltiptext="Previous Track"
                 oncommand="doPrev()"/>
     <toolbarbutton id="playpause"
                 class="play"
+                tooltiptext="Play / Pause"
                 oncommand="doPlay()"/>
     <toolbarbutton id="next"
+                tooltiptext="Next Track"
                 oncommand="doNext()"/>
     <toolbarbutton id="playlist_random" observes="mpm_random"/>
     <toolbarbutton id="playlist_repeat" observes="mpm_repeat"/>
@@ -32,6 +61,7 @@
                 orient="horizontal"
                 flex="1"
                 value="0"
+                tooltiptext="Volume"
                 onmousedown="prgmtrChange(event)"/>
         <spacer flex="1" />
     </vbox>

@@ -185,6 +185,10 @@ function setRepeat(val) {
 function setCurSong(id) {
     try {
         if (id == -1){
+            var t = $('lbl_title')
+            t.value = 'Not Playing'
+            t.setAttribute('tooltiptext', 'Not Playing')
+            $('totalTm').value = '0:00'
         }
         else {
             var cb = function(data){
@@ -204,6 +208,10 @@ function setCurSong(id) {
     }
 }
 
+function clear(){
+    lastPlaylistName = "NewPlaylist"
+    command("clear", null)
+}
 function playlist_random() {
     var val = 1
     if (mpd.random == '1') {val = 0}
@@ -214,6 +222,70 @@ function playlist_repeat() {
     if (mpd.repeat == '1') {val = 0}
     command("repeat "+val, null)
 }
+
+function load_playlist(id){
+    lastPlaylistName = id
+    command('command_list_begin\nclear\nload "'+id+'"\ncommand_list_end\n', null)
+}
+
+function playlist_save(){
+    var val = prompt("Please enter a name for this playlist", lastPlaylistName)
+    if (val != null) {
+        lastPlaylistName = val
+        command('save "'+val+'"', null)
+    }
+}
+function playlist_shuffle() {
+  command("shuffle", null)
+  }
+function dbRDF(items, about, filter){
+    var name = ""
+    var rdfString ='<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" \n' +
+                    '    xmlns:s="mpd_"\n' +
+                    '    xmlns:nc="http://home.netscape.com/NC-rdf#">\n\n'
+    var rdfSeq = ' <RDF:Seq about="'+about+'">\n'
+
+    function xmlEscape (s) {
+        if (!s) {return ''}
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g,"&quot;")
+    }
+
+    for (x in items){
+        try {
+            var item = items[x]
+            if (filter[item.type]) {
+                rdfString += ' <RDF:Description about="mpd://'+item.type+'/'+x+'">\n'
+                for (p in items[x]) {
+                    rdfString += '   <s:'+p+'>'+xmlEscape(item[p])+'</s:'+p+'>\n'
+                }
+                rdfString += ' </RDF:Description>\n'
+                rdfSeq += '  <RDF:li resource="mpd://'+item.type+'/'+x+'"/>\n'
+            }
+        } catch(e) {debug("dbRDF item "+x+": "+e.description)}
+    }
+
+    var memoryDS = Components.classes["@mozilla.org/rdf/datasource;1?name=in-memory-datasource"]
+                     .createInstance(Components.interfaces.nsIRDFDataSource);
+    var ios=Components.classes["@mozilla.org/network/io-service;1"]
+                    .getService(Components.interfaces.nsIIOService);
+    var baseUri=ios.newURI(about+"/temp",null,null);
+    var parser=Components.classes["@mozilla.org/rdf/xml-parser;1"]
+                         .createInstance(Components.interfaces.nsIRDFXMLParser);
+    parser.parseString(memoryDS,baseUri,rdfString + rdfSeq + '</RDF:Seq></RDF:RDF>');
+    return memoryDS;
+}
+var pds
+function playlist_openPopup(){
+    var cb = function(data) {
+        var p = $('playlist_open_popup')
+        if (pds) {p.database.RemoveDataSource(pds)}
+        pds = dbRDF(parse_db(data), "mpd://playlists", {'playlist': true})
+        $('playlist_open_popup').database.AddDataSource(pds)
+        $('playlist_open_popup').ref="mpd://playlists"
+    }
+    command('lsinfo', cb)
+}
+
 var windowMove = {
   isMoving: false,
   x: null,
@@ -260,9 +332,9 @@ window.addEventListener('mouseout', windowMove.moveTo, true)
 window.addEventListener('mouseover', windowMove.moveTo, true)
 
 window.restore = function () {
-    var flags = 'chrome,resizable=yes'
+    var flags = 'chrome,resizable=yes,screenX=' +
+                    window.screenX+",screenY="+window.screenY
     var main = window.open('chrome://minion/content/minion.xul','mpm_main',flags);
-    main.moveTo(window.screenX, window.screenY)
     window.close()
 }
 notify['song'] = setCurSong
