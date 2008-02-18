@@ -194,7 +194,7 @@ function setCurSong(id) {
                 var ttt =  song['Title'] +
                             " by " + song['Artist'] +
                             " from " + song['Album']
-                $('mini_song').setAttribute('tooltiptext', ttt)
+                t.setAttribute('tooltiptext', ttt)
             }
             command('currentsong', cb)
         }
@@ -214,7 +214,7 @@ function playlist_repeat() {
     if (mpd.repeat == '1') {val = 0}
     command("repeat "+val, null)
 }
-var gWindoidMove = {
+var windowMove = {
   isMoving: false,
   x: null,
   y: null,
@@ -224,18 +224,28 @@ var gWindoidMove = {
     this.isMoving = true;
     this.x = aEvent.clientX;
     this.y = aEvent.clientY;
+    mpd_stop = true
   },
 
   stop: function (aEvent)
   {
     this.isMoving = false;
-    this.x = null;
-    this.y = null;
+    mpd_stop = false
+    checkStatus()
   },
 
-  move: function (aEvent)
+  moveBy: function (aEvent)
   {
-    if (this.isMoving && this.x && this.y) {
+    if (this.isMoving) {
+        var dx = aEvent.clientX - this.x
+        var dy = aEvent.clientY - this.y
+        window.moveBy(dx, dy)
+    }
+  },
+
+  moveTo: function (aEvent)
+  {
+    if (this.isMoving) {
         var dx = aEvent.screenX - this.x
         var dy = aEvent.screenY - this.y
         window.moveTo(dx, dy)
@@ -243,11 +253,11 @@ var gWindoidMove = {
   }
 };
 
-window.addEventListener('mousedown', gWindoidMove.start, true)
-window.addEventListener('mouseup', gWindoidMove.stop, true)
-window.addEventListener('mousemove', gWindoidMove.move, true)
-window.addEventListener('mouseout', gWindoidMove.move, true)
-window.addEventListener('mouseover', gWindoidMove.move, true)
+window.addEventListener('mousedown', windowMove.start, true)
+window.addEventListener('mouseup', windowMove.stop, true)
+window.addEventListener('mousemove', windowMove.moveTo, true)
+window.addEventListener('mouseout', windowMove.moveTo, true)
+window.addEventListener('mouseover', windowMove.moveTo, true)
 
 window.restore = function () {
     var flags = 'chrome,resizable=yes'
