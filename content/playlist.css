@@ -27,6 +27,7 @@
 #prev {
     list-style-image: url('chrome://minion/content/prev.png')
     }
+
 #stop {
     margin-top: 0px;
     margin-bottom: 0px;
@@ -53,6 +54,12 @@
     max-width: 75px;
     width: 75px;
     }
+#mini #vol_slider {
+    height: 12px;
+    max-height: 12px;
+    min-width: 50px;
+    max-width: 50px;
+}
 
 /* Playlist toolbar icons */
 #playlist_menu {
@@ -71,6 +78,7 @@
     -moz-appearance: none !important;
     list-style-image: url('chrome://minion/content/random-on.png');
     border: 1px solid transparent !important;
+    background: transparent !important;
     }
 #playlist_repeat {
     list-style-image: url('chrome://minion/content/repeat.png')
@@ -79,6 +87,7 @@
     -moz-appearance: none !important;
     list-style-image: url('chrome://minion/content/repeat-on.png');
     border: 1px solid transparent !important;
+    background: transparent !important;
     }
 #playlist_simple {
     list-style-image: url('chrome://minion/content/playlist_simple.png')

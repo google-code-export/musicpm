@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/style.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/mini.css" type="text/css"?>
+<?xul-overlay href="chrome://minion/content/mpm_overlay.xul"?>
+
+<window
+    id="mini"
+    title="Music Player Minion"
+    hidechrome="true"
+    orient="horizontal"
+    resizeable="false"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    onload="init_mpd();window.sizeToContent();mini_init()">
+
+    <script src="common.js"></script>
+    <script src="mini.js"></script>
+    <broadcasterset id="playlistBroadcasterSet"/>
+
+    <toolbarbutton id="prev"
+                oncommand="doPrev()"/>
+    <toolbarbutton id="playpause"
+                class="play"
+                oncommand="doPlay()"/>
+    <toolbarbutton id="next"
+                oncommand="doNext()"/>
+    <toolbarbutton id="playlist_random" observes="mpm_random"/>
+    <toolbarbutton id="playlist_repeat" observes="mpm_repeat"/>
+    <vbox>
+        <spacer flex="1" />
+        <progressmeter id="vol_slider"
+                orient="horizontal"
+                flex="1"
+                value="0"
+                onmousedown="prgmtrChange(event)"/>
+        <spacer flex="1" />
+    </vbox>
+    <vbox>
+        <spacer flex="1" />
+        <hbox id="mini_song">
+            <label id="lbl_title"
+                crop="right"
+                value="Not Playing."
+                class="Title"
+                flex="1"/>
+            <label id="elapsedTm" value="0:00"/>
+            <label value="/"/>
+            <label id="totalTm" value="0:00"/>
+        </hbox>
+        <spacer flex="1" />
+    </vbox>
+    <toolbarbutton id="restore"
+        oncommand="window.restore()"
+        tooltiptext="Restore Main Window"/>
+    <toolbarbutton id="close"
+        oncommand="window.close()"
+        tooltiptext="Exit Music Player Minion"/>
+</window>

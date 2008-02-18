@@ -83,6 +83,12 @@ progressmeter {
     height: 70px !important;
     width: 70px !important;
     }
+#close {
+    list-style-image: url("chrome://minion/content/exit.png");
+}
+#restore{
+    list-style-image: url("chrome://minion/content/restore.png");
+}
 .toolbarbutton-menu-dropmarker {
     margin-left: 4px;
     list-style-image: url("chrome://minion/content/drop.png")

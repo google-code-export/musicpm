@@ -232,6 +232,20 @@ function downVol() {
     scaleChange(v)
 }
 
+function songScroll(event) {
+    var t = mpd.time.split(":")
+    var e = parseInt(t[0]) + (event.detail * -2)
+    mpd.time = e+":"+t[1]
+    $('elapsedTm').value = hmsFromSec(e)
+    simple_cmd("seek " + mpd.song + " " + e)
+}
+function volScroll(event) {
+    var v = $('vol_slider')
+    v.value = parseInt(v.value) + (event.detail * -2)
+    if (v.value < 0) v.value = 0
+    if (v.value > 100) v.value = 100
+    scaleChange(v)
+}
 function setTime(val) {
     if (!seekTmr) {
         var t = val.split(":")
