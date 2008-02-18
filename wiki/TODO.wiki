@@ -1,8 +1,13 @@
 #summary Things on my "to do" list for MPM.
 
-= 1.4 =
+= 1.5 =
 
-  * Mini-Player (winamp/xmms style).
+  * Clean up and reorganize poject/code.  Long overdue.
+  * (Firefox 3) Use <scale> for volume control when available, degrade to progressmeter to maintain compatability with older Firefox versions.
+  * Build Xulrunner binaries.  (Run independent of Firefox, standalone version)
+  * Add custom scripts feature for context menu.
+  * Add query builder.
+  * Add Details page for songs. (all tags, album art, lyrics, helpful links.)
 
 
 = Wishlist =
@@ -10,8 +15,3 @@
   * Edit tags if files are reachable, using external program.
   * Wake On Lan command?
   * Automatic Discovery of MPD server?
-  * Add custom scripts feature for context menu.
-  * Add query builder.
-  * Add Details page for songs. (all tags, album art, lyrics, helpful links.)
-  * (Firefox 3) Use <scale> for volume control when available, degrade to progressmeter to maintain compatability with older gecko versions.
-  * Build Xulrunner binaries.  (standalone version)
