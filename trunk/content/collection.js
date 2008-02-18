@@ -1051,9 +1051,9 @@ notify['updating_db'] = function(v){
 }
 notify['init'] = function() { getDir('home', '') }
 window.minimize = function () {
-    var flags = 'chrome,resizable=no,alwaysRaised=yes'
+    var flags = 'chrome,alwaysRaised=yes,screenX=' +
+                    window.screenX+",screenY="+window.screenY
     var mini = window.open('chrome://minion/content/mini.xul','mpm_mini',flags);
-    mini.moveTo(window.screenX, window.screenY)
     window.close()
 }
 

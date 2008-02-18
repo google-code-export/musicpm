@@ -588,7 +588,8 @@ function load_pls_stream(data, action) {
     var cmd = 'command_list_begin'
     if (action == "play") cmd += "\nclear"
     for (x in urls) {
-        cmd += '\nadd ' + urls[x].replace("\n","").replace(/File\d+=/gi,"")
+        var u = urls[x].replace("\n","").replace(/File\d+=/gi,"")
+        if (u.length > 0) cmd += '\nadd ' + u
     }
     if (action == "play") cmd += "\nplay"
     cmd += '\ncommand_list_end'
@@ -600,7 +601,8 @@ function load_m3u_stream(data, action) {
     var cmd = 'command_list_begin'
     if (action == "play") cmd += "\nclear"
     for (x in urls) {
-        cmd += '\nadd ' + urls[x].replace("\n","").replace(/File\d+=/gi,"")
+        var u = urls[x].replace("\n","").replace(/File\d+=/gi,"")
+        if (u.length > 0) cmd += '\nadd ' + u
     }
     if (action == "play") cmd += "\nplay"
     cmd += '\ncommand_list_end'
@@ -625,12 +627,12 @@ function mpm_handleURL(url, action) {
     switch (url.substr(-4).toLocaleLowerCase()) {
         case ".pls": sendCB(url, load_pls_stream, action); break;
         case ".m3u": sendCB(url, load_m3u_stream, action); break;
-        case ".mp3": simple_cmd('add '+url); break;
-        case ".ogg": simple_cmd('add '+url); break;
-        case ".wav": simple_cmd('add '+url); break;
-        case "flac": simple_cmd('add '+url); break;
-        case ".acc": simple_cmd('add '+url); break;
-        case ".mod": simple_cmd('add '+url); break;
+        case ".mp3": simple_cmd('add "'+url+'"'); break;
+        case ".ogg": simple_cmd('add "'+url+'"'); break;
+        case ".wav": simple_cmd('add "'+url+'"'); break;
+        case "flac": simple_cmd('add "'+url+'"'); break;
+        case ".acc": simple_cmd('add "'+url+'"'); break;
+        case ".mod": simple_cmd('add "'+url+'"'); break;
         default: alert("I don't know what to do with that URL."); break;
     }
 }
