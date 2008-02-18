@@ -41,8 +41,7 @@
             <label id="lbl_title"
                 crop="right"
                 value="Not Playing."
-                class="Title"
-                flex="1"/>
+                class="Title"/>
             <label id="elapsedTm" value="0:00"/>
             <label value="/"/>
             <label id="totalTm" value="0:00"/>
