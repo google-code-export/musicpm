@@ -1,9 +1,16 @@
 #summary A history of changes made for each release.
 #labels Featured
 
-= 1.4 =
+= 1.4a =
 
-  * Added mini-player
+  * Added mini-player.
+  * Shortened "Music Player Minion" menu to just "Minion".
+  * Check for blank lines when loading .pls and .m3u playlists, which resulted in adding the whole library when executed.
+  * Added Mini-Player, About, and Help buttons to the main player interface.
+  * Starting with this release, the installed version will be included in the about page.
+
+Thanks to Alex Eng for inspiration on how to move a window with no Title bar:
+http://aecreations.blogspot.com/2007/12/creating-clippings-toolbar.html
 
 = 1.3.1 = 
 
