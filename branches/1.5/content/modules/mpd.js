@@ -16,7 +16,7 @@
 *      MA 02110-1301, USA.
 */
 
-EXPORTED_SYMBOLS = ["mpd", "prefs", "debug", "observerService"]
+EXPORTED_SYMBOLS = ["mpd", "prefService", "debug", "observerService"]
 
 // Use this line to import: 
 // Components.utils.import("resource://minion/mpd.js");
@@ -25,22 +25,21 @@ var observerService = Components.classes["@mozilla.org/observer-service;1"]
                         .getService(Components.interfaces.nsIObserverService);
 var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
                         .getService(Components.interfaces.nsIConsoleService);
-var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+var prefService = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefBranch);
                 
-if (prefs.getPrefType("extensions.mpm.mpd_host") != prefs.PREF_STRING){
-    prefs.setCharPref("extensions.mpm.mpd_host", 'localhost')
+if (prefService.getPrefType("extensions.mpm.mpd_host") != prefService.PREF_STRING){
+    prefService.setCharPref("extensions.mpm.mpd_host", 'localhost')
 }
-if (prefs.getPrefType("extensions.mpm.mpd_port") != prefs.PREF_INT){
-    prefs.setIntPref("extensions.mpm.mpd_port", 6600)
+if (prefService.getPrefType("extensions.mpm.mpd_port") != prefService.PREF_INT){
+    prefService.setIntPref("extensions.mpm.mpd_port", 6600)
 }
-if (prefs.getPrefType("extensions.mpm.mpd_password") != prefs.PREF_STRING) {
-    prefs.setCharPref("extensions.mpm.mpd_password", "")
+if (prefService.getPrefType("extensions.mpm.mpd_password") != prefService.PREF_STRING) {
+    prefService.setCharPref("extensions.mpm.mpd_password", "")
 }
 
 var myPrefObserver = {
     register: function(){
-        var prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
         this._branch = prefService.getBranch("extensions.mpm.");
         this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
         this._branch.addObserver("", this, false);
@@ -59,15 +58,15 @@ var myPrefObserver = {
         // aData is the name of the pref that's been changed (relative to aSubject)
         switch (aData) {
             case "host":
-                mpd._host = prefs.getCharPref("extensions.mpm.mpd_host");
+                mpd._host = prefService.getCharPref("extensions.mpm.mpd_host");
                 mpd.connect();
                 break;
             case "port":
-                mpd._port = prefs.getIntPref("extensions.mpm.mpd_port");
+                mpd._port = prefService.getIntPref("extensions.mpm.mpd_port");
                 mpd.connect();
                 break;
             case "password":
-                mpd._password = prefs.getCharPref("extensions.mpm.password");
+                mpd._password = prefService.getCharPref("extensions.mpm.password");
                 mpd.connect();
                 break;
         }
@@ -86,22 +85,25 @@ function debug(s) {
 }
 
 function socketTalker() {
-    var transport = transportService.createTransport(null,0,mpd._host,mpd._port,null);
-    var outstream = transport.openOutputStream(0,0,0);
-    var instream = transport.openInputStream(0,0,0);
-    const replacementChar = Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
-    var utf_instream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
-                   .createInstance(Components.interfaces.nsIConverterInputStream);
-    var utf_outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                   .createInstance(Components.interfaces.nsIConverterOutputStream)
-                   
-    conv_instream.init(instream, 'UTF-8', 1024, replacementChar);
-    conv_outstream.init(outstream, 'UTF-8', 0, 0x0000)
+    try {
+        var transport = transportService.createTransport(null,0,mpd._host,mpd._port,null);
+        var outstream = transport.openOutputStream(0,0,0);
+        var instream = transport.openInputStream(0,0,0);
+        const replacementChar = Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
+        var utf_instream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+                       .createInstance(Components.interfaces.nsIConverterInputStream);
+        var utf_outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
+                       .createInstance(Components.interfaces.nsIConverterOutputStream)
+                       
+        conv_instream.init(instream, 'UTF-8', 1024, replacementChar);
+        conv_outstream.init(outstream, 'UTF-8', 0, 0x0000)
+    } catche (e) {
+        return null
+    }
 
     var listener = {
         data: "",
         onStartRequest: function(request, context){
-            mpd.active = true
             mpd._idle = false
         },
         onStopRequest: function(request, context, status){
@@ -121,18 +123,12 @@ function socketTalker() {
             catch (e) {
             }
             mpd._set('greeting','Not Connected');
-            mpd.active = false;
             mpd._idle = false;
-            mpd.outstream = null
             mpd._socket = null
         },
         onDataAvailable: function(request, context, inputStream, offset, count){
             try {
                 mpd._idle = false
-                if (!mpd.active) {
-                    request.cancel(0);
-                    return null
-                }
                 var str = {};
                 var done = false
                 while (utf_instream.readString(4096, str) != 0) {
@@ -301,10 +297,10 @@ function simple_send (cmd) {
 }
 
 var mpd = {
-    _host: prefs.getCharPref("extensions.mpm.mpd_host"),
-    _port: prefs.getIntPref("extensions.mpm.mpd_port"),
-    _password: prefs.getCharPref("extensions.mpm.password"),
-    _statusCmd:  'command_list_begin\n' +
+    _host: prefService.getCharPref("extensions.mpm.mpd_host"),
+    _port: prefService.getIntPref("extensions.mpm.mpd_port"),
+    _password: prefService.getCharPref("extensions.mpm.password"),
+    _statusCmd: 'command_list_begin\n' +
                 'status\n' +
                 'stats\n' +
                 'currentsong\n' +
@@ -351,7 +347,6 @@ var mpd = {
     greeting: 'Not Connected',
     lastCommand: '',
     lastResponse: '',
-    active: false,
     _idle: false,
     _refreshing: false,
     _doStatus: true,
@@ -362,7 +357,7 @@ var mpd = {
     // Connection methods
     connect: function () {
         if (mpd._timer) mpd._timer.abort()
-        if (mpd.active) {
+        if (mpd._socket) {
             mpd._socket.cancel()
         }
         mpd.checkStatus()
@@ -376,10 +371,10 @@ var mpd = {
     },
     _checkStatus: function () {
         mpd._doStatus = true
-        if (!mpd.active) {mpd._socket = socketTalker()}
+        if (!mpd._socket) {mpd._socket = socketTalker()}
         if (idle) {mpd._socket.writeOut("\n")}
         var tm = (mpd.state == "play") ? 200 : 800
-        if (mpd.active) {mpd._timer = setTimeout("mpd.checkStatus()", tm)} 
+        if (mpd._socket) {mpd._timer = setTimeout("mpd.checkStatus()", tm)} 
     },
     
     // Talk directlty to MPD, outputData must be properly escaped and quoted.
@@ -387,7 +382,7 @@ var mpd = {
     // a single use connection will be made for this command.
     doCmd: function (outputData, callBack){
         if (typeof(callBack)=='undefined') callBack = null
-        if (!callBack && !mpd.active) {
+        if (!callBack && !mpd._socket) {
             // Send it blind
             simple_send(outputData)
         }
