@@ -279,7 +279,8 @@ var dataListener  = {
             }
             else if (this.data.substr(0,6) == "OK MPD"){
                 try {
-                    $('mpd_status').value = this.data.substr(3)
+                    var ms = $('mpd_status')
+                    if (ms) ms.value = this.data.substr(3)
                 } catch (e) {debug(e)}
                 this.data = ""
                 if (pass.length > 0) {
@@ -385,41 +386,49 @@ function simple_cmd (cmd) {
         try {
             cmd += "\n"
             var smpl_transport = transportService.createTransport(null,0,host,port,null);
-            var smpl_outstream = smpl_transport.openOutputStream(0,0,0);
-            var smpl_stream = smpl_transport.openInputStream(0,0,0);
-            var smpl_instream = Components.classes["@mozilla.org/scriptableinputstream;1"]
-              .createInstance(Components.interfaces.nsIScriptableInputStream);
-            smpl_instream.init(smpl_stream);
+            var _outstream = smpl_transport.openOutputStream(0,0,0);
+            var _instream = smpl_transport.openInputStream(0,0,0);
+
+            var smpl_instream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+                           .createInstance(Components.interfaces.nsIConverterInputStream);
+            smpl_instream.init(_instream, 'UTF-8', 1024, replacementChar);
+
+            var smpl_outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
+                           .createInstance(Components.interfaces.nsIConverterOutputStream)
+            smpl_outstream.init(_outstream, 'UTF-8', 0, 0x0000)
 
             var smpl_dataListener = {
               data : "",
               onStartRequest: function(request, context){
               },
               onStopRequest: function(request, context, status){
-                smpl_instream.close();
-                smpl_outstream.close()
-                smpl_transport.close(0);
+                try { smpl_instream.close() }catch(e){}
+                try { smpl_outstream.close() }catch(e){}
+                try { smpl_transport.close(0) }catch(e){}
               },
               onDataAvailable: function(request, context, inputStream, offset, count){
-                this.data += smpl_instream.read(count);
-                debug("simple stream data: "+this.data)
+                var str = {};
+                while (smpl_instream.readString(4096, str) != 0) {
+                    this.data += str.value
+                }
+                str = null
                 if (this.data.substr(0,6) == "OK MPD"){
                     this.data = ""
                     if (pass.length > 0) {
                         pw = "password " + pass + "\n"
-                        smpl_outstream.write(pw, pw.length)
+                        smpl_outstream.writeString(pw)
                     }
                     else {
-                        smpl_outstream.write(cmd, cmd.length)
+                        smpl_outstream.writeString(cmd)
                     }
                 }
                 else if (this.data.slice(-3) == "OK\n") {
                     if (pass.length > 0) {
-                        smpl_outstream.write(cmd, cmd.length)
+                        smpl_outstream.writeString(cmd)
                     }
                     else {
                         cmd = "close\n"
-                        smpl_outstream.write(cmd, cmd.length)
+                        smpl_outstream.writeString(cmd)
                     }
                 }
                 else if (this.data.indexOf('ACK [') != -1) {
@@ -435,7 +444,7 @@ function simple_cmd (cmd) {
             var smpl_pump = Components.
               classes["@mozilla.org/network/input-stream-pump;1"].
                 createInstance(Components.interfaces.nsIInputStreamPump);
-            smpl_pump.init(smpl_stream, -1, -1, 0, 0, false);
+            smpl_pump.init(_instream, -1, -1, 0, 0, false);
             smpl_pump.asyncRead(smpl_dataListener,null);
         } catch (e) {debug(e)}
     }
