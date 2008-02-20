@@ -314,21 +314,23 @@ var windowMove = {
     checkStatus()
   },
 
-  moveTo: function (aEvent)
+  move: function (aEvent)
   {
     if (this.isMoving) {
-        var dx = aEvent.screenX - this.x
-        var dy = aEvent.screenY - this.y
-        window.moveTo(dx, dy)
+        var dx = aEvent.clientX - this.x
+        var dy = aEvent.clientY - this.y
+        window.moveBy(dx, dy)
+        event.stopPropagation()
+        return false
     }
   }
 };
 
 window.addEventListener('mousedown', windowMove.start, true)
 window.addEventListener('mouseup', windowMove.stop, true)
-window.addEventListener('mousemove', windowMove.moveTo, true)
-window.addEventListener('mouseout', windowMove.moveTo, true)
-window.addEventListener('mouseover', windowMove.moveTo, true)
+window.addEventListener('mousemove', windowMove.move, true)
+window.addEventListener('mouseout', windowMove.move, true)
+window.addEventListener('mouseover', windowMove.move, true)
 
 window.restore = function () {
     var flags = 'chrome,resizable=yes,screenX=' +
