@@ -7,11 +7,10 @@
 <window
     id="mini"
     title="Music Player Minion"
-    hidechrome="true"
     orient="horizontal"
     resizeable="false"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    onload="init_mpd();window.sizeToContent();mini_init()"
+    onload="init_mpd();mini_init()"
     context="playlist_menu_popup">
 
     <script src="common.js"></script>

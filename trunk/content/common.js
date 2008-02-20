@@ -783,3 +783,4 @@ function getCover(elem, song) {
         sendCB(search_url, cb)
     }
 }
+function getMPD() {return mpd}
