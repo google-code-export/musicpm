@@ -16,75 +16,173 @@
 *      MA 02110-1301, USA.
 */
 
-EXPORTED_SYMBOLS = ["mpd", "prefService", "debug", "observerService"]
+EXPORTED_SYMBOLS = ["mpd"]
 
-// Use this line to import: 
-// Components.utils.import("resource://minion/mpd.js");
+// mpmUtils.js: EXPORTED_SYMBOLS = ["Nz", "debug", "prefService", "observerService"]
+Components.utils.import("resource://minion/mpmUtils.js");
 
-var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                        .getService(Components.interfaces.nsIObserverService);
-var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
-                        .getService(Components.interfaces.nsIConsoleService);
-var prefService = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch);
+
+function loadSrvPref () {
+	var srv = prefService.getCharPref("extensions.mpm.mpd_host");
+	if (prefService.getPrefType("extensions.mpm.server") == prefService.PREF_STRING) {
+		var srv = prefService.getCharPref("extensions.mpm.mpd_host");
+		srv = srv.split(":", 3);
+		if (srv.length == 3) {
+			mpd._host = srv[0];
+			mpd._port = parseInt(srv[1]);
+			mpd._password = srv[2];
+		}
+	}
+	else {
+		prefService.setCharPref("extensions.mpm.server", 'localhost:6600:')
+		mpd._host = 'localhost';
+		mpd._port = 6600;
+		mpd._password = '';
+	}
+}
+
+var mpd = {
+    _host: null,
+    _port: null,
+    _password: null,
+    _statusCmd: 'command_list_begin\n' +
+                'status\n' +
+                'currentsong\n' +
+                'command_list_end',
+    status: {
+        // Output of status
+        repeat: null,
+        random: null,
+        playlistlength: null,
+        playlist: null,
+        xfade: null,
+        state: null,
+        song: null,
+        songid: null,
+        time: null,
+        bitrate: null,
+        audio: null,
+        updating_db: null,
                 
-if (prefService.getPrefType("extensions.mpm.mpd_host") != prefService.PREF_STRING){
-    prefService.setCharPref("extensions.mpm.mpd_host", 'localhost')
-}
-if (prefService.getPrefType("extensions.mpm.mpd_port") != prefService.PREF_INT){
-    prefService.setIntPref("extensions.mpm.mpd_port", 6600)
-}
-if (prefService.getPrefType("extensions.mpm.mpd_password") != prefService.PREF_STRING) {
-    prefService.setCharPref("extensions.mpm.mpd_password", "")
-}
-
-var myPrefObserver = {
-    register: function(){
-        this._branch = prefService.getBranch("extensions.mpm.");
-        this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
-        this._branch.addObserver("", this, false);
+        // Output of currentsong
+        file: null,
+        Time: null,
+        Artist: null,
+        Title: null,
+        Album: null,
+        Track: null,
+        Date: null,
+        Genre: null,
+        Composer: null,
+        Pos: null,
+        Id: null
     },
     
-    unregister: function(){
-        if (!this._branch) 
-            return;
-        this._branch.removeObserver("", this);
-    },
+    // Connection state information
+    greeting: 'Not Connected',
+    lastCommand: '',
+    lastResponse: '',
+    _idle: false,
+    _refreshing: false,
+    _doStatus: true,
+    _timer: null,
+    _cmdQueue: [],
+    _socket: null,
     
-    observe: function(aSubject, aTopic, aData){
-        if (aTopic != "nsPref:changed") 
-            return;
-        // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
-        // aData is the name of the pref that's been changed (relative to aSubject)
-        switch (aData) {
-            case "host":
-                mpd._host = prefService.getCharPref("extensions.mpm.mpd_host");
-                mpd.connect();
-                break;
-            case "port":
-                mpd._port = prefService.getIntPref("extensions.mpm.mpd_port");
-                mpd.connect();
-                break;
-            case "password":
-                mpd._password = prefService.getCharPref("extensions.mpm.password");
-                mpd.connect();
-                break;
+    // Connection methods
+    connect: function () {
+        if (mpd._timer) mpd._timer.abort()
+        if (mpd._socket) {
+            mpd._socket.cancel()
         }
+        mpd.checkStatus()
+    },
+    disconnect: function () {
+        if (mpd._timer) {
+            mpd._timer.abort()
+            mpd._timer = null
+        }
+        mpd._socket.cancel()
+    },
+    _checkStatus: function () {
+        mpd._doStatus = true
+        if (!mpd._socket) {mpd._socket = socketTalker()}
+        if (idle) {mpd._socket.writeOut("\n")}
+        var tm = (mpd.state == "play") ? 200 : 800
+        if (mpd._timer) {
+            mpd._timer.abort()
+        }
+        if (mpd._socket) {mpd._timer = setTimeout("mpd.checkStatus()", tm)} 
+    },
+    
+    // Talk directlty to MPD, outputData must be properly escaped and quoted.
+    // callBack is optional, if left out or null and no socket is in use,
+    // a single use connection will be made for this command.
+    doCmd: function (outputData, callBack){
+        if (typeof(callBack)=='undefined') callBack = null
+        if (!callBack && !mpd._socket) {
+            // Send it blind
+            simple_send(outputData)
+        }
+        else {
+            mpd._cmdQueue.push({'outputData':outputData+"\n", 'callBack':callBack})
+            mpd._doStatus = true
+            if (mpd.active) {
+                if (mpd._idle) {
+                    mpd._socket.writeOut(queue[0].outputData)
+                    mpd._idle = false
+                }
+            }
+            else  {mpd.connect()}
+            
+        }
+    },
+    
+    // Any attribute that may be observed must be set with these methods.
+    // _set is for root level attributes, internal use only.
+    _set: function (attr, val) {
+        if (val != mpd[attr]) {
+            observerService.notifyObservers(mpd, attr, val)
+        }
+    },
+    
+    // mpd.setStatus(attribute, value) is used for status atrributes.
+    setState: function (attr, val) {
+        if (val != mpd.status[attr]) {
+            observerService.notifyObservers(mpd, attr, val)
+        }
+    },
+    
+    // Batch update from polling loop, internal use only.
+    _update: function (data) {
+        mpd._refreshing = true
+        
+        //parse the incoming data into a status object
+        var obj = new Object()
+        data = data.split("\n")
+        var dl = data.length
+        var pair
+        do {
+            pair = data[dl - 1].split(": ", 2)
+            if (pair.length == 2) {
+                obj[pair[0]] = pair[1]
+            }
+        } while (--dl)
+        
+        //set status values 
+		for (x in mpd.state){
+			mpd.setState(x, obj[x])
+        }
+        
+        mpd._refreshing = false
+        mpd._doStatus = false
     }
-}
-myPrefObserver.register();
-
-function debug(s) {
-    //return null
-    if (typeof(s) == 'object') {
-        var str = ""
-        for (x in s) {str += x + ": " + s[x] + "\n"}
-    }
-    else {var str = s}
-    consoleService.logStringMessage(str)
 }
 
 function socketTalker() {
+	if (Nz(mpd._host) || Nz(mpd._port)) {
+		loadSrvPref()
+	}
     try {
         var transport = transportService.createTransport(null,0,mpd._host,mpd._port,null);
         var outstream = transport.openOutputStream(0,0,0);
@@ -97,7 +195,7 @@ function socketTalker() {
                        
         conv_instream.init(instream, 'UTF-8', 1024, replacementChar);
         conv_outstream.init(outstream, 'UTF-8', 0, 0x0000)
-    } catche (e) {
+    } catch (e) {
         return null
     }
 
@@ -229,7 +327,6 @@ function socketTalker() {
     pump.init(instream, -1, -1, 0, 0, false);
     pump.asyncRead(listener,null);
     
-    
     var con = {
         cancel: function () {transport.cancel(0)},
         writeOut: function (str) {utf_outstream.writeString(str)}
@@ -237,211 +334,30 @@ function socketTalker() {
     return con
 }
 
-function simple_send (cmd) {
-    try {
-        cmd += "\n"
-        var s_transport = transportService.createTransport(null,0,host,port,null);
-        var s_outstream = s_transport.openOutputStream(0,0,0);
-        var s_stream = s_transport.openInputStream(0,0,0);
-        var s_instream = Components.classes["@mozilla.org/scriptableinputstream;1"]
-          .createInstance(Components.interfaces.nsIScriptableInputStream);
-        s_instream.init(s_stream);
-
-        var s_dataListener = {
-          data : "",
-          onStartRequest: function(request, context){
-          },
-          onStopRequest: function(request, context, status){
-            s_instream.close();
-            s_outstream.close()
-            s_transport.close(0);
-          },
-          onDataAvailable: function(request, context, inputStream, offset, count){
-            this.data += s_instream.read(count);
-            debug("simple stream data: "+this.data)
-            if (this.data.substr(0,6) == "OK MPD"){
-                this.data = ""
-                if (mpd._password.length > 0) {
-                    pw = 'password "' + pass + '"\n'
-                    s_outstream.write(pw, pw.length)
-                }
-                else {
-                    s_outstream.write(cmd, cmd.length)
-                }
-            }
-            else if (this.data.slice(-3) == "OK\n") {
-                if (mpd._password.length > 0) {
-                    s_outstream.write(cmd, cmd.length)
-                }
-                else {
-                    cmd = "close\n"
-                    s_outstream.write(cmd, cmd.length)
-                }
-            }
-            else if (this.data.indexOf('ACK [') != -1) {
-                var msg = "An error has occured when communicating with MPD.\n\n" +
-                        "Command: " + cmd +
-                        "Response: "+ this.data
-                alert(msg)
-                request.cancel(0)
-            }
-          },
-        };
-
-        var s_pump = Components.
-          classes["@mozilla.org/network/input-stream-pump;1"].
-            createInstance(Components.interfaces.nsIInputStreamPump);
-        s_pump.init(s_stream, -1, -1, 0, 0, false);
-        s_pump.asyncRead(s_dataListener,null);
-    } catch (e) {debug(e)}
-}
-
-var mpd = {
-    _host: prefService.getCharPref("extensions.mpm.mpd_host"),
-    _port: prefService.getIntPref("extensions.mpm.mpd_port"),
-    _password: prefService.getCharPref("extensions.mpm.password"),
-    _statusCmd: 'command_list_begin\n' +
-                'status\n' +
-                'stats\n' +
-                'currentsong\n' +
-                'command_list_end',
-    status: {
-        // Output of status
-        repeat: null,
-        random: null,
-        playlist: null,
-        playlistlength: null,
-        xfade: null,
-        state: null,
-        song: null,
-        songid: null,
-        time: null,
-        bitrate: null,
-        audio: null,
-        updating_db: null,
-        
-        // Output of stats
-        artists: null,
-        albums: null,
-        songs: null,
-        uptime: null,
-        playtime: null,
-        db_playtime: null,
-        db_update: null,
-        
-        // Output of currentsong
-        file: null,
-        Time: null,
-        Artist: null,
-        Title: null,
-        Album: null,
-        Track: null,
-        Date: null,
-        Genre: null,
-        Composer: null,
-        Pos: null,
-        Id: null
+var myPrefObserver = {
+    register: function(){
+        this._branch = prefService.getBranch("extensions.mpm.");
+        this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
+        this._branch.addObserver("", this, false);
     },
     
-    // Connection state information
-    greeting: 'Not Connected',
-    lastCommand: '',
-    lastResponse: '',
-    _idle: false,
-    _refreshing: false,
-    _doStatus: true,
-    _timer: null,
-    _cmdQueue: [],
-    _socket: null,
-    
-    // Connection methods
-    connect: function () {
-        if (mpd._timer) mpd._timer.abort()
-        if (mpd._socket) {
-            mpd._socket.cancel()
-        }
-        mpd.checkStatus()
-    },
-    disconnect: function () {
-        if (mpd._timer) {
-            mpd._timer.abort()
-            mpd._timer = null
-        }
-        mpd._socket.cancel()
-    },
-    _checkStatus: function () {
-        mpd._doStatus = true
-        if (!mpd._socket) {mpd._socket = socketTalker()}
-        if (idle) {mpd._socket.writeOut("\n")}
-        var tm = (mpd.state == "play") ? 200 : 800
-        if (mpd._socket) {mpd._timer = setTimeout("mpd.checkStatus()", tm)} 
+    unregister: function(){
+        if (!this._branch) 
+            return;
+        this._branch.removeObserver("", this);
     },
     
-    // Talk directlty to MPD, outputData must be properly escaped and quoted.
-    // callBack is optional, if left out or null and no socket is in use,
-    // a single use connection will be made for this command.
-    doCmd: function (outputData, callBack){
-        if (typeof(callBack)=='undefined') callBack = null
-        if (!callBack && !mpd._socket) {
-            // Send it blind
-            simple_send(outputData)
+    observe: function(aSubject, aTopic, aData){
+        if (aTopic != "nsPref:changed") 
+            return;
+        // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
+        // aData is the name of the pref that's been changed (relative to aSubject)
+        switch (aData) {
+            case "server":
+				loadSrvPref()
+				mpd.connect();
+                break;
         }
-        else {
-            mpd._cmdQueue.push({'outputData':outputData+"\n", 'callBack':callBack})
-            mpd._doStatus = true
-            if (mpd.active) {
-                if (mpd._idle) {
-                    mpd._socket.writeOut(queue[0].outputData)
-                    mpd._idle = false
-                }
-            }
-            else  {mpd.connect()}
-            
-        }
-    },
-    
-    // Any attribute that may be observed must be set with these methods.
-    // _set is for root level attributes, internal use only.
-    _set: function (attr, val) {
-        if (val != mpd[attr]) {
-            observerService.notifyObservers(mpd, attr, val)
-        }
-    },
-    
-    // mpd.set(attribute, value) is used for status atrributes.
-    set: function (attr, val) {
-        if (val != mpd.status[attr]) {
-            observerService.notifyObservers(mpd, attr, val)
-        }
-    },
-    
-    // Batch update from polling loop, internal use only.
-    _update: function (data) {
-        mpd._refreshing = true
-        
-        //parse the incoming data into a status object
-        var obj = new Object()
-        data = data.split("\n")
-        var dl = data.length
-        var pair
-        do {
-            pair = data[dl - 1].split(": ", 2)
-            if (pair.length == 2) {
-                obj[pair[0]] = pair[1]
-            }
-        } while (--dl)
-        
-        //process status object
-        var i = mpd.status.length
-        for (x in mpd.status) {
-            var attr = x
-            var val = obj[x]
-            if (typeof(val) == 'undefined') val = null
-            mpd.set(attr, val)
-        }
-        
-        mpd._refreshing = false
-        mpd._doStatus = false
     }
 }
-
+myPrefObserver.register();
