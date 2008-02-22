@@ -326,11 +326,11 @@ var windowMove = {
   }
 };
 
-window.addEventListener('mousedown', windowMove.start, true)
-window.addEventListener('mouseup', windowMove.stop, true)
-window.addEventListener('mousemove', windowMove.move, true)
-window.addEventListener('mouseout', windowMove.move, true)
-window.addEventListener('mouseover', windowMove.move, true)
+//window.addEventListener('mousedown', windowMove.start, true)
+//window.addEventListener('mouseup', windowMove.stop, true)
+//window.addEventListener('mousemove', windowMove.move, true)
+//window.addEventListener('mouseout', windowMove.move, true)
+//window.addEventListener('mouseover', windowMove.move, true)
 
 window.restore = function () {
     var flags = 'chrome,resizable=yes,screenX=' +
