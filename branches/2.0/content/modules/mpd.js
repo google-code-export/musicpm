@@ -18,28 +18,9 @@
 
 EXPORTED_SYMBOLS = ["mpd"]
 
-// mpmUtils.js: EXPORTED_SYMBOLS = ["Nz", "debug", "prefService", "observerService"]
+// mpmUtils.js:
+// EXPORTED_SYMBOLS = ["Nz", "debug", "prefBranch", "prefService", "observerService"]
 Components.utils.import("resource://minion/mpmUtils.js");
-
-
-function loadSrvPref () {
-	var srv = prefService.getCharPref("extensions.mpm.mpd_host");
-	if (prefService.getPrefType("extensions.mpm.server") == prefService.PREF_STRING) {
-		var srv = prefService.getCharPref("extensions.mpm.mpd_host");
-		srv = srv.split(":", 3);
-		if (srv.length == 3) {
-			mpd._host = srv[0];
-			mpd._port = parseInt(srv[1]);
-			mpd._password = srv[2];
-		}
-	}
-	else {
-		prefService.setCharPref("extensions.mpm.server", 'localhost:6600:')
-		mpd._host = 'localhost';
-		mpd._port = 6600;
-		mpd._password = '';
-	}
-}
 
 var mpd = {
     _host: null,
@@ -48,9 +29,10 @@ var mpd = {
     _statusCmd: 'command_list_begin\n' +
                 'status\n' +
                 'currentsong\n' +
-                'command_list_end',
+                'command_list_end\n',
     status: {
         // Output of status
+		volume: null,
         repeat: null,
         random: null,
         playlistlength: null,
@@ -83,7 +65,6 @@ var mpd = {
     lastCommand: '',
     lastResponse: '',
     _idle: false,
-    _refreshing: false,
     _doStatus: true,
     _timer: null,
     _cmdQueue: [],
@@ -91,15 +72,15 @@ var mpd = {
     
     // Connection methods
     connect: function () {
-        if (mpd._timer) mpd._timer.abort()
+        if (mpd._timer) mpd._timer.cancel()
         if (mpd._socket) {
             mpd._socket.cancel()
         }
-        mpd.checkStatus()
+        mpd._checkStatus()
     },
     disconnect: function () {
         if (mpd._timer) {
-            mpd._timer.abort()
+            mpd._timer.cancel()
             mpd._timer = null
         }
         mpd._socket.cancel()
@@ -107,56 +88,54 @@ var mpd = {
     _checkStatus: function () {
         mpd._doStatus = true
         if (!mpd._socket) {mpd._socket = socketTalker()}
-        if (idle) {mpd._socket.writeOut("\n")}
-        var tm = (mpd.state == "play") ? 200 : 800
+        if (mpd._idle) {mpd._socket.writeOut("\n")}
+        var tm = (mpd.status.state == "play") ? 200 : 800
         if (mpd._timer) {
-            mpd._timer.abort()
+            mpd._timer.cancel()
         }
-        if (mpd._socket) {mpd._timer = setTimeout("mpd.checkStatus()", tm)} 
+        if (mpd._socket) {
+			var cb = {notify: function (tmr) {mpd._checkStatus()}}
+			mpd._timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer)
+			mpd._timer.initWithCallback(cb, tm, Components.interfaces.nsITimer.TYPE_ONE_SHOT)
+		} 
     },
     
     // Talk directlty to MPD, outputData must be properly escaped and quoted.
     // callBack is optional, if left out or null and no socket is in use,
     // a single use connection will be made for this command.
     doCmd: function (outputData, callBack){
-        if (typeof(callBack)=='undefined') callBack = null
-        if (!callBack && !mpd._socket) {
-            // Send it blind
-            simple_send(outputData)
-        }
-        else {
-            mpd._cmdQueue.push({'outputData':outputData+"\n", 'callBack':callBack})
-            mpd._doStatus = true
-            if (mpd.active) {
-                if (mpd._idle) {
-                    mpd._socket.writeOut(queue[0].outputData)
-                    mpd._idle = false
-                }
+        mpd._cmdQueue.push({'outputData':outputData+"\n", 'callBack':Nz(callBack)})
+        mpd._doStatus = true
+        if (mpd._socket) {
+            if (mpd._idle) {
+                mpd._socket.writeOut(mpd._cmdQueue[0].outputData)
+                mpd._idle = false
             }
-            else  {mpd.connect()}
-            
         }
+        else  {mpd.connect()}
     },
     
-    // Any attribute that may be observed must be set with these methods.
-    // _set is for root level attributes, internal use only.
+    // Any property that may be observed must be set with these methods.
+    // _set is for root level properties, internal use only.
     _set: function (attr, val) {
         if (val != mpd[attr]) {
+			//debug("notify: "+attr+"="+val)
+			mpd[attr] = val
             observerService.notifyObservers(mpd, attr, val)
         }
     },
     
-    // mpd.setStatus(attribute, value) is used for status atrributes.
-    setState: function (attr, val) {
-        if (val != mpd.status[attr]) {
-            observerService.notifyObservers(mpd, attr, val)
+    // mpd.setStatus(propety, value) is used to change status properties.
+    setStatus: function (prop, val) {
+        if (val != mpd.status[prop]) {
+			debug("Notify: mpd.status."+prop+" = "+val)
+			mpd.status[prop] = val
+            observerService.notifyObservers(null, prop, val)
         }
     },
     
     // Batch update from polling loop, internal use only.
-    _update: function (data) {
-        mpd._refreshing = true
-        
+    _update: function (data) {		
         //parse the incoming data into a status object
         var obj = new Object()
         data = data.split("\n")
@@ -168,22 +147,55 @@ var mpd = {
                 obj[pair[0]] = pair[1]
             }
         } while (--dl)
-        
+		// Sanitize a few values.
+        if (!Nz(obj.Title) && Nz(obj.file)) {
+			obj.Title = obj.file.split("/").slice(-1)
+		}
+        if (obj.state == 'stop') {
+			obj.time = 0
+		}
+		else {
+			obj.time = Nz(obj.time,'0').split(":")[0]
+		}
+		
         //set status values 
-		for (x in mpd.state){
-			mpd.setState(x, obj[x])
+		for (x in mpd.status){
+			mpd.setStatus(x, Nz(obj[x]))
         }
         
-        mpd._refreshing = false
         mpd._doStatus = false
     }
 }
 
-function socketTalker() {
-	if (Nz(mpd._host) || Nz(mpd._port)) {
-		loadSrvPref()
+function loadSrvPref () {
+	var srv = prefBranch.getCharPref("extensions.mpm.server");
+	if (prefBranch.getPrefType("extensions.mpm.server") == prefBranch.PREF_STRING) {
+		var srv = prefBranch.getCharPref("extensions.mpm.server");
+		srv = srv.split(":", 3);
+		if (srv.length == 3) {
+			mpd._host = srv[0];
+			mpd._port = parseInt(srv[1]);
+			mpd._password = srv[2];
+		}
 	}
+	else {
+		prefBranch.setCharPref("extensions.mpm.server", '192.168.1.2:6600:')
+		mpd._host = '192.168.1.2';
+		mpd._port = 6600;
+		mpd._password = '';
+	}
+}
+
+function shorten(cmd){
+    // Convert command_list to single line
+    cmd = cmd.replace(/command_list.+?\n/g,"").replace(/\n/g,"; ")
+    return cmd.substr(0, cmd.length-2)
+}
+
+function socketTalker() {
     try {
+		var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
+								.getService(Components.interfaces.nsISocketTransportService);
         var transport = transportService.createTransport(null,0,mpd._host,mpd._port,null);
         var outstream = transport.openOutputStream(0,0,0);
         var instream = transport.openInputStream(0,0,0);
@@ -193,9 +205,10 @@ function socketTalker() {
         var utf_outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
                        .createInstance(Components.interfaces.nsIConverterOutputStream)
                        
-        conv_instream.init(instream, 'UTF-8', 1024, replacementChar);
-        conv_outstream.init(outstream, 'UTF-8', 0, 0x0000)
+        utf_instream.init(instream, 'UTF-8', 1024, replacementChar);
+        utf_outstream.init(outstream, 'UTF-8', 0, 0x0000)
     } catch (e) {
+		debug(e)
         return null
     }
 
@@ -203,6 +216,7 @@ function socketTalker() {
         data: "",
         onStartRequest: function(request, context){
             mpd._idle = false
+			debug('socketTalker for server '+mpd._host+":"+mpd._port+" created.")
         },
         onStopRequest: function(request, context, status){
             try {
@@ -223,6 +237,7 @@ function socketTalker() {
             mpd._set('greeting','Not Connected');
             mpd._idle = false;
             mpd._socket = null
+			debug('socketTalker for server '+mpd._host+":"+mpd._port+" destroyed.")
         },
         onDataAvailable: function(request, context, inputStream, offset, count){
             try {
@@ -234,82 +249,84 @@ function socketTalker() {
                 }
                 str = null
                 if (this.data.slice(-3) == "OK\n") {
-                    var snd = mpd._cmdQueue[0].outputData
-                    if (snd != mpd._statusCmd) {
-                        mpd._set('lastResponse', "OK")
-                    }
-                    if (mpd._cmdQueue.length > 0 && typeof(mpd._cmdQueue[0].callBack) == 'function') {
-                        mpd._cmdQueue[0].callBack(this.data)
-                    }
-                    mpd._cmdQueue.shift()
-                    this.data = ""
-                    if (mpd._cmdQueue.length > 0) {
-                        utf_outstream.writeString(mpd._cmdQueue[0].outputData);
-                        var snd = mpd._cmdQueue[0].outputData
-                        if (snd != mpd._statusCmd) {
-                            if (snd.substr(0, 9) != "plchanges") {
-                                mpd._set('lastCommand', shorten(snd));
-                            }
-                            mpd._set('lastResponse', "Working...");
-                        }
-                    }
-                    else {
-                        done = true
-                    }
-                }
-                else 
-                    if (this.data.substr(0, 6) == "OK MPD") {
-                        mpd._set('lastResponse', this.data.substr(3))
-                        this.data = ""
-                        if (mpd._password.length > 0) {
-                            mpd._cmdQueue.unshift({
-                                'outputData': 'password "' +
-                                mpd._password + '"\n',
-                                'callBack': null
-                            })
-                        }
-                        if (mpd._cmdQueue.length > 0) {
-                            utf_outstream.writeString(mpd._cmdQueue[0].outputData);
-                            var snd = mpd._cmdQueue[0].outputData
-                            if (snd != status_command) {
-                                if (snd.substr(0, 9) != "plchanges") {
-                                    mpd._set('lastCommand', shorten(snd))
-                                }
-                                mpd._set('lastResponse', "Working...");
-                            }
-                        }
-                        else {
-                            done = true
-                        }
-                    }
-                    else 
-                        if (this.data.indexOf('ACK [') != -1) {
-                            mpd._set('lastResponse', this.data.replace(/\n/g, ""))
-                            if (snd == mpd._statusCmd) {
-                                var msg = "An error has occured when communicating with MPD,\n" +
-                                "do you want to halt execution?\n\n" +
-                                "Click Cancel to continue sending commands, or\n" +
-                                "Click OK to prevent further attempts.\n\n\n" +
-                                "Command:\n" +
-                                mpd._cmdQueue[0].outputData +
-                                "\n\n" +
-                                "Response:\n" +
-                                this.data
-                                mpd.active = !confirm(msg)
-                            }
-                            mpd._cmdQueue.shift()
-                            mpd._doStatus = false
-                            done = true
-                        }
+					if (mpd._cmdQueue.length > 0) {
+						var snd = mpd._cmdQueue[0].outputData
+						if (snd != mpd._statusCmd) {
+							mpd._set('lastResponse', "OK")
+						}
+						if (mpd._cmdQueue.length > 0 && typeof(mpd._cmdQueue[0].callBack) == 'function') {
+							mpd._cmdQueue[0].callBack(this.data)
+						}
+						mpd._cmdQueue.shift()
+					}
+					this.data = ""
+					if (mpd._cmdQueue.length > 0) {
+						utf_outstream.writeString(mpd._cmdQueue[0].outputData);
+						var snd = mpd._cmdQueue[0].outputData
+						if (snd != mpd._statusCmd) {
+							if (snd.substr(0, 9) != "plchanges") {
+								mpd._set('lastCommand', shorten(snd));
+							}
+							mpd._set('lastResponse', "Working...");
+						}
+					}
+					else {
+						done = true
+					}
+				}
+				else 
+					if (this.data.substr(0, 6) == "OK MPD") {
+						mpd._set('greeting', this.data)
+						this.data = ""
+						if (mpd._password.length > 0) {
+							mpd._cmdQueue.unshift({
+								'outputData': 'password "' +
+								mpd._password +
+								'"\n',
+								'callBack': null
+							})
+						}
+						if (mpd._cmdQueue.length > 0) {
+							utf_outstream.writeString(mpd._cmdQueue[0].outputData);
+							var snd = mpd._cmdQueue[0].outputData
+							if (snd != status_command) {
+								if (snd.substr(0, 9) != "plchanges") {
+									mpd._set('lastCommand', shorten(snd))
+								}
+								mpd._set('lastResponse', "Working...");
+							}
+						}
+						else {
+							done = true
+						}
+					}
+					else 
+						if (this.data.indexOf('ACK [') != -1) {
+							mpd._set('lastResponse', this.data.replace(/\n/g, ""))
+							if (snd == mpd._statusCmd) {
+								var msg = "An error has occured when communicating with MPD,\n" +
+								"do you want to halt execution?\n\n" +
+								"Click Cancel to continue sending commands, or\n" +
+								"Click OK to prevent further attempts.\n\n\n" +
+								"Command:\n" +
+								mpd._cmdQueue[0].outputData +
+								"\n\n" +
+								"Response:\n" +
+								this.data
+								mpd.active = !confirm(msg)
+							}
+							mpd._cmdQueue.shift()
+							mpd._doStatus = false
+							done = true
+						}
                 if (done) {
-                    this.data = ""
                     if (mpd._doStatus) {
                         mpd._doStatus = false
                         mpd._cmdQueue.push({
                             'outputData': mpd._statusCmd,
                             'callBack': mpd._update
                         })
-                        utf_outstream.writeString(status_command)
+                        utf_outstream.writeString(mpd._statusCmd)
                     }
                     else {
                         mpd._idle = true
@@ -328,9 +345,10 @@ function socketTalker() {
     pump.asyncRead(listener,null);
     
     var con = {
-        cancel: function () {transport.cancel(0)},
+        cancel: function () {listener.onStopRequest()},
         writeOut: function (str) {utf_outstream.writeString(str)}
     }
+	
     return con
 }
 
@@ -355,9 +373,11 @@ var myPrefObserver = {
         switch (aData) {
             case "server":
 				loadSrvPref()
-				mpd.connect();
+				if (mpd._socket) mpd.connect();
                 break;
         }
     }
 }
+
+loadSrvPref()
 myPrefObserver.register();

@@ -1,4 +1,0 @@
-content minion content/
-overlay chrome://browser/content/browser.xul chrome://minion/content/overlay.xul
-style   chrome://global/content/customizeToolbar.xul chrome://minion/skin/toolbar-button.css
-resource minion modules/

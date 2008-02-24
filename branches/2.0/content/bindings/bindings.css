@@ -1,0 +1,9 @@
+mpdlabel {
+	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdObserverLabel")
+}
+mpdtime {
+	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdTime")
+}
+mpdvolume {
+	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdVolume")
+}

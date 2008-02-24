@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<bindings xmlns="http://www.mozilla.org/xbl"
+		  xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+	<binding id="mpdObserverLabel">
+		<content>
+			<xul:label xbl:inherits="value"/>
+		</content>
+		<implementation>
+			<field name="observes"/>
+			<property name="value"
+				onget="return document.getAnonymousNodes(this)[0].value"
+				onset="document.getAnonymousNodes(this)[0].value=val"/>
+			<constructor>
+				Components.utils.import("resource://minion/mpmUtils.js");
+				var lbl = document.getAnonymousNodes(this)[0]
+				var obs = {
+					observe: function(subject,topic,data){
+						lbl.value = data;
+					}
+				};
+				observerService.addObserver(obs,this.observes,false)
+			</constructor>
+			<deconstructor>
+				observerService.removeObserver(obs,this.observes)
+			</deconstructor>
+		</implementation>	
+	</binding>
+	
+	<binding id="mpdTime">
+		<content>
+			<xul:label class="mpdTimeElapsed" seconds="0" value="0:00"/>
+			<xul:progressmeter 
+				class="mpdTimeProgressmeter"
+				collapsed="false"
+				xbl:inherits="collapsed=hideprogressmeter"/>
+			<xul:label class="mpdTimeSeparator" value="/"
+				collapsed="true"/>
+			<xul:label class="mpdTimeTotal" seconds="0" value="0:00"/>
+		</content>
+		<implementation>
+			<property name="elapsed"
+				onget="return document.getAnonymousNodes(this)[0].seconds"
+				onset="this.seekToSec(val)"/>
+			<property name="percent"
+				onget="return document.getAnonymousNodes(this)[1].value"
+				onset="this.seekToPercent(val)"/>
+			<property name="total"
+				onget="return document.getAnonymousNodes(this)[3].seconds"
+				onset=""/>
+			<constructor>
+				Components.utils.import("resource://minion/mpd.js");
+				Components.utils.import("resource://minion/mpmUtils.js");
+				var lbl1 = document.getAnonymousNodes(this)[0]
+				var progress = document.getAnonymousNodes(this)[1]
+				var lblSep = document.getAnonymousNodes(this)[2]
+				var lbl2 = document.getAnonymousNodes(this)[3]
+				lblSep.collapsed = !progress.collapsed
+				
+				function hmsFromSec(sec) {
+				  var hms = "0:00"
+				  try {sec = parseInt(sec)}
+				  catch (err) {return "0:00"}
+				  if (sec > 0) {
+				    var h = 0
+				    if (sec >= 3600) {
+				      h = Math.floor(sec/3600)
+				      sec = sec % 3600
+				      }
+				    var m = Math.floor(sec/60)
+				    var s = sec % 60
+				    if (h > 0){
+				      h = h + ":"
+				      if (m.toString().length == 1) {m = "0" + m}
+				      }
+				    else {h = ""}
+				    m = m + ":"
+				    if (s.toString().length == 1) {s = "0" + s}
+				    hms = h+m+s
+				    }
+				  return hms
+				}
+				function seekScroll(event) {
+				    var sec = parseInt(mpd.status.time) + (event.detail * -2);
+				    mpd.setStatus('time', sec);
+				    mpd.doCmd("seek " + mpd.status.song + " " + sec);
+				}
+				function prgmtrClick(event) {
+					var elem = event.target;
+					var elemX = event.clientX - elem.boxObject.x;
+					var elemW = elem.boxObject.lastChild.boxObject.width + elem.boxObject.firstChild.boxObject.width;
+					var val = Math.round(elemX/elemW*100);
+					elem.value = val;
+					elem.parentNode.seekToPercent(val);
+				}
+				var obs1 = {
+					observe: function(subject,topic,data){
+						lbl1.seconds = data;
+						lbl1.value = hmsFromSec(data);
+						progress.value = Math.round((data / mpd.status.Time) * 100 )
+					}
+				};
+				var obs2 = {
+					observe: function(subject,topic,data){
+						lbl2.seconds = data;
+						lbl2.value = hmsFromSec(data);
+					}
+				};
+				
+				observerService.addObserver(obs1,"time",false)
+				observerService.addObserver(obs2,"Time",false)
+				this.addEventListener("DOMMouseScroll", seekScroll, false)
+				progress.addEventListener("click", prgmtrClick, false)
+			</constructor>
+			<deconstructor>
+				observerService.removeObserver(obs1, "time")
+				observerService.removeObserver(obs2, "Time")
+				this.removeEventListener("DOMMouseScroll", seekScroll, false)
+				progress.removeEventListener("click", prgmtrClick, false)
+			</deconstructor>
+			<method name="seekBySec">
+				<parameter name="incr"/>
+				<body>
+				    var sec = parseInt(mpd.status.time) + incr;
+				    mpd.doCmd("seek " + mpd.status.song + " " + sec);
+				</body>
+			</method>
+			<method name="seekToSec">
+				<parameter name="sec"/>
+				<body>
+				    mpd.doCmd("seek " + mpd.status.song + " " + sec);
+				</body>
+			</method>
+			<method name="seekToPercent">
+				<parameter name="perc"/>
+				<body>
+					var sec = Math.round((perc/100)*mpd.status.Time)
+				    mpd.doCmd("seek " + mpd.status.song + " " + sec);
+				</body>
+			</method>
+		</implementation>	
+	</binding>
+	
+	<binding id="mpdVolume">
+		<content>
+			<xul:scale class="mpdVolumeScale" 
+				xbl:inherits="value,orient"
+				min="0"
+				max="100"
+				onchange="this.parentNode.setvol(this.value)"/>
+		</content>
+		<implementation>
+			<property name="volume"
+				onget="return document.getAnonymousNodes(this)[0].value"
+				onset="this.setvol(val)"/>
+			<constructor>
+				Components.utils.import("resource://minion/mpd.js");
+				Components.utils.import("resource://minion/mpmUtils.js");
+				var scale = document.getAnonymousNodes(this)[0];
+				var obs = {
+					observe: function(subject,topic,data){
+						scale.value = data;
+					}
+				};
+				observerService.addObserver(obs, "volume", false);
+			</constructor>
+			<deconstructor>
+				observerService.removeObserver(obs, "volume");
+			</deconstructor>
+			<method name="setvol">
+				<parameter name="vol"/>
+				<body>
+					if (vol == mpd.status.volume) return null;
+					if (vol &lt; 0) vol = 0;
+					else if (vol &gt; 100) vol = 100;
+				    mpd.doCmd("setvol " + vol);
+				</body>
+			</method>
+		</implementation>	
+	</binding>
+</bindings>
