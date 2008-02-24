@@ -16,7 +16,7 @@
 *      MA 02110-1301, USA.
 */
 
-EXPORTED_SYMBOLS = ["Nz", "debug", "prefBranch", "prefService", "observerService"]
+EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prefBranch", "prefService", "observerService"]
 
 // Use this line to import: 
 // Components.utils.import("resource://minion/mpmUtils.js");
@@ -46,4 +46,38 @@ function Nz(obj, def){
 		return (typeof(def) == 'undefined') ? null : def
 	}
 	return obj
+}
+
+function hmsFromSec(sec){
+	var hms = "0:00"
+	try {
+		sec = parseInt(sec)
+	} 
+	catch (err) {
+		return "0:00"
+	}
+	if (sec > 0) {
+		var h = 0
+		if (sec >= 3600) {
+			h = Math.floor(sec / 3600)
+			sec = sec % 3600
+		}
+		var m = Math.floor(sec / 60)
+		var s = sec % 60
+		if (h > 0) {
+			h = h + ":"
+			if (m.toString().length == 1) {
+				m = "0" + m
+			}
+		}
+		else {
+			h = ""
+		}
+		m = m + ":"
+		if (s.toString().length == 1) {
+			s = "0" + s
+		}
+		hms = h + m + s
+	}
+	return hms
 }

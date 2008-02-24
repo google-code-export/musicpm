@@ -15,6 +15,7 @@
 			<constructor>
 				Components.utils.import("resource://minion/mpmUtils.js");
 				var lbl = document.getAnonymousNodes(this)[0]
+				lbl.class = "mpdLabel"+this.observes
 				var obs = {
 					observe: function(subject,topic,data){
 						lbl.value = data;
@@ -58,29 +59,6 @@
 				var lbl2 = document.getAnonymousNodes(this)[3]
 				lblSep.collapsed = !progress.collapsed
 				
-				function hmsFromSec(sec) {
-				  var hms = "0:00"
-				  try {sec = parseInt(sec)}
-				  catch (err) {return "0:00"}
-				  if (sec > 0) {
-				    var h = 0
-				    if (sec >= 3600) {
-				      h = Math.floor(sec/3600)
-				      sec = sec % 3600
-				      }
-				    var m = Math.floor(sec/60)
-				    var s = sec % 60
-				    if (h > 0){
-				      h = h + ":"
-				      if (m.toString().length == 1) {m = "0" + m}
-				      }
-				    else {h = ""}
-				    m = m + ":"
-				    if (s.toString().length == 1) {s = "0" + s}
-				    hms = h+m+s
-				    }
-				  return hms
-				}
 				function seekScroll(event) {
 				    var sec = parseInt(mpd.status.time) + (event.detail * -2);
 				    mpd.setStatus('time', sec);
@@ -177,6 +155,85 @@
 				    mpd.doCmd("setvol " + vol);
 				</body>
 			</method>
+		</implementation>	
+	</binding>
+	
+	<binding id="mpdPlaybackControls">
+		<content>
+			<xul:toolbarbutton class="mpdButtonPrevious"
+				tooltiptext="Previous Track"
+				oncommand="mpd.doCmd('prev')"/>
+			<xul:deck>
+				<xul:toolbarbutton class="mpdButtonPlay"
+					tooltiptext="Play"
+					oncommand="mpd.doCmd('play')"/>
+				<xul:toolbarbutton class="mpdButtonPause"
+					tooltiptext="Pause"
+					oncommand="mpd.doCmd('pause')"/>
+			</xul:deck>
+			<xul:toolbarbutton class="mpdButtonStop"
+				tooltiptext="Stop"
+				oncommand="mpd.doCmd('stop')"
+				xbl:inherits="collapsed=hidestop"/>
+			<xul:toolbarbutton class="mpdButtonNext"
+				tooltiptext="Next Track"
+				oncommand="mpd.doCmd('next')"/>
+		</content>
+		<implementation>
+			<constructor>
+				Components.utils.import("resource://minion/mpd.js");
+				Components.utils.import("resource://minion/mpmUtils.js");
+				var prev = document.getAnonymousNodes(this)[0]
+				var playpause = document.getAnonymousNodes(this)[1]
+				var next = document.getAnonymousNodes(this)[2]
+				var obs = {
+					observe: function(subject,topic,data){
+						playpause.selectedIndex = (data=='play') ? 1 : 0;
+					}
+				};
+				observerService.addObserver(obs,'state',false)
+			</constructor>
+			<deconstructor>
+				observerService.removeObserver(obs,'state')
+			</deconstructor>
+		</implementation>	
+	</binding>
+	
+	<binding id="mpdConnection">
+		<content>
+			<xul:toolbarbutton class="mpdButtonConnect"
+				tooltiptext="Toggle Connection"
+				oncommand="this.parentNode.connected = !this.parentNode.connected"/>
+		</content>
+		<implementation>
+			<field name="showlabel">true</field>
+			<property name="connected"
+				onget="return (mpd._socket) ? true : false"
+				onset="if (val) mpd.connect(); else mpd.disconnect()"/>
+			<constructor>
+				Components.utils.import("resource://minion/mpd.js");
+				Components.utils.import("resource://minion/mpmUtils.js");
+				var btn = document.getAnonymousNodes(this)[0]
+				var showlabel = this.showlabel
+				if (showlabel) btn.label = mpd.greeting
+				var obs = {
+					observe: function(subject,topic,data){
+						var cls = ""
+						if (mpd._socket) cls = " mpdButtonConnected"
+						btn.className="mpdButtonConnect"+cls
+						if (showlabel) {
+							btn.label = data
+						}
+						else {
+							btn.setAttribute('tooltiptext', data)
+						}
+					}
+				};
+				observerService.addObserver(obs,'greeting',false)
+			</constructor>
+			<deconstructor>
+				observerService.removeObserver(obs,'greeting')
+			</deconstructor>
 		</implementation>	
 	</binding>
 </bindings>

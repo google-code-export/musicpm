@@ -7,3 +7,9 @@ mpdtime {
 mpdvolume {
 	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdVolume")
 }
+mpdcontrols {
+	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdPlaybackControls")
+}
+mpdconnection {
+	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdConnection")
+}

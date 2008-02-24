@@ -18,8 +18,6 @@
 
 EXPORTED_SYMBOLS = ["mpd"]
 
-// mpmUtils.js:
-// EXPORTED_SYMBOLS = ["Nz", "debug", "prefBranch", "prefService", "observerService"]
 Components.utils.import("resource://minion/mpmUtils.js");
 
 var mpd = {
@@ -36,7 +34,7 @@ var mpd = {
         repeat: null,
         random: null,
         playlistlength: null,
-        playlist: null,
+        playlist: 0,
         xfade: null,
         state: null,
         song: null,
@@ -59,6 +57,8 @@ var mpd = {
         Pos: null,
         Id: null
     },
+	plinfo: [],
+	pltime: 0,
     
     // Connection state information
     greeting: 'Not Connected',
@@ -117,11 +117,11 @@ var mpd = {
     
     // Any property that may be observed must be set with these methods.
     // _set is for root level properties, internal use only.
-    _set: function (attr, val) {
-        if (val != mpd[attr]) {
-			//debug("notify: "+attr+"="+val)
-			mpd[attr] = val
-            observerService.notifyObservers(mpd, attr, val)
+    _set: function (prop, val) {
+        if (val != mpd[prop]) {
+			debug("Notify: mpd."+prop+" = "+val)
+			mpd[prop] = val
+            observerService.notifyObservers(null, prop, val)
         }
     },
     
@@ -157,6 +157,11 @@ var mpd = {
 		else {
 			obj.time = Nz(obj.time,'0').split(":")[0]
 		}
+		if (obj.playlist != mpd.status.playlist) {
+			mpd.plinfo.length = obj.playlistlength
+			debug("plchanges " + mpd.status.playlist)
+			mpd.doCmd("plchanges " + mpd.status.playlist, mpd._parsePL)
+		}
 		
         //set status values 
 		for (x in mpd.status){
@@ -164,7 +169,52 @@ var mpd = {
         }
         
         mpd._doStatus = false
-    }
+    },
+	_parsePL: function (data) {
+	    data = data.split("\n")
+	    var dl = data.length
+	    if (dl > 0) {
+	        var n = dl
+	        do {
+	            var i = dl - n
+	            var sep = data[i].indexOf(": ")
+	            if (data[i].substr(0, sep) == 'file') {
+	                var fname = data[i].slice(sep+2)
+	                var song = {
+	                    'type': 'file',
+	                    'Name': fname,
+	                    'Title': fname,
+	                    'Artist': 'unknown',
+	                    'Album': 'unknown',
+	                    'Time': 0,
+	                    'Pos': 0
+	                };
+	                var d = data[i + 1]
+	                while (d && d.substr(0, 6) != "file: ") {
+	                    var sep = d.indexOf(": ")
+						if (sep > 0) {
+							song[d.substr(0, sep)] = d.slice(sep + 2);
+						}
+	                    --n;
+	                    var d = data[dl - n + 1]
+	                };
+	                mpd.plinfo[parseInt(song.Pos)] = song
+	            }
+	        }
+	        while (--n)
+	    }
+	    var tm = 0
+	    var l = mpd.plinfo.length
+	    if (l > 0) {
+	        do {
+	            try {tm += parseInt(mpd.plinfo[l-1]['Time'])}
+	            catch (e) {debug(e)}
+	        } while (--l)
+	    }
+	    mpd.pltime = tm
+        observerService.notifyObservers(null, "plinfo", null)
+        observerService.notifyObservers(null, "pltime", tm)
+	}
 }
 
 function loadSrvPref () {
@@ -234,10 +284,10 @@ function socketTalker() {
             } 
             catch (e) {
             }
-            mpd._set('greeting','Not Connected');
             mpd._idle = false;
             mpd._socket = null
 			debug('socketTalker for server '+mpd._host+":"+mpd._port+" destroyed.")
+            mpd._set('greeting','Not Connected');
         },
         onDataAvailable: function(request, context, inputStream, offset, count){
             try {
