@@ -1,15 +1,15 @@
 mpdlabel {
-	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdObserverLabel")
+	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdObserverLabel")
 }
 mpdtime {
-	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdTime")
+	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdTime")
 }
 mpdvolume {
-	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdVolume")
+	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdVolume")
 }
 mpdcontrols {
-	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdPlaybackControls")
+	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdPlaybackControls")
 }
 mpdconnection {
-	-moz-binding: url("chrome://minion/content/bindings/mpmBindings.xml#mpdConnection")
+	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdConnection")
 }

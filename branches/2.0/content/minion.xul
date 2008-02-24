@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://minion/content/bindings/bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/bindings/coreBindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/minion.css" type="text/css"?>
 
 <window

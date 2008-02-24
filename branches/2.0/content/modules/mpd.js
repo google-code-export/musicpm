@@ -24,39 +24,32 @@ var mpd = {
     _host: null,
     _port: null,
     _password: null,
-    _statusCmd: 'command_list_begin\n' +
-                'status\n' +
-                'currentsong\n' +
-                'command_list_end\n',
-    status: {
-        // Output of status
-		volume: null,
-        repeat: null,
-        random: null,
-        playlistlength: null,
-        playlist: 0,
-        xfade: null,
-        state: null,
-        song: null,
-        songid: null,
-        time: null,
-        bitrate: null,
-        audio: null,
-        updating_db: null,
-                
-        // Output of currentsong
-        file: null,
-        Time: null,
-        Artist: null,
-        Title: null,
-        Album: null,
-        Track: null,
-        Date: null,
-        Genre: null,
-        Composer: null,
-        Pos: null,
-        Id: null
-    },
+	
+    // Output of status
+	volume: null,
+    repeat: null,
+    random: null,
+    playlistlength: null,
+    playlist: 0,
+    xfade: null,
+    state: null,
+    song: null,
+    time: null,
+    bitrate: null,
+    updating_db: null,
+            
+    // Output of currentsong
+    file: null,
+    Time: null,
+    Artist: null,
+    Title: null,
+    Album: null,
+    Track: null,
+    Date: null,
+    Genre: null,
+    Composer: null,
+	
+	// Playlist contents and total playtime
 	plinfo: [],
 	pltime: 0,
     
@@ -89,7 +82,7 @@ var mpd = {
         mpd._doStatus = true
         if (!mpd._socket) {mpd._socket = socketTalker()}
         if (mpd._idle) {mpd._socket.writeOut("\n")}
-        var tm = (mpd.status.state == "play") ? 200 : 800
+        var tm = (mpd.state == "play") ? 200 : 800
         if (mpd._timer) {
             mpd._timer.cancel()
         }
@@ -103,12 +96,18 @@ var mpd = {
     // Talk directlty to MPD, outputData must be properly escaped and quoted.
     // callBack is optional, if left out or null and no socket is in use,
     // a single use connection will be made for this command.
-    doCmd: function (outputData, callBack){
-        mpd._cmdQueue.push({'outputData':outputData+"\n", 'callBack':Nz(callBack)})
+    doCmd: function (outputData, callBack, hide){
+		hide = Nz(hide)
+        mpd._cmdQueue.push({
+			outputData: outputData+"\n",
+			callBack: Nz(callBack),
+			hide: hide
+			})
         mpd._doStatus = true
         if (mpd._socket) {
             if (mpd._idle) {
                 mpd._socket.writeOut(mpd._cmdQueue[0].outputData)
+				if (!hide) mpd.set('lastCommand', shorten(outputData+"\n"));
                 mpd._idle = false
             }
         }
@@ -116,25 +115,15 @@ var mpd = {
     },
     
     // Any property that may be observed must be set with these methods.
-    // _set is for root level properties, internal use only.
-    _set: function (prop, val) {
+    set: function (prop, val) {
         if (val != mpd[prop]) {
 			debug("Notify: mpd."+prop+" = "+val)
 			mpd[prop] = val
             observerService.notifyObservers(null, prop, val)
         }
     },
-    
-    // mpd.setStatus(propety, value) is used to change status properties.
-    setStatus: function (prop, val) {
-        if (val != mpd.status[prop]) {
-			debug("Notify: mpd.status."+prop+" = "+val)
-			mpd.status[prop] = val
-            observerService.notifyObservers(null, prop, val)
-        }
-    },
-    
-    // Batch update from polling loop, internal use only.
+        
+    // Parse output from status command, internal use only.
     _update: function (data) {		
         //parse the incoming data into a status object
         var obj = new Object()
@@ -147,29 +136,69 @@ var mpd = {
                 obj[pair[0]] = pair[1]
             }
         } while (--dl)
-		// Sanitize a few values.
-        if (!Nz(obj.Title) && Nz(obj.file)) {
-			obj.Title = obj.file.split("/").slice(-1)
-		}
+		
+		// React to and alter certain values.
         if (obj.state == 'stop') {
 			obj.time = 0
 		}
 		else {
 			obj.time = Nz(obj.time,'0').split(":")[0]
 		}
-		if (obj.playlist != mpd.status.playlist) {
+		if (obj.song != mpd.song) {
+			mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
+		}
+		if (obj.playlist != mpd.playlist) {
 			mpd.plinfo.length = obj.playlistlength
-			debug("plchanges " + mpd.status.playlist)
-			mpd.doCmd("plchanges " + mpd.status.playlist, mpd._parsePL)
+			mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
 		}
 		
         //set status values 
-		for (x in mpd.status){
-			mpd.setStatus(x, Nz(obj[x]))
-        }
+		mpd.set('volume', Nz(obj.volume))
+		mpd.set('repeat', Nz(obj.repeat))
+		mpd.set('random', Nz(obj.random))
+		mpd.set('playlistlength', Nz(obj.playlistlength))
+		mpd.set('playlist', Nz(obj.playlist))
+		mpd.set('xfade', Nz(obj.xfade))
+		mpd.set('state', Nz(obj.state))
+		mpd.set('song', Nz(obj.song))
+		mpd.set('time', Nz(obj.time))
+		mpd.set('bitrate', Nz(obj.bitrate))
+		mpd.set('updating_db', Nz(obj.updating_db))
         
         mpd._doStatus = false
     },
+	
+    // Parse output from currentsong command, internal use only.
+    _parseCurrentSong: function (data) {		
+        //parse the incoming data into a status object
+        var obj = new Object()
+        data = data.split("\n")
+        var dl = data.length
+        var pair
+        do {
+            pair = data[dl - 1].split(": ", 2)
+            if (pair.length == 2) {
+                obj[pair[0]] = pair[1]
+            }
+        } while (--dl)
+		
+		// React to and alter certain values.
+        if (!Nz(obj.Title) && Nz(obj.file)) {
+			obj.Title = obj.file.split("/").slice(-1)
+		}
+		
+        //set currentsong values 
+		mpd.set('file', Nz(obj.file))
+		mpd.set('Time', Nz(obj.Time))
+		mpd.set('Artist', Nz(obj.Artist))
+		mpd.set('Title', Nz(obj.Title))
+		mpd.set('Album', Nz(obj.Album))
+		mpd.set('Track', Nz(obj.Track))
+		mpd.set('Date', Nz(obj.Date))
+		mpd.set('Genre', Nz(obj.Genre))
+		mpd.set('Composer', Nz(obj.Composer))
+    },
+	
 	_parsePL: function (data) {
 	    data = data.split("\n")
 	    var dl = data.length
@@ -287,7 +316,7 @@ function socketTalker() {
             mpd._idle = false;
             mpd._socket = null
 			debug('socketTalker for server '+mpd._host+":"+mpd._port+" destroyed.")
-            mpd._set('greeting','Not Connected');
+            mpd.set('greeting','Not Connected');
         },
         onDataAvailable: function(request, context, inputStream, offset, count){
             try {
@@ -301,23 +330,27 @@ function socketTalker() {
                 if (this.data.slice(-3) == "OK\n") {
 					if (mpd._cmdQueue.length > 0) {
 						var snd = mpd._cmdQueue[0].outputData
-						if (snd != mpd._statusCmd) {
-							mpd._set('lastResponse', "OK")
+						if (!mpd._cmdQueue[0].hide) {
+							mpd.set('lastResponse', "OK");
 						}
-						if (mpd._cmdQueue.length > 0 && typeof(mpd._cmdQueue[0].callBack) == 'function') {
+						else if (snd.slice(0,9) == "plchanges") {
+							mpd.set('lastResponse', "OK");
+						}
+						if (mpd._cmdQueue.length > 0 && mpd._cmdQueue[0].callBack) {
 							mpd._cmdQueue[0].callBack(this.data)
 						}
 						mpd._cmdQueue.shift()
 					}
 					this.data = ""
 					if (mpd._cmdQueue.length > 0) {
-						utf_outstream.writeString(mpd._cmdQueue[0].outputData);
 						var snd = mpd._cmdQueue[0].outputData
-						if (snd != mpd._statusCmd) {
-							if (snd.substr(0, 9) != "plchanges") {
-								mpd._set('lastCommand', shorten(snd));
-							}
-							mpd._set('lastResponse', "Working...");
+						utf_outstream.writeString(snd);
+						if (!mpd._cmdQueue[0].hide) {
+							mpd.set('lastCommand', shorten(snd));
+							mpd.set('lastResponse', "Working...");
+						}
+						else if (snd.slice(0,9) == "plchanges") {
+							mpd.set('lastResponse', "Working...");
 						}
 					}
 					else {
@@ -326,24 +359,24 @@ function socketTalker() {
 				}
 				else 
 					if (this.data.substr(0, 6) == "OK MPD") {
-						mpd._set('greeting', this.data)
+						mpd.set('greeting', this.data)
 						this.data = ""
 						if (mpd._password.length > 0) {
 							mpd._cmdQueue.unshift({
-								'outputData': 'password "' +
-								mpd._password +
-								'"\n',
-								'callBack': null
+								outputData: 'password "'+mpd._password+'"\n',
+								callBack: null,
+								hide: true
 							})
 						}
 						if (mpd._cmdQueue.length > 0) {
-							utf_outstream.writeString(mpd._cmdQueue[0].outputData);
 							var snd = mpd._cmdQueue[0].outputData
-							if (snd != status_command) {
-								if (snd.substr(0, 9) != "plchanges") {
-									mpd._set('lastCommand', shorten(snd))
-								}
-								mpd._set('lastResponse', "Working...");
+							utf_outstream.writeString(snd);
+							if (!mpd._cmdQueue[0].hide) {
+								mpd.set('lastCommand', shorten(snd));
+								mpd.set('lastResponse', "Working...");
+							}
+							else if (snd.slice(0,9) == "plchanges") {
+								mpd.set('lastResponse', "Working...");
 							}
 						}
 						else {
@@ -352,8 +385,8 @@ function socketTalker() {
 					}
 					else 
 						if (this.data.indexOf('ACK [') != -1) {
-							mpd._set('lastResponse', this.data.replace(/\n/g, ""))
-							if (snd == mpd._statusCmd) {
+							mpd.set('lastResponse', this.data.replace(/\n/g, ""))
+							if (snd == "status\n") {
 								var msg = "An error has occured when communicating with MPD,\n" +
 								"do you want to halt execution?\n\n" +
 								"Click Cancel to continue sending commands, or\n" +
@@ -373,10 +406,11 @@ function socketTalker() {
                     if (mpd._doStatus) {
                         mpd._doStatus = false
                         mpd._cmdQueue.push({
-                            'outputData': mpd._statusCmd,
-                            'callBack': mpd._update
+                            outputData: "status\n",
+                            callBack: mpd._update,
+							hide: true
                         })
-                        utf_outstream.writeString(mpd._statusCmd)
+                        utf_outstream.writeString("status\n")
                     }
                     else {
                         mpd._idle = true

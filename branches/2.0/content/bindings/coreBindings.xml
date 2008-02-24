@@ -15,7 +15,8 @@
 			<constructor>
 				Components.utils.import("resource://minion/mpmUtils.js");
 				var lbl = document.getAnonymousNodes(this)[0]
-				lbl.class = "mpdLabel"+this.observes
+				lbl.className = "mpdLabel"+this.observes
+				lbl.value = mpd[this.observes]
 				var obs = {
 					observe: function(subject,topic,data){
 						lbl.value = data;
@@ -60,9 +61,9 @@
 				lblSep.collapsed = !progress.collapsed
 				
 				function seekScroll(event) {
-				    var sec = parseInt(mpd.status.time) + (event.detail * -2);
-				    mpd.setStatus('time', sec);
-				    mpd.doCmd("seek " + mpd.status.song + " " + sec);
+				    var sec = parseInt(mpd.time) + (event.detail * -2);
+				    mpd.set('time', sec);
+				    mpd.doCmd("seek " + mpd.song + " " + sec);
 				}
 				function prgmtrClick(event) {
 					var elem = event.target;
@@ -76,7 +77,7 @@
 					observe: function(subject,topic,data){
 						lbl1.seconds = data;
 						lbl1.value = hmsFromSec(data);
-						progress.value = Math.round((data / mpd.status.Time) * 100 )
+						progress.value = Math.round((data / mpd.Time) * 100 )
 					}
 				};
 				var obs2 = {
@@ -100,21 +101,21 @@
 			<method name="seekBySec">
 				<parameter name="incr"/>
 				<body>
-				    var sec = parseInt(mpd.status.time) + incr;
-				    mpd.doCmd("seek " + mpd.status.song + " " + sec);
+				    var sec = parseInt(mpd.time) + incr;
+				    mpd.doCmd("seek " + mpd.song + " " + sec);
 				</body>
 			</method>
 			<method name="seekToSec">
 				<parameter name="sec"/>
 				<body>
-				    mpd.doCmd("seek " + mpd.status.song + " " + sec);
+				    mpd.doCmd("seek " + mpd.song + " " + sec);
 				</body>
 			</method>
 			<method name="seekToPercent">
 				<parameter name="perc"/>
 				<body>
-					var sec = Math.round((perc/100)*mpd.status.Time)
-				    mpd.doCmd("seek " + mpd.status.song + " " + sec);
+					var sec = Math.round((perc/100)*mpd.Time)
+				    mpd.doCmd("seek " + mpd.song + " " + sec);
 				</body>
 			</method>
 		</implementation>	
@@ -136,20 +137,30 @@
 				Components.utils.import("resource://minion/mpd.js");
 				Components.utils.import("resource://minion/mpmUtils.js");
 				var scale = document.getAnonymousNodes(this)[0];
+				scale.value = mpd.volume
+				function volScroll(event) {
+				    var vol = parseInt(mpd.volume) + (event.detail * -1);
+					if (vol &lt; 0) vol = 0;
+					else if (vol &gt; 100) vol = 100;
+				    mpd.set('volume', vol);
+				    mpd.doCmd("setvol " + vol);
+				}
 				var obs = {
 					observe: function(subject,topic,data){
 						scale.value = data;
 					}
 				};
 				observerService.addObserver(obs, "volume", false);
+				this.addEventListener("DOMMouseScroll", volScroll, false)
 			</constructor>
 			<deconstructor>
 				observerService.removeObserver(obs, "volume");
+				this.removeEventListener("DOMMouseScroll", volScroll, false)
 			</deconstructor>
 			<method name="setvol">
 				<parameter name="vol"/>
 				<body>
-					if (vol == mpd.status.volume) return null;
+					if (vol == mpd.volume) return null;
 					if (vol &lt; 0) vol = 0;
 					else if (vol &gt; 100) vol = 100;
 				    mpd.doCmd("setvol " + vol);
@@ -180,6 +191,9 @@
 				oncommand="mpd.doCmd('next')"/>
 		</content>
 		<implementation>
+			<property name="state"
+				onget="return mpd.state"
+				onset=""/>
 			<constructor>
 				Components.utils.import("resource://minion/mpd.js");
 				Components.utils.import("resource://minion/mpmUtils.js");
@@ -196,6 +210,36 @@
 			<deconstructor>
 				observerService.removeObserver(obs,'state')
 			</deconstructor>
+			<method name="prev">
+				<body>
+				    mpd.doCmd("prev");
+				</body>
+			</method>
+			<method name="previous">
+				<body>
+				    mpd.doCmd("prev");
+				</body>
+			</method>
+			<method name="play">
+				<body>
+				    mpd.doCmd("play");
+				</body>
+			</method>
+			<method name="pause">
+				<body>
+				    mpd.doCmd("pause");
+				</body>
+			</method>
+			<method name="stop">
+				<body>
+				    mpd.doCmd("stop");
+				</body>
+			</method>
+			<method name="next">
+				<body>
+				    mpd.doCmd("next");
+				</body>
+			</method>
 		</implementation>	
 	</binding>
 	
