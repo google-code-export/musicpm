@@ -295,4 +295,31 @@
 			</deconstructor>
 		</implementation>	
 	</binding>
+	
+	<binding id="mpdPlaylistTree">
+		<content>
+		</content>
+		<field name="data"/>
+		<implementation>
+			<constructor>
+				Components.utils.import("resource://minion/mpd.js");
+				Components.utils.import("resource://minion/mpmUtils.js");
+				this.data = mpd.plinfo
+				this.refresh()
+				var obs = {
+					observe: function(subject,topic,data){
+						this.refresh()
+					}
+				};
+				observerService.addObserver(obs,'plinfo',false)
+			</constructor>
+			<deconstructor>
+				observerService.removeObserver(obs,'plinfo')
+			</deconstructor>
+			<method name="refresh">
+				<body>
+				</body>
+			</method>
+		</implementation>	
+	</binding>
 </bindings>
