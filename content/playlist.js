@@ -167,8 +167,7 @@ function toPercent (val, max) {
   return Math.round((val / max) * 100 )
   }
 function fromPercent (val, max) {
-  r = (val/100)*max
-  return Math.round(r)
+  return Math.round((val/100)*max)
   }
 
 function scaleChange(elem, val) {
@@ -201,7 +200,7 @@ function prgmtrChange(event) {
   var val = Math.round(elementX/elementW*100)
   element.value = val
   scaleChange(element)
-  }
+}
 
 function volChange(){
     command('setvol '+$('vol_slider').value, null)
