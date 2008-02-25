@@ -13,7 +13,7 @@
 	<mpdlabel value="Artist" observes="Artist"/>
 	<mpdtime id="mytime"/>
 	<hbox>
-		<mpdcontrols hidestop="true"/>
+		<mpdcontrols hidestop="false"/>
 		<mpdvolume/>
 	</hbox>
 	<hbox>

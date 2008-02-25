@@ -61,16 +61,13 @@
 				lblSep.collapsed = !progress.collapsed
 				
 				function seekScroll(event) {
-				    var sec = parseInt(mpd.time) + (event.detail * -2);
-				    mpd.set('time', sec);
-				    mpd.doCmd("seek " + mpd.song + " " + sec);
+					lbl1.parentNode.seekBySec(event.detail * -2);
 				}
 				function prgmtrClick(event) {
 					var elem = event.target;
 					var elemX = event.clientX - elem.boxObject.x;
 					var elemW = elem.boxObject.lastChild.boxObject.width + elem.boxObject.firstChild.boxObject.width;
 					var val = Math.round(elemX/elemW*100);
-					elem.value = val;
 					elem.parentNode.seekToPercent(val);
 				}
 				var obs1 = {
@@ -102,6 +99,7 @@
 				<parameter name="incr"/>
 				<body>
 				    var sec = parseInt(mpd.time) + incr;
+					mpd.set('time', sec)
 				    mpd.doCmd("seek " + mpd.song + " " + sec);
 				</body>
 			</method>
@@ -131,7 +129,7 @@
 		</content>
 		<implementation>
 			<property name="volume"
-				onget="return document.getAnonymousNodes(this)[0].value"
+				onget="return mpd.volume"
 				onset="this.setvol(val)"/>
 			<constructor>
 				Components.utils.import("resource://minion/mpd.js");
@@ -140,10 +138,7 @@
 				scale.value = mpd.volume
 				function volScroll(event) {
 				    var vol = parseInt(mpd.volume) + (event.detail * -1);
-					if (vol &lt; 0) vol = 0;
-					else if (vol &gt; 100) vol = 100;
-				    mpd.set('volume', vol);
-				    mpd.doCmd("setvol " + vol);
+					scale.parentNode.setvol(vol)
 				}
 				var obs = {
 					observe: function(subject,topic,data){
@@ -163,6 +158,7 @@
 					if (vol == mpd.volume) return null;
 					if (vol &lt; 0) vol = 0;
 					else if (vol &gt; 100) vol = 100;
+					mpd.set('volume', vol)
 				    mpd.doCmd("setvol " + vol);
 				</body>
 			</method>
@@ -175,17 +171,32 @@
 				tooltiptext="Previous Track"
 				oncommand="mpd.doCmd('prev')"/>
 			<xul:deck>
-				<xul:toolbarbutton class="mpdButtonPlay"
-					tooltiptext="Play"
-					oncommand="mpd.doCmd('play')"/>
-				<xul:toolbarbutton class="mpdButtonPause"
-					tooltiptext="Pause"
-					oncommand="mpd.doCmd('pause')"/>
+				<xul:hbox class="mpdStateStop">
+					<xul:spacer flex="1"/>
+					<xul:toolbarbutton class="mpdButtonPlay"
+						tooltiptext="Play"
+						oncommand="mpd.doCmd('play')"/>
+					<xul:spacer flex="1"/>
+				</xul:hbox>
+				<xul:hbox class="mpdStatePlay">
+					<xul:toolbarbutton class="mpdButtonPause"
+						tooltiptext="Pause"
+						oncommand="mpd.doCmd('pause')"/>
+					<xul:toolbarbutton class="mpdButtonStop"
+						tooltiptext="Stop"
+						oncommand="mpd.doCmd('stop')"
+						xbl:inherits="collapsed=hidestop"/>
+				</xul:hbox>
+				<xul:hbox class="mpdStatePause">
+					<xul:toolbarbutton class="mpdButtonPlay"
+						tooltiptext="Play"
+						oncommand="mpd.doCmd('play')"/>
+					<xul:toolbarbutton class="mpdButtonStop"
+						tooltiptext="Stop"
+						oncommand="mpd.doCmd('stop')"
+						xbl:inherits="collapsed=hidestop"/>
+				</xul:hbox>
 			</xul:deck>
-			<xul:toolbarbutton class="mpdButtonStop"
-				tooltiptext="Stop"
-				oncommand="mpd.doCmd('stop')"
-				xbl:inherits="collapsed=hidestop"/>
 			<xul:toolbarbutton class="mpdButtonNext"
 				tooltiptext="Next Track"
 				oncommand="mpd.doCmd('next')"/>
@@ -193,16 +204,20 @@
 		<implementation>
 			<property name="state"
 				onget="return mpd.state"
-				onset=""/>
+				onset="if (val=='play' || val=='pause' || val=='stop') mpd.doCmd(val)"/>
 			<constructor>
 				Components.utils.import("resource://minion/mpd.js");
 				Components.utils.import("resource://minion/mpmUtils.js");
 				var prev = document.getAnonymousNodes(this)[0]
-				var playpause = document.getAnonymousNodes(this)[1]
+				var deck = document.getAnonymousNodes(this)[1]
 				var next = document.getAnonymousNodes(this)[2]
 				var obs = {
 					observe: function(subject,topic,data){
-						playpause.selectedIndex = (data=='play') ? 1 : 0;
+						switch (data) {
+							case 'play': deck.selectedIndex = 1; break;
+							case 'pause': deck.selectedIndex = 2; break;
+							default: deck.selectedIndex = 0; break;
+						}
 					}
 				};
 				observerService.addObserver(obs,'state',false)
