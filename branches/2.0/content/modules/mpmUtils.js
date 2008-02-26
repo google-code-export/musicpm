@@ -81,3 +81,46 @@ function hmsFromSec(sec){
 	}
 	return hms
 }
+
+
+function customView (db, tree) {
+	this.rowCount = db.length
+	this.getCellText = function(R, C){
+		return db[R][C.id]
+	}
+	this.setTree = function(treebox){
+		this.treebox = treebox;
+	}
+	this.isContainer = function(row){
+		return false;
+	}
+	this.isSeparator = function(row){
+		return false;
+	}
+	this.isSorted = function(){
+		return (tree.sortCol) ? true : false;
+	}
+	this.cycleHeader = function(col, elem){
+		tree.doSort(col, elem)
+	}
+	this.getLevel = function(row){
+		return 0;
+	}
+	this.getImageSrc = function(row, col){
+		return null;
+	}
+	this.getRowProperties = function(row, props){
+	}
+	this.getCellProperties = function(row, col, props){
+	}
+	this.getParentIndex = function(idx){
+		return -1
+	}
+	this.getColumnProperties = function(colid, col, props){
+	}
+	this.canDrop = function(index, orient){
+		return false
+	}
+	this.drop = function(row, orient){
+	}
+}

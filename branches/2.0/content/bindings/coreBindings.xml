@@ -19,7 +19,7 @@
 				lbl.value = mpd[this.observes]
 				var obs = {
 					observe: function(subject,topic,data){
-						lbl.value = data;
+						lbl.value = data
 					}
 				};
 				observerService.addObserver(obs,this.observes,false)
@@ -169,7 +169,7 @@
 		<content>
 			<xul:toolbarbutton class="mpdButtonPrevious"
 				tooltiptext="Previous Track"
-				oncommand="mpd.doCmd('prev')"/>
+				oncommand="mpd.doCmd('previous')"/>
 			<xul:deck>
 				<xul:hbox class="mpdStateStop">
 					<xul:spacer flex="1"/>
@@ -296,6 +296,36 @@
 		</implementation>	
 	</binding>
 	
+	<binding id="mpmTreeBase">
+		<field name="tree"/>
+		<field name="data">null</field>
+		<field name="data_natural">null</field>
+		<field name="sortCol">null</field>
+		<field name="sortDir">null</field>
+		<implementation>
+			<constructor>
+			</constructor>
+			<deconstructor>
+			</deconstructor>
+			<method name="redraw">
+				<body>
+				</body>
+			</method>
+			<method name="load">
+				<body>
+				</body>
+			</method>
+			<method name="sort">
+				<body>
+				</body>
+			</method>
+			<method name="filter">
+				<body>
+				</body>
+			</method>
+		</implementation>	
+	</binding>
+	
 	<binding id="mpdPlaylistTree">
 		<content>
 		</content>
@@ -308,13 +338,20 @@
 				this.refresh()
 				var obs = {
 					observe: function(subject,topic,data){
-						this.refresh()
+						this.redraw()
+					}
+				};
+				var obs2 = {
+					observe: function(subject,topic,data){
+						this.reload()
 					}
 				};
 				observerService.addObserver(obs,'plinfo',false)
+				observerService.addObserver(obs2,'playlistlength',false)
 			</constructor>
 			<deconstructor>
 				observerService.removeObserver(obs,'plinfo')
+				observerService.removeObserver(obs2,'playlistlength')
 			</deconstructor>
 			<method name="refresh">
 				<body>

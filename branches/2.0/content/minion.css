@@ -1,0 +1,27 @@
+window {
+	background-color: black;
+}
+.mpdButtonPrevious {
+	list-style-image: url("chrome://minion/content/images/prev_large.png");
+}
+.mpdButtonPlay {
+	list-style-image: url("chrome://minion/content/images/play.png");
+}
+.mpdStatePause > .mpdButtonPlay {
+	list-style-image: url("chrome://minion/content/images/play_large.png");
+}
+.mpdButtonPause {
+	list-style-image: url("chrome://minion/content/images/pause_large.png");
+}
+.mpdButtonStop {
+	list-style-image: url("chrome://minion/content/images/stop_large.png");
+}
+.mpdButtonNext {
+	list-style-image: url("chrome://minion/content/images/next_large.png");
+}
+.mpdButtonConnected {
+	font-weight: bold;
+}
+.mpdButtonConnect {
+	list-style-image: url("chrome://minion/content/images/help.png");
+}
