@@ -297,12 +297,12 @@
 	</binding>
 	
 	<binding id="mpmTreeBase">
-		<field name="tree"/>
-		<field name="data">null</field>
-		<field name="data_natural">null</field>
-		<field name="sortCol">null</field>
-		<field name="sortDir">null</field>
 		<implementation>
+			<field name="tree"/>
+			<field name="data">null</field>
+			<field name="data_natural">null</field>
+			<field name="sortCol">null</field>
+			<field name="sortDir">null</field>
 			<constructor>
 			</constructor>
 			<deconstructor>
@@ -326,37 +326,49 @@
 		</implementation>	
 	</binding>
 	
-	<binding id="mpdPlaylistTree">
+	<binding id="mpdPlaylist">
 		<content>
+	        <xul:tree
+	            label="Playlist"
+	            flex="1">
+	            <xul:treecols>
+	                <xul:treecol id="Pos" label="#" width="35" ordinal="0"/>
+	                <xul:splitter class="tree-splitter"/>
+	                <xul:treecol id="Title" label="Title" ordinal="1" overflow="true" flex="1"/>
+	                <xul:splitter class="tree-splitter"/>
+	                <xul:treecol id="Time" label="Time" ordinal="2" width="50"/>
+	            </xul:treecols>
+	            <xul:treechildren/>
+	        </xul:tree>
 		</content>
-		<field name="data"/>
 		<implementation>
 			<constructor>
 				Components.utils.import("resource://minion/mpd.js");
 				Components.utils.import("resource://minion/mpmUtils.js");
-				this.data = mpd.plinfo
-				this.refresh()
+				var tree = document.getAnonymousNodes(this)[0]
+				tree.view = getPlaylistView(mpd.plinfo, tree)
+				var box = tree.boxObject;
+  				box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+				var rowCount = tree.view.rowCount
 				var obs = {
 					observe: function(subject,topic,data){
-						this.redraw()
+						box.invalidate()
 					}
 				};
-				var obs2 = {
+				var obsLn = {
 					observe: function(subject,topic,data){
-						this.reload()
+						data = parseInt(data)
+						box.rowCountChanged(rowCount-1, data - rowCount);
+						rowCount = data
 					}
 				};
 				observerService.addObserver(obs,'plinfo',false)
-				observerService.addObserver(obs2,'playlistlength',false)
+				observerService.addObserver(obsLn,'playlistlength',false)
 			</constructor>
 			<deconstructor>
 				observerService.removeObserver(obs,'plinfo')
-				observerService.removeObserver(obs2,'playlistlength')
+				observerService.removeObserver(obsLn,'playlistlength')
 			</deconstructor>
-			<method name="refresh">
-				<body>
-				</body>
-			</method>
 		</implementation>	
 	</binding>
 </bindings>

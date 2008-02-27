@@ -202,6 +202,7 @@ var mpd = {
 	_parsePL: function (data) {
 	    data = data.split("\n")
 	    var dl = data.length
+		var rng = [null, null]
 	    if (dl > 0) {
 	        var n = dl
 	        do {
@@ -240,9 +241,9 @@ var mpd = {
 	            catch (e) {debug(e)}
 	        } while (--l)
 	    }
-	    mpd.pltime = tm
-        observerService.notifyObservers(null, "plinfo", null)
-        observerService.notifyObservers(null, "pltime", tm)
+	    mpd.pltime = prettyTime(tm)
+        observerService.notifyObservers(null, "plinfo", mpd.playlist)
+        observerService.notifyObservers(null, "pltime", mpd.pltime)
 	}
 }
 

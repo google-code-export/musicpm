@@ -9,18 +9,26 @@
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     	
-	<mpdlabel value="Title" observes="Title"/>
-	<mpdlabel value="Artist" observes="Artist" default="unknown"/>
-	<mpdlabel value="Album" observes="Album" default="unknown"/>
-	<mpdtime id="mytime"/>
 	<hbox>
-		<mpdcontrols hidestop="false"/>
-		<mpdvolume/>
+		<vbox pack="center" align="center">
+			<mpdcontrols hidestop="false"/>
+			<mpdvolume/>
+		</vbox>
+		<vbox flex="1">
+			<mpdlabel value="Title" observes="Title"/>
+			<mpdlabel value="Artist" observes="Artist" default="unknown"/>
+			<mpdlabel value="Album" observes="Album" default="unknown"/>
+			<mpdtime id="mytime"/>
+		</vbox>
+	</hbox>
+	<hbox flex="1">
+		<mpdplaylist id="playlist" flex="1"/>
+		<box flex="3"/>
 	</hbox>
 	<statusbar>
-		<mpdlabel value="command" observes="lastCommand"/>
+		<mpdlabel value="command" observes="pltime"/>
+		<mpdlabel value="command" observes="lastCommand" flex="1"/>
 		<mpdlabel value="response" observes="lastResponse"/>
-		<spacer flex="1"/>
 		<mpdconnection/>
 	</statusbar>
 </window>

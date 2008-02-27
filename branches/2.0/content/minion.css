@@ -25,3 +25,86 @@ window {
 .mpdButtonConnect {
 	list-style-image: url("chrome://minion/content/images/help.png");
 }
+
+
+
+treechildren::-moz-tree-cell-text() {
+    color: #EDEDED;
+    }
+treechildren::-moz-tree-cell-text(Title) {
+    color: white;
+    }
+treechildren::-moz-tree-cell-text(Artist) {
+    font-style: italic;
+    }
+treechildren::-moz-tree-cell-text(Title_file, even) {
+    color: #FAFABE;
+    }
+treechildren::-moz-tree-cell-text(Title_song) {
+    color: #FAFABE;
+    }
+treechildren::-moz-tree-cell-text(currentsong) {
+    font-weight: bold;
+    }
+treechildren::-moz-tree-image(play_currentsong) {
+    list-style-image: url("chrome://minion/content/play_small.png");
+    }
+treechildren::-moz-tree-image(pause_currentsong) {
+    list-style-image: url("chrome://minion/content/pause_small.png");
+    }
+treechildren::-moz-tree-image(stop_currentsong) {
+    list-style-image: none;
+    }
+treechildren::-moz-tree-image(Name_updating) {
+    list-style-image: url("chrome://minion/content/rescan_small.png");
+    }
+treechildren::-moz-tree-image(Title_updating) {
+    list-style-image: url("chrome://minion/content/rescan_small.png");
+    }
+
+
+treechildren::-moz-tree-row {
+  border-bottom: 1px solid transparent;
+  min-height: 18px;
+  height: 1.3em;
+}
+#files > treechildren::-moz-tree-row {
+  border-bottom: 1px solid #151515;
+  min-height: 20px;
+  height: 1.4em;
+}
+#playlist treechildren::-moz-tree-cell-text(odd) {
+	color: #666;
+}
+treechildren::-moz-tree-row(selected) {
+  background-color: black;
+}
+treechildren::-moz-tree-row(even) {
+    background-color: #303030;
+}
+treechildren::-moz-tree-row(odd) {
+    background-color: #232323;
+}
+treechildren::-moz-tree-row(top) {
+    border-top: 1px solid #101010;
+	border-bottom: none;
+}
+treechildren::-moz-tree-row(bottom) {
+	border-top: none;
+    border-bottom: 1px solid #404040;
+}
+
+treechildren::-moz-tree-row(selected, focus) {
+  background-color: black;
+}
+
+treechildren::-moz-tree-row(current, focus) {
+  border: 1px dotted #6D0505;
+}
+
+treechildren::-moz-tree-cell {
+  border-right: 1px dotted #444444;
+}
+.tree-columnpicker-icon {
+    list-style-image: url("chrome://minion/content/columnpicker.png");
+}
