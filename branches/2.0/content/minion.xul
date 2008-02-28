@@ -7,7 +7,8 @@
     id="main"
     title="Music Player Minion"
     orient="vertical"
-    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	onload="if(!mpd._socket)mpd.connect()">
     	
 	<hbox>
 		<vbox pack="center" align="center">
@@ -23,6 +24,7 @@
 	</hbox>
 	<hbox flex="1">
 		<mpdplaylist id="playlist" flex="1"/>
+		<splitter/>
 		<box flex="3"/>
 	</hbox>
 	<statusbar>

@@ -16,17 +16,22 @@
 *      MA 02110-1301, USA.
 */
 
-EXPORTED_SYMBOLS = ["mpd"]
-
 Components.utils.import("resource://minion/mpmUtils.js");
+EXPORTED_SYMBOLS = ["mpd", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
+var mpd_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
+
+var prefService = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefService);
+var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch);
 var mpd = {
     _host: null,
     _port: null,
     _password: null,
-	
+
     // Output of status
-	volume: null,
+    volume: null,
     repeat: null,
     random: null,
     playlistlength: null,
@@ -37,7 +42,7 @@ var mpd = {
     time: null,
     bitrate: null,
     updating_db: null,
-            
+
     // Output of currentsong
     file: null,
     Time: null,
@@ -48,11 +53,11 @@ var mpd = {
     Date: null,
     Genre: null,
     Composer: null,
-	
-	// Playlist contents and total playtime
-	plinfo: [],
-	pltime: 0,
-    
+
+    // Playlist contents and total playtime
+    plinfo: [],
+    pltime: 0,
+
     // Connection state information
     greeting: 'Not Connected',
     lastCommand: '',
@@ -62,7 +67,7 @@ var mpd = {
     _timer: null,
     _cmdQueue: [],
     _socket: null,
-    
+
     // Connection methods
     connect: function () {
         if (mpd._timer) mpd._timer.cancel()
@@ -87,44 +92,44 @@ var mpd = {
             mpd._timer.cancel()
         }
         if (mpd._socket) {
-			var cb = {notify: function (tmr) {mpd._checkStatus()}}
-			mpd._timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer)
-			mpd._timer.initWithCallback(cb, tm, Components.interfaces.nsITimer.TYPE_ONE_SHOT)
-		} 
+            var cb = {notify: function (tmr) {mpd._checkStatus()}}
+            mpd._timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer)
+            mpd._timer.initWithCallback(cb, tm, Components.interfaces.nsITimer.TYPE_ONE_SHOT)
+        }
     },
-    
+
     // Talk directlty to MPD, outputData must be properly escaped and quoted.
     // callBack is optional, if left out or null and no socket is in use,
     // a single use connection will be made for this command.
     doCmd: function (outputData, callBack, hide){
-		hide = Nz(hide)
+        hide = Nz(hide)
         mpd._cmdQueue.push({
-			outputData: outputData+"\n",
-			callBack: Nz(callBack),
-			hide: hide
-			})
+            outputData: outputData+"\n",
+            callBack: Nz(callBack),
+            hide: hide
+            })
         mpd._doStatus = true
         if (mpd._socket) {
             if (mpd._idle) {
                 mpd._socket.writeOut(mpd._cmdQueue[0].outputData)
-				if (!hide) mpd.set('lastCommand', shorten(outputData+"\n"));
+                if (!hide) mpd.set('lastCommand', shorten(outputData+"\n"));
                 mpd._idle = false
             }
         }
         else  {mpd.connect()}
     },
-    
+
     // Any property that may be observed must be set with these methods.
     set: function (prop, val) {
         if (val != mpd[prop]) {
-			debug("Notify: mpd."+prop+" = "+val)
-			mpd[prop] = val
+            debug("Notify: mpd."+prop+" = "+val)
+            mpd[prop] = val
             observerService.notifyObservers(null, prop, val)
         }
     },
-        
+
     // Parse output from status command, internal use only.
-    _update: function (data) {		
+    _update: function (data) {
         //parse the incoming data into a status object
         var obj = new Object()
         data = data.split("\n")
@@ -136,40 +141,40 @@ var mpd = {
                 obj[pair[0]] = pair[1]
             }
         } while (--dl)
-		
-		// React to and alter certain values.
+
+        // React to and alter certain values.
         if (obj.state == 'stop') {
-			obj.time = 0
-		}
-		else {
-			obj.time = Nz(obj.time,'0').split(":")[0]
-		}
-		if (obj.song != mpd.song) {
-			mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
-		}
-		if (obj.playlist != mpd.playlist) {
-			mpd.plinfo.length = obj.playlistlength
-			mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
-		}
-		
-        //set status values 
-		mpd.set('volume', Nz(obj.volume))
-		mpd.set('repeat', Nz(obj.repeat))
-		mpd.set('random', Nz(obj.random))
-		mpd.set('playlistlength', Nz(obj.playlistlength))
-		mpd.set('playlist', Nz(obj.playlist))
-		mpd.set('xfade', Nz(obj.xfade))
-		mpd.set('state', Nz(obj.state))
-		mpd.set('song', Nz(obj.song))
-		mpd.set('time', Nz(obj.time))
-		mpd.set('bitrate', Nz(obj.bitrate))
-		mpd.set('updating_db', Nz(obj.updating_db))
-        
+            obj.time = 0
+        }
+        else {
+            obj.time = Nz(obj.time,'0').split(":")[0]
+        }
+        if (obj.song != mpd.song) {
+            mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
+        }
+        if (obj.playlist != mpd.playlist) {
+            mpd.plinfo.length = obj.playlistlength
+            mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
+        }
+
+        //set status values
+        mpd.set('volume', Nz(obj.volume))
+        mpd.set('repeat', Nz(obj.repeat))
+        mpd.set('random', Nz(obj.random))
+        mpd.set('playlistlength', Nz(obj.playlistlength))
+        mpd.set('playlist', Nz(obj.playlist))
+        mpd.set('xfade', Nz(obj.xfade))
+        mpd.set('state', Nz(obj.state))
+        mpd.set('song', Nz(obj.song))
+        mpd.set('time', Nz(obj.time))
+        mpd.set('bitrate', Nz(obj.bitrate))
+        mpd.set('updating_db', Nz(obj.updating_db))
+
         mpd._doStatus = false
     },
-	
+
     // Parse output from currentsong command, internal use only.
-    _parseCurrentSong: function (data) {		
+    _parseCurrentSong: function (data) {
         //parse the incoming data into a status object
         var obj = new Object()
         data = data.split("\n")
@@ -181,89 +186,89 @@ var mpd = {
                 obj[pair[0]] = pair[1]
             }
         } while (--dl)
-		
-		// React to and alter certain values.
+
+        // React to and alter certain values.
         if (!Nz(obj.Title) && Nz(obj.file)) {
-			obj.Title = obj.file.split("/").slice(-1)
-		}
-		
-        //set currentsong values 
-		mpd.set('file', Nz(obj.file))
-		mpd.set('Time', Nz(obj.Time))
-		mpd.set('Artist', Nz(obj.Artist))
-		mpd.set('Title', Nz(obj.Title))
-		mpd.set('Album', Nz(obj.Album))
-		mpd.set('Track', Nz(obj.Track))
-		mpd.set('Date', Nz(obj.Date))
-		mpd.set('Genre', Nz(obj.Genre))
-		mpd.set('Composer', Nz(obj.Composer))
+            obj.Title = obj.file.split("/").slice(-1)
+        }
+
+        //set currentsong values
+        mpd.set('file', Nz(obj.file))
+        mpd.set('Time', Nz(obj.Time))
+        mpd.set('Artist', Nz(obj.Artist))
+        mpd.set('Title', Nz(obj.Title))
+        mpd.set('Album', Nz(obj.Album))
+        mpd.set('Track', Nz(obj.Track))
+        mpd.set('Date', Nz(obj.Date))
+        mpd.set('Genre', Nz(obj.Genre))
+        mpd.set('Composer', Nz(obj.Composer))
     },
-	
-	_parsePL: function (data) {
-	    data = data.split("\n")
-	    var dl = data.length
-		var rng = [null, null]
-	    if (dl > 0) {
-	        var n = dl
-	        do {
-	            var i = dl - n
-	            var sep = data[i].indexOf(": ")
-	            if (data[i].substr(0, sep) == 'file') {
-	                var fname = data[i].slice(sep+2)
-	                var song = {
-	                    'type': 'file',
-	                    'Name': fname,
-	                    'Title': fname,
-	                    'Artist': 'unknown',
-	                    'Album': 'unknown',
-	                    'Time': 0,
-	                    'Pos': 0
-	                };
-	                var d = data[i + 1]
-	                while (d && d.substr(0, 6) != "file: ") {
-	                    var sep = d.indexOf(": ")
-						if (sep > 0) {
-							song[d.substr(0, sep)] = d.slice(sep + 2);
-						}
-	                    --n;
-	                    var d = data[dl - n + 1]
-	                };
-	                mpd.plinfo[parseInt(song.Pos)] = song
-	            }
-	        }
-	        while (--n)
-	    }
-	    var tm = 0
-	    var l = mpd.plinfo.length
-	    if (l > 0) {
-	        do {
-	            try {tm += parseInt(mpd.plinfo[l-1]['Time'])}
-	            catch (e) {debug(e)}
-	        } while (--l)
-	    }
-	    mpd.pltime = prettyTime(tm)
+
+    _parsePL: function (data) {
+        data = data.split("\n")
+        var dl = data.length
+        var rng = [null, null]
+        if (dl > 0) {
+            var n = dl
+            do {
+                var i = dl - n
+                var sep = data[i].indexOf(": ")
+                if (data[i].substr(0, sep) == 'file') {
+                    var fname = data[i].slice(sep+2)
+                    var song = {
+                        'type': 'file',
+                        'Name': fname,
+                        'Title': fname,
+                        'Artist': 'unknown',
+                        'Album': 'unknown',
+                        'Time': 0,
+                        'Pos': 0
+                    };
+                    var d = data[i + 1]
+                    while (d && d.substr(0, 6) != "file: ") {
+                        var sep = d.indexOf(": ")
+                        if (sep > 0) {
+                            song[d.substr(0, sep)] = d.slice(sep + 2);
+                        }
+                        --n;
+                        var d = data[dl - n + 1]
+                    };
+                    mpd.plinfo[parseInt(song.Pos)] = song
+                }
+            }
+            while (--n)
+        }
+        var tm = 0
+        var l = mpd.plinfo.length
+        if (l > 0) {
+            do {
+                try {tm += parseInt(mpd.plinfo[l-1]['Time'])}
+                catch (e) {debug(e)}
+            } while (--l)
+        }
+        mpd.pltime = prettyTime(tm)
         observerService.notifyObservers(null, "plinfo", mpd.playlist)
         observerService.notifyObservers(null, "pltime", mpd.pltime)
-	}
+    }
 }
 
 function loadSrvPref () {
-	var srv = prefBranch.getCharPref("extensions.mpm.server");
-	if (prefBranch.getPrefType("extensions.mpm.server") == prefBranch.PREF_STRING) {
-		var srv = prefBranch.getCharPref("extensions.mpm.server");
-		srv = srv.split(":", 3);
-		if (srv.length == 3) {
-			mpd._host = srv[0];
-			mpd._port = parseInt(srv[1]);
-			mpd._password = srv[2];
-		}
-	}
-	else {
-		prefBranch.setCharPref("extensions.mpm.server", '192.168.1.2:6600:')
-		mpd._host = '192.168.1.2';
-		mpd._port = 6600;
-		mpd._password = '';
-	}
+    var srv = prefBranch.getCharPref("extensions.mpm.server");
+    if (prefBranch.getPrefType("extensions.mpm.server") == prefBranch.PREF_STRING) {
+        var srv = prefBranch.getCharPref("extensions.mpm.server");
+        srv = srv.split(":", 3);
+        if (srv.length == 3) {
+            mpd._host = srv[0];
+            mpd._port = parseInt(srv[1]);
+            mpd._password = srv[2];
+        }
+    }
+    else {
+        prefBranch.setCharPref("extensions.mpm.server", '192.168.1.2:6600:')
+        mpd._host = '192.168.1.2';
+        mpd._port = 6600;
+        mpd._password = '';
+    }
 }
 
 function shorten(cmd){
@@ -274,8 +279,8 @@ function shorten(cmd){
 
 function socketTalker() {
     try {
-		var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
-								.getService(Components.interfaces.nsISocketTransportService);
+        var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
+                                .getService(Components.interfaces.nsISocketTransportService);
         var transport = transportService.createTransport(null,0,mpd._host,mpd._port,null);
         var outstream = transport.openOutputStream(0,0,0);
         var instream = transport.openInputStream(0,0,0);
@@ -284,11 +289,11 @@ function socketTalker() {
                        .createInstance(Components.interfaces.nsIConverterInputStream);
         var utf_outstream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
                        .createInstance(Components.interfaces.nsIConverterOutputStream)
-                       
+
         utf_instream.init(instream, 'UTF-8', 1024, replacementChar);
         utf_outstream.init(outstream, 'UTF-8', 0, 0x0000)
     } catch (e) {
-		debug(e)
+        debug(e)
         return null
     }
 
@@ -296,27 +301,27 @@ function socketTalker() {
         data: "",
         onStartRequest: function(request, context){
             mpd._idle = false
-			debug('socketTalker for server '+mpd._host+":"+mpd._port+" created.")
+            debug('socketTalker for server '+mpd._host+":"+mpd._port+" created.")
         },
         onStopRequest: function(request, context, status){
             try {
                 utf_outstream.close()
-            } 
+            }
             catch (e) {
             }
             try {
                 utf_instream.close()
-            } 
+            }
             catch (e) {
             }
             try {
                 transport.close(0)
-            } 
+            }
             catch (e) {
             }
             mpd._idle = false;
             mpd._socket = null
-			debug('socketTalker for server '+mpd._host+":"+mpd._port+" destroyed.")
+            debug('socketTalker for server '+mpd._host+":"+mpd._port+" destroyed.")
             mpd.set('greeting','Not Connected');
         },
         onDataAvailable: function(request, context, inputStream, offset, count){
@@ -329,87 +334,87 @@ function socketTalker() {
                 }
                 str = null
                 if (this.data.slice(-3) == "OK\n") {
-					if (mpd._cmdQueue.length > 0) {
-						var snd = mpd._cmdQueue[0].outputData
-						if (!mpd._cmdQueue[0].hide) {
-							mpd.set('lastResponse', "OK");
-						}
-						else if (snd.slice(0,9) == "plchanges") {
-							mpd.set('lastResponse', "OK");
-						}
-						if (mpd._cmdQueue.length > 0 && mpd._cmdQueue[0].callBack) {
-							mpd._cmdQueue[0].callBack(this.data)
-						}
-						mpd._cmdQueue.shift()
-					}
-					this.data = ""
-					if (mpd._cmdQueue.length > 0) {
-						var snd = mpd._cmdQueue[0].outputData
-						utf_outstream.writeString(snd);
-						if (!mpd._cmdQueue[0].hide) {
-							mpd.set('lastCommand', shorten(snd));
-							mpd.set('lastResponse', "Working...");
-						}
-						else if (snd.slice(0,9) == "plchanges") {
-							mpd.set('lastResponse', "Working...");
-						}
-					}
-					else {
-						done = true
-					}
-				}
-				else 
-					if (this.data.substr(0, 6) == "OK MPD") {
-						mpd.set('greeting', this.data)
-						this.data = ""
-						if (mpd._password.length > 0) {
-							mpd._cmdQueue.unshift({
-								outputData: 'password "'+mpd._password+'"\n',
-								callBack: null,
-								hide: true
-							})
-						}
-						if (mpd._cmdQueue.length > 0) {
-							var snd = mpd._cmdQueue[0].outputData
-							utf_outstream.writeString(snd);
-							if (!mpd._cmdQueue[0].hide) {
-								mpd.set('lastCommand', shorten(snd));
-								mpd.set('lastResponse', "Working...");
-							}
-							else if (snd.slice(0,9) == "plchanges") {
-								mpd.set('lastResponse', "Working...");
-							}
-						}
-						else {
-							done = true
-						}
-					}
-					else 
-						if (this.data.indexOf('ACK [') != -1) {
-							mpd.set('lastResponse', this.data.replace(/\n/g, ""))
-							if (snd == "status\n") {
-								var msg = "An error has occured when communicating with MPD,\n" +
-								"do you want to halt execution?\n\n" +
-								"Click Cancel to continue sending commands, or\n" +
-								"Click OK to prevent further attempts.\n\n\n" +
-								"Command:\n" +
-								mpd._cmdQueue[0].outputData +
-								"\n\n" +
-								"Response:\n" +
-								this.data
-								mpd.active = !confirm(msg)
-							}
-							mpd._cmdQueue.shift()
-							mpd._doStatus = false
-							done = true
-						}
+                    if (mpd._cmdQueue.length > 0) {
+                        var snd = mpd._cmdQueue[0].outputData
+                        if (!mpd._cmdQueue[0].hide) {
+                            mpd.set('lastResponse', "OK");
+                        }
+                        else if (snd.slice(0,9) == "plchanges") {
+                            mpd.set('lastResponse', "OK");
+                        }
+                        if (mpd._cmdQueue.length > 0 && mpd._cmdQueue[0].callBack) {
+                            mpd._cmdQueue[0].callBack(this.data)
+                        }
+                        mpd._cmdQueue.shift()
+                    }
+                    this.data = ""
+                    if (mpd._cmdQueue.length > 0) {
+                        var snd = mpd._cmdQueue[0].outputData
+                        utf_outstream.writeString(snd);
+                        if (!mpd._cmdQueue[0].hide) {
+                            mpd.set('lastCommand', shorten(snd));
+                            mpd.set('lastResponse', "Working...");
+                        }
+                        else if (snd.slice(0,9) == "plchanges") {
+                            mpd.set('lastResponse', "Working...");
+                        }
+                    }
+                    else {
+                        done = true
+                    }
+                }
+                else
+                    if (this.data.substr(0, 6) == "OK MPD") {
+                        mpd.set('greeting', this.data)
+                        this.data = ""
+                        if (mpd._password.length > 0) {
+                            mpd._cmdQueue.unshift({
+                                outputData: 'password "'+mpd._password+'"\n',
+                                callBack: null,
+                                hide: true
+                            })
+                        }
+                        if (mpd._cmdQueue.length > 0) {
+                            var snd = mpd._cmdQueue[0].outputData
+                            utf_outstream.writeString(snd);
+                            if (!mpd._cmdQueue[0].hide) {
+                                mpd.set('lastCommand', shorten(snd));
+                                mpd.set('lastResponse', "Working...");
+                            }
+                            else if (snd.slice(0,9) == "plchanges") {
+                                mpd.set('lastResponse', "Working...");
+                            }
+                        }
+                        else {
+                            done = true
+                        }
+                    }
+                    else
+                        if (this.data.indexOf('ACK [') != -1) {
+                            mpd.set('lastResponse', this.data.replace(/\n/g, ""))
+                            if (snd == "status\n") {
+                                var msg = "An error has occured when communicating with MPD,\n" +
+                                "do you want to halt execution?\n\n" +
+                                "Click Cancel to continue sending commands, or\n" +
+                                "Click OK to prevent further attempts.\n\n\n" +
+                                "Command:\n" +
+                                mpd._cmdQueue[0].outputData +
+                                "\n\n" +
+                                "Response:\n" +
+                                this.data
+                                mpd.active = !confirm(msg)
+                            }
+                            mpd._cmdQueue.shift()
+                            mpd._doStatus = false
+                            done = true
+                        }
                 if (done) {
                     if (mpd._doStatus) {
                         mpd._doStatus = false
                         mpd._cmdQueue.push({
                             outputData: "status\n",
                             callBack: mpd._update,
-							hide: true
+                            hide: true
                         })
                         utf_outstream.writeString("status\n")
                     }
@@ -417,23 +422,23 @@ function socketTalker() {
                         mpd._idle = true
                     }
                 }
-            } 
+            }
             catch (e) {
                 debug(e)
             }
         }
     }
-    
+
     var pump = Components.classes["@mozilla.org/network/input-stream-pump;1"].
             createInstance(Components.interfaces.nsIInputStreamPump);
     pump.init(instream, -1, -1, 0, 0, false);
     pump.asyncRead(listener,null);
-    
+
     var con = {
         cancel: function () {listener.onStopRequest()},
         writeOut: function (str) {utf_outstream.writeString(str)}
     }
-	
+
     return con
 }
 
@@ -443,22 +448,22 @@ var myPrefObserver = {
         this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
         this._branch.addObserver("", this, false);
     },
-    
+
     unregister: function(){
-        if (!this._branch) 
+        if (!this._branch)
             return;
         this._branch.removeObserver("", this);
     },
-    
+
     observe: function(aSubject, aTopic, aData){
-        if (aTopic != "nsPref:changed") 
+        if (aTopic != "nsPref:changed")
             return;
         // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
         // aData is the name of the pref that's been changed (relative to aSubject)
         switch (aData) {
             case "server":
-				loadSrvPref()
-				if (mpd._socket) mpd.connect();
+                loadSrvPref()
+                if (mpd._socket) mpd.connect();
                 break;
         }
     }

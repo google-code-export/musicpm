@@ -37,7 +37,7 @@ treechildren::-moz-tree-cell-text(Title) {
 treechildren::-moz-tree-cell-text(Artist) {
     font-style: italic;
     }
-treechildren::-moz-tree-cell-text(Title_file, even) {
+treechildren::-moz-tree-cell-text(Title_file) {
     color: #FAFABE;
     }
 treechildren::-moz-tree-cell-text(Title_song) {
@@ -47,19 +47,19 @@ treechildren::-moz-tree-cell-text(currentsong) {
     font-weight: bold;
     }
 treechildren::-moz-tree-image(play_currentsong) {
-    list-style-image: url("chrome://minion/content/play_small.png");
+    list-style-image: url("chrome://minion/content/images/play_small.png");
     }
 treechildren::-moz-tree-image(pause_currentsong) {
-    list-style-image: url("chrome://minion/content/pause_small.png");
+    list-style-image: url("chrome://minion/content/images/pause_small.png");
     }
 treechildren::-moz-tree-image(stop_currentsong) {
     list-style-image: none;
     }
 treechildren::-moz-tree-image(Name_updating) {
-    list-style-image: url("chrome://minion/content/rescan_small.png");
+    list-style-image: url("chrome://minion/content/images/rescan_small.png");
     }
 treechildren::-moz-tree-image(Title_updating) {
-    list-style-image: url("chrome://minion/content/rescan_small.png");
+    list-style-image: url("chrome://minion/content/images/rescan_small.png");
     }
 
 
@@ -68,13 +68,14 @@ treechildren::-moz-tree-row {
   min-height: 18px;
   height: 1.3em;
 }
-#files > treechildren::-moz-tree-row {
+treechildren::-moz-tree-row {
   border-bottom: 1px solid #151515;
   min-height: 20px;
   height: 1.4em;
 }
-#playlist treechildren::-moz-tree-cell-text(odd) {
-	color: #666;
+#playlist {
+	min-height: 400px;
+	min-width: 200px;
 }
 treechildren::-moz-tree-row(selected) {
   background-color: black;
@@ -84,14 +85,6 @@ treechildren::-moz-tree-row(even) {
 }
 treechildren::-moz-tree-row(odd) {
     background-color: #232323;
-}
-treechildren::-moz-tree-row(top) {
-    border-top: 1px solid #101010;
-	border-bottom: none;
-}
-treechildren::-moz-tree-row(bottom) {
-	border-top: none;
-    border-bottom: 1px solid #404040;
 }
 
 treechildren::-moz-tree-row(selected, focus) {

@@ -16,21 +16,17 @@
 *      MA 02110-1301, USA.
 */
 
-EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "getPlaylistView", "prefBranch", "prefService", "observerService"]
+EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
+                    "observerService", "mpmUtils_EXPORTED_SYMBOLS"]
+var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
-// Use this line to import: 
-// Components.utils.import("resource://minion/mpmUtils.js");
 
 var observerService = Components.classes["@mozilla.org/observer-service;1"]
                         .getService(Components.interfaces.nsIObserverService);
 var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
                         .getService(Components.interfaces.nsIConsoleService);
-var prefService = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefService);
-var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch);
 
-				
+
 function debug(s) {
     //return null
     if (typeof(s) == 'object') {
@@ -42,44 +38,44 @@ function debug(s) {
 }
 
 function Nz(obj, def){
-	if (typeof(obj) == 'undefined') {
-		return (typeof(def) == 'undefined') ? null : def
-	}
-	return obj
+    if (typeof(obj) == 'undefined') {
+        return (typeof(def) == 'undefined') ? null : def
+    }
+    return obj
 }
 
 function hmsFromSec(sec){
-	var hms = "0:00"
-	try {
-		sec = parseInt(sec)
-	} 
-	catch (err) {
-		return "0:00"
-	}
-	if (sec > 0) {
-		var h = 0
-		if (sec >= 3600) {
-			h = Math.floor(sec / 3600)
-			sec = sec % 3600
-		}
-		var m = Math.floor(sec / 60)
-		var s = sec % 60
-		if (h > 0) {
-			h = h + ":"
-			if (m.toString().length == 1) {
-				m = "0" + m
-			}
-		}
-		else {
-			h = ""
-		}
-		m = m + ":"
-		if (s.toString().length == 1) {
-			s = "0" + s
-		}
-		hms = h + m + s
-	}
-	return hms
+    var hms = "0:00"
+    try {
+        sec = parseInt(sec)
+    }
+    catch (err) {
+        return "0:00"
+    }
+    if (sec > 0) {
+        var h = 0
+        if (sec >= 3600) {
+            h = Math.floor(sec / 3600)
+            sec = sec % 3600
+        }
+        var m = Math.floor(sec / 60)
+        var s = sec % 60
+        if (h > 0) {
+            h = h + ":"
+            if (m.toString().length == 1) {
+                m = "0" + m
+            }
+        }
+        else {
+            h = ""
+        }
+        m = m + ":"
+        if (s.toString().length == 1) {
+            s = "0" + s
+        }
+        hms = h + m + s
+    }
+    return hms
 }
 
 function prettyTime(sec) {
@@ -131,135 +127,17 @@ function prettyTime(sec) {
   return tm
 }
 
-function customView (db, tree) {
-	this.rowCount = db.length
-	this.getCellText = function(R, C){
-		if (C.id == "Time") return Nz(db[R]) ? hmsFromSec(db[R][C.id]) : ""
-		return Nz(db[R]) ? db[R][C.id] : ""
-	}
-	this.setTree = function(treebox){
-		this.treebox = treebox;
-	}
-	this.isContainer = function(row){
-		return false;
-	}
-	this.isSeparator = function(row){
-		return false;
-	}
-	this.isSorted = function(){
-		return false;
-	}
-	this.cycleHeader = function(col, elem){
-		return null;
-	}
-	this.getLevel = function(row){
-		return 0;
-	}
-	this.getImageSrc = function(row, col){
-		return null;
-	}
-	this.getRowProperties = function(row, props){
-        try {
-			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-			props.AppendElement(aserv.getAtom(db[row].type))
-			aserv = null
-		} 
-		catch (e) {
-		}
-	}
-	this.getCellProperties = function(row, col, props){
-        try {
-			var t = db[row].type
-			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-			props.AppendElement(aserv.getAtom(col.id + "_" + t))
-			if (t == 'file' && db[row].Name == mpd.song) {
-				if (col.id == 'Title' && mpd.state != 'stop') {
-					props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
-				}
-				props.AppendElement(aserv.getAtom("currentsong"))
-			}
-			props.AppendElement(aserv.getAtom(col.id))
-			if (t != 'file' && t != 'playlist' && mpd.updating_db) {
-				props.AppendElement(aserv.getAtom(col.id + "_updating"))
-			}
-			aserv = null
-		} 
-		catch (e) {
-		}
-	}
-	this.getParentIndex = function(idx){
-		return -1
-	}
-	this.getColumnProperties = function(colid, col, props){
-	}
-	this.canDrop = function(index, orient){
-		return false
-	}
-	this.drop = function(row, orient){
-	}
-}
-
-function getPlaylistView(db, tree) {
-	var view = new customView(db, tree)
-	view.getCellText = function(R, C){
-		var P = Math.floor(R / 2)
-		if (!Nz(db[P])) return "";
-		if (R % 2 == 0) {
-			switch (C.id) {
-				case "Time":
-					return hmsFromSec(db[P][C.id]);
-					break;
-				case "Pos":
-					return (parseInt(P) + 1) + ".";
-					break;
-				default:
-					return db[P][C.id];
-					break;
-			}
-		}
-		else if (C.id == "Title") {
-			return db[P].Album+" ("+db[P].Artist+")"
-		}
-	}
-	view.getCellProperties = function(row, col, props){
-        try {
-			var t = db[Math.floor(row/2)].type
-			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-			props.AppendElement(aserv.getAtom(col.id + "_" + t))
-			if (t == 'file' && db[row].Name == mpd.song) {
-				if (col.id == 'Title' && mpd.state != 'stop') {
-					props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
-				}
-				props.AppendElement(aserv.getAtom("currentsong"))
-			}
-			props.AppendElement(aserv.getAtom(col.id))
-			if (t != 'file' && t != 'playlist' && mpd.updating_db) {
-				props.AppendElement(aserv.getAtom(col.id + "_updating"))
-			}
-			aserv = null
-		} 
-		catch (e) {
-		}
-	}
-	view.getRowProperties = function(row, props){
-        try {
-			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-			var pos = Math.floor(row / 2)
-			var Peo = (pos % 2) ? "odd" : "even"
-			var Reo = (row % 2) ? "odd" : "even"
-			if (Reo != Peo) {
-				props.RemoveElement(aserv.getAtom(Reo))
-				props.AppendElement(aserv.getAtom(Peo))
-			}
-			if (Reo == 'odd') props.AppendElement(aserv.getAtom('bottom'))
-			else props.AppendElement(aserv.getAtom('top'))
-	
-			if (Nz(db[pos])) props.AppendElement(aserv.getAtom(db[pos].type))
-			aserv = null
-		} 
-		catch (e) {
-			debug(e)
-		}
-	}
-	return view
+function copyArray (oldArray) {
+    if (typeof(oldArray)=='object') {
+        var l = oldArray.length
+        var n = l
+        var newArray = []
+        if (l > 0) {
+            do {
+                newArray.push(oldArray[l-n])
+            } while (--n)
+        }
+        return newArray
+    }
+    else return oldArray
 }
