@@ -296,13 +296,14 @@
         <content>
             <xul:tree
                 label="Playlist"
-                flex="1">
+                flex="1"
+            	flags="dont-build-content"
+				onselect="if(this.view.selection.count==1)this.parentNode.expandOne(this.currentIndex)">
                 <xul:treecols>
                     <xul:treecol id="Pos"
                         label="#"
-                        width="35"
+                        width="40"
                         ordinal="0"
-                        primary="true"
                         overflow="true"/>
                     <xul:splitter class="tree-splitter"/>
                     <xul:treecol id="Title"
@@ -320,28 +321,23 @@
             <constructor>
                 Components.utils.import("resource://minion/trees.js");
                 var tree = document.getAnonymousNodes(this)[0]
-                var db = copyArray(mpd.plinfo)
-                tree.view = new playlistView(db, tree)
+                var view = new playlistView()
+				view.load(mpd.plinfo)
+				tree.view = view
                 var box = tree.boxObject;
                 box.QueryInterface(Components.interfaces.nsITreeBoxObject);
                 var rowCount = tree.view.rowCount
                 var obs = {
                     observe: function(subject,topic,data){
-                        var l = mpd.plinfo.length
-                        var n = l
-                        db.length = l
-                        if (l > 0) {
-                            do {
-                                db[l-n] = mpd.plinfo[l-n]
-                            } while (--n)
-                        }
+						view.load(mpd.plinfo)
                         box.invalidate()
                     }
                 };
                 var obsLn = {
                     observe: function(subject,topic,data){
-                        data = parseInt(data)
-                        box.rowCountChanged(rowCount-1, data - rowCount);
+						data = parseInt(data)
+                        var rc = data - rowCount
+                        box.rowCountChanged(rowCount-1, rc);
                         rowCount = data
                     }
                 };
@@ -352,6 +348,16 @@
                 observerService.removeObserver(obs,'plinfo')
                 observerService.removeObserver(obsLn,'playlistlength')
             </deconstructor>
+			<method name="expandOne">
+				<param name="index"/>
+				<body>
+					var C = tree.view.rowCount
+					for (var i=0; i&lt;C;i++) {
+						if (tree.view.isContainerOpen(i))tree.view.toggleOpenState(i);
+					}
+					tree.view.toggleOpenState(index);
+				</body>
+			</method>
         </implementation>
     </binding>
 </bindings>
