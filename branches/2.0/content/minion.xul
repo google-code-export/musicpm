@@ -25,7 +25,7 @@
 	<hbox flex="1">
 		<mpdplaylist id="playlist" flex="1"/>
 		<splitter/>
-		<box flex="3"/>
+		<mpdbrowser flex="3"/>
 	</hbox>
 	<statusbar>
 		<mpdlabel value="command" observes="pltime"/>

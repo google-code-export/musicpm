@@ -156,13 +156,13 @@ var mpd = {
             mpd.plinfo.length = obj.playlistlength
             mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
         }
+        mpd.playlist = Nz(obj.playlist)
 
         //set status values
         mpd.set('volume', Nz(obj.volume))
         mpd.set('repeat', Nz(obj.repeat))
         mpd.set('random', Nz(obj.random))
         mpd.set('playlistlength', Nz(obj.playlistlength))
-        mpd.set('playlist', Nz(obj.playlist))
         mpd.set('xfade', Nz(obj.xfade))
         mpd.set('state', Nz(obj.state))
         mpd.set('song', Nz(obj.song))
@@ -205,9 +205,9 @@ var mpd = {
     },
 
     _parsePL: function (data) {
-        data = data.split("\n")
+		data = data.split("\n")
+		var dirty = false
         var dl = data.length
-        var rng = [null, null]
         if (dl > 0) {
             var n = dl
             do {
@@ -234,9 +234,14 @@ var mpd = {
                         var d = data[dl - n + 1]
                     };
                     mpd.plinfo[parseInt(song.Pos)] = song
+					dirty = true
                 }
             }
             while (--n)
+			if (dirty) {
+				debug("Notify: mpd.plinfo = " + mpd.playlist)
+				observerService.notifyObservers(null, "plinfo", mpd.playlist)
+			}
         }
         var tm = 0
         var l = mpd.plinfo.length
@@ -246,10 +251,231 @@ var mpd = {
                 catch (e) {debug(e)}
             } while (--l)
         }
-        mpd.pltime = prettyTime(tm)
-        observerService.notifyObservers(null, "plinfo", mpd.playlist)
-        observerService.notifyObservers(null, "pltime", mpd.pltime)
+        mpd.set("pltime", prettyTime(tm))
+    },
+	query: function (URI, view, addrBox){
+		/* Query mpd and return database results to nslTreeView view,
+		 * then load addrBox.searchParam with appropriate autocomplete
+		 * entries.
+		 * 
+		 * URI should be: tag_type://specifier or 
+		 * tag_type://other_tag_type=specifier or
+		 * an actual MPD command.
+		 * 
+		 * If '://' is not in string, it is assumed to be an MPD command.
+		 */
+		
+	    var chkDupes = false
+		var cmd = URI
+		if (URI.indexOf("://") < 0) {
+			// Clean up and validate command lists.
+		    
+			if (cmd.indexOf('command_list_begin') > -1) {
+		        if  (cmd.indexOf('command_list_end') < 0) {
+		            cmd += "\ncommand_list_end"
+		        }
+		    }
+		    else if (cmd.indexOf(';') > -1) {
+		        cmd = "command_list_begin;"+cmd
+		        if  (cmd.indexOf('command_list_end') < 0) {
+		            cmd += ";command_list_end"
+		        }
+				cmd = cmd.replace(/;/g,"\n")
+		    }
+			
+			// Check if this command returns database results.
+			// If so, check if it will return multiple sets that
+			// will need to be combined.
+			
+	        var dbc = ["search ", "find ", "lsinfo", "plchanges ",
+	                "list ", "listall", "listallinfo", "listplaylistinfo ",
+	                "playlistsearch ", "playlistinfo", "playlistfind "]
+	        var is_dbc = false
+	        for (x in dbc) {
+	            if (cmd.indexOf(dbc[x]) > -1) {
+	                is_dbc = true
+	            }
+	        }
+	        if (is_dbc) {
+	            for (x in dbc) {
+	                if (cmd.indexOf(dbc[x]) > -1) {
+	                    chkDupes = true
+	                }
+	            }
+	        }
+	        if (!is_dbc) {
+	            mpd.doCmd(cmd, null, false)
+	            return null
+	        }
+		}
+		else {
+			// Not a command, proccess URI
+			
+			URI = URI.split("://")
+			var type = URI[0]
+			var id = Nz(URI[1], "")
+			
+			switch (type) {
+				case "directory":
+					var cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
+					break;
+				case "file":
+					if (id.length==0){
+						cmd = "listallinfo"
+					}
+					else if (id.indexOf("=") > 0) {
+						type = "search";
+						id = id.split("=")
+						cmd = 'search ' + id[0] + ' "' + id[1].replace(/"/g, '\\"') + '"';
+					}
+					else {
+						mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
+						return null;
+					}
+					break;
+				case "playlist":
+					if (id.length > 0) {
+						cmd = 'listplaylistinfo  "' + id.replace(/"/g, '\\"') + '"';
+					}
+					else {
+						cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
+					}
+					break;
+				case "search":
+					if (id.length > 0) {
+						id = id.split("=")
+						if (id.length == 1) {
+							cmd = 'search any "' + id[0].replace(/"/g, '\\"') + '"';
+						}
+						else 
+							if (id.length == 2) {
+								cmd = 'search ' + id[0] + ' "' + id[1].replace(/"/g, '\\"') + '"';
+							}
+					}
+					else {
+						type = 'file'
+						cmd = "listallinfo"
+					}
+					break;					
+				default:
+					cmd = 'list ' + type;
+					if (id.length > 0) {
+						id = id.split("=")
+						if (id.length == 1) {
+							cmd = 'find ' + type + ' "' + id[0].replace(/"/g, '\\"') + '"';
+						}
+						else 
+							if (id.length == 2) {
+								cmd = 'list ' + type + ' ' + id[0] + ' "' + id[1].replace(/"/g, '\\"') + '"';
+							}
+					}
+					break;
+			}
+		}
+		
+		var cb = function (data) {
+		    data = data.split("\n")
+		    var db = []
+		    var dl = data.length
+		    if (dl > 0) {
+				var n = dl
+				do {
+					var i = dl - n
+					var sep = data[i].indexOf(": ")
+					if (sep > -1) {
+						var fld = data[i].substr(0, sep)
+						var val = data[i].slice(sep + 2)
+						if (fld == 'file') {
+							var song = {
+								type: 'file',
+								Name: val,
+								Track: '0',
+								Title: val,
+								Artist: 'unknown',
+								Album: 'unknown',
+								Time: 0,
+								URI: "file://" + val
+							};
+							var d = data[i + 1]
+							while (d && d.substr(0, 6) != "file: ") {
+								var sep = d.indexOf(": ")
+								song[d.substr(0, sep)] = d.slice(sep + 2);
+								--n;
+								var d = data[dl - n + 1]
+							};
+							db.push(song);
+						}
+						else {
+							if (fld == 'directory') {
+								if (type == 'directory') {
+									var dir = val.split("/")
+									db.push({
+										type: 'directory',
+										Name: val,
+										Title: dir[dir.length - 1],
+										URI: "directory://" + val
+									})
+								}
+							}
+							else {
+								db.push({
+									type: fld,
+									Name: val,
+									Title: val,
+									URI: fld.toLowerCase() + "://" + val
+								})
+							}
+						}
+					}
+				}
+				while (--n)
+			}
+			
+		    if (chkDupes) db = dbOR(db)
+			view.load(db, false)
+			if (Nz(addrBox)) {
+				var searchParam = ["Home"]
+				if (Nz(type)) {
+					searchParam.push(type+":/")
+					if (Nz(URI[1])) {
+						var dirs = URI[1].split("/")
+						while (dirs.length > 0) {
+							var l = searchParam[searchParam.length-1]
+							searchParam.push(l+"/"+dirs.shift())
+						}
+					}
+					searchParam[1] = type+"://"
+				}
+				for (x in db) {
+					if (db[x].type != 'file') searchParam.push(db[x].URI)
+				}
+				addrBox.searchParam = searchParam.toSource()
+			}
+		}
+	    mpd.doCmd(cmd, cb, false)
+		return true
+	}
+}
+
+function dbOR(db) {
+    var rdb = []
+    var dl = db.length
+    if (dl < 1) {return db}
+    var n = dl
+
+    var srt = function(a,b) {
+        if (a.Name.substr(i,1)<b.Name.substr(i,1)) return -1
+        if (a.Name.substr(i,1)>b.Name.substr(i,1)) return 1
+        return 0
     }
+
+    db.sort(srt)
+    do {
+        var i = dl - n
+        if (n==1) {rdb.push(db[i])}
+        else if (db[i].Name != db[i+1].Name) {rdb.push(db[i])}
+    } while (--n)
+    return rdb
 }
 
 function loadSrvPref () {
@@ -343,7 +569,7 @@ function socketTalker() {
                             mpd.set('lastResponse', "OK");
                         }
                         if (mpd._cmdQueue.length > 0 && mpd._cmdQueue[0].callBack) {
-                            mpd._cmdQueue[0].callBack(this.data)
+                            mpd._cmdQueue[0].callBack(this.data.slice(0,-3))
                         }
                         mpd._cmdQueue.shift()
                     }

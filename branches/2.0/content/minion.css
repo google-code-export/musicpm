@@ -34,8 +34,11 @@ treechildren::-moz-tree-cell-text() {
 treechildren::-moz-tree-cell-text(Title) {
     color: white;
     }
-treechildren::-moz-tree-cell-text(Artist) {
+treechildren::-moz-tree-cell-text(Artist){
     font-style: italic;
+    }
+treechildren::-moz-tree-cell-text(Time_file){
+    text-align: right;
     }
 treechildren::-moz-tree-cell-text(Title_file) {
     color: #FAFABE;
@@ -48,9 +51,11 @@ treechildren::-moz-tree-cell-text(currentsong) {
     }
 treechildren::-moz-tree-image(play_currentsong) {
     list-style-image: url("chrome://minion/content/images/play_small.png");
+	margin-right: 4px;
     }
 treechildren::-moz-tree-image(pause_currentsong) {
     list-style-image: url("chrome://minion/content/images/pause_small.png");
+	margin-right: 4px;
     }
 treechildren::-moz-tree-image(stop_currentsong) {
     list-style-image: none;
@@ -62,16 +67,28 @@ treechildren::-moz-tree-image(Title_updating) {
     list-style-image: url("chrome://minion/content/images/rescan_small.png");
     }
 
-
-treechildren::-moz-tree-row {
-  border-bottom: 1px solid transparent;
-  min-height: 18px;
-  height: 1.3em;
+treechildren {
+	background-color: #151515;
 }
 treechildren::-moz-tree-row {
-  border-bottom: 1px solid #151515;
+  border-bottom: 1px solid transparent;
   min-height: 20px;
   height: 1.4em;
+}
+treechildren::-moz-tree-row(closed) {
+  border-bottom: 1px solid #151515;
+}
+treechildren::-moz-tree-row(open, odd) {
+  border-top: 1px solid #434343;
+}
+treechildren::-moz-tree-row(open, even) {
+  border-top: 1px solid #505050;
+}
+#playlist treechildren::-moz-tree-row(Artist, odd) {
+  border-bottom: 1px solid #101010;
+}
+#playlist treechildren::-moz-tree-row(Artist, even) {
+  border-bottom: 1px solid #151515;
 }
 #playlist {
 	min-height: 400px;
