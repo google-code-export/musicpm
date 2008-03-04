@@ -1,13 +1,18 @@
 #summary Things on my "to do" list for MPM.
 
-= 1.5 =
+= 2.0 =
 
-  * Clean up and reorganize poject/code.  Long overdue.
-  * (Firefox 3) Use <scale> for volume control when available, degrade to progressmeter to maintain compatability with older Firefox versions.
+  * Clean up and reorganize project/code.  
+    * Ensure only one MPD connection is made and shared globally.
+    * Cache mpd query results.
+    * Use sqlite?
+  * (Firefox 3) Use <scale> for volume control.
   * Build Xulrunner binaries.  (Run independent of Firefox, standalone version)
-  * Add custom scripts feature for context menu.
+  * Add custom scripts and/or custom web search feature for context menu.
   * Add query builder.
   * Add Details page for songs. (all tags, album art, lyrics, helpful links.)
+  * Add auto-complete address bar option.
+
 
 
 = Wishlist =
