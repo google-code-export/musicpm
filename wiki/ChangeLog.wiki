@@ -1,7 +1,7 @@
 #summary A history of changes made for each release.
 #labels Featured
 
-= 1.4.1 =
+= 1.4.2 =
 
   * Added chrome to mini-player (OS supplied window decorations).  The chromeless window was to buggy under Windows.
   * Fixed bugs with browser overlay commands not always working, such as the statusba controls.
