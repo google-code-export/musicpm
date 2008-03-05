@@ -379,28 +379,6 @@ var mpd = {
 			}
 		}
 		
-		var done = function (db, view, addrBox) {
-			view.load(db, false)
-			if (Nz(addrBox)) {
-				var searchParam = ["Home"]
-				if (Nz(type)) {
-					searchParam.push(type+":/")
-					if (Nz(URI[1])) {
-						var dirs = URI[1].split("/")
-						while (dirs.length > 0) {
-							var l = searchParam[searchParam.length-1]
-							searchParam.push(l+"/"+dirs.shift())
-						}
-					}
-					searchParam[1] = type+"://"
-				}
-				for (x in db) {
-					if (db[x].type != 'file') searchParam.push(db[x].URI)
-				}
-				addrBox.searchParam = searchParam.toSource()
-			}
-		}
-		
 		var cb = function(data){
 			data = data.split("\n")
 			var db = []
@@ -460,13 +438,37 @@ var mpd = {
 			}
 			
 			if (chkDupes) db = dbOR(db)
-			mpd.cache[URI] = db
-			done(db, view, addrBox)
+			var searchParam = ["Home"]
+			if (Nz(type)) {
+				searchParam.push(type+":/")
+				if (Nz(URI[1])) {
+					var dirs = URI[1].split("/")
+					while (dirs.length > 0) {
+						var l = searchParam[searchParam.length-1]
+						searchParam.push(l+"/"+dirs.shift())
+					}
+				}
+				searchParam[1] = type+"://"
+			}
+			for (x in db) {
+				if (db[x].type != 'file') searchParam.push(db[x].URI)
+			}
+			searchParam = searchParam.toSource()
+			
+			if (URI != "playlist://") {
+				mpd.cache[URI] = {
+					db: db,
+					searchParam: searchParam
+				}
+			}
+			view.load(db, false)
+			if (Nz(addrBox)) addrBox.searchParam = searchParam
 		}
-				
+		
 		var cache = Nz(mpd.cache[URI], false)
 		if (cache) {
-			done(cache, view, addrBox)
+			view.load(cache.db, false)
+			if (Nz(addrBox)) addrBox.searchParam = cache.searchParam
 			return true
 		}
 		else {
