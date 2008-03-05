@@ -157,6 +157,12 @@ var mpd = {
             mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
         }
         mpd.playlist = Nz(obj.playlist)
+		if (mpd.updating_db) {
+			if (!Nz(obj.updating_db)) {
+				mpd.cache = {}
+        		mpd.set('updating_db', null)
+			}
+		}
 
         //set status values
         mpd.set('volume', Nz(obj.volume))
@@ -253,13 +259,14 @@ var mpd = {
         }
         mpd.set("pltime", prettyTime(tm))
     },
+	cache: {},
 	query: function (URI, view, addrBox){
 		/* Query mpd and return database results to nslTreeView view,
 		 * then load addrBox.searchParam with appropriate autocomplete
 		 * entries.
 		 * 
-		 * URI should be: tag_type://specifier or 
-		 * tag_type://other_tag_type=specifier or
+		 * URI should be: return_tag_type://specifier or 
+		 * return_tag_type://where_other_tag_type=specifier or
 		 * an actual MPD command.
 		 * 
 		 * If '://' is not in string, it is assumed to be an MPD command.
@@ -324,9 +331,8 @@ var mpd = {
 						cmd = "listallinfo"
 					}
 					else if (id.indexOf("=") > 0) {
-						type = "search";
 						id = id.split("=")
-						cmd = 'search ' + id[0] + ' "' + id[1].replace(/"/g, '\\"') + '"';
+						cmd = 'find ' + id[0] + ' "' + id[1].replace(/"/g, '\\"') + '"';
 					}
 					else {
 						mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
@@ -373,11 +379,33 @@ var mpd = {
 			}
 		}
 		
-		var cb = function (data) {
-		    data = data.split("\n")
-		    var db = []
-		    var dl = data.length
-		    if (dl > 0) {
+		var done = function (db, view, addrBox) {
+			view.load(db, false)
+			if (Nz(addrBox)) {
+				var searchParam = ["Home"]
+				if (Nz(type)) {
+					searchParam.push(type+":/")
+					if (Nz(URI[1])) {
+						var dirs = URI[1].split("/")
+						while (dirs.length > 0) {
+							var l = searchParam[searchParam.length-1]
+							searchParam.push(l+"/"+dirs.shift())
+						}
+					}
+					searchParam[1] = type+"://"
+				}
+				for (x in db) {
+					if (db[x].type != 'file') searchParam.push(db[x].URI)
+				}
+				addrBox.searchParam = searchParam.toSource()
+			}
+		}
+		
+		var cb = function(data){
+			data = data.split("\n")
+			var db = []
+			var dl = data.length
+			if (dl > 0) {
 				var n = dl
 				do {
 					var i = dl - n
@@ -431,29 +459,20 @@ var mpd = {
 				while (--n)
 			}
 			
-		    if (chkDupes) db = dbOR(db)
-			view.load(db, false)
-			if (Nz(addrBox)) {
-				var searchParam = ["Home"]
-				if (Nz(type)) {
-					searchParam.push(type+":/")
-					if (Nz(URI[1])) {
-						var dirs = URI[1].split("/")
-						while (dirs.length > 0) {
-							var l = searchParam[searchParam.length-1]
-							searchParam.push(l+"/"+dirs.shift())
-						}
-					}
-					searchParam[1] = type+"://"
-				}
-				for (x in db) {
-					if (db[x].type != 'file') searchParam.push(db[x].URI)
-				}
-				addrBox.searchParam = searchParam.toSource()
-			}
+			if (chkDupes) db = dbOR(db)
+			mpd.cache[URI] = db
+			done(db, view, addrBox)
 		}
-	    mpd.doCmd(cmd, cb, false)
-		return true
+				
+		var cache = Nz(mpd.cache[URI], false)
+		if (cache) {
+			done(cache, view, addrBox)
+			return true
+		}
+		else {
+			mpd.doCmd(cmd, cb, false)
+			return true
+		}
 	}
 }
 

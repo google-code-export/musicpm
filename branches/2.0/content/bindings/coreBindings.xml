@@ -355,39 +355,31 @@
 				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
 			                getService(Components.interfaces.nsIPrefBranch)
 				this.expanded = prefs.getBoolPref("extensions.mpm.playlistExpanded");
-
-                var view = new playlistView()
-				view.load(mpd.plinfo, this.expanded)
-				this.tree.view = view
-				var dbRows = mpd.playlistlength
-                var box = tree.boxObject;
-                box.QueryInterface(Components.interfaces.nsITreeBoxObject);
 				
-				this.view = view
-				this.box = box
-				
+				var me = this
+				function applyView() {
+					me.view = new playlistView()
+					me.view.load(mpd.plinfo, true)
+					me.tree.view = me.view
+	                me.box = me.tree.boxObject;
+	                me.box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+				}
+				applyView()
                 this.obsPL = {
                     observe: function(subject,topic,data){
-                        box.invalidate()
+						me.box.invalidate()
                     }
                 };
                 this.obsLn = {
                     observe: function(subject,topic,data){
-						data = parseInt(data)
-						var diff = data - dbRows
-						if (diff < 0) {
-							view.removeItems(-diff)
+						var idx = me.box.getFirstVisibleRow()
+						applyView()
+						if (idx < me.view.rowCount) {
+							me.box.scrollToRow(idx)
 						}
-						else if (diff > 0) {
-							var n = dbRows
-							if (!n) n = 0
-							var xpnd = tree.parentNode.expanded
-							do {
-								view.addItem(n, xpnd)
-								n++
-							} while (n < data)
+						else {
+							me.box.ensureRowIsVisible(me.view.rowCount-1)
 						}
-						dbRows = data
                     }
                 };
                 this.obsCurSong = {
@@ -422,21 +414,12 @@
 							var isCont = view.isContainer(i)
 							if(isCont && view.isContainerOpen(i)) {
 								i += 3;
-								if (i > (tree.rowCount-1)) i = tree.rowCount-1;
-							} 
-							else if (!isCont) {i = view.getParentIndex(i)}
-							tree.currentIndex = i
-							if (!event.shiftKey && !event.ctrlKey) view.selection.clearSelection();
-							tree.onselect(event);
-							event.stopPropagation();
-							break;
-						case 38: 
-							var i = tree.currentIndex;
-							i--;
-							tree.currentIndex = (i < 0) ? 0 : i
-							if (!event.shiftKey && !event.ctrlKey) view.selection.clearSelection();
-							tree.onselect(event);
-							event.stopPropagation();
+								if (i > (tree.rowCount-1)) i = tree.rowCount-1;							
+								tree.currentIndex = i
+								if (!event.shiftKey && !event.ctrlKey) view.selection.clearSelection();
+								tree.onselect(event);
+								event.stopPropagation();
+							}
 							break;
 					}
 					]]>
@@ -454,9 +437,10 @@
 					if (view.isContainerOpen(p)) {
 						if (!sel.isSelected(p+2)) sel.toggleSelect(p+2)
 						if (!sel.isSelected(p+1)) sel.toggleSelect(p+1)
+						if (!sel.isSelected(p)) sel.toggleSelect(p)
+						sel.currentIndex = p
+						tree.currentIndex = p
 					}
-					if (!sel.isSelected(p)) sel.toggleSelect(p)
-					else sel.currentIndex = p
 					]]>
 				</body>
 			</method>
