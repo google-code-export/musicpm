@@ -25,6 +25,145 @@ var prefService = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefService);
 var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefBranch);
+
+var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                     .getService(Components.interfaces.nsIProperties)
+                     .get("Home", Components.interfaces.nsIFile);
+
+file.append("mpd.sqlite");
+var storageService = Components.classes["@mozilla.org/storage/service;1"]
+                        .getService(Components.interfaces.mozIStorageService);
+var mDBConn = storageService.openDatabase(file);
+
+var create_script = 
+"CREATE TABLE IF NOT EXISTS file \
+( 	filename  TEXT UNIQUE, \
+	type	  TEXT DEFAULT 'file', \
+	path	  TEXT DEFAULT '', \
+	Pos		  INTEGER, \
+	Title     TEXT, \
+	Album     TEXT, \
+	Artist    TEXT, \
+	Track     TEXT, \
+	Date      TEXT, \
+	Genre     TEXT, \
+	Composer  TEXT, \
+	Performer TEXT, \
+	Disc      TEXT, \
+	Time      ITEGER DEFAULT 0, \
+	created   INTEGER DEFAULT CURRENT_TIMESTAMP, \
+	playcount INTEGER DEFAULT 0, \
+	lastplay  INTEGER DEFAULT 0, \
+	lyrics    TEXT DEFAULT NULL, \
+	touched   INTEGER DEFAULT CURRENT_TIMESTAMP \
+); \
+CREATE TABLE IF NOT EXISTS directory \
+(   directory TEXT UNIQUE, \
+	type	  TEXT DEFAULT 'directory', \
+	parent    TEXT, \
+	touched   INTEGER DEFAULT CURRENT_TIMESTAMP \
+); \
+CREATE TABLE IF NOT EXISTS stats \
+(   type      TEXT UNIQUE, \
+	value	  TEXT, \
+	touched   INTEGER DEFAULT CURRENT_TIMESTAMP \
+);"
+
+mDBConn.executeSimpleSQL(create_script)
+
+function updateDirInfo (data) {
+	for (row in data) {
+		switch (row.type) {
+			case "directory":
+				mDBConn.executeSimpleSQL("REPLACE INTO directory VALUES('" +
+					row.value + "','directory', '" + 
+					row.value.split("/").splice(0, -1) + "', "+ mpd.db_update + ");")
+			case 'file':
+				mDBConn.executeSimpleSQL("INSERT OR IGNORE INTO file (filename, path, created)" +
+					" VALUES('" + row.file + 
+					"', '" + row.file.split("/").splice(0, -1) + 
+					"', " + mpd.db_update + ");")
+		}
+	}
+	mDBConn.executeSimpleSQL("DELETE FROM directory WHERE touched<" + mpd.db_update + ";")
+}
+
+function updateFileInfo (data) {
+	for (row in data) { 
+		debug(row)
+		mDBConn.executeSimpleSQL("UPDATE file SET "+
+				"Title='" + Nz(row.Title, row.file.split("/").splice(-1)) +
+				"', Album='" + Nz(row.Album, 'unknown') +
+				"', Artist='" + Nz(row.Artist, 'unknown') +
+				"', Track='" + Nz(row.Track, '0') +
+				"', Date='" + Nz(row.Date, '0') +
+				"', Genre='" + Nz(row.Genre, 'unknown') +
+				"', Composer='" + Nz(row.Composer, 'unknown') +
+				"', Performer='" + Nz(row.Performer, 'unknown') +
+				"', Disc='" + Nz(row.Disc, 'unknown') +
+				"', Time=" + Nz(row.Time, 0) +
+				"', touched=" + mpd.db_update +
+				"WHERE filename='" + row.file + "';")
+	}
+	mDBConn.executeSimpleSQL("DELETE FROM file WHERE touched<" + mpd.db_update + ";")
+}
+
+function updateStats (data) {
+	for (row in data) {
+		mDBConn.executeSimpleSQL("REPLACE INTO stats " + 
+			"VALUES('" + row.type + "','" + row.value + "', " + mpd.db_update + ");")
+		if (row.type == 'db_update') mpd.db_update = row.value
+	}
+	mDBConn.executeSimpleSQL("DELETE FROM stats WHERE touched<" + mpd.db_update + ";")
+}
+
+function parse_data(data){
+	data = data.split("\n")
+	var db = []
+	var dl = data.length
+	if (dl > 0) {
+		var n = dl
+		do {
+			var i = dl - n
+			var sep = data[i].indexOf(": ")
+			if (sep > -1) {
+				var fld = data[i].substr(0, sep)
+				var val = data[i].slice(sep + 2)
+				if (Nz(val)) {
+					if (fld == 'file') {
+						var song = {
+							type: 'file',
+							file: val,
+						};
+						var d = data[i + 1]
+						while (d && d.substr(0, 6) != "file: ") {
+							var sep = d.indexOf(": ")
+							song[d.substr(0, sep)] = d.slice(sep + 2);
+							--n;
+							var d = data[dl - n + 1]
+						};
+						db.push(song);
+					}
+					else {
+						db.push({
+							type: fld,
+							value: val
+						})
+					}
+				}
+			}
+		}
+		while (--n)
+		return db
+	}
+}
+
+function loadAllInfo(data) {
+	mpd.doCmd('stats', function (data) {updateStats(parse_data(data))})
+	mpd.doCmd('listall', function (data) {updateDirInfo(parse_data(data))})
+	mpd.doCmd('listallinfo', function (data) {updateFileInfo(parse_data(data))})
+}
+
 var mpd = {
     _host: null,
     _port: null,
@@ -54,6 +193,8 @@ var mpd = {
     Genre: null,
     Composer: null,
 
+	db_update: null,
+	
     // Playlist contents and total playtime
     plinfo: [],
     pltime: 0,
@@ -75,6 +216,7 @@ var mpd = {
             mpd._socket.cancel()
         }
         mpd._checkStatus()
+		loadAllInfo()
     },
     disconnect: function () {
         if (mpd._timer) {
