@@ -97,7 +97,19 @@ var convertPercent = true
 var infoBrowser
 
 
-function $(e) {return document.getElementById(e)}
+function $(e){
+	var element = null
+	try {
+		if (typeof(e) != 'string') 
+			return null
+		if (e.length < 1) 
+			return null
+		element = document.getElementById(e)
+	}
+	finally {
+		return element
+	}
+}
 
 function hasFocus (e) {
     if (typeof(e)=='string') e = $(e)
@@ -120,7 +132,7 @@ function cpyArray (oldArray) {
 }
 
 function debug(s) {
-    //return null
+    return null
     if (typeof(s) == 'object') {
         var str = ""
         for (x in s) {str += x + ": " + s[x] + "\n"}
@@ -632,7 +644,10 @@ function playlist_addURL(){
 function mpm_handleURL(url, action) {
     if (typeof(url) != 'string') return null
     if (typeof(action) == 'undefined') action = "add"
-    if (url.length < 4) return null
+    if (url.length < 4) return null	
+	if (url.indexOf("http://somafm.com/play/") == 0) {
+		url = url.replace("/play", "") + ".pls"
+	}
     switch (url.substr(-4).toLocaleLowerCase()) {
         case ".pls": sendCB(url, load_pls_stream, action); break;
         case ".m3u": sendCB(url, load_m3u_stream, action); break;
