@@ -9,7 +9,7 @@
         var mpm = {
             onLoad: function (e) {
                 var cm = document.getElementById("contentAreaContextMenu")
-                if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, false)
+                if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, true)
             },
             open: function(url, event) {
                 openUILink(url, event, false, true);
@@ -29,6 +29,9 @@
                     var url = gContextMenu.linkURL
                     if (typeof(url) != 'string') url = "none"
                     if (url.length < 4) url = "none"
+					if (url.indexOf("http://somafm.com/play/")==0){
+						url = ".pls"
+					}
                     switch (url.substr(-4).toLocaleLowerCase()) {
                         case "none": ma.hidden = mp.hidden = true; break;
                         case ".pls": ma.hidden = mp.hidden = false; break;
@@ -42,6 +45,7 @@
                         default: ma.hidden = mp.hidden = true; break;
                     }
                 }
+				return true
             }
         }
         window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
