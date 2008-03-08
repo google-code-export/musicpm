@@ -1,6 +1,12 @@
 #summary A history of changes made for each release.
 #labels Featured
 
+= 1.4.3 =
+
+  * Added workarounds for somafm.com.  Their internet radio links will now be recognized as .pls and their links converted to the .pls files.
+  * Turned off debug messages in the console.
+  * Added validation to the $() function (shortcut for getElementById).
+
 = 1.4.2 =
 
   * Added chrome to mini-player (OS supplied window decorations).  The chromeless window was to buggy under Windows.
