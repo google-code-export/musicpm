@@ -13,9 +13,9 @@
                    em:aboutURL="chrome://minion/content/about.html">
     <em:contributor>Alexandre Moore (icons)</em:contributor>
     <em:contributor>Tango Desktop Project (icons)</em:contributor>
-    <em:targetApplication RDF:resource="rdf:#$wmwnz3"/>
+    <em:targetApplication RDF:resource="rdf:#$Emwnz3"/>
   </RDF:Description>
-  <RDF:Description RDF:about="rdf:#$wmwnz3"
+  <RDF:Description RDF:about="rdf:#$Emwnz3"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="1.5"
                    em:maxVersion="3.0b4" />
