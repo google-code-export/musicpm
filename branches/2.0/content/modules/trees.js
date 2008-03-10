@@ -163,8 +163,11 @@ function customView () {
             case "Pos":
                 return (item.Pos) ? (parseInt(item.Pos) + 1) + "." : "";
                 break;
+            case "Title":
+                return (item.Title) ? item.Title : item.name;
+                break;
             default:
-                return item[C.id];
+                return (item[C.id]);
                 break;
         }
     }
@@ -232,7 +235,7 @@ function customView () {
             var t = item.type
             var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
             props.AppendElement(aserv.getAtom(col.id + "_" + t))
-            if (t == 'file' && item.Name == mpd.file) {
+            if (t == 'file' && item.value == mpd.file) {
                 if (col.id == 'Title' && mpd.state != 'stop') {
                     props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
                 }
@@ -322,6 +325,55 @@ function playlistView(){
 playlistView.prototype = new customView
 
 function browserView () {
+	this.rowCount = 0
+	this.load = function (db, cols){
+		var rowCount = db.length
+		if (this.treeBox) {
+			var chg = rowCount - this.rowCount
+			var n = (chg < 0) ? 1 : this.rowCount
+			this.treeBox.rowCountChanged(n-1, chg)
+			this.treeBox.invalidate()
+			this.treeBox.scrollToRow(0)
+		}
+		this.db = db
+		this.rs = []
+		this.cols = cols
+		this.rs.length = rowCount
+		this.rowCount = rowCount;
+		this.colCount = cols.length;
+	}
+	this.get = function (row) {
+		if (typeof(this.rs[row])=='object') return this.rs[row]
+		var num = this.colCount
+		var i = num
+		var record = {}
+		do {
+			var x = num - i
+			record[this.cols[x]] = this.db[row][x]
+		}
+		while (--i)
+		this.db[row] = null
+		this.rs[row] = record
+		return record
+	}
+	this.isContainer = function(row){
+		return false
+	}
+	this.getParentIndex = function(idx){
+		return -1
+	}
+	this.getLevel = function(row){
+		return 0
+	}
+	this.hasNextSibling = function(row, afterIndex){
+		return true
+	}
+	this.isContainerEmpty = function(row){
+		return false
+	}
+	this.isContainerOpen = function(row){
+		return false
+	}
 }
 browserView.prototype = new customView
 

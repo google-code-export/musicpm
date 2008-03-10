@@ -530,70 +530,58 @@
 	                id="mpdBrowserTree"
 	                flex="1"
 	            	flags="dont-build-content">
-	                <xul:treecols>
+	                <xul:treecols id="mpdBrowserCols">
 	                    <xul:treecol id="Pos" label="#" ordinal="1" width="30px"
 	                            hidden="false"
 	                            collapsed="true"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
+	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="2" />
-	                    <xul:treecol id="Name" label="Name" ordinal="3" flex="3"
+	                    <xul:treecol id="Disc" label="Disc" ordinal="3" width="60px"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
+	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="4" />
-	                    <xul:treecol id="Disc" label="Disc" ordinal="2" width="60px"
-	                            hidden="true"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
-	                    <xul:splitter class="tree-splitter" ordinal="5" />
-	                    <xul:treecol id="Track" label="Track" ordinal="6" width="60px"
+	                    <xul:treecol id="Track" label="Track" ordinal="5" width="60px"
 	                            persist="width ordinal hidden"
 	                            style="text-align:right"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
-	                    <xul:splitter class="tree-splitter" ordinal="7" />
-	                    <xul:treecol id="Title" label="Title" ordinal="8" flex="3"
+	                            class="sortDirectionIndicator"/>
+	                    <xul:splitter class="tree-splitter" ordinal="6" />
+	                    <xul:treecol id="Title" label="Title" ordinal="7" flex="3"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
-	                    <xul:splitter class="tree-splitter" ordinal="9" />
-	                    <xul:treecol id="Time" label="Time" ordinal="10" width="60px"
+	                            class="sortDirectionIndicator"/>
+	                    <xul:splitter class="tree-splitter" ordinal="8" />
+	                    <xul:treecol id="Time" label="Time" ordinal="9" width="60px"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
-	                    <xul:splitter class="tree-splitter" ordinal="11" />
-	                    <xul:treecol id="Album" label="Album" ordinal="12" flex="1"
+	                            class="sortDirectionIndicator"/>
+	                    <xul:splitter class="tree-splitter" ordinal="10" />
+	                    <xul:treecol id="Album" label="Album" ordinal="11" flex="1"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
+	                            class="sortDirectionIndicator"/>
+	                    <xul:splitter class="tree-splitter" ordinal="12" />
+	                    <xul:treecol id="Artist" label="Artist" ordinal="13" flex="1"
+	                            persist="width ordinal hidden"
+	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="13" />
-	                    <xul:treecol id="Artist" label="Artist" ordinal="14" flex="1"
+	                    <xul:treecol id="Performer" label="Performer" ordinal="14" flex="1"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
+	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="15" />
 	                    <xul:treecol id="Genre" label="Genre" ordinal="16" flex="1"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
+	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="17" />
 	                    <xul:treecol id="Composer" label="Composer" ordinal="18" flex="1"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
+	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="19" />
 	                    <xul:treecol id="Date" label="Date" ordinal="20" width="60px"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"
-	                            onclick="sort(this)"/>
+	                            class="sortDirectionIndicator"/>
 	                </xul:treecols>
 	                <xul:treechildren id="bchildren"/>
 	            </xul:tree>
@@ -617,6 +605,8 @@
         	<field name="view"/>
         	<field name="addr"/>
         	<field name="tree"/>
+        	<field name="treecols"/>
+        	<field name="cols"/>
 			<field name="home">
 				<![CDATA[
 				[
@@ -662,6 +652,7 @@
 				<![CDATA[
 				var addr = document.getAnonymousElementByAttribute(this, 'id', 'mpdAddress')
 				var tree = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserTree')
+				var treecols = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserCols')
 				this.addr = addr
 				this.tree = tree 
                 Components.utils.import("resource://minion/trees.js");
@@ -674,7 +665,6 @@
 				
 				this.view = view
 				this.box = box
-				this.goToURI("")
                 this.obsCurSong = {
                     observe: function(subject,topic,data){
                         box.invalidate()
@@ -682,17 +672,42 @@
                 };
                 observerService.addObserver(this.obsCurSong,'state',false)
                 observerService.addObserver(this.obsCurSong,'file',false)
+				var cols = this.cols
+				function calcCols (event) {
+					var sel = ['type','value','name']
+					var cols = tree.getElementsByTagName('xul:treecol')
+					for (var i=0;i<cols.length;i++) {
+						var tc = cols[i]
+						if (!tc.hidden && !tc.collapsed) sel.push(tc.id)
+					}
+					cols = sel.join(",")
+				}
+				var cols = this.tree.getElementsByTagName('xul:treecol')
+				for (var i=0;i<cols.length;i++) {
+					var tc = cols[i]
+					tc.addEventListener('DOMAttrModified', calcCols, false)
+				}
+				calcCols()
 				]]>
             </constructor>
             <destructor>
+				<![CDATA[
                 Components.utils.import("resource://minion/trees.js");
                 observerService.removeObserver(this.obsCurSong,'state')
                 observerService.removeObserver(this.obsCurSong,'file')
+				var cols = this.tree.getElementsByTagName('xul:treecol')
+				for (var i=0;i<cols.length;i++) {
+					cols[i].removeEventListener('DOMAttrModified', this.calcCols, false)
+				}
+				]]>
             </destructor>
 			<method name="goToURI">
 				<parameter name="URI"/>
 				<body>
 					<![CDATA[
+					if (URI.substr(0,18).toLowerCase()=='select * from file') {
+						URI = URI.replace("*", this.cols)
+					}
 					if (URI=="" || URI=="Home") {
 						this.view.load(this.home, false)
 						this.addr.value = URI
@@ -740,4 +755,5 @@
 			</method>
         </implementation>
     </binding>
+
 </bindings>

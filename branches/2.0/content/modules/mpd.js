@@ -21,48 +21,28 @@ EXPORTED_SYMBOLS = ["mpd", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMB
 var mpd_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 
+var USE_CACHE = false
 var prefService = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefService);
 var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefBranch);
-
-var file = Components.classes["@mozilla.org/file/directory_service;1"]
+var dbfile = Components.classes["@mozilla.org/file/directory_service;1"]
                      .getService(Components.interfaces.nsIProperties)
-                     .get("Home", Components.interfaces.nsIFile);
+						.get("Home", Components.interfaces.nsIFile);
+dbfile.append("mpd.sqlite");
+var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
+                        .getService(Components.interfaces.mozIStorageService)
+							.openDatabase(dbfile);
 
-file.append("mpd.sqlite");
-var storageService = Components.classes["@mozilla.org/storage/service;1"]
-                        .getService(Components.interfaces.mozIStorageService);
-var mDBConn = storageService.openDatabase(file);
-
-var create_script = 
-"CREATE TABLE IF NOT EXISTS file ( \
- 	filename  TEXT UNIQUE, \
-	type	  TEXT, \
-	directory TEXT, \
-	Pos		  INTEGER, \
-	Title     TEXT, \
-	Album     TEXT, \
-	Artist    TEXT, \
-	Track     INTEGER DEFAULT 0, \
-	Date      TEXT, \
-	Genre     TEXT, \
-	Composer  TEXT, \
-	Performer TEXT, \
-	Disc      TEXT, \
-	Time      ITEGER DEFAULT 0, \
-	created   INTEGER DEFAULT CURRENT_TIMESTAMP, \
-	playcount INTEGER DEFAULT 0, \
-	lastplay  INTEGER DEFAULT 0, \
-	lyrics    TEXT DEFAULT NULL, \
-	db_update INTEGER\
-); \
-CREATE TABLE IF NOT EXISTS stats ( \
-    type      TEXT UNIQUE, \
-	value	  INTEGER \
-);"
-
-mDBConn.executeSimpleSQL(create_script)
+try {
+	var schema = getFileContents("resource://minion/schema.sql")
+	mDBConn.executeSimpleSQL(schema)
+	debug("schema created, "+mDBConn.lastErrorString)
+} 
+catch (e) {
+	debug(e)
+	debug(mDBConn.lastErrorString)
+}
 
 function Sz (str) {
 	if (typeof(str) == "string") return str.replace(/\'/g, "''")
@@ -70,34 +50,66 @@ function Sz (str) {
 }
 
 function updateFileInfo (data) {
-	for (x in data) { 
+	var dirs = 0
+	var errs = 0
+	var db_up = mpd.db_update
+	var sql = ''
+	var ln = data.length
+	var n = ln
+	mDBConn.beginTransaction(mDBConn.TRANSACTION_DEFERRED)
+	debug(data.length+' records to insert.')
+	do { 
 		try {
-			var row = data[x]
+			var row = data[ln-n]
 			if (row.type == 'file') {
-				var cols = ['db_update']
-				var vals = [mpd.db_update]
+				var cols = []
+				var vals = []
 				for (col in row) {
 					cols.push(col)
 					vals.push("'" + row[col] + "'")
 				}
-				mDBConn.executeSimpleSQL("INSERT OR IGNORE INTO file (" + cols.join(",") +
-				") VALUES(" +
-				vals.join(",") +
-				");")
+				var d = row.directory
+				sql = "INSERT OR IGNORE INTO file (" + cols.join(",") + ")"
+				sql +=	" VALUES(" + vals.join(",") + ");"
+				mDBConn.executeSimpleSQL(sql)
+				
+				sql = "UPDATE file SET db_update="+db_up
+				sql += " WHERE value='"+row.value+"'"
+				mDBConn.executeSimpleSQL(sql)
+				var d = row.directory
 			}
+			else if (row.type == 'directory') {
+				var d = row.value
+			}
+			var sep = d.lastIndexOf("/")
+			var leaf = d
+			var branch  = ''
+			if (sep != -1) {
+				var branch = d.slice(0, sep)
+				var leaf = d.slice(sep + 1)
+			}
+			sql = "INSERT OR IGNORE INTO dir VALUES"
+			sql += "(NULL,'directory','" + d + "','" + branch + "','" + leaf + "'," + db_up + ");"
+			mDBConn.executeSimpleSQL(sql)			
 		} 
 		catch (e) {
-			debug(e)
+			debug(sql + "\n" + mDBConn.lastErrorString)
+			errs++
 		}
-	}
-	mDBConn.executeSimpleSQL("DELETE FROM file WHERE db_update<" + mpd.db_update + ";")
+	} while (--n) 
+	mDBConn.commitTransaction()
+	debug("Errors: "+errs)
+	mDBConn.executeSimpleSQL("DELETE FROM file WHERE db_update<" + db_up + ";")
+	mDBConn.executeSimpleSQL("DELETE FROM dir WHERE db_update<" + db_up + ";")
 }
 
 function updateStats (data) {
+	mDBConn.beginTransaction(mDBConn.TRANSACTION_DEFERRED)
 	for (x in data) {
 		var row = data[x]
-		mDBConn.executeSimpleSQL( "REPLACE INTO stats VALUES('" + row.type + "'," + row.value + ");")
+		mDBConn.executeSimpleSQL( "REPLACE INTO stats VALUES(NULL,'" + row.type + "'," + row.value + ");")
 	}
+	mDBConn.commitTransaction()
 }
 
 function parse_data(data){
@@ -113,10 +125,17 @@ function parse_data(data){
 				var fld = data[i].substr(0, sep)
 				var val = Sz(data[i].slice(sep + 2))
 				if (fld == 'file') {
+					var sep = val.lastIndexOf("/")
+					var leaf = val
+					var branch  = ''
+					if (sep != -1) {
+						branch = val.slice(0, sep)
+						leaf = val.slice(sep+1)
+					}
 					var song = {
 						type: 'file',
-						filename: val,
-						directory: ''
+						value: val,
+						name: leaf
 					};
 					var d = data[i + 1]
 					while (d && d.substr(0, 6) != "file: ") {
@@ -125,10 +144,7 @@ function parse_data(data){
 						--n;
 						var d = data[dl - n + 1]
 					};
-					var sep = song.filename.lastIndexOf("/")
-					if (sep != -1) {
-						song.directory = song.filename.slice(0, sep)
-					}
+					song.directory = branch
 					db.push(song);
 				}
 				else {
@@ -144,23 +160,94 @@ function parse_data(data){
 	}
 }
 
-function loadAllInfo(data) {
-	var statsCB = function(data){
-		debug(data)
-		var stats = parse_data(data)
-		for (x in stats) {
-			if (stats[x].type == 'db_update') mpd.db_update = stats[x].value
+function statsCallback(data){
+	debug(data)
+	var stats = parse_data(data)
+	var doUpdate = true
+	for (x in stats) {
+		if (stats[x].type == 'db_update') {
+			if (mpd.db_update != stats[x].value) {
+				mpd.db_update = stats[x].value
+				var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
+				var db_update = (q.executeStep()) ? q.getString(0) : ""
+				debug('sqlite db_update = '+db_update)
+				var doUpdate = (stats[x].value != db_update)
+				q.reset()
+			}
 		}
-		updateStats(stats)
 	}
-	mpd.doCmd('stats', statsCB)
-	mpd.doCmd('listallinfo', function (data) {updateFileInfo(parse_data(data))})
+	if (doUpdate) {
+		debug("Database update needed.")
+		updateStats(stats)
+		mpd.doCmd('listallinfo', function(data){
+			updateFileInfo(parse_data(data))
+			debug("Database update complete.")
+		})
+	}
+}
+
+function lsinfoCallback(data){
+	/* Check that mpd has a playlist named "Current Playlist"
+	 * and create one if it does not.  MPM works with the playlist
+	 * "Current Playlist" to take advantage of the listplaylist
+	 * command, which only returns filenames instead of all metadata
+	 * but only works with saved playlists.
+	 */
+	var info = parse_data(data)
+	var hasCurrent = false
+	for (x in info){
+		if (info[x].type == 'playlist') {
+			if (info[x].value == 'Current Playlist') hasCurrent = true
+		}
+	}
+	if (!hasCurrent) mpd.doCmd('save "Current Playlist"')
+	debug("Current Playlist existence ensured.")
+}
+
+function sqlQuery (sql, view, addr) {
+	var db = []
+	try {
+		var q = mDBConn.createStatement(sql)
+		var hasValues = q.executeStep()
+		if (hasValues){
+			var cols = []
+			var num = q.numEntries
+			var i = num
+			var row = []
+			do {
+				var x = num-i
+				cols.push(q.getColumnName(x))
+				row.push(q.getUTF8String(x))
+			} while (--i)
+			db.push(row)
+			while (q.executeStep()) {
+				i = num
+				row = []
+				do {
+					row.push(q.getUTF8String(num-i))
+				} while (--i)
+				db.push(row)
+			}
+		}
+		q.reset()
+		if (USE_CACHE) {
+			mpd.cache[sql] = {
+				db: db,
+				cols: cols,
+				searchParam: ""
+			}
+		}
+		view.load(db, cols)
+	} catch (e) {
+		debug (sql + "\n" + mDBConn.lastErrorString)
+	}
 }
 
 var mpd = {
     _host: null,
     _port: null,
     _password: null,
+	db: mDBConn,
 
     // Output of status
     volume: null,
@@ -208,8 +295,10 @@ var mpd = {
         if (mpd._socket) {
             mpd._socket.cancel()
         }
+		mpd._socket = socketTalker()
+		mpd.doCmd('lsinfo', lsinfoCallback, true)
+		mpd.doCmd('stats', statsCallback, true)
         mpd._checkStatus()
-		loadAllInfo()
     },
     disconnect: function () {
         if (mpd._timer) {
@@ -406,10 +495,20 @@ var mpd = {
 		 * 
 		 * If '://' is not in string, it is assumed to be an MPD command.
 		 */
+		var cache = Nz(mpd.cache[URI], false)
+		if (cache) {
+			view.load(cache.db, false)
+			if (Nz(addrBox)) addrBox.searchParam = cache.searchParam
+			return true
+		}
 		
 	    var chkDupes = false
 		var cmd = URI
 		if (URI.indexOf("://") < 0) {
+			if (URI.toLowerCase().indexOf('select') == 0) {
+				sqlQuery(URI, view, addrBox)
+				return true
+			}
 			// Clean up and validate command lists.
 		    
 			if (cmd.indexOf('command_list_begin') > -1) {
@@ -590,26 +689,20 @@ var mpd = {
 			}
 			searchParam = searchParam.toSource()
 			
-			if (URI != "playlist://") {
-				mpd.cache[URI] = {
-					db: db,
-					searchParam: searchParam
+			if (USE_CACHE) {
+				if (URI != "playlist://") {
+					mpd.cache[URI] = {
+						db: db,
+						searchParam: searchParam
+					}
 				}
 			}
 			view.load(db, false)
 			if (Nz(addrBox)) addrBox.searchParam = searchParam
 		}
 		
-		var cache = Nz(mpd.cache[URI], false)
-		if (cache) {
-			view.load(cache.db, false)
-			if (Nz(addrBox)) addrBox.searchParam = cache.searchParam
-			return true
-		}
-		else {
-			mpd.doCmd(cmd, cb, false)
-			return true
-		}
+		mpd.doCmd(cmd, cb, false)
+		return true
 	}
 }
 

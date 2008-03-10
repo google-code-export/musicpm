@@ -116,5 +116,64 @@ treechildren::-moz-tree-cell {
   border-right: 1px dotted #444444;
 }
 .tree-columnpicker-icon {
-    list-style-image: url("chrome://minion/content/columnpicker.png");
+    list-style-image: url("chrome://minion/content/images/columnpicker.png");
 }
+
+
+treechildren::-moz-tree-image(Name) {
+    list-style-image: url("chrome://minion/content/images/unknown.png");
+    }
+treechildren::-moz-tree-image(Title_song) {
+    list-style-image: none;
+    }
+treechildren::-moz-tree-image(Name_Artist) {
+    list-style-image: url("chrome://minion/content/images/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(Name_Composer) {
+    list-style-image: url("chrome://minion/content/images/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(Name_Album) {
+    list-style-image: url("chrome://minion/content/images/album.png");
+    }
+treechildren::-moz-tree-image(Name_file) {
+    list-style-image: url("chrome://minion/content/images/song.png");
+    }
+treechildren::-moz-tree-image(Name_directory) {
+    list-style-image: url("chrome://minion/content/images/folder.png");
+    }
+treechildren::-moz-tree-image(Name_playlist) {
+    list-style-image: url("chrome://minion/content/images/playlist.png");
+    }
+
+
+treechildren::-moz-tree-image(Title_Genre) {
+    list-style-image: url("chrome://minion/content/images/unknown.png");
+    }
+treechildren::-moz-tree-image(Title_Date) {
+    list-style-image: url("chrome://minion/content/images/unknown.png");
+    }
+treechildren::-moz-tree-image(Title_file) {
+    list-style-image: url("chrome://minion/content/images/song.png");
+    }
+treechildren::-moz-tree-image(Title_Artist) {
+    list-style-image: url("chrome://minion/content/images/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(Title_Composer) {
+    list-style-image: url("chrome://minion/content/images/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(Title_Album) {
+    list-style-image: url("chrome://minion/content/images/album.png");
+    }
+treechildren::-moz-tree-image(Title_directory) {
+    list-style-image: url("chrome://minion/content/images/folder.png");
+    }
+treechildren::-moz-tree-image(Title_playlist) {
+    list-style-image: url("chrome://minion/content/images/playlist.png");
+    }
+treechildren::-moz-tree-image(Title_custom) {
+    list-style-image: url("chrome://minion/content/images/custom.png");
+    }
