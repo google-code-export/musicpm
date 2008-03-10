@@ -565,6 +565,7 @@
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="13" />
 	                    <xul:treecol id="Performer" label="Performer" ordinal="14" flex="1"
+	                            hidden="true"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="15" />
@@ -605,8 +606,6 @@
         	<field name="view"/>
         	<field name="addr"/>
         	<field name="tree"/>
-        	<field name="treecols"/>
-        	<field name="cols"/>
 			<field name="home">
 				<![CDATA[
 				[
@@ -652,7 +651,6 @@
 				<![CDATA[
 				var addr = document.getAnonymousElementByAttribute(this, 'id', 'mpdAddress')
 				var tree = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserTree')
-				var treecols = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserCols')
 				this.addr = addr
 				this.tree = tree 
                 Components.utils.import("resource://minion/trees.js");
@@ -672,42 +670,17 @@
                 };
                 observerService.addObserver(this.obsCurSong,'state',false)
                 observerService.addObserver(this.obsCurSong,'file',false)
-				var cols = this.cols
-				function calcCols (event) {
-					var sel = ['type','value','name']
-					var cols = tree.getElementsByTagName('xul:treecol')
-					for (var i=0;i<cols.length;i++) {
-						var tc = cols[i]
-						if (!tc.hidden && !tc.collapsed) sel.push(tc.id)
-					}
-					cols = sel.join(",")
-				}
-				var cols = this.tree.getElementsByTagName('xul:treecol')
-				for (var i=0;i<cols.length;i++) {
-					var tc = cols[i]
-					tc.addEventListener('DOMAttrModified', calcCols, false)
-				}
-				calcCols()
 				]]>
             </constructor>
             <destructor>
-				<![CDATA[
                 Components.utils.import("resource://minion/trees.js");
                 observerService.removeObserver(this.obsCurSong,'state')
                 observerService.removeObserver(this.obsCurSong,'file')
-				var cols = this.tree.getElementsByTagName('xul:treecol')
-				for (var i=0;i<cols.length;i++) {
-					cols[i].removeEventListener('DOMAttrModified', this.calcCols, false)
-				}
-				]]>
             </destructor>
 			<method name="goToURI">
 				<parameter name="URI"/>
 				<body>
 					<![CDATA[
-					if (URI.substr(0,18).toLowerCase()=='select * from file') {
-						URI = URI.replace("*", this.cols)
-					}
 					if (URI=="" || URI=="Home") {
 						this.view.load(this.home, false)
 						this.addr.value = URI
@@ -716,7 +689,17 @@
 						this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
 					}
 					else {
-						if(mpd.query(URI, this.view, this.addr)) {
+					var sql = URI
+						if (URI.substr(0,18).toLowerCase()=='select * from file') {
+							var sel = ['type','value','name']
+							var cols = this.tree.getElementsByTagName('xul:treecol')
+							for (var i=0;i<cols.length;i++) {
+								var tc = cols[i]
+								if (!tc.hidden && !tc.collapsed) sel.push(tc.id)
+							}
+							sql = URI.replace("*", sel.join(","))
+						}
+						if(mpd.query(sql, this.view, this.addr)) {
 							this.addr.value = URI
 							this.addr.selectionStart = this.addr.textLength
 							this.addr.selectionEnd = this.addr.textLength
