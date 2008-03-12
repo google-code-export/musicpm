@@ -77,7 +77,7 @@ function updateFileInfo (data) {
 			sql +=	" VALUES(" + vals.join(",") + ");"
 			mDBConn.executeSimpleSQL(sql)
 			sql = "UPDATE tag_cache SET db_update="+db_up
-			sql += " WHERE directory='"+row.directory+"' AND name='"+row.name+"';"
+			sql += " WHERE directory='"+Sz(row.directory)+"' AND name='"+Sz(row.name)+"';"
 			mDBConn.executeSimpleSQL(sql)
 		} 
 		catch (e) {
@@ -133,7 +133,8 @@ function parse_data(data){
 					}
 					var song = {
 						type: 'file',
-						name: leaf
+						name: leaf,
+						directory: branch
 					};
 					var d = data[i + 1]
 					while (d && d.substr(0, 6) != "file: ") {
