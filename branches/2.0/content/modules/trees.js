@@ -356,6 +356,24 @@ function browserView () {
 		this.rs[row] = record
 		return record
 	}
+    this.getCellText = function(R, C){
+		var item = this.get(R)
+        if (!Nz(item)) return "";
+        switch (C.id) {
+            case "time":
+                return (item.time) ? hmsFromSec(item.time) : "";
+                break;
+            case "pos":
+                return (item.pos) ? (parseInt(item.pos) + 1) + "." : "";
+                break;
+            case "title":
+                return (item.title) ? item.title : item.name;
+                break;
+            default:
+                return (item[C.id]);
+                break;
+        }
+    }
 	this.isContainer = function(row){
 		return false
 	}

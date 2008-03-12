@@ -531,55 +531,55 @@
 	                flex="1"
 	            	flags="dont-build-content">
 	                <xul:treecols id="mpdBrowserCols">
-	                    <xul:treecol id="Pos" label="#" ordinal="1" width="30px"
+	                    <xul:treecol id="pos" label="#" ordinal="1" width="30px"
 	                            hidden="false"
 	                            collapsed="true"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="2" />
-	                    <xul:treecol id="Disc" label="Disc" ordinal="3" width="60px"
+	                    <xul:treecol id="disc" label="Disc" ordinal="3" width="60px"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="4" />
-	                    <xul:treecol id="Track" label="Track" ordinal="5" width="60px"
+	                    <xul:treecol id="track" label="Track" ordinal="5" width="60px"
 	                            persist="width ordinal hidden"
 	                            style="text-align:right"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="6" />
-	                    <xul:treecol id="Title" label="Title" ordinal="7" flex="3"
+	                    <xul:treecol id="title" label="Title" ordinal="7" flex="3"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="8" />
-	                    <xul:treecol id="Time" label="Time" ordinal="9" width="60px"
+	                    <xul:treecol id="time" label="Time" ordinal="9" width="60px"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="10" />
-	                    <xul:treecol id="Album" label="Album" ordinal="11" flex="1"
+	                    <xul:treecol id="album" label="Album" ordinal="11" flex="1"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="12" />
-	                    <xul:treecol id="Artist" label="Artist" ordinal="13" flex="1"
+	                    <xul:treecol id="artist" label="Artist" ordinal="13" flex="1"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="13" />
-	                    <xul:treecol id="Performer" label="Performer" ordinal="14" flex="1"
+	                    <xul:treecol id="performer" label="Performer" ordinal="14" flex="1"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="15" />
-	                    <xul:treecol id="Genre" label="Genre" ordinal="16" flex="1"
+	                    <xul:treecol id="genre" label="Genre" ordinal="16" flex="1"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="17" />
-	                    <xul:treecol id="Composer" label="Composer" ordinal="18" flex="1"
+	                    <xul:treecol id="composer" label="Composer" ordinal="18" flex="1"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
 	                    <xul:splitter class="tree-splitter" ordinal="19" />
-	                    <xul:treecol id="Date" label="Date" ordinal="20" width="60px"
+	                    <xul:treecol id="date" label="Date" ordinal="20" width="60px"
 	                            hidden="true"
 	                            persist="width ordinal hidden"
 	                            class="sortDirectionIndicator"/>
@@ -609,38 +609,28 @@
 			<field name="home">
 				<![CDATA[
 				[
-					{
-						type: "directory",
-						Name: "",
-						Title: "Folders",
-						URI: "directory://"
-					},
-					{
-						type: "Artist",
-						Name: "",
-						Title: "Artists",
-						URI: "artist://"
-					},
-					{
-						type: "Album",
-						Name: "",
-						Title: "Albums",
-						URI: "album://"
-					},
-					{
-						type: "playlist",
-						Name: "",
-						Title: "Playlists",
-						URI: "playlist://"
-					}
+					["directory","Folders",""],
+					["Artist","Artists",""],
+					["Album","Albums",""],
+					["playlist","Playlists",""]
 				]
 				]]>
 			</field>
 			<field name="history">new Array()</field>
 			<field name="obsCurSong"/>
-        	<property name="activeItem" 
-				onget="return this.view.get(this.tree.currentIndex)"
-				readonly="true"/>
+        	<property name="activeItem" readonly="true">
+        		<getter>
+					<![CDATA[
+						var ai=this.view.get(this.tree.currentIndex);
+						ai.URI=ai.type+'://'
+						if (ai.directory && ai.directory.length>0) {
+							ai.URI += ai.directory + "/"
+						}
+						ai.URI += ai.name
+						return ai;
+					]]>
+				</getter>
+			</property>
         	<property name="treefocused" 
 				onget="return (this.tree==document.commandDispatcher.focusedElement)"
 				readonly="true"/>
@@ -670,6 +660,7 @@
                 };
                 observerService.addObserver(this.obsCurSong,'state',false)
                 observerService.addObserver(this.obsCurSong,'file',false)
+				this.goToURI("Home")
 				]]>
             </constructor>
             <destructor>
@@ -682,7 +673,7 @@
 				<body>
 					<![CDATA[
 					if (URI=="" || URI=="Home") {
-						this.view.load(this.home, false)
+						this.view.load(this.home,['type','title','name'])
 						this.addr.value = URI
 						this.addr.selectionStart = this.addr.textLength
 						this.addr.selectionEnd = this.addr.textLength

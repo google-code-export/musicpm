@@ -48,7 +48,10 @@ function Sz (str) {
 	if (typeof(str) == "string") return str.replace(/\'/g, "''")
 	return ''
 }
-
+function Lz (str) {
+	if (typeof(str) == "string") return str.toLowerCase()
+	return ''
+}
 function updateFileInfo (data) {
 	var dirs = 0
 	var errs = 0
@@ -61,36 +64,21 @@ function updateFileInfo (data) {
 	do { 
 		try {
 			var row = data[ln-n]
-			if (row.type == 'file') {
-				var cols = []
-				var vals = []
-				for (col in row) {
-					cols.push(col)
-					vals.push("'" + row[col] + "'")
+			var cols = []
+			var vals = []
+			for (col in row) {
+				cols.push(col)
+				switch (col) {
+					case 'time': vals.push(row[col]); break;
+					default: vals.push("'" + Sz(row[col]) + "'"); break;
 				}
-				var d = row.directory
-				sql = "INSERT OR IGNORE INTO file (" + cols.join(",") + ")"
-				sql +=	" VALUES(" + vals.join(",") + ");"
-				mDBConn.executeSimpleSQL(sql)
-				
-				sql = "UPDATE file SET db_update="+db_up
-				sql += " WHERE value='"+row.value+"'"
-				mDBConn.executeSimpleSQL(sql)
-				var d = row.directory
 			}
-			else if (row.type == 'directory') {
-				var d = row.value
-			}
-			var sep = d.lastIndexOf("/")
-			var leaf = d
-			var branch  = ''
-			if (sep != -1) {
-				var branch = d.slice(0, sep)
-				var leaf = d.slice(sep + 1)
-			}
-			sql = "INSERT OR IGNORE INTO dir VALUES"
-			sql += "(NULL,'directory','" + d + "','" + branch + "','" + leaf + "'," + db_up + ");"
-			mDBConn.executeSimpleSQL(sql)			
+			sql = "INSERT OR IGNORE INTO tag_cache (" + cols.join(",").toLowerCase() + ")"
+			sql +=	" VALUES(" + vals.join(",") + ");"
+			mDBConn.executeSimpleSQL(sql)
+			sql = "UPDATE tag_cache SET db_update="+db_up
+			sql += " WHERE directory='"+row.directory+"' AND name='"+row.name+"';"
+			mDBConn.executeSimpleSQL(sql)
 		} 
 		catch (e) {
 			debug(sql + "\n" + mDBConn.lastErrorString)
@@ -99,8 +87,7 @@ function updateFileInfo (data) {
 	} while (--n) 
 	mDBConn.commitTransaction()
 	debug("Errors: "+errs)
-	mDBConn.executeSimpleSQL("DELETE FROM file WHERE db_update<" + db_up + ";")
-	mDBConn.executeSimpleSQL("DELETE FROM dir WHERE db_update<" + db_up + ";")
+	mDBConn.executeSimpleSQL("DELETE FROM tag_cache WHERE db_update<" + db_up + ";")
 }
 
 function updateStats (data) {
@@ -131,27 +118,52 @@ function parse_data(data){
 					if (sep != -1) {
 						branch = val.slice(0, sep)
 						leaf = val.slice(sep+1)
+						var sep = branch.lastIndexOf("/")
+						var dleaf = branch
+						var dbranch  = ''
+						if (sep != -1) {
+							dbranch = branch.slice(0, sep)
+							dleaf = branch.slice(sep+1)
+						}
+						db.push({
+							type: 'directory',
+							name: dleaf,
+							directory: dbranch
+						})
 					}
 					var song = {
 						type: 'file',
-						value: val,
 						name: leaf
 					};
 					var d = data[i + 1]
 					while (d && d.substr(0, 6) != "file: ") {
 						var sep = d.indexOf(": ")
-						song[d.substr(0, sep)] = Sz(d.slice(sep + 2));
+						song[d.substr(0, sep)] = d.slice(sep + 2);
 						--n;
 						var d = data[dl - n + 1]
 					};
 					song.directory = branch
 					db.push(song);
 				}
+				else if (fld=='directory'){
+					var sep = val.lastIndexOf("/")
+					var leaf = val
+					var branch  = ''
+					if (sep != -1) {
+						branch = val.slice(0, sep)
+						leaf = val.slice(sep+1)
+					}
+					db.push({
+						type: 'directory',
+						name: leaf,
+						directory: branch
+					})
+				}
 				else {
 					db.push({
 						type: fld,
 						value: val
-					})
+					})					
 				}
 			}
 		}
@@ -207,6 +219,7 @@ function lsinfoCallback(data){
 function sqlQuery (sql, view, addr) {
 	var db = []
 	try {
+		mpd.set('lastCommand', sql)
 		var q = mDBConn.createStatement(sql)
 		var hasValues = q.executeStep()
 		if (hasValues){
@@ -224,7 +237,11 @@ function sqlQuery (sql, view, addr) {
 				i = num
 				row = []
 				do {
-					row.push(q.getUTF8String(num-i))
+					switch(q.getTypeOfIndex(num-i)) {
+						case 0: row.push(null); break;
+						case 1: row.push(q.getInt32(num-i)); break
+						default: row.push(q.getUTF8String(num-i)); break;
+					}
 				} while (--i)
 				db.push(row)
 			}
@@ -555,18 +572,19 @@ var mpd = {
 			URI = URI.split("://")
 			var type = URI[0]
 			var id = Nz(URI[1], "")
-			
+			var sql = null
 			switch (type) {
 				case "directory":
-					var cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
+					var criteria = id.replace(/'/g, "''")
+					sql = "select * from directory where directory='"+criteria+"';"
 					break;
 				case "file":
 					if (id.length==0){
-						cmd = "listallinfo"
+						sql = "select * from file;"
 					}
 					else if (id.indexOf("=") > 0) {
-						id = id.split("=")
-						cmd = 'find ' + id[0] + ' "' + id[1].replace(/"/g, '\\"') + '"';
+						var criteria = id[0].replace(/'/g, "''")
+						sql = "select * from file where "+Lz(id[0])+"='"+criteria+"';"
 					}
 					else {
 						mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
@@ -585,31 +603,40 @@ var mpd = {
 					if (id.length > 0) {
 						id = id.split("=")
 						if (id.length == 1) {
-							cmd = 'search any "' + id[0].replace(/"/g, '\\"') + '"';
+							var criteria = id[0].replace(/'/g, "''")
+							sql = "select * from tag_cache where any glob('*"+criteria+"*');"
 						}
 						else 
 							if (id.length == 2) {
-								cmd = 'search ' + id[0] + ' "' + id[1].replace(/"/g, '\\"') + '"';
+								var criteria = id[1].replace(/'/g, "''")
+								sql = "select * from file where "+Lz(id[0])+" glob('*"+criteria+"*');"
 							}
 					}
 					else {
-						type = 'file'
-						cmd = "listallinfo"
+						sql = "select * from file;"
 					}
 					break;					
 				default:
-					cmd = 'list ' + type;
 					if (id.length > 0) {
-						id = id.split("=")
+						id = id.replace("/","=").split("=")
 						if (id.length == 1) {
-							cmd = 'find ' + type + ' "' + id[0].replace(/"/g, '\\"') + '"';
+							var criteria = id[0].replace(/'/g, "''")
+							sql = "select * from tag_cache WHERE " + Lz(type) + "='" + criteria + "';"
 						}
 						else 
 							if (id.length == 2) {
-								cmd = 'list ' + type + ' ' + id[0] + ' "' + id[1].replace(/"/g, '\\"') + '"';
+								var criteria = id[1].replace(/'/g, "''")
+								sql = "select distinct '" + Lz(type) + "' as type, " + Lz(type) + " as name from tag_cache WHERE " + Lz(id[0]) + "='" + criteria + "';"
 							}
 					}
+					else {
+						sql = "select * from " + type.toLowerCase() + ";"						
+					}
 					break;
+			}
+			if (sql) {	
+				sqlQuery(sql, view, addrBox)
+				return true
 			}
 		}
 		
