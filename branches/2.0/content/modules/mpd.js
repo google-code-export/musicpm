@@ -45,14 +45,15 @@ catch (e) {
 }
 
 function Sz (str) {
-	if (typeof(str) == "string") return str.replace(/\'/g, "''")
-	return ''
+	if (typeof(str) == "string") return "'"+str.replace(/\'/g, "''")+"'"
+	return "''"
 }
 function Lz (str) {
 	if (typeof(str) == "string") return str.toLowerCase()
 	return ''
 }
 function updateFileInfo (data) {
+	mpd.set('lastCommand', 'Updating database...')
 	var dirs = 0
 	var errs = 0
 	var db_up = mpd.db_update
@@ -64,20 +65,14 @@ function updateFileInfo (data) {
 	do { 
 		try {
 			var row = data[ln-n]
-			var cols = []
-			var vals = []
+			var cols = ['db_update']
+			var vals = [db_up]
 			for (col in row) {
 				cols.push(col)
-				switch (col) {
-					case 'time': vals.push(row[col]); break;
-					default: vals.push("'" + Sz(row[col]) + "'"); break;
-				}
+				vals.push(row[col])
 			}
-			sql = "INSERT OR IGNORE INTO tag_cache (" + cols.join(",").toLowerCase() + ")"
+			sql = "INSERT OR IGNORE INTO tag_cache (" + cols.join(",") + ")"
 			sql +=	" VALUES(" + vals.join(",") + ");"
-			mDBConn.executeSimpleSQL(sql)
-			sql = "UPDATE tag_cache SET db_update="+db_up
-			sql += " WHERE directory='"+Sz(row.directory)+"' AND name='"+Sz(row.name)+"';"
 			mDBConn.executeSimpleSQL(sql)
 		} 
 		catch (e) {
@@ -88,6 +83,7 @@ function updateFileInfo (data) {
 	mDBConn.commitTransaction()
 	debug("Errors: "+errs)
 	mDBConn.executeSimpleSQL("DELETE FROM tag_cache WHERE db_update<" + db_up + ";")
+	mpd.set('lastCommand', 'Ready.')
 }
 
 function updateStats (data) {
@@ -99,18 +95,50 @@ function updateStats (data) {
 	mDBConn.commitTransaction()
 }
 
-function parse_data(data){
+function parse_data(data, db_up){
 	data = data.split("\n")
-	var db = []
 	var dl = data.length
+	var maybeInt = function (test) {
+		if (isNaN(test)) return Sz(test)
+		try {
+			var r = parseInt(test,10)
+			if (isNaN(r)) r = 0
+		}
+		catch (e) {
+			var r = 0
+		}
+		finally {
+			return r
+		}
+	}
+	var insert = function (_cols, _vals) {
+		try {
+			sql = "INSERT OR IGNORE INTO tag_cache (" +
+			_cols.join(",") +
+			")" +
+			" VALUES(" +
+			_vals.join(",") +
+			");"
+			mDBConn.executeSimpleSQL(sql)
+		} 
+		catch (e) {
+			//debug('db_up='+db_up+", mpd="+mpd.db_update)
+			//debug(sql + "\n" + mDBConn.lastErrorString)
+		}
+	}
 	if (dl > 0) {
+		mDBConn.beginTransaction(mDBConn.TRANSACTION_DEFERRED)
 		var n = dl
 		do {
 			var i = dl - n
+			var cols = ['db_update','type','name','directory']
+			var vals = [db_up]
+			var cl = 4
+			var vl = 1
 			var sep = data[i].indexOf(": ")
 			if (sep > -1) {
 				var fld = data[i].substr(0, sep)
-				var val = Sz(data[i].slice(sep + 2))
+				var val = data[i].slice(sep + 2)
 				if (fld == 'file') {
 					var sep = val.lastIndexOf("/")
 					var leaf = val
@@ -125,26 +153,52 @@ function parse_data(data){
 							dbranch = branch.slice(0, sep)
 							dleaf = branch.slice(sep+1)
 						}
-						db.push({
-							type: 'directory',
-							name: dleaf,
-							directory: dbranch
-						})
+						insert(cols,[db_up, "'directory'",Sz(dleaf),Sz(dbranch)])
 					}
-					var song = {
-						type: 'file',
-						name: leaf,
-						directory: branch
-					};
+					vals[vl++] = "'file'"
+					vals[vl++] = Sz(leaf)
+					vals[vl++] = Sz(branch)
 					var d = data[i + 1]
-					while (d && d.substr(0, 6) != "file: ") {
-						var sep = d.indexOf(": ")
-						song[d.substr(0, sep)] = d.slice(sep + 2);
-						--n;
-						var d = data[dl - n + 1]
+					var more = true
+					while (d && more) {
+						var fsep = d.indexOf(": ")
+						if (fsep != -1) {
+							var ffld = d.substr(0, fsep)
+							var fval = d.slice(fsep + 2)
+							switch (ffld) {
+								case 'Time':
+									cols[cl++] = 'time'
+									vals[vl++] = fval;
+									break;
+								case 'Track':
+									cols[cl++] = 'track'
+									vals[vl++] = maybeInt(fval);
+									break;
+								case 'Date':
+									cols[cl++] = 'date'
+									vals[vl++] = maybeInt(fval);
+									break;
+								case 'Disc':
+									cols[cl++] = 'disc'
+									vals[vl++] = maybeInt(fval);
+									break;
+								case 'file':
+									more = false;
+									break;
+								case 'directory':
+									break;
+								default:
+									cols[cl++] = ffld.toLowerCase()
+									vals[vl++] = Sz(fval);
+									break;
+							}
+							if (more) {
+								--n;
+								var d = data[dl - n + 1]
+							}
+						}
 					};
-					song.directory = branch
-					db.push(song);
+					insert(cols, vals)
 				}
 				else if (fld=='directory'){
 					var sep = val.lastIndexOf("/")
@@ -152,39 +206,51 @@ function parse_data(data){
 					var branch  = ''
 					if (sep != -1) {
 						branch = val.slice(0, sep)
-						leaf = val.slice(sep+1)
+						leaf =  val.slice(sep+1)
 					}
-					db.push({
-						type: 'directory',
-						name: leaf,
-						directory: branch
-					})
-				}
-				else {
-					db.push({
-						type: fld,
-						value: val
-					})					
+					insert(cols,[db_up, "'directory'",Sz(dleaf),Sz(dbranch)])
 				}
 			}
 		}
 		while (--n)
-		return db
+		mDBConn.executeSimpleSQL("DELETE FROM tag_cache WHERE db_update<" + db_up + ";")
+		mDBConn.commitTransaction()
 	}
 }
 
 function statsCallback(data){
 	debug(data)
-	var stats = parse_data(data)
+	data = data.split("\n")
+	var dl = data.length
+	var stats = []
+	if (dl > 0) {
+		var n = dl
+		do {
+			var i = dl - n
+			var sep = data[i].indexOf(": ")
+			if (sep > -1) {
+				var fld = data[i].substr(0, sep)
+				var val = data[i].slice(sep + 2)
+				stats.push({
+					type: fld,
+					value: val
+				})
+			}
+		}
+		while (--n)
+	}	
+				
 	var doUpdate = true
+	var db_update = 0
 	for (x in stats) {
 		if (stats[x].type == 'db_update') {
 			if (mpd.db_update != stats[x].value) {
 				mpd.db_update = stats[x].value
 				var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
-				var db_update = (q.executeStep()) ? q.getString(0) : ""
+				db_update = (q.executeStep()) ? q.getInt32(0) : ""
 				debug('sqlite db_update = '+db_update)
 				var doUpdate = (stats[x].value != db_update)
+				db_update = stats[x].value
 				q.reset()
 			}
 		}
@@ -193,7 +259,7 @@ function statsCallback(data){
 		debug("Database update needed.")
 		updateStats(stats)
 		mpd.doCmd('listallinfo', function(data){
-			updateFileInfo(parse_data(data))
+			parse_data(data, db_update)
 			debug("Database update complete.")
 		})
 	}
@@ -210,15 +276,22 @@ function lsinfoCallback(data){
 	var hasCurrent = false
 	for (x in info){
 		if (info[x].type == 'playlist') {
-			if (info[x].value == 'Current Playlist') hasCurrent = true
+			if (info[x].value == "'Current Playlist'") hasCurrent = true
 		}
 	}
 	if (!hasCurrent) mpd.doCmd('save "Current Playlist"')
 	debug("Current Playlist existence ensured.")
 }
 
-function sqlQuery (sql, view, addr) {
+function sqlQuery (sql, view) {
 	var db = []
+	var loadTypedValue = function (q, row, idx) {
+		switch(q.getTypeOfIndex(idx)) {
+			case 0: row[idx] = null; break;
+			case 1: row[idx] = q.getInt32(idx); break
+			default: row[idx] = q.getUTF8String(idx); break;
+		}		
+	}
 	try {
 		mpd.set('lastCommand', sql)
 		var q = mDBConn.createStatement(sql)
@@ -229,20 +302,17 @@ function sqlQuery (sql, view, addr) {
 			var i = num
 			var row = []
 			do {
-				var x = num-i
-				cols.push(q.getColumnName(x))
-				row.push(q.getUTF8String(x))
+				var idx = num-i
+				cols[idx] = q.getColumnName(idx)
+				loadTypedValue(q, row, idx)
 			} while (--i)
 			db.push(row)
 			while (q.executeStep()) {
 				i = num
 				row = []
 				do {
-					switch(q.getTypeOfIndex(num-i)) {
-						case 0: row.push(null); break;
-						case 1: row.push(q.getInt32(num-i)); break
-						default: row.push(q.getUTF8String(num-i)); break;
-					}
+					idx = num - i
+					loadTypedValue(q, row, idx)
 				} while (--i)
 				db.push(row)
 			}
@@ -257,6 +327,7 @@ function sqlQuery (sql, view, addr) {
 		}
 		view.load(db, cols)
 	} catch (e) {
+		debug(e)
 		debug (sql + "\n" + mDBConn.lastErrorString)
 	}
 }
@@ -574,6 +645,22 @@ var mpd = {
 			var type = URI[0]
 			var id = Nz(URI[1], "")
 			var sql = null
+			
+			// Prep autocomplete address box for history items.
+			var searchParam = ["Home"]
+			if (Nz(type)) {
+				searchParam.push(type+":/")
+				if (Nz(URI[1])) {
+					var dirs = URI[1].split("/")
+					while (dirs.length > 0) {
+						var l = searchParam[searchParam.length-1]
+						searchParam.push(l+"/"+dirs.shift())
+					}
+				}
+				searchParam[1] = type+"://"
+			}
+			addrBox.searchParam = searchParam.toSource()
+			
 			switch (type) {
 				case "directory":
 					var criteria = id.replace(/'/g, "''")
@@ -699,19 +786,6 @@ var mpd = {
 				while (--n)
 			}
 			
-			if (chkDupes) db = dbOR(db)
-			var searchParam = ["Home"]
-			if (Nz(type)) {
-				searchParam.push(type+":/")
-				if (Nz(URI[1])) {
-					var dirs = URI[1].split("/")
-					while (dirs.length > 0) {
-						var l = searchParam[searchParam.length-1]
-						searchParam.push(l+"/"+dirs.shift())
-					}
-				}
-				searchParam[1] = type+"://"
-			}
 			for (x in db) {
 				if (db[x].type != 'file') searchParam.push(db[x].URI)
 			}

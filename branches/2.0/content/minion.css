@@ -31,19 +31,19 @@ window {
 treechildren::-moz-tree-cell-text() {
     color: #EDEDED;
     }
-treechildren::-moz-tree-cell-text(Title) {
+treechildren::-moz-tree-cell-text(title) {
     color: white;
     }
-treechildren::-moz-tree-cell-text(Artist){
+treechildren::-moz-tree-cell-text(artist){
     font-style: italic;
     }
-treechildren::-moz-tree-cell-text(Time_file){
+treechildren::-moz-tree-cell-text(time_file){
     text-align: right;
     }
-treechildren::-moz-tree-cell-text(Title_file) {
+treechildren::-moz-tree-cell-text(title_file) {
     color: #FAFABE;
     }
-treechildren::-moz-tree-cell-text(Title_song) {
+treechildren::-moz-tree-cell-text(title_song) {
     color: #FAFABE;
     }
 treechildren::-moz-tree-cell-text(currentsong) {
@@ -60,10 +60,10 @@ treechildren::-moz-tree-image(pause_currentsong) {
 treechildren::-moz-tree-image(stop_currentsong) {
     list-style-image: none;
     }
-treechildren::-moz-tree-image(Name_updating) {
+treechildren::-moz-tree-image(name_updating) {
     list-style-image: url("chrome://minion/content/images/rescan_small.png");
     }
-treechildren::-moz-tree-image(Title_updating) {
+treechildren::-moz-tree-image(title_updating) {
     list-style-image: url("chrome://minion/content/images/rescan_small.png");
     }
 
@@ -120,60 +120,40 @@ treechildren::-moz-tree-cell {
 }
 
 
-treechildren::-moz-tree-image(Name) {
-    list-style-image: url("chrome://minion/content/images/unknown.png");
-    }
-treechildren::-moz-tree-image(Title_song) {
+treechildren::-moz-tree-image(title_song) {
     list-style-image: none;
     }
-treechildren::-moz-tree-image(Name_Artist) {
-    list-style-image: url("chrome://minion/content/images/artist.png");
-    margin: 0px 3px 0px 1px;
-    }
-treechildren::-moz-tree-image(Name_Composer) {
-    list-style-image: url("chrome://minion/content/images/artist.png");
-    margin: 0px 3px 0px 1px;
-    }
-treechildren::-moz-tree-image(Name_Album) {
-    list-style-image: url("chrome://minion/content/images/album.png");
-    }
-treechildren::-moz-tree-image(Name_file) {
-    list-style-image: url("chrome://minion/content/images/song.png");
-    }
-treechildren::-moz-tree-image(Name_directory) {
-    list-style-image: url("chrome://minion/content/images/folder.png");
-    }
-treechildren::-moz-tree-image(Name_playlist) {
-    list-style-image: url("chrome://minion/content/images/playlist.png");
+
+treechildren::-moz-tree-image() {
+    margin-right: 2px;
     }
 
-
-treechildren::-moz-tree-image(Title_Genre) {
+treechildren::-moz-tree-image(title_genre) {
     list-style-image: url("chrome://minion/content/images/unknown.png");
     }
-treechildren::-moz-tree-image(Title_Date) {
+treechildren::-moz-tree-image(title_date) {
     list-style-image: url("chrome://minion/content/images/unknown.png");
     }
-treechildren::-moz-tree-image(Title_file) {
+treechildren::-moz-tree-image(title_file) {
     list-style-image: url("chrome://minion/content/images/song.png");
     }
-treechildren::-moz-tree-image(Title_Artist) {
+treechildren::-moz-tree-image(title_artist) {
     list-style-image: url("chrome://minion/content/images/artist.png");
     margin: 0px 3px 0px 1px;
     }
-treechildren::-moz-tree-image(Title_Composer) {
+treechildren::-moz-tree-image(title_composer) {
     list-style-image: url("chrome://minion/content/images/artist.png");
     margin: 0px 3px 0px 1px;
     }
-treechildren::-moz-tree-image(Title_Album) {
+treechildren::-moz-tree-image(title_album) {
     list-style-image: url("chrome://minion/content/images/album.png");
     }
-treechildren::-moz-tree-image(Title_directory) {
+treechildren::-moz-tree-image(title_directory) {
     list-style-image: url("chrome://minion/content/images/folder.png");
     }
-treechildren::-moz-tree-image(Title_playlist) {
+treechildren::-moz-tree-image(title_playlist) {
     list-style-image: url("chrome://minion/content/images/playlist.png");
     }
-treechildren::-moz-tree-image(Title_custom) {
+treechildren::-moz-tree-image(title_custom) {
     list-style-image: url("chrome://minion/content/images/custom.png");
     }

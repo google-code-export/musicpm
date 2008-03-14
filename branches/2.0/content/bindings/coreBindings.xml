@@ -609,28 +609,18 @@
 			<field name="home">
 				<![CDATA[
 				[
-					["directory","Folders",""],
-					["Artist","Artists",""],
-					["Album","Albums",""],
-					["playlist","Playlists",""]
+					["directory","Folders","directory://"],
+					["artist","Artists","artist://"],
+					["album","Albums","album://"],
+					["playlist","Playlists","playlist://"]
 				]
 				]]>
 			</field>
 			<field name="history">new Array()</field>
 			<field name="obsCurSong"/>
-        	<property name="activeItem" readonly="true">
-        		<getter>
-					<![CDATA[
-						var ai=this.view.get(this.tree.currentIndex);
-						ai.URI=ai.type+'://'
-						if (ai.directory && ai.directory.length>0) {
-							ai.URI += ai.directory + "/"
-						}
-						ai.URI += ai.name
-						return ai;
-					]]>
-				</getter>
-			</property>
+        	<property name="activeItem" 
+				onget="return this.view.get(this.tree.currentIndex)"
+				readonly="true"/>
         	<property name="treefocused" 
 				onget="return (this.tree==document.commandDispatcher.focusedElement)"
 				readonly="true"/>
@@ -673,14 +663,14 @@
 				<body>
 					<![CDATA[
 					if (URI=="" || URI=="Home") {
-						this.view.load(this.home,['type','title','name'])
+						this.view.load(this.home,['type','title','URI'])
 						this.addr.value = URI
 						this.addr.selectionStart = this.addr.textLength
 						this.addr.selectionEnd = this.addr.textLength
 						this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
 					}
 					else {
-					var sql = URI
+						var sql = URI
 						if (URI.substr(0,18).toLowerCase()=='select * from file') {
 							var sel = ['type','value','name']
 							var cols = this.tree.getElementsByTagName('xul:treecol')
