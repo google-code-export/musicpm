@@ -4,14 +4,15 @@
 
   * Clean up and reorganize project/code.  
     * Ensure only one MPD connection is made and shared globally.
-    * Cache mpd query results.
-    * Use sqlite?
-  * (Firefox 3) Use <scale> for volume control.
+    * Use sqlite.
+  * Use <scale> for volume control.
   * Build Xulrunner binaries.  (Run independent of Firefox, standalone version)
   * Add custom scripts and/or custom web search feature for context menu.
   * Add query builder.
   * Add Details page for songs. (all tags, album art, lyrics, helpful links.)
   * Add auto-complete address bar option.
+  * Add support for server profiles.
+  * Add support for switching outputs.
 
 
 
