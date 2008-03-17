@@ -59,73 +59,99 @@ CREATE TABLE IF NOT EXISTS stats (
     type      TEXT UNIQUE,
 	value	  INTEGER
 );
+CREATE UNIQUE INDEX stats_index ON stats (type, value);
 INSERT OR IGNORE INTO stats VALUES(NULL, 'schema_version', 0);
 
 
-CREATE TEMP TABLE IF NOT EXISTS cur_playlist (
-    pos       INTEGER PRIMARY KEY,
-    filename  TEXT
+CREATE TABLE IF NOT EXISTS cur_playlist (
+    pos       INTEGER PRIMARY KEY AUTOINCREMENT,
+    URI       TEXT
 );
-CREATE INDEX IF NOT EXISTS cur_playlist_index ON cur_playlist (filename);
+CREATE INDEX IF NOT EXISTS playlist_index ON cur_playlist (URI);
 
 
-CREATE TEMP TABLE IF NOT EXISTS playlist (
-    pos       INTEGER PRIMARY KEY,
-    filename  TEXT
+CREATE TABLE IF NOT EXISTS playlist_browse (
+    pos       INTEGER PRIMARY KEY AUTOINCREMENT,
+    URI       TEXT
 );
-CREATE INDEX IF NOT EXISTS playlist_index ON playlist (filename);
+CREATE INDEX IF NOT EXISTS playlist_browse_index ON playlist_browse (URI);
 
 
-CREATE VIEW IF NOT EXISTS file AS
+CREATE TEMP VIEW IF NOT EXISTS currentplaylist AS
+	SELECT pos,type,track,title,time,album,artist,genre,performer,composer,
+	    date,disc,directory,name, tag_cache.URI
+	    FROM cur_playlist
+	    INNER JOIN tag_cache ON cur_playlist.URI=tag_cache.URI
+	    ORDER BY pos;
+
+
+CREATE TEMP VIEW IF NOT EXISTS browseplaylist AS
+	SELECT pos,type,track,title,time,album,artist,genre,performer,composer,
+	    date,disc,directory,name, tag_cache.URI
+	    FROM playlist_browse
+	    INNER JOIN tag_cache ON playlist_browse.URI=tag_cache.URI
+	    ORDER BY pos;
+
+
+CREATE TEMP VIEW IF NOT EXISTS file AS
 	SELECT type,track,title,time,album,artist,genre,performer,composer,
 	    date,disc,directory,name, URI
 	    FROM tag_cache
 	    WHERE type='file'
-	    ORDER BY name;
+	    ORDER BY title;
 	
-CREATE VIEW IF NOT EXISTS directory AS
+CREATE TEMP VIEW IF NOT EXISTS directory AS
 	SELECT type,track,title,time,album,artist,genre,performer,composer,
 	    date,disc,directory,name, URI
 	    FROM tag_cache
 	    ORDER BY type, directory, name;
 
-CREATE VIEW IF NOT EXISTS dir AS
-	SELECT type, directory, name, URI
+CREATE TEMP VIEW IF NOT EXISTS dir AS
+	SELECT type, directory, name as title, URI
 	    FROM tag_cache
 	    WHERE type='directory'
-	    ORDER BY directory, name;
+	    ORDER BY directory, title;
 	    
-CREATE VIEW IF NOT EXISTS artist AS
-	SELECT DISTINCT 'artist' AS type, artist as name, 'artist://' || artist AS URI
+CREATE TEMP VIEW IF NOT EXISTS artist AS
+	SELECT 'artist' AS type, artist as title, count(*) as track, 
+            count(distinct album) || ' albums' as album, 
+            'artist://' || artist AS URI
 	    FROM tag_cache
-	    ORDER BY name;
+	    WHERE artist NOTNULL
+	    GROUP BY artist
+	    ORDER BY title;
 	
-CREATE VIEW IF NOT EXISTS album AS
-	SELECT DISTINCT 'album' AS type, album as name, 'album://' || album AS URI
+CREATE TEMP VIEW IF NOT EXISTS album AS
+	SELECT DISTINCT 'album' AS type, album as title, 'album://' || album AS URI
 	    FROM tag_cache
-	    ORDER BY name;
+	    WHERE album NOTNULL
+	    ORDER BY title;
 	
-CREATE VIEW IF NOT EXISTS genre AS
-	SELECT DISTINCT 'genre' AS type, genre as name, 'genre://' || genre AS URI
+CREATE TEMP VIEW IF NOT EXISTS genre AS
+	SELECT DISTINCT 'genre' AS type, genre as title, 'genre://' || genre AS URI
 	    FROM tag_cache
-	    ORDER BY name;
+	    WHERE genre NOTNULL
+	    ORDER BY title;
 	
-CREATE VIEW IF NOT EXISTS date AS
-	SELECT DISTINCT 'date' AS type, date as name, 'date://' || date AS URI
+CREATE TEMP VIEW IF NOT EXISTS date AS
+	SELECT DISTINCT 'date' AS type, date as title, 'date://' || date AS URI
 	    FROM tag_cache
-	    ORDER BY name;
+	    WHERE date NOTNULL
+	    ORDER BY title;
 	
-CREATE VIEW IF NOT EXISTS composer AS
-	SELECT DISTINCT 'composer' AS type, composer as name, 'composer://' || composer AS URI
+CREATE TEMP VIEW IF NOT EXISTS composer AS
+	SELECT DISTINCT 'composer' AS type, composer as title, 'composer://' || composer AS URI
 	    FROM tag_cache
-	    ORDER BY name;
+	    WHERE composer NOTNULL
+	    ORDER BY title;
 	
-CREATE VIEW IF NOT EXISTS performer AS
-	SELECT DISTINCT 'performer' AS type, performer as name, 'performer://' || performer AS URI
+CREATE TEMP VIEW IF NOT EXISTS performer AS
+	SELECT DISTINCT 'performer' AS type, performer as title, 'performer://' || performer AS URI
 	    FROM tag_cache
-	    ORDER BY name;
+	    WHERE performer NOTNULL
+	    ORDER BY title;
 	
 CREATE VIEW IF NOT EXISTS stats AS
-	SELECT 'stats' AS type, type || ': ' || CAST(value AS TEXT) AS name
+	SELECT 'stats' AS type, type || ': ' || CAST(value AS TEXT) as title
 	    FROM stats;
 	

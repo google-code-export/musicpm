@@ -20,6 +20,65 @@ Components.utils.import("resource://minion/mpd.js");
 EXPORTED_SYMBOLS = ["playlistView", "browserView", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
 var trees_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
+function customTreeView () {
+	this.rowCount = 0
+	this.treeBox = null
+}
+customTreeView.prototype.canDrop = function (index, orientation ) {return false}
+customTreeView.prototype.cycleCell = function (row, col ) {}
+customTreeView.prototype.cycleHeader = function (col ) {}
+customTreeView.prototype.drop = function (row, orientation ) {}
+customTreeView.prototype.getCellProperties = function (row, col, properties ) {
+	try {
+		var item = this.rs[row]
+		if (item.type != 'unknown') {
+			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
+			props.AppendElement(aserv.getAtom(item.type))
+			var P = (parseInt(item.index) % 2) ? 'odd' : 'even'
+			var R = (row % 2) ? 'odd' : 'even'
+			if (P != R) {
+				props.RemoveElement(aserv.getAtom(R))
+				props.AppendElement(aserv.getAtom(P))
+			}
+			aserv = null
+		}
+	} 
+	catch (e) {
+	}
+}
+customTreeView.prototype.getCellText = function (row, col ) {return ''}
+customTreeView.prototype.getCellValue = function (row, col ) {return ''}
+customTreeView.prototype.getColumnProperties = function (col, properties ) {}
+customTreeView.prototype.getImageSrc  = function (row, col ) {return ''}
+customTreeView.prototype.getLevel = function  (index ) {return 0}
+customTreeView.prototype.getParentIndex  = function (rowIndex ) {return -1}
+customTreeView.prototype.getProgressMode  = function (row, col ) {return 3}
+customTreeView.prototype.getRowProperties = function(index, properties){
+	try {
+		var item = this.get(R)
+		var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
+		props.AppendElement(aserv.getAtom(item.type))
+		aserv = null
+	} 
+	catch (e) {
+	}
+}
+customTreeView.prototype.hasNextSibling = function (rowIndex, afterIndex ) {return true}
+customTreeView.prototype.isContainer  = function (index ) {return false}
+customTreeView.prototype.isContainerEmpty  = function (index ) {return false}
+customTreeView.prototype.isContainerOpen  = function (index ) {return false}
+customTreeView.prototype.isEditable  = function (row, col ) {return false}
+customTreeView.prototype.isSelectable  = function (row, col ) {return false}
+customTreeView.prototype.isSeparator  = function (index ) {return false}
+customTreeView.prototype.isSorted  = function ( ) {return false}
+customTreeView.prototype.performAction  = function (action ) {}
+customTreeView.prototype.performActionOnCell  = function (action, row, col ) {}
+customTreeView.prototype.performActionOnRow  = function (action, row ) {}
+customTreeView.prototype.selectionChanged  = function ( ) {}
+customTreeView.prototype.setCellText  = function (row, col, value ) {}
+customTreeView.prototype.setCellValue  = function (row, col, value ) {}
+customTreeView.prototype.setTree  = function ( tree ) { this.treeBox = tree}
+customTreeView.prototype.toggleOpenState  = function (index ) {}
 
 function customView () {
 	this.getRowCount = function() {return this.rs.length},
@@ -235,7 +294,7 @@ function customView () {
             var t = item.type
             var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
             props.AppendElement(aserv.getAtom(col.id + "_" + t))
-            if (t == 'file' && item.value == mpd.file) {
+            if (item.URI == 'file://'+mpd.file) {
                 if (col.id == 'Title' && mpd.state != 'stop') {
                     props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
                 }
@@ -325,8 +384,14 @@ function playlistView(){
 playlistView.prototype = new customView
 
 function browserView () {
+	var sql = ''
+	this.db = null
+	this.cols = null
+	this.rs = null
+	this.treeBox = null
+	this.colCount = 0
 	this.rowCount = 0
-	this.load = function (db, cols){
+	this.load = function (db, cols, _sql){
 		var rowCount = db.length
 		if (this.treeBox) {
 			var chg = rowCount - this.rowCount
@@ -335,26 +400,42 @@ function browserView () {
 			this.treeBox.invalidate()
 			this.treeBox.scrollToRow(0)
 		}
-		this.db = db
-		this.rs = []
-		this.cols = cols
+		debug(sql)
+		sql = _sql
+		if (cols) {
+			this.db = db
+			this.rs = []
+			this.cols = cols
+			this.colCount = cols.length;
+		}
+		else {
+			this.db = null
+			this.rs = db
+			this.cols = null
+			this.colCount = 0
+		}
 		this.rs.length = rowCount
 		this.rowCount = rowCount;
 		this.colCount = cols.length;
 	}
 	this.get = function (row) {
 		if (typeof(this.rs[row])=='object') return this.rs[row]
-		var num = this.colCount
-		var i = num
-		var record = {}
-		do {
-			var x = num - i
-			record[this.cols[x]] = this.db[row][x]
+		try {
+			var num = this.colCount
+			var i = num
+			var record = {}
+			var dr = Nz(this.db[row])
+			if (dr) {
+				do {
+					var x = num - i
+					record[this.cols[x]] = dr[x]
+				}
+				while (--i)
+			} else (debug(this.db))
+			this.rs[row] = record
+			return record
 		}
-		while (--i)
-		this.db[row] = null
-		this.rs[row] = record
-		return record
+		catch(e) {debug(e)}
 	}
     this.getCellText = function(R, C){
 		var item = this.get(R)
@@ -374,24 +455,28 @@ function browserView () {
                 break;
         }
     }
-	this.isContainer = function(row){
-		return false
-	}
-	this.getParentIndex = function(idx){
-		return -1
-	}
-	this.getLevel = function(row){
-		return 0
-	}
-	this.hasNextSibling = function(row, afterIndex){
-		return true
-	}
-	this.isContainerEmpty = function(row){
-		return false
-	}
-	this.isContainerOpen = function(row){
-		return false
+    this.cycleHeader = function(col, elem){
+		var ord = " ORDER BY " + col.id 
+		if (col.id == 'title') {
+			re = /(\w+) as title/
+			var alias = re.exec(sql.toLowerCase())
+			if (alias) ord = " ORDER BY " + alias[1]
+		}
+        var i = sql.toLowerCase().lastIndexOf(' order by')
+		if (i > 0) {
+			if (sql.slice(i) == ord) {
+				sql += " DESC"
+			}
+			else {
+				sql = sql.slice(0, i) + ord
+			}
+		}
+		else sql = sql.replace(";", "") + ord
+		sqlQuery(sql,this)
+    }
+	this.isSelectable  = function (row, col ) {return true}
+	this.performActionOnCell = function (action, row, col) {
+		debug(action)
 	}
 }
-browserView.prototype = new customView
-
+browserView.prototype = new customTreeView

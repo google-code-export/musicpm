@@ -529,6 +529,7 @@
 	            <xul:tree
 	                id="mpdBrowserTree"
 	                flex="1"
+					seltype="multiple"
 	            	flags="dont-build-content">
 	                <xul:treecols id="mpdBrowserCols">
 	                    <xul:treecol id="pos" label="#" ordinal="1" width="30px"
@@ -610,7 +611,8 @@
 				<![CDATA[
 				[
 					["directory","Folders","directory://"],
-					["artist","Artists","artist://"],
+					["artist","Artists","select * from artist where track > 1"],
+					["artist","Top 100 Artists","select * from (select * from artist order by track desc limit 100) order by title"],
 					["album","Albums","album://"],
 					["playlist","Playlists","playlist://"]
 				]
