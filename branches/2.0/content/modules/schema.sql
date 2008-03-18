@@ -1,6 +1,5 @@
 PRAGMA cache_size = 10000;
 PRAGMA short_column_names = 1;
-PRAGMA temp_store = MEMORY;
 
 CREATE TABLE IF NOT EXISTS tag_cache (
     URI       TEXT UNIQUE PRIMARY KEY,
@@ -59,60 +58,55 @@ CREATE TABLE IF NOT EXISTS stats (
     type      TEXT UNIQUE,
 	value	  INTEGER
 );
-CREATE UNIQUE INDEX stats_index ON stats (type, value);
-INSERT OR IGNORE INTO stats VALUES(NULL, 'schema_version', 0);
+CREATE UNIQUE INDEX IF NOT EXISTS  stats_index ON stats (type);
 
 
-CREATE TABLE IF NOT EXISTS cur_playlist (
+CREATE TABLE IF NOT EXISTS playlist (
     pos       INTEGER PRIMARY KEY AUTOINCREMENT,
     URI       TEXT
 );
-CREATE INDEX IF NOT EXISTS playlist_index ON cur_playlist (URI);
 
 
-CREATE TABLE IF NOT EXISTS playlist_browse (
+CREATE TABLE IF NOT EXISTS bplaylist (
     pos       INTEGER PRIMARY KEY AUTOINCREMENT,
     URI       TEXT
 );
-CREATE INDEX IF NOT EXISTS playlist_browse_index ON playlist_browse (URI);
 
 
-CREATE TEMP VIEW IF NOT EXISTS currentplaylist AS
+CREATE VIEW IF NOT EXISTS playlist_view AS
 	SELECT pos,type,track,title,time,album,artist,genre,performer,composer,
 	    date,disc,directory,name, tag_cache.URI
-	    FROM cur_playlist
-	    INNER JOIN tag_cache ON cur_playlist.URI=tag_cache.URI
+	    FROM playlist
+	    INNER JOIN tag_cache ON playlist.URI=tag_cache.URI
 	    ORDER BY pos;
 
-
-CREATE TEMP VIEW IF NOT EXISTS browseplaylist AS
+CREATE VIEW IF NOT EXISTS bplaylist_view AS
 	SELECT pos,type,track,title,time,album,artist,genre,performer,composer,
 	    date,disc,directory,name, tag_cache.URI
-	    FROM playlist_browse
-	    INNER JOIN tag_cache ON playlist_browse.URI=tag_cache.URI
+	    FROM bplaylist
+	    INNER JOIN tag_cache ON bplaylist.URI=tag_cache.URI
 	    ORDER BY pos;
 
-
-CREATE TEMP VIEW IF NOT EXISTS file AS
+CREATE VIEW IF NOT EXISTS file AS
 	SELECT type,track,title,time,album,artist,genre,performer,composer,
 	    date,disc,directory,name, URI
 	    FROM tag_cache
 	    WHERE type='file'
 	    ORDER BY title;
 	
-CREATE TEMP VIEW IF NOT EXISTS directory AS
+CREATE VIEW IF NOT EXISTS directory AS
 	SELECT type,track,title,time,album,artist,genre,performer,composer,
 	    date,disc,directory,name, URI
 	    FROM tag_cache
 	    ORDER BY type, directory, name;
 
-CREATE TEMP VIEW IF NOT EXISTS dir AS
+CREATE VIEW IF NOT EXISTS dir AS
 	SELECT type, directory, name as title, URI
 	    FROM tag_cache
 	    WHERE type='directory'
 	    ORDER BY directory, title;
 	    
-CREATE TEMP VIEW IF NOT EXISTS artist AS
+CREATE VIEW IF NOT EXISTS artist AS
 	SELECT 'artist' AS type, artist as title, count(*) as track, 
             count(distinct album) || ' albums' as album, 
             'artist://' || artist AS URI
@@ -121,37 +115,37 @@ CREATE TEMP VIEW IF NOT EXISTS artist AS
 	    GROUP BY artist
 	    ORDER BY title;
 	
-CREATE TEMP VIEW IF NOT EXISTS album AS
+CREATE VIEW IF NOT EXISTS album AS
 	SELECT DISTINCT 'album' AS type, album as title, 'album://' || album AS URI
 	    FROM tag_cache
 	    WHERE album NOTNULL
 	    ORDER BY title;
 	
-CREATE TEMP VIEW IF NOT EXISTS genre AS
+CREATE VIEW IF NOT EXISTS genre AS
 	SELECT DISTINCT 'genre' AS type, genre as title, 'genre://' || genre AS URI
 	    FROM tag_cache
 	    WHERE genre NOTNULL
 	    ORDER BY title;
 	
-CREATE TEMP VIEW IF NOT EXISTS date AS
+CREATE VIEW IF NOT EXISTS date AS
 	SELECT DISTINCT 'date' AS type, date as title, 'date://' || date AS URI
 	    FROM tag_cache
 	    WHERE date NOTNULL
 	    ORDER BY title;
 	
-CREATE TEMP VIEW IF NOT EXISTS composer AS
+CREATE VIEW IF NOT EXISTS composer AS
 	SELECT DISTINCT 'composer' AS type, composer as title, 'composer://' || composer AS URI
 	    FROM tag_cache
 	    WHERE composer NOTNULL
 	    ORDER BY title;
 	
-CREATE TEMP VIEW IF NOT EXISTS performer AS
+CREATE VIEW IF NOT EXISTS performer AS
 	SELECT DISTINCT 'performer' AS type, performer as title, 'performer://' || performer AS URI
 	    FROM tag_cache
 	    WHERE performer NOTNULL
 	    ORDER BY title;
 	
-CREATE VIEW IF NOT EXISTS stats AS
+CREATE VIEW IF NOT EXISTS stats_view AS
 	SELECT 'stats' AS type, type || ': ' || CAST(value AS TEXT) as title
 	    FROM stats;
 	

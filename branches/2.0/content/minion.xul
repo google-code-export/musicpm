@@ -29,7 +29,7 @@
 	</hbox>
 	<statusbar>
 		<mpdlabel value="command" observes="pltime"/>
-		<mpdlabel value="command" observes="lastCommand" flex="1"/>
+		<mpdlabel value="command" observes="lastCommand" flex="1" crop="end"/>
 		<mpdlabel value="response" observes="lastResponse"/>
 		<mpdconnection/>
 	</statusbar>
