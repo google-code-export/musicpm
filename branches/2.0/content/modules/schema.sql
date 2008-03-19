@@ -61,32 +61,6 @@ CREATE TABLE IF NOT EXISTS stats (
 CREATE UNIQUE INDEX IF NOT EXISTS  stats_index ON stats (type);
 
 
-CREATE TABLE IF NOT EXISTS playlist (
-    pos       INTEGER PRIMARY KEY AUTOINCREMENT,
-    URI       TEXT
-);
-
-
-CREATE TABLE IF NOT EXISTS bplaylist (
-    pos       INTEGER PRIMARY KEY AUTOINCREMENT,
-    URI       TEXT
-);
-
-
-CREATE VIEW IF NOT EXISTS playlist_view AS
-	SELECT pos,type,track,title,time,album,artist,genre,performer,composer,
-	    date,disc,directory,name, tag_cache.URI
-	    FROM playlist
-	    INNER JOIN tag_cache ON playlist.URI=tag_cache.URI
-	    ORDER BY pos;
-
-CREATE VIEW IF NOT EXISTS bplaylist_view AS
-	SELECT pos,type,track,title,time,album,artist,genre,performer,composer,
-	    date,disc,directory,name, tag_cache.URI
-	    FROM bplaylist
-	    INNER JOIN tag_cache ON bplaylist.URI=tag_cache.URI
-	    ORDER BY pos;
-
 CREATE VIEW IF NOT EXISTS file AS
 	SELECT type,track,title,time,album,artist,genre,performer,composer,
 	    date,disc,directory,name, URI
@@ -148,4 +122,19 @@ CREATE VIEW IF NOT EXISTS performer AS
 CREATE VIEW IF NOT EXISTS stats_view AS
 	SELECT 'stats' AS type, type || ': ' || CAST(value AS TEXT) as title
 	    FROM stats;
+	    
+	    
+	    
+ATTACH DATABASE ':memory:' AS mem;
+
+CREATE TABLE IF NOT EXISTS mem.playlist (
+    pos       INTEGER PRIMARY KEY AUTOINCREMENT,
+    URI       TEXT
+);
+
+
+CREATE TABLE IF NOT EXISTS mem.browse(
+    pos       INTEGER PRIMARY KEY AUTOINCREMENT,
+    URI       TEXT
+);
 	

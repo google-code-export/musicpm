@@ -425,15 +425,6 @@ var mpd = {
         if (mpd._socket) {
             mpd._socket.cancel()
         }
-		try {
-			var schema = getFileContents("resource://minion/schema.sql")
-			mDBConn.executeSimpleSQL(schema)
-			debug("schema created, "+mDBConn.lastErrorString)
-		} 
-		catch (e) {
-			debug(e)
-			debug(mDBConn.lastErrorString)
-		}
 		mpd._socket = socketTalker()
 		mpd.doCmd('lsinfo', lsinfoCallback, true)
 		mpd.doCmd('stats', statsCallback, true)
@@ -734,14 +725,15 @@ var mpd = {
 						cmd = 'listplaylist  "' + id.replace(/"/g, '\\"') + '"';
 						mpd.doCmd(cmd, function(data){
 							try {
-								var ins1 = "INSERT INTO bplaylist (URI) VALUES('file://"
+								var ins1 = "INSERT INTO browse (URI) VALUES('file://"
 								var ins2 = "');"
-								var sql = "DELETE FROM bplaylist;" + 
+								var sql = "DELETE FROM browse;" + 
 									"BEGIN TRANSACTION;" +
 									data.replace(/'/g,"''").replace(/file: /g, ins1).replace(/\n/g, ins2) +
 									"COMMIT TRANSACTION"
 								mDBConn.executeSimpleSQL(sql)
-								sqlQuery("SELECT * FROM bplaylist_view;", view)
+								sqlQuery("SELECT browse.pos - 1 as pos, file.* FROM browse \
+											JOIN file ON browse.URI=file.URI;", view)
 							} 
 							catch (e) {
 								debug(e)
