@@ -17,7 +17,7 @@
 */
 
 Components.utils.import("resource://minion/mpd.js");
-EXPORTED_SYMBOLS = ["playlistView", "browserView", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
+EXPORTED_SYMBOLS = ["playlistView", "browserView", "browserView2", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
 var trees_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 function customTreeView () {
@@ -480,3 +480,107 @@ function browserView () {
 	}
 }
 browserView.prototype = new customTreeView
+
+function browserView2 () {
+	var sql = ''
+	this.db = null
+	this.cols = null
+	this.rs = null
+	this.treeBox = null
+	this.colCount = 0
+	this.rowCount = 0
+	this.load = function (sqlstr){
+		sql = (sqlstr.slice(-1)==";") ? sqlstr.slice(0,-1) : sqlstr
+		mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS mem.treeview;" +
+			"CREATE TABLE mem.treeview AS " + sql)
+		q = mpd.db.createStatement("SELECT count(*) FROM treeview")
+		q.executeStep()
+		var rowCount = q.getInt32(0)
+		q.reset()
+		this.rs = []
+		this.rs.length = rowCount
+		var q = mpd.db.createStatement("SELECT * FROM treeview LIMIT 1")
+		if (q.executeStep()) {
+			this.cols = []
+			this.colCount = q.numEntries
+			var i = this.colCount
+			var record = {}
+			do {
+				var idx = this.colCount - i
+				this.cols[idx] = q.getColumnName(idx)
+				record[this.cols[idx]] = q.getUTF8String(idx)
+			}
+			while (--i)
+			this.rs[0] = record
+		}
+		q.reset()
+		if (this.treeBox) {
+			var chg = rowCount - this.rowCount
+			var n = (chg < 0) ? 1 : this.rowCount
+			this.treeBox.rowCountChanged(n-1, chg)
+			this.treeBox.invalidate()
+			this.treeBox.scrollToRow(0)
+		}
+		this.rowCount = rowCount;
+		this.sqlORDER = ''
+	}
+	this.get = function (row) {
+		if (typeof(this.rs[row])=='object') return this.rs[row]
+		try {
+			var record = {}
+			var q = mpd.db.createStatement("SELECT * FROM treeview" +
+				this.sqlORDER + " LIMIT 1 OFFSET "+row)
+			if (q.executeStep()) {
+				var i = this.colCount
+				do {
+					var x = this.colCount - i
+					record[this.cols[x]] = q.getUTF8String(x)
+				}
+				while (--i)
+			}
+			q.reset()
+			this.rs[row] = record
+			return record
+		}
+		catch(e) {debug(e)}
+	}
+    this.getCellText = function(R, C){
+		var item = this.get(R)
+        if (!Nz(item)) return "";
+        switch (C.id) {
+            case "time":
+                return (item.time) ? hmsFromSec(item.time) : "";
+                break;
+            case "pos":
+                return (item.pos) ? (parseInt(item.pos) + 1) + "." : "";
+                break;
+            case "title":
+                return (item.title) ? item.title : item.name;
+                break;
+            default:
+                return (item[C.id]);
+                break;
+        }
+    }
+    this.cycleHeader = function(col, elem){
+		var ord = ' ORDER BY ' + col.id
+		switch (this.sqlORDER) {
+			case '':
+				this.sqlORDER = ord;
+				break;
+			case ord:
+				this.sqlORDER += ' DESC';
+				break;
+			default:
+				this.sqlORDER = '';
+				break;
+		}
+		this.rs = []
+		this.treeBox.invalidate()
+    }
+	this.isSelectable  = function (row, col ) {return true}
+	this.performActionOnCell = function (action, row, col) {
+		debug(action)
+	}
+}
+browserView2.prototype = new customTreeView

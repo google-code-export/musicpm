@@ -607,17 +607,6 @@
         	<field name="view"/>
         	<field name="addr"/>
         	<field name="tree"/>
-			<field name="home">
-				<![CDATA[
-				[
-					["directory","Folders","directory://"],
-					["artist","Artists","select * from artist where track > 1"],
-					["artist","Top 100 Artists","select * from (select * from artist order by track desc limit 100) order by title"],
-					["album","Albums","album://"],
-					["playlist","Playlists","playlist://"]
-				]
-				]]>
-			</field>
 			<field name="history">new Array()</field>
 			<field name="obsCurSong"/>
         	<property name="activeItem" 
@@ -638,7 +627,7 @@
                 Components.utils.import("resource://minion/trees.js");
 				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
 			                getService(Components.interfaces.nsIPrefBranch)
-                var view = new browserView()
+                var view = new browserView2()
 				this.tree.view = view
                 var box = tree.boxObject;
                 box.QueryInterface(Components.interfaces.nsITreeBoxObject);
@@ -665,7 +654,7 @@
 				<body>
 					<![CDATA[
 					if (URI=="" || URI=="Home") {
-						this.view.load(this.home,['type','title','URI'])
+						this.view.load("select * from home")
 						this.addr.value = URI
 						this.addr.selectionStart = this.addr.textLength
 						this.addr.selectionEnd = this.addr.textLength
@@ -673,15 +662,6 @@
 					}
 					else {
 						var sql = URI
-						if (URI.substr(0,18).toLowerCase()=='select * from file') {
-							var sel = ['type','value','name']
-							var cols = this.tree.getElementsByTagName('xul:treecol')
-							for (var i=0;i<cols.length;i++) {
-								var tc = cols[i]
-								if (!tc.hidden && !tc.collapsed) sel.push(tc.id)
-							}
-							sql = URI.replace("*", sel.join(","))
-						}
 						if(mpd.query(sql, this.view, this.addr)) {
 							this.addr.value = URI
 							this.addr.selectionStart = this.addr.textLength

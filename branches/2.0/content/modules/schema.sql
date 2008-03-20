@@ -53,6 +53,13 @@ CREATE TRIGGER IF NOT EXISTS make_any AFTER INSERT ON tag_cache WHEN new.type='f
 	END;
 
 
+CREATE TABLE IF NOT EXISTS home (
+    URI       TEXT UNIQUE PRIMARY KEY,
+	type	  TEXT,
+	title     TEXT
+);
+
+
 CREATE TABLE IF NOT EXISTS stats (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     type      TEXT UNIQUE,
@@ -90,9 +97,11 @@ CREATE VIEW IF NOT EXISTS artist AS
 	    ORDER BY title;
 	
 CREATE VIEW IF NOT EXISTS album AS
-	SELECT DISTINCT 'album' AS type, album as title, 'album://' || album AS URI
+	SELECT 'album' AS type, album as title, count(*) as track, 
+            'album://' || album AS URI
 	    FROM tag_cache
 	    WHERE album NOTNULL
+	    GROUP BY album
 	    ORDER BY title;
 	
 CREATE VIEW IF NOT EXISTS genre AS
@@ -136,5 +145,26 @@ CREATE TABLE IF NOT EXISTS mem.playlist (
 CREATE TABLE IF NOT EXISTS mem.browse(
     pos       INTEGER PRIMARY KEY AUTOINCREMENT,
     URI       TEXT
+);
+
+CREATE TABLE IF NOT EXISTS mem.treeview (
+    URI       TEXT UNIQUE PRIMARY KEY,
+	type	  TEXT,
+	directory TEXT DEFAULT '',
+    name      TEXT,
+    pos       INTEGER,
+	title     TEXT,
+	album     TEXT,
+	artist    TEXT,
+	genre     TEXT,
+	composer  TEXT,
+	performer TEXT,
+	any       TEXT,
+	track     INTEGER,
+	date      INTEGER,
+	disc      INTEGER,
+	time      INTEGER,
+	created   INTEGER,
+	db_update INTEGER
 );
 	

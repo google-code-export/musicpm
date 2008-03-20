@@ -36,7 +36,14 @@ var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
 
 try {
 	var schema = getFileContents("resource://minion/schema.sql")
+	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders');" +
+		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','All Artists');" +
+		"INSERT OR IGNORE INTO home VALUES('select * from (select * from artist order by track desc limit 100) order by title', 'artist','Top 100 Artists');" +
+		"INSERT OR IGNORE INTO home VALUES('album://', 'album','All Albums');" +
+		"INSERT OR IGNORE INTO home VALUES('select * from album where track > 3', 'album','Albums with more than 3 songs');" +
+		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists');"
 	mDBConn.executeSimpleSQL(schema)
+	mDBConn.executeSimpleSQL(home)
 	debug("schema created, "+mDBConn.lastErrorString)
 } 
 catch (e) {
@@ -325,6 +332,8 @@ function lsinfoCallback(data){
 }
 
 function sqlQuery (sql, view) {
+	view.load(sql)
+	return true
 	var db = []
 	var loadTypedValue = function (q, row, idx) {
 		switch(q.getTypeOfIndex(idx)) {
