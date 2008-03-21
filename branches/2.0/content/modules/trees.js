@@ -490,9 +490,11 @@ function browserView2 () {
 	this.colCount = 0
 	this.rowCount = 0
 	this.load = function (sqlstr){
+		try {
 		sql = (sqlstr.slice(-1)==";") ? sqlstr.slice(0,-1) : sqlstr
 		mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS mem.treeview;" +
 			"CREATE TABLE mem.treeview AS " + sql)
+		} catch (e) {debug(sql+"\n"+mpd.db.lastErrorString)}
 		q = mpd.db.createStatement("SELECT count(*) FROM treeview")
 		q.executeStep()
 		var rowCount = q.getInt32(0)

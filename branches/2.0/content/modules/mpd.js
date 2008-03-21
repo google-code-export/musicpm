@@ -741,7 +741,7 @@ var mpd = {
 									data.replace(/'/g,"''").replace(/file: /g, ins1).replace(/\n/g, ins2) +
 									"COMMIT TRANSACTION"
 								mDBConn.executeSimpleSQL(sql)
-								sqlQuery("SELECT browse.pos - 1 as pos, file.* FROM browse \
+								sqlQuery("SELECT browse.pos, file.* FROM browse \
 											JOIN file ON browse.URI=file.URI;", view)
 							} 
 							catch (e) {
@@ -753,6 +753,24 @@ var mpd = {
 					}
 					else {
 						cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
+						mpd.doCmd(cmd, function(data){
+							try {
+								data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
+								var ins1 = "INSERT INTO browse (URI) VALUES('playlist://"
+								var ins2 = "');"
+								var sql = "DELETE FROM browse;" + 
+									"BEGIN TRANSACTION;" +
+									data.replace(/'/g,"''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
+									"COMMIT TRANSACTION"
+								mDBConn.executeSimpleSQL(sql)
+								view.load("SELECT 'playlist' AS type, replace(URI,'playlist://','') as title, URI FROM browse")
+							} 
+							catch (e) {
+								debug(e)
+								debug(sql + "\n" + mDBConn.lastErrorString)
+							}
+						}, false)
+						return true
 					}
 					break;
 				case "search":
@@ -854,21 +872,7 @@ var mpd = {
 				while (--n)
 			}
 			
-			for (x in db) {
-				if (db[x].type != 'file') searchParam.push(db[x].URI)
-			}
-			searchParam = searchParam.toSource()
-			
-			if (USE_CACHE) {
-				if (URI != "playlist://") {
-					mpd.cache[URI] = {
-						db: db,
-						searchParam: searchParam
-					}
-				}
-			}
 			view.load(db, false)
-			if (Nz(addrBox)) addrBox.searchParam = searchParam
 		}
 		
 		mpd.doCmd(cmd, cb, false)
@@ -973,10 +977,13 @@ function socketTalker() {
             try {
                 mpd._idle = false
                 var str = {};
+				var chunks = []
+				var chlen = 0
                 var done = false
                 while (utf_instream.readString(4096, str) != 0) {
-                    this.data += str.value
+                    chunks[chlen++] = str.value
                 }
+				this.data += chunks.join("")
                 str = null
                 if (this.data.slice(-3) == "OK\n") {
                     if (mpd._cmdQueue.length > 0) {
