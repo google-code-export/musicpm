@@ -17,74 +17,95 @@
 */
 
 Components.utils.import("resource://minion/mpd.js");
-EXPORTED_SYMBOLS = ["playlistView", "browserView", "browserView2", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
+EXPORTED_SYMBOLS = ["playlistView", "browserView", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
 var trees_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 function customTreeView () {
-	this.rowCount = 0
-	this.treeBox = null
-}
-customTreeView.prototype.canDrop = function (index, orientation ) {return false}
-customTreeView.prototype.cycleCell = function (row, col ) {}
-customTreeView.prototype.cycleHeader = function (col ) {}
-customTreeView.prototype.drop = function (row, orientation ) {}
-customTreeView.prototype.getCellProperties = function (row, col, properties ) {
-	try {
-		var item = this.rs[row]
-		if (item.type != 'unknown') {
-			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-			props.AppendElement(aserv.getAtom(item.type))
-			var P = (parseInt(item.index) % 2) ? 'odd' : 'even'
-			var R = (row % 2) ? 'odd' : 'even'
-			if (P != R) {
-				props.RemoveElement(aserv.getAtom(R))
-				props.AppendElement(aserv.getAtom(P))
-			}
-			aserv = null
-		}
-	} 
-	catch (e) {
-	}
-}
-customTreeView.prototype.getCellText = function (row, col ) {return ''}
-customTreeView.prototype.getCellValue = function (row, col ) {return ''}
-customTreeView.prototype.getColumnProperties = function (col, properties ) {}
-customTreeView.prototype.getImageSrc  = function (row, col ) {return ''}
-customTreeView.prototype.getLevel = function  (index ) {return 0}
-customTreeView.prototype.getParentIndex  = function (rowIndex ) {return -1}
-customTreeView.prototype.getProgressMode  = function (row, col ) {return 3}
-customTreeView.prototype.getRowProperties = function(index, properties){
-	try {
-		var item = this.get(R)
-		var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-		props.AppendElement(aserv.getAtom(item.type))
-		aserv = null
-	} 
-	catch (e) {
-	}
-}
-customTreeView.prototype.hasNextSibling = function (rowIndex, afterIndex ) {return true}
-customTreeView.prototype.isContainer  = function (index ) {return false}
-customTreeView.prototype.isContainerEmpty  = function (index ) {return false}
-customTreeView.prototype.isContainerOpen  = function (index ) {return false}
-customTreeView.prototype.isEditable  = function (row, col ) {return false}
-customTreeView.prototype.isSelectable  = function (row, col ) {return false}
-customTreeView.prototype.isSeparator  = function (index ) {return false}
-customTreeView.prototype.isSorted  = function ( ) {return false}
-customTreeView.prototype.performAction  = function (action ) {}
-customTreeView.prototype.performActionOnCell  = function (action, row, col ) {}
-customTreeView.prototype.performActionOnRow  = function (action, row ) {}
-customTreeView.prototype.selectionChanged  = function ( ) {}
-customTreeView.prototype.setCellText  = function (row, col, value ) {}
-customTreeView.prototype.setCellValue  = function (row, col, value ) {}
-customTreeView.prototype.setTree  = function ( tree ) { this.treeBox = tree}
-customTreeView.prototype.toggleOpenState  = function (index ) {}
-
-function customView () {
 	this.getRowCount = function() {return this.rs.length},
 	this.rs = []
 	this.db = []
 	this.treeBox = null
+	this.rowCount = 0
+	this.canDrop = function (index, orientation ) {return false}
+	this.cycleCell = function (row, col ) {}
+	this.cycleHeader = function (col ) {}
+	this.drop = function (row, orientation ) {}
+	this.getCellProperties = function (row, col, props ) {
+        try {
+			var item = this.get(row)
+            var t = item.type
+            var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
+            props.AppendElement(aserv.getAtom(col.id + "_" + t))
+            if (item.URI == 'file://'+mpd.file) {
+                if (col.id == 'Title' && mpd.state != 'stop') {
+                    props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+                }
+                props.AppendElement(aserv.getAtom("currentsong"))
+            }
+            props.AppendElement(aserv.getAtom(col.id))
+            if (t != 'file' && t != 'playlist' && mpd.updating_db) {
+                props.AppendElement(aserv.getAtom(col.id + "_updating"))
+            }
+            aserv = null
+        }
+        catch (e) {
+			debug(e)
+        }
+    }
+    this.getCellText = function(R, C){
+		var item = this.get(R)
+        if (!Nz(item)) return "";
+        switch (C.id) {
+            case "Time":
+                return (item.Time) ? hmsFromSec(item.Time) : "";
+                break;
+            case "Pos":
+                return (item.Pos) ? (parseInt(item.Pos) + 1) + "." : "";
+                break;
+            case "Title":
+                return (item.Title) ? item.Title : item.name;
+                break;
+            default:
+                return (item[C.id]);
+                break;
+        }
+    }
+	this.getCellValue = function (row, col ) {return ''}
+	this.getColumnProperties = function (col, properties ) {}
+	this.getImageSrc  = function (row, col ) {return ''}
+	this.getLevel = function  (index ) {return 0}
+	this.getParentIndex  = function (rowIndex ) {return -1}
+	this.getProgressMode  = function (row, col ) {return 3}
+	this.getRowProperties = function(index, properties){
+		try {
+			var item = this.get(index)
+			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
+			props.AppendElement(aserv.getAtom(item.type))
+			aserv = null
+		} 
+		catch (e) {
+		}
+	}
+	this.hasNextSibling = function (rowIndex, afterIndex ) {return true}
+	this.isContainer  = function (index ) {return false}
+	this.isContainerEmpty  = function (index ) {return false}
+	this.isContainerOpen  = function (index ) {return false}
+	this.isEditable  = function (row, col ) {return false}
+	this.isSelectable  = function (row, col ) {return false}
+	this.isSeparator  = function (index ) {return false}
+	this.isSorted  = function ( ) {return false}
+	this.performAction  = function (action ) {}
+	this.performActionOnCell  = function (action, row, col ) {}
+	this.performActionOnRow  = function (action, row ) {}
+	this.selectionChanged  = function ( ) {}
+	this.setCellText  = function (row, col, value ) {}
+	this.setCellValue  = function (row, col, value ) {}
+	this.setTree  = function ( tree ) { this.treeBox = tree}
+	this.toggleOpenState  = function (index ) {}
+}
+
+
+function playlistView(){
 	this.getPointer = function (idx) {
 		return {
 			type: 'pointer',
@@ -212,24 +233,19 @@ function customView () {
 			}
 		}
 	}
-    this.getCellText = function(R, C){
-		var item = this.get(R)
-        if (!Nz(item)) return "";
-        switch (C.id) {
-            case "Time":
-                return (item.Time) ? hmsFromSec(item.Time) : "";
-                break;
-            case "Pos":
-                return (item.Pos) ? (parseInt(item.Pos) + 1) + "." : "";
-                break;
-            case "Title":
-                return (item.Title) ? item.Title : item.name;
-                break;
-            default:
-                return (item[C.id]);
-                break;
-        }
-    }
+	this.getPointer = function (idx) {
+		return {
+			type: 'pointer',
+			index: idx,
+			Title: 'Loading...',
+			pointer: "loading...",
+			isContainer: true,
+			isOpen: false
+		}
+	}
+	this.isContainerOpen = function(row){
+		return this.rs[row].isOpen
+	}
 	this.isContainer = function(row){
 		return (this.rs[row].isContainer)
 	}
@@ -256,79 +272,6 @@ function customView () {
 			return (after.type == 'pointer')
 		}
 		return !(after.type == 'pointer')
-	}
-	this.isContainerEmpty = function(row){
-		return false
-	}
-	this.isContainerOpen = function(row){
-		return this.rs[row].isOpen
-	}
-    this.setTree = function(treeBox){
-        this.treeBox = treeBox;
-    }
-    this.isSeparator = function(row){
-        return false;
-    }
-    this.isSorted = function(){
-        return false;
-    }
-    this.cycleHeader = function(col, elem){
-        return null;
-    }
-    this.getImageSrc = function(row, col){
-        return null;
-    }
-    this.getRowProperties = function(row, props){
-        try {
-			var item = this.get(R)
-            var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-            props.AppendElement(aserv.getAtom(item.type))
-            aserv = null
-        }
-        catch (e) {
-        }
-    }
-    this.getCellProperties = function(row, col, props){
-        try {
-			var item = this.get(row)
-            var t = item.type
-            var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
-            props.AppendElement(aserv.getAtom(col.id + "_" + t))
-            if (item.URI == 'file://'+mpd.file) {
-                if (col.id == 'Title' && mpd.state != 'stop') {
-                    props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
-                }
-                props.AppendElement(aserv.getAtom("currentsong"))
-            }
-            props.AppendElement(aserv.getAtom(col.id))
-            if (t != 'file' && t != 'playlist' && mpd.updating_db) {
-                props.AppendElement(aserv.getAtom(col.id + "_updating"))
-            }
-            aserv = null
-        }
-        catch (e) {
-			debug(e)
-        }
-    }
-    this.getColumnProperties = function(colid, col, props){
-    }
-    this.canDrop = function(index, orient){
-        return false
-    }
-    this.drop = function(row, orient){
-    }
-}
-
-function playlistView(){
-	this.getPointer = function (idx) {
-		return {
-			type: 'pointer',
-			index: idx,
-			Title: 'Loading...',
-			pointer: "loading...",
-			isContainer: true,
-			isOpen: false
-		}
 	}
 	this.toggleOpenState = function(row){
 		try {
@@ -381,107 +324,10 @@ function playlistView(){
 	}
 }
 
-playlistView.prototype = new customView
+playlistView.prototype = new customTreeView
+
 
 function browserView () {
-	var sql = ''
-	this.db = null
-	this.cols = null
-	this.rs = null
-	this.treeBox = null
-	this.colCount = 0
-	this.rowCount = 0
-	this.load = function (db, cols, _sql){
-		var rowCount = db.length
-		if (this.treeBox) {
-			var chg = rowCount - this.rowCount
-			var n = (chg < 0) ? 1 : this.rowCount
-			this.treeBox.rowCountChanged(n-1, chg)
-			this.treeBox.invalidate()
-			this.treeBox.scrollToRow(0)
-		}
-		debug(sql)
-		sql = _sql
-		if (cols) {
-			this.db = db
-			this.rs = []
-			this.cols = cols
-			this.colCount = cols.length;
-		}
-		else {
-			this.db = null
-			this.rs = db
-			this.cols = null
-			this.colCount = 0
-		}
-		this.rs.length = rowCount
-		this.rowCount = rowCount;
-		this.colCount = cols.length;
-	}
-	this.get = function (row) {
-		if (typeof(this.rs[row])=='object') return this.rs[row]
-		try {
-			var num = this.colCount
-			var i = num
-			var record = {}
-			var dr = Nz(this.db[row])
-			if (dr) {
-				do {
-					var x = num - i
-					record[this.cols[x]] = dr[x]
-				}
-				while (--i)
-			} else (debug(this.db))
-			this.rs[row] = record
-			return record
-		}
-		catch(e) {debug(e)}
-	}
-    this.getCellText = function(R, C){
-		var item = this.get(R)
-        if (!Nz(item)) return "";
-        switch (C.id) {
-            case "time":
-                return (item.time) ? hmsFromSec(item.time) : "";
-                break;
-            case "pos":
-                return (item.pos) ? (parseInt(item.pos) + 1) + "." : "";
-                break;
-            case "title":
-                return (item.title) ? item.title : item.name;
-                break;
-            default:
-                return (item[C.id]);
-                break;
-        }
-    }
-    this.cycleHeader = function(col, elem){
-		var ord = " ORDER BY " + col.id 
-		if (col.id == 'title') {
-			re = /(\w+) as title/
-			var alias = re.exec(sql.toLowerCase())
-			if (alias) ord = " ORDER BY " + alias[1]
-		}
-        var i = sql.toLowerCase().lastIndexOf(' order by')
-		if (i > 0) {
-			if (sql.slice(i) == ord) {
-				sql += " DESC"
-			}
-			else {
-				sql = sql.slice(0, i) + ord
-			}
-		}
-		else sql = sql.replace(";", "") + ord
-		sqlQuery(sql,this)
-    }
-	this.isSelectable  = function (row, col ) {return true}
-	this.performActionOnCell = function (action, row, col) {
-		debug(action)
-	}
-}
-browserView.prototype = new customTreeView
-
-function browserView2 () {
 	var sql = ''
 	this.db = null
 	this.cols = null
@@ -585,4 +431,4 @@ function browserView2 () {
 		debug(action)
 	}
 }
-browserView2.prototype = new customTreeView
+browserView.prototype = new customTreeView

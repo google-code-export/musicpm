@@ -523,6 +523,7 @@
 						autocompletesearch="simple-autocomplete"
 						completedefaultindex="true"
 						enablehistory="true"
+						enablecomments="true"
 						tabscrolling="true"
 						ontextentered="this.parentNode.parentNode.parentNode.goToURI(this.value)"/>
 				</xul:hbox>
@@ -627,7 +628,7 @@
                 Components.utils.import("resource://minion/trees.js");
 				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
 			                getService(Components.interfaces.nsIPrefBranch)
-                var view = new browserView2()
+                var view = new browserView()
 				this.tree.view = view
                 var box = tree.boxObject;
                 box.QueryInterface(Components.interfaces.nsITreeBoxObject);
