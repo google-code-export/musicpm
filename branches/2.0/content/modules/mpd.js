@@ -38,9 +38,8 @@ try {
 	var schema = getFileContents("resource://minion/schema.sql")
 	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders');" +
 		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','All Artists');" +
-		"INSERT OR IGNORE INTO home VALUES('select * from (select * from artist order by track desc limit 100) order by title', 'artist','Top 100 Artists');" +
+		"INSERT OR IGNORE INTO home VALUES('topartist://', 'artist','Top 100 Artists');" +
 		"INSERT OR IGNORE INTO home VALUES('album://', 'album','All Albums');" +
-		"INSERT OR IGNORE INTO home VALUES('select * from album where track > 3', 'album','Albums with more than 3 songs');" +
 		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists');"
 	mDBConn.executeSimpleSQL(schema)
 	mDBConn.executeSimpleSQL(home)
@@ -59,13 +58,62 @@ function Lz (str) {
 	if (typeof(str) == "string") return str.toLowerCase()
 	return ''
 }
-
-function updateTagCache(data){
-	mpd.set('lastCommand', 'Parsing tag_cache')
+function updateDirStructure(data){
+	mpd.set('lastCommand', 'Parsing directories')
 	var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
 	db_up = (q.executeStep()) ? q.getInt32(0) : 0
 	q.reset()
 	
+	var sql = ''
+	var num = 0
+	data = data.split("\n")
+	var dl = data.length
+	if (dl > 0) {
+		mDBConn.beginTransaction(mDBConn.TRANSACTION_DEFERRED)
+		var n = dl
+		try {
+			do {
+				var i = dl - n
+				var sep = data[i].indexOf(": ")
+				if (sep > -1) {
+					var fld = data[i].substr(0, sep)
+					var val = data[i].slice(sep + 2)
+					var sep = val.lastIndexOf("/")
+					var leaf = val
+					var branch  = ''
+					if (sep != -1) {
+						branch = val.slice(0, sep)
+						leaf =  val.slice(sep+1)
+					}
+					sql = "INSERT OR IGNORE INTO tag_cache " +
+					"(db_update,type,name,directory) " +
+					"VALUES(" +
+					[db_up,Sz(fld),Sz(leaf),Sz(branch)].join(",") +
+					");"
+					mDBConn.executeSimpleSQL(sql)
+					num++
+				}
+			}
+			while (--n)
+			mDBConn.commitTransaction()
+			debug(num+" directories and files added.")
+		}
+		catch (e) {
+			debug(sql+"/n"+ mDBConn.lastErrorString)
+			debug(e)
+		}
+	}
+	try {
+		sql = "DELETE FROM tag_cache WHERE db_update<" + db_up + ";"
+		mDBConn.executeSimpleSQL(sql)
+	} catch (e) {
+		debug(sql+"/n"+ mDBConn.lastErrorString)
+		debug(e)
+	}
+	mpd.set('lastCommand', 'Directories loaded')
+}
+function updateTagCache(data){
+	mpd.set('lastCommand', 'Parsing tag_cache')	
 	var sql = ''
 	var maybeInt = function (test) {
 		if (isNaN(test)) return Sz(test)
@@ -85,14 +133,14 @@ function updateTagCache(data){
 	var dl = data.length
 	if (dl > 0) {
 		mDBConn.beginTransaction(mDBConn.TRANSACTION_DEFERRED)
-		var insert = function (_cols, _vals) {
+		var insert = function (_cols, _vals, URI) {
+			var up = []
+			for (x in _cols) {
+				up[x] = _cols[x] + "=" + _vals[x]
+			}
 			try {
-				sql = "INSERT OR IGNORE INTO tag_cache (" +
-				_cols.join(",") +
-				")" +
-				" VALUES(" +
-				_vals.join(",") +
-				");"
+				sql = "UPDATE tag_cache SET " + up.join(',') +
+				" WHERE URI=" + URI
 				mDBConn.executeSimpleSQL(sql)
 			} 
 			catch (e) {
@@ -103,33 +151,15 @@ function updateTagCache(data){
 		try {
 			do {
 				var i = dl - n
-				var cols = ['db_update','type','name','directory']
-				var vals = [db_up]
-				var cl = 4
-				var vl = 1
 				var sep = data[i].indexOf(": ")
 				if (sep > -1) {
 					var fld = data[i].substr(0, sep)
 					var val = data[i].slice(sep + 2)
 					if (fld == 'file') {
-						var sep = val.lastIndexOf("/")
-						var leaf = val
-						var branch  = ''
-						if (sep != -1) {
-							branch = val.slice(0, sep)
-							leaf = val.slice(sep+1)
-							var sep = branch.lastIndexOf("/")
-							var dleaf = branch
-							var dbranch  = ''
-							if (sep != -1) {
-								dbranch = branch.slice(0, sep)
-								dleaf = branch.slice(sep+1)
-							}
-							insert(cols,[db_up, "'directory'",Sz(dleaf),Sz(dbranch)])
-						}
-						vals[vl++] = "'file'"
-						vals[vl++] = Sz(leaf)
-						vals[vl++] = Sz(branch)
+						var cols = ["'type'"]
+						var vals = ["'file'"]
+						var cl = 1
+						var vl = 1
 						var d = data[i + 1]
 						var more = true
 						while (d && more) {
@@ -170,17 +200,7 @@ function updateTagCache(data){
 								}
 							}
 						};
-						insert(cols, vals)
-					}
-					else if (fld=='directory'){
-						var sep = val.lastIndexOf("/")
-						var leaf = val
-						var branch  = ''
-						if (sep != -1) {
-							branch = val.slice(0, sep)
-							leaf =  val.slice(sep+1)
-						}
-						insert(cols,[db_up, "'directory'",Sz(leaf),Sz(branch)])
+						insert(cols, vals, Sz('file://'+val))
 					}
 				}
 			}
@@ -191,13 +211,6 @@ function updateTagCache(data){
 			debug(sql+"/n"+ mDBConn.lastErrorString)
 			debug(e)
 		}
-	}
-	try {
-		sql = "DELETE FROM tag_cache WHERE db_update<" + db_up + ";"
-		mDBConn.executeSimpleSQL(sql)
-	} catch (e) {
-		debug(sql+"/n"+ mDBConn.lastErrorString)
-		debug(e)
 	}
 	mpd.set('lastCommand', 'Database loaded')
 }
@@ -218,7 +231,7 @@ function statsCallback(data){
 			if (sep > -1) {
 				var fld = data[i].substr(0, sep)
 				var val = data[i].slice(sep + 2)
-				mDBConn.executeSimpleSQL("INSERT OR IGNORE INTO stats " +
+				mDBConn.executeSimpleSQL("REPLACE INTO stats " +
 				"VALUES(NULL,'" +
 				data[i].substr(0, sep) +
 				"'," +
@@ -231,9 +244,10 @@ function statsCallback(data){
 	var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
 	mpd.db_update = (q.executeStep()) ? q.getInt32(0) : 0
 	q.reset()
-					
+	debug(db_update + ", " +mpd.db_update)
 	if (db_update != mpd.db_update) {
 		debug("Database update needed.")
+		mpd.doCmd('listall', updateDirStructure)
 		mpd.doCmd('listallinfo', updateTagCache)
 	}
 }
@@ -524,6 +538,7 @@ var mpd = {
 			if (!Nz(obj.updating_db)) {
 				mpd.cache = {}
         		mpd.set('updating_db', null)
+				mpd.doCmd('stats',statsCallback,true)
 			}
 		}
 
@@ -695,22 +710,7 @@ var mpd = {
 			var type = URI[0]
 			var id = Nz(URI[1], "")
 			var sql = null
-			
-			// Prep autocomplete address box for history items.
-			var searchParam = ["Home"]
-			if (Nz(type)) {
-				searchParam.push(type+":/")
-				if (Nz(URI[1])) {
-					var dirs = URI[1].split("/")
-					while (dirs.length > 0) {
-						var l = searchParam[searchParam.length-1]
-						searchParam.push(l+"/"+dirs.shift())
-					}
-				}
-				searchParam[1] = type+"://"
-			}
-			addrBox.searchParam = searchParam.toSource()
-			
+						
 			switch (type) {
 				case "directory":
 					var criteria = id.replace(/'/g, "''")
@@ -778,7 +778,10 @@ var mpd = {
 						id = id.split("=")
 						if (id.length == 1) {
 							var criteria = id[0].replace(/'/g, "''")
+							//var flds = ["title","artist","album","URI","genre","performer","composer"]
+							//sql = "select * from tag_cache where type='file' AND " + flds.join(" like '%"+criteria+"%' OR ")
 							sql = "select * from tag_cache where any glob('*"+criteria+"*');"
+							
 						}
 						else 
 							if (id.length == 2) {

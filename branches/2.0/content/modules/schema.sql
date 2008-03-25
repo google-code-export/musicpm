@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS tag_cache (
 	date      INTEGER,
 	disc      INTEGER,
 	time      INTEGER,
+	playcount INTEGER DEFAULT 0,
+	lastplay  INTEGER,
 	created   INTEGER DEFAULT CURRENT_TIMESTAMP,
 	db_update INTEGER DEFAULT 0
 );
@@ -69,8 +71,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS  stats_index ON stats (type);
 
 
 CREATE VIEW IF NOT EXISTS file AS
-	SELECT type,track,title,time,album,artist,genre,performer,composer,
-	    date,disc,directory,name, URI
+	SELECT *
 	    FROM tag_cache
 	    WHERE type='file'
 	    ORDER BY title;
@@ -89,13 +90,16 @@ CREATE VIEW IF NOT EXISTS dir AS
 	    
 CREATE VIEW IF NOT EXISTS artist AS
 	SELECT 'artist' AS type, artist as title, count(*) as track, 
-            count(distinct album) || ' albums' as album, 
             'artist://' || artist AS URI
 	    FROM tag_cache
 	    WHERE artist NOTNULL
 	    GROUP BY artist
 	    ORDER BY title;
-	
+
+CREATE VIEW IF NOT EXISTS topartist AS
+    SELECT * FROM (SELECT * FROM artist ORDER BY track DESC LIMIT 100) 
+        ORDER BY title;
+
 CREATE VIEW IF NOT EXISTS album AS
 	SELECT 'album' AS type, album as title, count(*) as track, 
             'album://' || album AS URI
