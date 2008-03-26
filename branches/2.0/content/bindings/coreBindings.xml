@@ -511,6 +511,19 @@
 
     <binding id="mpdBrowser">
         <content>
+            <xul:tree
+                id="mpdTree"
+                flex="1"
+				seltype="single"
+				onselect="this.view.performActionOnRow('click', this.currentIndex)"
+            	flags="dont-build-content">
+                <xul:treecols id="mpdTreeCols">
+                    <xul:treecol id="title" label="Location" flex="1"
+                            hidden="false"
+                            class="sortDirectionIndicator"/>
+				</xul:treecols>
+                <xul:treechildren id="tchildren"/>
+            </xul:tree>
         	<xul:vbox flex="1">
 	        	<xul:hbox>
 	        		<xul:vbox>
@@ -606,12 +619,17 @@
 		</handlers>
         <implementation>
         	<field name="view"/>
+        	<field name="tview"/>
         	<field name="addr"/>
         	<field name="tree"/>
+        	<field name="ttree"/>
 			<field name="history">new Array()</field>
 			<field name="obsCurSong"/>
         	<property name="activeItem" 
-				onget="return this.view.get(this.tree.currentIndex)"
+				onget="if (this.ttreefocused) return this.tview.get(this.ttree.currentIndex); else return this.view.get(this.tree.currentIndex)"
+				readonly="true"/>
+        	<property name="ttreefocused" 
+				onget="return (this.ttree==document.commandDispatcher.focusedElement)"
 				readonly="true"/>
         	<property name="treefocused" 
 				onget="return (this.tree==document.commandDispatcher.focusedElement)"
@@ -623,13 +641,26 @@
 				<![CDATA[
 				var addr = document.getAnonymousElementByAttribute(this, 'id', 'mpdAddress')
 				var tree = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserTree')
+				var ttree = document.getAnonymousElementByAttribute(this, 'id', 'mpdTree')
 				this.addr = addr
 				this.tree = tree 
+				this.ttree = ttree 
                 Components.utils.import("resource://minion/trees.js");
 				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
 			                getService(Components.interfaces.nsIPrefBranch)
                 var view = new browserView()
 				this.tree.view = view
+				var heirs = {
+					genre: 'artist',
+					artist: 'album',
+					performer: 'album',
+					composer: 'album',
+					date: 'album',
+					album: 'file'
+				}					
+                var tview = new treeView(heirs)
+				this.ttree.tview = tview
+				tview.load("select * from home")
                 var box = tree.boxObject;
                 box.QueryInterface(Components.interfaces.nsITreeBoxObject);
 				

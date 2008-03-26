@@ -17,7 +17,7 @@
 */
 
 Components.utils.import("resource://minion/mpd.js");
-EXPORTED_SYMBOLS = ["playlistView", "browserView", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
+EXPORTED_SYMBOLS = ["playlistView", "treeView", "browserView", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
 var trees_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 function customTreeView () {
@@ -335,19 +335,20 @@ function browserView () {
 	this.treeBox = null
 	this.colCount = 0
 	this.rowCount = 0
+	this.table = "mem.content"
 	this.load = function (sqlstr){
 		try {
 		sql = (sqlstr.slice(-1)==";") ? sqlstr.slice(0,-1) : sqlstr
-		mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS mem.treeview;" +
-			"CREATE TABLE mem.treeview AS " + sql)
+		mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS "+this.table+
+			";CREATE TABLE "+this.table+" AS " + sql)
 		} catch (e) {debug(sql+"\n"+mpd.db.lastErrorString)}
-		q = mpd.db.createStatement("SELECT count(*) FROM treeview")
+		q = mpd.db.createStatement("SELECT count(*) FROM "+this.table)
 		q.executeStep()
 		var rowCount = q.getInt32(0)
 		q.reset()
 		this.rs = []
 		this.rs.length = rowCount
-		var q = mpd.db.createStatement("SELECT * FROM treeview LIMIT 1")
+		var q = mpd.db.createStatement("SELECT * FROM "+this.table+" LIMIT 1")
 		if (q.executeStep()) {
 			this.cols = []
 			this.colCount = q.numEntries
@@ -376,7 +377,7 @@ function browserView () {
 		if (typeof(this.rs[row])=='object') return this.rs[row]
 		try {
 			var record = {}
-			var q = mpd.db.createStatement("SELECT * FROM treeview" +
+			var q = mpd.db.createStatement("SELECT * FROM "+this.table+" "+
 				this.sqlORDER + " LIMIT 1 OFFSET "+row)
 			if (q.executeStep()) {
 				var i = this.colCount
@@ -432,3 +433,12 @@ function browserView () {
 	}
 }
 browserView.prototype = new customTreeView
+
+function treeView (heirs) {
+	this.heirs = heirs
+	this.performActionOnRow = function (action, row) {
+		debug(action)
+	}
+}
+treeView.prototype = new browserView
+treeView.prototype.table = "mem.tree"
