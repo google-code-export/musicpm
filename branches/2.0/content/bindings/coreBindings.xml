@@ -511,19 +511,6 @@
 
     <binding id="mpdBrowser">
         <content>
-            <xul:tree
-                id="mpdTree"
-                flex="1"
-				seltype="single"
-				onselect="this.view.performActionOnRow('click', this.currentIndex)"
-            	flags="dont-build-content">
-                <xul:treecols id="mpdTreeCols">
-                    <xul:treecol id="title" label="Location" flex="1"
-                            hidden="false"
-                            class="sortDirectionIndicator"/>
-				</xul:treecols>
-                <xul:treechildren id="tchildren"/>
-            </xul:tree>
         	<xul:vbox flex="1">
 	        	<xul:hbox>
 	        		<xul:vbox>
@@ -540,67 +527,91 @@
 						tabscrolling="true"
 						ontextentered="this.parentNode.parentNode.parentNode.goToURI(this.value)"/>
 				</xul:hbox>
-	            <xul:tree
-	                id="mpdBrowserTree"
-	                flex="1"
-					seltype="multiple"
-	            	flags="dont-build-content">
-	                <xul:treecols id="mpdBrowserCols">
-	                    <xul:treecol id="pos" label="#" ordinal="1" width="30px"
-	                            hidden="false"
-	                            collapsed="true"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="2" />
-	                    <xul:treecol id="disc" label="Disc" ordinal="3" width="60px"
-	                            hidden="true"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="4" />
-	                    <xul:treecol id="track" label="Track" ordinal="5" width="60px"
-	                            persist="width ordinal hidden"
-	                            style="text-align:right"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="6" />
-	                    <xul:treecol id="title" label="Title" ordinal="7" flex="3"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="8" />
-	                    <xul:treecol id="time" label="Time" ordinal="9" width="60px"
-	                            hidden="true"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="10" />
-	                    <xul:treecol id="album" label="Album" ordinal="11" flex="1"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="12" />
-	                    <xul:treecol id="artist" label="Artist" ordinal="13" flex="1"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="13" />
-	                    <xul:treecol id="performer" label="Performer" ordinal="14" flex="1"
-	                            hidden="true"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="15" />
-	                    <xul:treecol id="genre" label="Genre" ordinal="16" flex="1"
-	                            hidden="true"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="17" />
-	                    <xul:treecol id="composer" label="Composer" ordinal="18" flex="1"
-	                            hidden="true"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                    <xul:splitter class="tree-splitter" ordinal="19" />
-	                    <xul:treecol id="date" label="Date" ordinal="20" width="60px"
-	                            hidden="true"
-	                            persist="width ordinal hidden"
-	                            class="sortDirectionIndicator"/>
-	                </xul:treecols>
-	                <xul:treechildren id="bchildren"/>
-	            </xul:tree>
+				<xul:hbox flex="1">		
+		            <xul:tree
+		                id="mpdTree"
+		                flex="1"
+						seltype="single"
+						onselect="this.view.performActionOnRow('select', this.currentIndex)"
+		            	flags="dont-build-content">
+		                <xul:treecols id="mpdTreeCols">
+		                    <xul:treecol id="loc" label="loc" flex="1"
+									ordinal="1"
+		                            hidden="true"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter"
+									ordinal="2"/>
+		                    <xul:treecol id="title" label="Location" flex="1"
+									ordinal="3"
+		                            hidden="false"
+									primary="true"
+		                            class="sortDirectionIndicator"/>
+						</xul:treecols>
+		                <xul:treechildren id="tchildren"/>
+		            </xul:tree>
+					<xul:splitter/>
+		            <xul:tree
+		                id="mpdBrowserTree"
+		                flex="1"
+						seltype="multiple"
+		            	flags="dont-build-content">
+		                <xul:treecols id="mpdBrowserCols">
+		                    <xul:treecol id="pos" label="#" ordinal="1" width="30px"
+		                            hidden="false"
+		                            collapsed="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="2" />
+		                    <xul:treecol id="disc" label="Disc" ordinal="3" width="60px"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="4" />
+		                    <xul:treecol id="track" label="Track" ordinal="5" width="60px"
+		                            persist="width ordinal hidden"
+		                            style="text-align:right"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="6" />
+		                    <xul:treecol id="title" label="Title" ordinal="7" flex="3"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="8" />
+		                    <xul:treecol id="time" label="Time" ordinal="9" width="60px"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="10" />
+		                    <xul:treecol id="album" label="Album" ordinal="11" flex="1"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="12" />
+		                    <xul:treecol id="artist" label="Artist" ordinal="13" flex="1"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="13" />
+		                    <xul:treecol id="performer" label="Performer" ordinal="14" flex="1"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="15" />
+		                    <xul:treecol id="genre" label="Genre" ordinal="16" flex="1"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="17" />
+		                    <xul:treecol id="composer" label="Composer" ordinal="18" flex="1"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="19" />
+		                    <xul:treecol id="date" label="Date" ordinal="20" width="60px"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                </xul:treecols>
+		                <xul:treechildren id="bchildren"/>
+		            </xul:tree>
+				</xul:hbox>
         	</xul:vbox>
         </content>
 		<handlers>
@@ -651,6 +662,7 @@
                 var view = new browserView()
 				this.tree.view = view
 				var heirs = {
+					directory: 'directory',
 					genre: 'artist',
 					artist: 'album',
 					performer: 'album',
@@ -658,8 +670,8 @@
 					date: 'album',
 					album: 'file'
 				}					
-                var tview = new treeView(heirs)
-				this.ttree.tview = tview
+                var tview = new treeView(heirs, this)
+				this.ttree.view = tview
 				tview.load("select * from home")
                 var box = tree.boxObject;
                 box.QueryInterface(Components.interfaces.nsITreeBoxObject);

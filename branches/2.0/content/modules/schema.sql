@@ -58,7 +58,10 @@ CREATE TRIGGER IF NOT EXISTS make_any AFTER INSERT ON tag_cache WHEN new.type='f
 CREATE TABLE IF NOT EXISTS home (
     URI       TEXT UNIQUE PRIMARY KEY,
 	type	  TEXT,
-	title     TEXT
+	title     TEXT,
+	name      TEXT DEFAULT '',
+	level     INTEGER DEFAULT 0,
+	loc       TEXT DEFAULT 'Z_'
 );
 
 
@@ -83,7 +86,7 @@ CREATE VIEW IF NOT EXISTS directory AS
 	    ORDER BY type, directory, name;
 
 CREATE VIEW IF NOT EXISTS dir AS
-	SELECT type, directory, name as title, URI
+	SELECT type, directory, name as title, directory || '/' || name as name, URI
 	    FROM tag_cache
 	    WHERE type='directory'
 	    ORDER BY directory, title;

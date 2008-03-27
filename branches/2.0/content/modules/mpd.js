@@ -17,7 +17,7 @@
 */
 
 Components.utils.import("resource://minion/mpmUtils.js");
-EXPORTED_SYMBOLS = ["mpd", "sqlQuery", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
+EXPORTED_SYMBOLS = ["mpd", "Sz", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
 var mpd_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 
@@ -36,11 +36,11 @@ var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
 
 try {
 	var schema = getFileContents("resource://minion/schema.sql")
-	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders');" +
-		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','All Artists');" +
-		"INSERT OR IGNORE INTO home VALUES('topartist://', 'artist','Top 100 Artists');" +
-		"INSERT OR IGNORE INTO home VALUES('album://', 'album','All Albums');" +
-		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists');"
+	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.');" +
+		"INSERT OR IGNORE INTO home VALUES('genre://', 'genre','Genres','',0,'2.');" +
+		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','Artists','',0,'3.');" +
+		"INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'4.');" +
+		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'5.');"
 	mDBConn.executeSimpleSQL(schema)
 	mDBConn.executeSimpleSQL(home)
 	debug("schema created, "+mDBConn.lastErrorString)
