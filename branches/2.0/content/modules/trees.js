@@ -336,7 +336,7 @@ function browserView () {
 	this.colCount = 0
 	this.rowCount = 0
 	this.table = "mem.content"
-	this.load = function (sqlstr, action){
+	this.load = function (sqlstr, action, atIndex){
 		action = Nz(action, 'create')
 		try {
 			debug(this.table + "\n" + action + ": " + sql)
@@ -393,10 +393,16 @@ function browserView () {
 		q.reset()
 		if (this.treeBox) {
 			var chg = rowCount - this.rowCount
-			var n = (chg < 0) ? 1 : this.rowCount
-			this.treeBox.rowCountChanged(n-1, chg)
-			this.treeBox.invalidate()
-			this.treeBox.scrollToRow(0)
+			if (action == 'create') {
+				var n = (chg < 0) ? 1 : this.rowCount
+				this.treeBox.rowCountChanged(n - 1, chg)
+				this.treeBox.invalidate()
+				this.treeBox.scrollToRow(0)
+			}
+			else {
+				this.treeBox.rowCountChanged(atIndex, chg)
+				this.treeBox.invalidate()				
+			}
 		}
 		this.rowCount = rowCount;
 	}
@@ -470,7 +476,7 @@ function treeView (heirs, parent) {
 	}
 	this.isContainerOpen = function(row){
 		var item = this.get(row)
-		var next = Nz(this.get(parseInt(row)+1))
+		var next = Nz(this.get(row+1))
 		if (!Nz(next.loc)) return false
 		return (next.loc == item.loc+"\n"+next.URI)
 	}
@@ -501,7 +507,7 @@ function treeView (heirs, parent) {
 			var item = this.get(row)
 			if (this.isContainerOpen(row)) {
 				var sql = " WHERE loc glob(" +Sz(item.loc+"\n*") + ")"
-				this.load(sql, 'delete')
+				this.load(sql, 'delete', row+1)
 			}
 			else {
 				if (item.type == 'directory') {
@@ -537,7 +543,7 @@ function treeView (heirs, parent) {
 					if (item.name > "") 
 						sql += " AND " + item.type + "=" + Sz(item.name)
 				}
-				this.load(sql, 'insert')
+				this.load(sql, 'insert', row+1)
 			//this.rowCount = this.rs.length
 			}
 		} 

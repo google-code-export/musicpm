@@ -552,7 +552,7 @@
 					<xul:splitter/>
 		            <xul:tree
 		                id="mpdBrowserTree"
-		                flex="1"
+		                flex="3"
 						seltype="multiple"
 		            	flags="dont-build-content">
 		                <xul:treecols id="mpdBrowserCols">
