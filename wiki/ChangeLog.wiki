@@ -1,6 +1,12 @@
 #summary A history of changes made for each release.
 #labels Featured
 
+= 1.4.4 =
+
+  * Fixed loading playlists with apostrophes from menus.
+  * Fixed version number in About page.
+  * Bumped max version to 3.0b5.
+
 = 1.4.3 =
 
   * Added workarounds for somafm.com.  Their internet radio links will now be recognized as .pls and their links converted to the .pls files.
