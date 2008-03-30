@@ -148,7 +148,15 @@ function tmRun(f) {
     alert((end.getTime()-st.getTime()))
 }
 function show_config() {
-    var cb = function (w) {try{w.close()}catch(e){}; mpd = 'reload'; init_mpd()}
+    var cb = function(w){
+		try {
+			w.close()
+		} 
+		catch (e) {
+		};
+		mpd = 'reload';
+		init_mpd()
+	}
     window.openDialog("chrome://minion/content/settings.xul","showmore",
                   "chrome", cb);
 }
