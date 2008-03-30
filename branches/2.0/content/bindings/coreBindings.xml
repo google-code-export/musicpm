@@ -513,6 +513,12 @@
         <content>
         	<xul:vbox flex="1">
 	        	<xul:hbox>
+	        		<xul:toolbarbutton class="mpdBrowserBack"
+						label="Back"
+						oncommand="this.parentNode.parentNode.parentNode.goBack()"/>
+	        		<xul:toolbarbutton class="mpdBrowserForward"
+						label="Forward"
+						oncommand="this.parentNode.parentNode.parentNode.goForward()"/>
 	        		<xul:vbox>
 	        			<xul:spacer flex="1"/>
 	        			<xul:label value="Address:"/>
@@ -526,13 +532,44 @@
 						enablecomments="true"
 						tabscrolling="true"
 						ontextentered="this.parentNode.parentNode.parentNode.goToURI(this.value)"/>
+					<xul:menulist id="searchType" 
+						label="Search"
+						sizetopopup="always">
+						<xul:menupopup>
+							<xul:menuitem label="Filter" 
+								tooltiptext="Filter contents of current location by Title"/>
+							<xul:menuitem label="Search" 
+								tooltiptext="Search all fields in database"
+								selected="true"/>
+							<xul:menuitem label="Title" 
+								tooltiptext="Search by song's Title"/>
+							<xul:menuitem label="Artist" 
+								tooltiptext="Search by song's Artist"/>
+							<xul:menuitem label="Album" 
+								tooltiptext="Search by song's "/>
+							<xul:menuitem label="File" 
+								tooltiptext="Search by song's file name"/>
+							<xul:menuitem label="Genre" 
+								tooltiptext="Search by song's genre"/>
+							<xul:menuitem label="Composer" 
+								tooltiptext="Search by song's composer"/>
+							<xul:menuitem label="Performer" 
+								tooltiptext="Search by song's performer"/>
+							<xul:menuitem label="Date" 
+								tooltiptext="Search by song's release date"/>
+						</xul:menupopup>
+					</xul:menulist>
+					<xul:textbox id="searchInput"
+						type="timed" 
+						timeout="200"
+						oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
 				</xul:hbox>
 				<xul:hbox flex="1">		
 		            <xul:tree
 		                id="mpdTree"
 		                flex="1"
 						seltype="single"
-						onselect="this.view.performActionOnRow('select', this.currentIndex)"
+						onclick="this.view.performActionOnRow('click', this.currentIndex)"
 		            	flags="dont-build-content">
 		                <xul:treecols id="mpdTreeCols">
 		                    <xul:treecol id="loc" label="loc" flex="1"
@@ -574,6 +611,7 @@
 		                    <xul:splitter class="tree-splitter" ordinal="6" />
 		                    <xul:treecol id="title" label="Title" ordinal="7" flex="3"
 		                            persist="width ordinal hidden"
+									overflow="true"
 		                            class="sortDirectionIndicator"/>
 		                    <xul:splitter class="tree-splitter" ordinal="8" />
 		                    <xul:treecol id="time" label="Time" ordinal="9" width="60px"
@@ -608,6 +646,11 @@
 		                            hidden="true"
 		                            persist="width ordinal hidden"
 		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="21" />
+		                    <xul:treecol id="name" label="Name" ordinal="22" flex="1"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
 		                </xul:treecols>
 		                <xul:treechildren id="bchildren"/>
 		            </xul:tree>
@@ -634,7 +677,10 @@
         	<field name="addr"/>
         	<field name="tree"/>
         	<field name="ttree"/>
+			<field name="searchType"/>
+			<field name="searchInput"/>
 			<field name="history">new Array()</field>
+			<field name="historyIndex">0</field>
 			<field name="obsCurSong"/>
         	<property name="activeItem" 
 				onget="if (this.ttreefocused) return this.tview.get(this.ttree.currentIndex); else return this.view.get(this.tree.currentIndex)"
@@ -653,6 +699,8 @@
 				var addr = document.getAnonymousElementByAttribute(this, 'id', 'mpdAddress')
 				var tree = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserTree')
 				var ttree = document.getAnonymousElementByAttribute(this, 'id', 'mpdTree')
+				this.searchType = document.getAnonymousElementByAttribute(this, 'id', 'searchType')
+				this.searchInput = document.getAnonymousElementByAttribute(this, 'id', 'searchInput')
 				this.addr = addr
 				this.tree = tree 
 				this.ttree = ttree 
@@ -677,6 +725,7 @@
                 box.QueryInterface(Components.interfaces.nsITreeBoxObject);
 				
 				this.view = view
+				this.tview = tview
 				this.box = box
                 this.obsCurSong = {
                     observe: function(subject,topic,data){
@@ -697,22 +746,44 @@
 				<parameter name="URI"/>
 				<body>
 					<![CDATA[
-					if (URI=="" || URI=="Home") {
-						this.view.load("select * from home")
-						this.addr.value = URI
-						this.addr.selectionStart = this.addr.textLength
-						this.addr.selectionEnd = this.addr.textLength
-						this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
-					}
-					else {
-						var sql = URI
-						if(mpd.query(sql, this.view, this.addr)) {
+					if (URI != this.addr.value) {
+						if (URI=="" || URI=="Home") {
+							this.view.load("select * from home")
 							this.addr.value = URI
 							this.addr.selectionStart = this.addr.textLength
 							this.addr.selectionEnd = this.addr.textLength
+							this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
 						}
+						else {
+							var sql = URI
+							if(mpd.query(sql, this.view, this.addr)) {
+								this.addr.value = URI
+								this.addr.selectionStart = this.addr.textLength
+								this.addr.selectionEnd = this.addr.textLength
+							}
+						}
+						if (this.history[this.historyIndex] != URI) {
+							this.history.splice(this.historyIndex,0,URI)
+						}
+						debug(this.history)
+						debug(this.historyIndex)
+						if (!this.ttreefocused) this.tview.ensureURIisVisble(URI)
 					}
 					]]>
+				</body>
+			</method>
+			<method name="goBack">
+				<body>
+					if (this.historyIndex >= (this.history.length-1)) return null
+					this.historyIndex++
+					this.goToURI(this.history[this.historyIndex])
+				</body>
+			</method>
+			<method name="goForward">
+				<body>
+					if (this.historyIndex == 0) return null
+					this.historyIndex--
+					this.goToURI(this.history[this.historyIndex])
 				</body>
 			</method>
 			<method name="delete">
@@ -740,6 +811,24 @@
 				
 				    cmd += "\ncommand_list_end"
 				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="handleSearch">
+				<body>
+					<![CDATA[
+					switch (this.searchType.selectedItem.label) {
+						case "Search": this.goToURI("search://"+this.searchInput.value);break;
+						case "Filter": this.view.applyFilter(this.searchInput.value);break;
+						case "Title": this.goToURI("search://title="+this.searchInput.value);break;
+						case "Artist": this.goToURI("search://artist="+this.searchInput.value);break;
+						case "Album": this.goToURI("search://album="+this.searchInput.value);break;
+						case "Genre": this.goToURI("search://genre="+this.searchInput.value);break;
+						case "File": this.goToURI("search://name="+this.searchInput.value);break;
+						case "Performer": this.goToURI("search://performer="+this.searchInput.value);break;
+						case "Composer": this.goToURI("search://composer="+this.searchInput.value);break;
+						case "Date": this.goToURI("search://date="+this.searchInput.value);break;
+					}
 					]]>
 				</body>
 			</method>

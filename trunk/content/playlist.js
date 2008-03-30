@@ -701,14 +701,14 @@ function playlist_lyricsfreak()  {
 
 function load_playlist(id){
     lastPlaylistName = id
-    command('command_list_begin\nclear\nload "'+id+'"\ncommand_list_end\n', null)
+    command('command_list_begin\nclear\nload "'+id.replace(/"/g, '\\"')+'"\ncommand_list_end\n', null)
 }
 
 function playlist_save(){
     var val = prompt("Please enter a name for this playlist", lastPlaylistName)
     if (val != null) {
         lastPlaylistName = val
-        command('save "'+val+'"', null)
+        command('save "'+val.replace(/"/g, '\\"')+'"', null)
     }
 }
 function playlist_shuffle() {
@@ -875,7 +875,7 @@ function dbRDF(items, about, filter){
 
     function xmlEscape (s) {
         if (!s) {return ''}
-        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g,"&quot;")
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g,"&quot;").replace(/'/g, "&apos;")
     }
 
     for (x in items){

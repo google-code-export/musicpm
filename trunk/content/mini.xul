@@ -28,7 +28,7 @@
                     <rule>
                         <menuitem uri="rdf:*"
                             label="rdf:mpd_Name"
-                            oncommand="load_playlist('rdf:mpd_Name^')"/>
+                            oncommand='load_playlist("rdf:mpd_Name^")'/>
                     </rule>
                 </template>
             </menupopup>

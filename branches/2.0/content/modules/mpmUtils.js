@@ -34,7 +34,8 @@ function debug(s) {
         for (x in s) {str += x + ": " + s[x] + "\n"}
     }
     else {var str = s}
-    consoleService.logStringMessage(str)
+    dump(str)
+    //consoleService.logStringMessage(str)
 }
 
 function Nz(obj, def){

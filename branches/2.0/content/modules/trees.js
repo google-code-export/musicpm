@@ -343,6 +343,7 @@ function browserView () {
 			sql = (sqlstr.slice(-1) == ";") ? sqlstr.slice(0, -1) : sqlstr
 			switch (action) {
 				case 'create':
+					this.sqlWHERE = ''
 					mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS " + this.table +
 					";CREATE TABLE " +
 					this.table +
@@ -404,13 +405,34 @@ function browserView () {
 				this.treeBox.invalidate()				
 			}
 		}
+		mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS "+this.table+"_map;")
+		mpd.db.executeSimpleSQL("CREATE TABLE "+this.table+"_map AS "+
+			"SELECT URI FROM "+this.table+this.sqlORDER)
 		this.rowCount = rowCount;
+	}
+	this.applyFilter = function (filter) {
+		this.sqlWHERE = " WHERE lower(title) glob('" + filter + "*') "
+		var q = mpd.db.createStatement("select count(*) from "+this.table+this.sqlWHERE)
+		q.executeStep()
+		var rowCount = q.getInt32(0)
+		q.reset()
+		debug("select count(*) from "+this.table+this.sqlWHERE+"="+rowCount)
+		this.rs = []
+		this.rs.length = rowCount
+		if (this.treeBox) {
+			var chg = rowCount - this.rowCount
+			var n = (chg < 0) ? 1 : this.rowCount
+			this.treeBox.rowCountChanged(n - 1, chg)
+			this.treeBox.invalidate()
+			this.treeBox.scrollToRow(0)
+		}
+		this.rowCount = rowCount;		
 	}
 	this.get = function (row) {
 		if (typeof(this.rs[row])=='object') return this.rs[row]
 		try {
 			var record = {}
-			var q = mpd.db.createStatement("SELECT * FROM "+this.table+" "+
+			var q = mpd.db.createStatement("SELECT * FROM "+this.table+this.sqlWHERE+
 				this.sqlORDER + " LIMIT 1 OFFSET "+row)
 			if (q.executeStep()) {
 				var i = this.colCount
@@ -466,9 +488,47 @@ browserView.prototype = new customTreeView
 function treeView (heirs, parent) {
 	this.heirs = heirs
 	this.table = "mem.tree"
+	this.ensureURIisVisble = function (uri) {
+		var sql = "select rowid-1 from "+this.table+"_map where URI="
+		var q = mpd.db.createStatement(sql+Sz(uri))
+		if (q.executeStep()) {
+			var idx = q.getInt32(0)
+			q.reset()
+			this.treeBox.scrollToRow(idx)
+			if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
+				this.toggleOpenState(idx)
+			}
+			this.selection.select(idx)
+			this.selection.currentIndex = idx
+		}
+		else {
+			q.reset()
+			q = mpd.db.createStatement(sql+"'"+uri.split('://')[0] + "://'")
+			if (q.executeStep()) {
+				var idx = q.getInt32(0)
+				q.reset()
+				this.treeBox.scrollToRow(idx)
+				if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
+					this.toggleOpenState(idx)
+				}
+				q = mpd.db.createStatement(sql+Sz(uri))
+				if (q.executeStep()) {
+					var idx = q.getInt32(0)
+					q.reset()
+					this.treeBox.scrollToRow(idx)
+					if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
+						this.toggleOpenState(idx)
+					}
+					this.selection.select(idx)
+					this.selection.currentIndex = idx
+				}
+			}
+			q.reset()
+		}
+	}
 	this.performActionOnRow = function (action, row) {
 		switch (action) {
-			case 'select':
+			case 'click':
 				var item = this.get(row);
 				parent.goToURI(item.URI);
 				break;
@@ -482,7 +542,7 @@ function treeView (heirs, parent) {
 	}
 	this.isContainer = function(row){
 		var item = this.get(row)
-		return !(item.type == 'album' && item.name > '')
+		return (item.children>0)
 	}
 	this.getParentIndex = function(idx){
 		var item = this.get(idx)
@@ -512,38 +572,61 @@ function treeView (heirs, parent) {
 			else {
 				if (item.type == 'directory') {
 					var type = 'directory'
-					sql = "(type,title,level,loc,URI,name) " +
-					"select type,title," +
-					(parseInt(item.level) + 1) +
-					" as level," + 
-					Sz(item.loc + "\n") +
-					" || URI as loc, URI, name from dir where directory=" + Sz(item.URI.slice(12))
+					sql = "(children,type,title,level,loc,URI,name) " +
+					"select children,type,title," +
+					(parseInt(item.level) + 1) + " as level," + 
+					Sz(item.loc + "\n") + " || URI as loc, URI, name " +
+					"from dir where directory=" + Sz(item.URI.slice(12))
+				}
+				else if (item.type == 'playlist') {
+					var view = this
+					mpd.doCmd('lsinfo', function(data){
+						try {
+							data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
+							var ins1 = "INSERT INTO browse (URI) VALUES('playlist://"
+							var ins2 = "');"
+							var _sql = "DELETE FROM browse;" + 
+								"BEGIN TRANSACTION;" +
+								data.replace(/'/g,"''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
+								"COMMIT TRANSACTION"
+							mpd.db.executeSimpleSQL(_sql)
+							view.load("(type,title,URI,children,level,loc) select 'playlist' AS type, " +
+								"replace(URI,'playlist://','') as title, URI, 0 as children, "+
+								(parseInt(item.level) + 1) + " as level," + 
+								Sz(item.loc + "\n") + " || URI as loc FROM browse", 'insert',row+1)
+						} 
+						catch (e) {
+							debug(e)
+							debug(sql + "\n" + mpd.db.lastErrorString)
+						}
+					}, false)
+					sql = null
 				}
 				else {
-					var type = (item.name > "") ? this.heirs[item.type] : item.type
-					var URI = " '" + type + "://' || " + type
-					var sql = "(type,title,level,loc,URI,name) " +
-					"select DISTINCT '" +
-					type +
-					"' as type," +
-					type +
-					" as title," +
-					(parseInt(item.level) + 1) +
-					" as level," +
-					Sz(item.loc + "\n") +
-					" || " +
-					URI +
-					" as loc, " +
-					URI +
-					" as URI, " +
-					type +
-					" as name FROM tag_cache where " +
-					type +
-					" NOT NULL"
-					if (item.name > "") 
-						sql += " AND " + item.type + "=" + Sz(item.name)
+					if (item.name == '') {
+						var sql = "(children,type,title,URI,name,level,loc) " +
+						"select children,type,title,URI, title as name," + 
+						(parseInt(item.level)+1) +
+						" as level, " +
+						Sz(item.loc + "\n") +
+						" || URI " +
+						"as loc FROM " + item.type + 
+						" ORDER BY title"
+					}
+					else {
+						var sql = "(children,type,title,URI,name,level,loc) " +
+						"SELECT DISTINCT {get}.children,{get}.type,{get}.title," +
+						"{get}.URI,{get}.title as name," +
+						(parseInt(item.level)+1) +
+						" as level, " +
+						Sz(item.loc + "\n") +
+						" || {get}.URI as loc FROM {get} " +
+						"INNER JOIN tag_cache ON {get}.title=tag_cache.{get} " +
+						"WHERE " + item.type + "=" + Sz(item.name)
+						sql = sql.replace(/\{get\}/g, this.heirs[item.type])
+					}
 				}
-				this.load(sql, 'insert', row+1)
+				if (sql) this.load(sql, 'insert', row+1)
 			//this.rowCount = this.rs.length
 			}
 		} 

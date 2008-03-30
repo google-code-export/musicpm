@@ -36,11 +36,12 @@ var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
 
 try {
 	var schema = getFileContents("resource://minion/schema.sql")
-	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.');" +
-		"INSERT OR IGNORE INTO home VALUES('genre://', 'genre','Genres','',0,'2.');" +
-		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','Artists','',0,'3.');" +
-		"INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'4.');" +
-		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'5.');"
+	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('genre://', 'genre','Genres','',0,'2.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','Artists','',0,'3.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'4.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('date://', 'date','Release Dates','',0,'5.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'6.',1);"
 	mDBConn.executeSimpleSQL(schema)
 	mDBConn.executeSimpleSQL(home)
 	debug("schema created, "+mDBConn.lastErrorString)
@@ -206,6 +207,10 @@ function updateTagCache(data){
 			}
 			while (--n)
 			mDBConn.commitTransaction()
+			sql = getFileContents("resource://minion/analyze.sql")
+			mpd.set('lastCommand', 'Analyzing Data...')
+			mDBConn.executeSimpleSQL(sql)
+			
 		}
 		catch (e) {
 			debug(sql+"/n"+ mDBConn.lastErrorString)
@@ -741,8 +746,8 @@ var mpd = {
 									data.replace(/'/g,"''").replace(/file: /g, ins1).replace(/\n/g, ins2) +
 									"COMMIT TRANSACTION"
 								mDBConn.executeSimpleSQL(sql)
-								sqlQuery("SELECT browse.pos, file.* FROM browse \
-											JOIN file ON browse.URI=file.URI;", view)
+								view.load("SELECT browse.pos, file.* FROM browse \
+											JOIN file ON browse.URI=file.URI;")
 							} 
 							catch (e) {
 								debug(e)
@@ -786,7 +791,7 @@ var mpd = {
 						else 
 							if (id.length == 2) {
 								var criteria = id[1].replace(/'/g, "''")
-								sql = "select * from file where "+Lz(id[0])+" glob('*"+criteria+"*');"
+								sql = "select * from file where lower("+Lz(id[0])+") glob('*"+criteria+"*');"
 							}
 					}
 					else {
@@ -812,7 +817,7 @@ var mpd = {
 					break;
 			}
 			if (sql) {	
-				sqlQuery(sql, view, addrBox)
+				view.load(sql)
 				return true
 			}
 		}
