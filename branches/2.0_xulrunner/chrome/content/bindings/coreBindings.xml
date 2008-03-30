@@ -1,0 +1,838 @@
+<?xml version="1.0"?>
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <binding id="mpdObserverLabel">
+        <content>
+            <xul:label xbl:inherits="value"/>
+        </content>
+        <implementation>
+            <field name="observes"/>
+            <property name="value"
+                onget="return document.getAnonymousNodes(this)[0].value"
+                onset="document.getAnonymousNodes(this)[0].value=val"/>
+            <constructor>
+                Components.utils.import("resource://minion/mpd.js");
+                var lbl = document.getAnonymousNodes(this)[0]
+                lbl.className = "mpdLabel"+this.observes
+                lbl.value = mpd[this.observes]
+                var obs = {
+                    observe: function(subject,topic,data){
+                        lbl.value = data
+                    }
+                };
+                observerService.addObserver(obs,this.observes,false)
+            </constructor>
+            <destructor>
+                observerService.removeObserver(obs,this.observes)
+            </destructor>
+        </implementation>
+    </binding>
+
+    <binding id="mpdTime">
+        <content>
+            <xul:label class="mpdTimeElapsed" seconds="0" value="0:00"/>
+            <xul:progressmeter
+                class="mpdTimeProgressmeter"
+                collapsed="false"
+                xbl:inherits="collapsed=hideprogressmeter"/>
+            <xul:label class="mpdTimeSeparator" value="/"
+                collapsed="true"/>
+            <xul:label class="mpdTimeTotal" seconds="0" value="0:00"/>
+        </content>
+        <implementation>
+            <property name="elapsed"
+                onget="return document.getAnonymousNodes(this)[0].seconds"
+                onset="this.seekToSec(val)"/>
+            <property name="percent"
+                onget="return document.getAnonymousNodes(this)[1].value"
+                onset="this.seekToPercent(val)"/>
+            <property name="total"
+                onget="return document.getAnonymousNodes(this)[3].seconds"
+                onset=""/>
+            <constructor>
+                Components.utils.import("resource://minion/mpd.js");
+                var lbl1 = document.getAnonymousNodes(this)[0]
+                var progress = document.getAnonymousNodes(this)[1]
+                var lblSep = document.getAnonymousNodes(this)[2]
+                var lbl2 = document.getAnonymousNodes(this)[3]
+                lblSep.collapsed = !progress.collapsed
+
+                function seekScroll(event) {
+                    lbl1.parentNode.seekBySec(event.detail * -2);
+                }
+                function prgmtrClick(event) {
+                    var elem = event.target;
+                    var elemX = event.clientX - elem.boxObject.x;
+                    var elemW = elem.boxObject.lastChild.boxObject.width + elem.boxObject.firstChild.boxObject.width;
+                    var val = Math.round(elemX/elemW*100);
+                    elem.parentNode.seekToPercent(val);
+                }
+                var obs1 = {
+                    observe: function(subject,topic,data){
+                        lbl1.seconds = data;
+                        lbl1.value = hmsFromSec(data);
+                        progress.value = Math.round((data / mpd.Time) * 100 )
+                    }
+                };
+                var obs2 = {
+                    observe: function(subject,topic,data){
+                        lbl2.seconds = data;
+                        lbl2.value = hmsFromSec(data);
+                    }
+                };
+
+                observerService.addObserver(obs1,"time",false)
+                observerService.addObserver(obs2,"Time",false)
+                this.addEventListener("DOMMouseScroll", seekScroll, false)
+                progress.addEventListener("click", prgmtrClick, false)
+            </constructor>
+            <destructor>
+                observerService.removeObserver(obs1, "time")
+                observerService.removeObserver(obs2, "Time")
+                this.removeEventListener("DOMMouseScroll", seekScroll, false)
+                progress.removeEventListener("click", prgmtrClick, false)
+            </destructor>
+            <method name="seekBySec">
+                <parameter name="incr"/>
+                <body>
+                    var sec = parseInt(mpd.time) + incr;
+                    mpd.set('time', sec)
+                    mpd.doCmd("seek " + mpd.song + " " + sec);
+                </body>
+            </method>
+            <method name="seekToSec">
+                <parameter name="sec"/>
+                <body>
+                    mpd.doCmd("seek " + mpd.song + " " + sec);
+                </body>
+            </method>
+            <method name="seekToPercent">
+                <parameter name="perc"/>
+                <body>
+                    var sec = Math.round((perc/100)*mpd.Time)
+                    mpd.doCmd("seek " + mpd.song + " " + sec);
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpdVolume">
+        <content>
+            <xul:scale class="mpdVolumeScale"
+                xbl:inherits="value,orient"
+                min="0"
+                max="100"
+                onchange="this.parentNode.setvol(this.value)"/>
+        </content>
+        <implementation>
+            <property name="volume"
+                onget="return mpd.volume"
+                onset="this.setvol(val)"/>
+            <constructor>
+                Components.utils.import("resource://minion/mpd.js");
+                var scale = document.getAnonymousNodes(this)[0];
+                scale.value = mpd.volume
+                function volScroll(event) {
+                    var vol = parseInt(mpd.volume) + (event.detail * -1);
+                    scale.parentNode.setvol(vol)
+                }
+                var obs = {
+                    observe: function(subject,topic,data){
+                        scale.value = data;
+                    }
+                };
+                observerService.addObserver(obs, "volume", false);
+                this.addEventListener("DOMMouseScroll", volScroll, false)
+            </constructor>
+            <destructor>
+                observerService.removeObserver(obs, "volume");
+                this.removeEventListener("DOMMouseScroll", volScroll, false)
+            </destructor>
+            <method name="setvol">
+                <parameter name="vol"/>
+                <body>
+                    if (vol == mpd.volume) return null;
+                    if (vol &lt; 0) vol = 0;
+                    else if (vol &gt; 100) vol = 100;
+                    mpd.set('volume', vol)
+                    mpd.doCmd("setvol " + vol);
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpdPlaybackControls">
+        <content>
+            <xul:toolbarbutton class="mpdButtonPrevious"
+                tooltiptext="Previous Track"
+                oncommand="mpd.doCmd('previous')"/>
+            <xul:deck>
+                <xul:hbox class="mpdStateStop">
+                    <xul:spacer flex="1"/>
+                    <xul:toolbarbutton class="mpdButtonPlay"
+                        tooltiptext="Play"
+                        oncommand="mpd.doCmd('play')"/>
+                    <xul:spacer flex="1"/>
+                </xul:hbox>
+                <xul:hbox class="mpdStatePlay">
+                    <xul:toolbarbutton class="mpdButtonPause"
+                        tooltiptext="Pause"
+                        oncommand="mpd.doCmd('pause')"/>
+                    <xul:toolbarbutton class="mpdButtonStop"
+                        tooltiptext="Stop"
+                        oncommand="mpd.doCmd('stop')"
+                        xbl:inherits="collapsed=hidestop"/>
+                </xul:hbox>
+                <xul:hbox class="mpdStatePause">
+                    <xul:toolbarbutton class="mpdButtonPlay"
+                        tooltiptext="Play"
+                        oncommand="mpd.doCmd('play')"/>
+                    <xul:toolbarbutton class="mpdButtonStop"
+                        tooltiptext="Stop"
+                        oncommand="mpd.doCmd('stop')"
+                        xbl:inherits="collapsed=hidestop"/>
+                </xul:hbox>
+            </xul:deck>
+            <xul:toolbarbutton class="mpdButtonNext"
+                tooltiptext="Next Track"
+                oncommand="mpd.doCmd('next')"/>
+        </content>
+        <implementation>
+            <property name="state"
+                onget="return mpd.state"
+                onset="if (val=='play' || val=='pause' || val=='stop') mpd.doCmd(val)"/>
+            <constructor>
+                Components.utils.import("resource://minion/mpd.js");
+                var prev = document.getAnonymousNodes(this)[0]
+                var deck = document.getAnonymousNodes(this)[1]
+                var next = document.getAnonymousNodes(this)[2]
+                var obs = {
+                    observe: function(subject,topic,data){
+                        switch (data) {
+                            case 'play': deck.selectedIndex = 1; break;
+                            case 'pause': deck.selectedIndex = 2; break;
+                            default: deck.selectedIndex = 0; break;
+                        }
+                    }
+                };
+                observerService.addObserver(obs,'state',false)
+            </constructor>
+            <destructor>
+                observerService.removeObserver(obs,'state')
+            </destructor>
+            <method name="prev">
+                <body>
+                    mpd.doCmd("prev");
+                </body>
+            </method>
+            <method name="previous">
+                <body>
+                    mpd.doCmd("prev");
+                </body>
+            </method>
+            <method name="play">
+                <body>
+                    mpd.doCmd("play");
+                </body>
+            </method>
+            <method name="pause">
+                <body>
+                    mpd.doCmd("pause");
+                </body>
+            </method>
+            <method name="stop">
+                <body>
+                    mpd.doCmd("stop");
+                </body>
+            </method>
+            <method name="next">
+                <body>
+                    mpd.doCmd("next");
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpdConnection">
+        <content>
+            <xul:toolbarbutton class="mpdButtonConnect"
+                tooltiptext="Toggle Connection"
+                oncommand="this.parentNode.connected = !this.parentNode.connected"/>
+        </content>
+        <implementation>
+            <field name="showlabel">true</field>
+            <property name="connected"
+                onget="return (mpd._socket) ? true : false"
+                onset="if (val) mpd.connect(); else mpd.disconnect()"/>
+            <constructor>
+                Components.utils.import("resource://minion/mpd.js");
+                var btn = document.getAnonymousNodes(this)[0]
+                var showlabel = this.showlabel
+                if (showlabel) btn.label = mpd.greeting
+                var obs = {
+                    observe: function(subject,topic,data){
+                        var cls = ""
+                        if (mpd._socket) cls = " mpdButtonConnected"
+                        btn.className="mpdButtonConnect"+cls
+                        if (showlabel) {
+                            btn.label = data
+                        }
+                        else {
+                            btn.setAttribute('tooltiptext', data)
+                        }
+                    }
+                };
+                observerService.addObserver(obs,'greeting',false)
+            </constructor>
+            <destructor>
+                observerService.removeObserver(obs,'greeting')
+            </destructor>
+        </implementation>
+    </binding>
+
+    <binding id="mpdPlaylist">
+        <content>
+            <xul:tree
+                label="Playlist"
+                flex="1"
+            	flags="dont-build-content"
+				onselect="this.parentNode.selectItem(event)">
+                <xul:treecols>
+                    <xul:treecol id="Pos"
+                        label="#"
+                        width="40"
+                        ordinal="1"
+                        overflow="true"
+						primary="true"
+						persist="width ordinal hidden"/>
+                    <xul:splitter class="tree-splitter" ordinal="2"/>
+                    <xul:treecol id="Title"
+                        label="Title"
+                        ordinal="3"
+                        overflow="true"
+                        flex="1"
+						persist="width ordinal hidden"/>
+                    <xul:splitter class="tree-splitter" ordinal="4"/>
+                    <xul:treecol id="Time"
+						label="Time"
+						ordinal="5"
+						width="50"
+						persist="width ordinal hidden"/>
+                </xul:treecols>
+                <xul:treechildren id="children"/>
+            </xul:tree>
+        </content>
+		<handlers>
+			<handler event="keypress" modifiers="accel" key="a"
+				action="this.tree.view.selection.selectAll()"/>
+			<handler event="keypress" modifiers="accel" key="e"
+				action="if(this.expanded)this.collapseAll();else this.expandAll();"/>
+			<handler event="keypress" key=" " 
+				action="var a=this.activeItem;if(mpd.song==a.Pos)mpd.doCmd('pause');else mpd.doCmd('play '+a.Pos)"/>
+			<handler event="keypress" keycode="VK_DELETE" 
+				action="this.delete()"/>
+			<handler event="keypress" keycode="VK_RETURN"
+				action="if(!this.view.isContainer(this.tree.currentIndex)){var i=this.view.getParentIndex(this.tree.currentIndex);this.view.toggleOpenState(i);this.view.selection.rangedSelect(i,i,true);}"/>
+			<handler event="keypress" keycode="VK_BACK" 
+				action="mpd.doCmd('stop', null, false)"/>
+		</handlers>
+        <implementation>
+        	<field name="view"/>
+        	<field name="tree">document.getAnonymousNodes(this)[0]</field>
+        	<field name="box"/>
+			<field name="expanded"/>
+			<field name="obsPL"/>
+			<field name="obsLn"/>
+			<field name="obsCurSong"/>
+        	<property name="activeItem" 
+				onget="var i=(this.view.isContainer(this.tree.currentIndex))?this.tree.currentIndex:this.view.getParentIndex(this.tree.currentIndex);return this.view.get(i)"
+				readonly="true"/>
+            <constructor>
+				<![CDATA[
+                Components.utils.import("resource://minion/trees.js");
+				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+			                getService(Components.interfaces.nsIPrefBranch)
+				this.expanded = prefs.getBoolPref("extensions.mpm.playlistExpanded");
+				
+				var me = this
+				function applyView() {
+					me.view = new playlistView()
+					me.view.load(mpd.plinfo, true)
+					me.tree.view = me.view
+	                me.box = me.tree.boxObject;
+	                me.box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+				}
+				applyView()
+                this.obsPL = {
+                    observe: function(subject,topic,data){
+						me.box.invalidate()
+                    }
+                };
+                this.obsLn = {
+                    observe: function(subject,topic,data){
+						var idx = me.box.getFirstVisibleRow()
+						applyView()
+						if (idx < me.view.rowCount) {
+							me.box.scrollToRow(idx)
+						}
+						else {
+							me.box.ensureRowIsVisible(me.view.rowCount-1)
+						}
+                    }
+                };
+                this.obsCurSong = {
+                    observe: function(subject,topic,data){
+                        box.invalidate()
+                    }
+                };
+                observerService.addObserver(this.obsPL,'plinfo',false)
+                observerService.addObserver(this.obsLn,'playlistlength',false)
+                observerService.addObserver(this.obsCurSong,'state',false)
+                observerService.addObserver(this.obsCurSong,'file',false)
+				this.tree.addEventListener("keydown", this.keydownEvent, true)
+				]]>
+            </constructor>
+            <destructor>
+                Components.utils.import("resource://minion/trees.js");
+                observerService.removeObserver(this.obsPL,'plinfo')
+                observerService.removeObserver(this.obsLn,'playlistlength')
+                observerService.removeObserver(this.obsCurSong,'state')
+                observerService.removeObserver(this.obsCurSong,'file')
+				this.tree.removeEventListener("keydown", this.keydownEvent, true)
+            </destructor>
+			<method name="keydownEvent">
+				<parameter name="event"/>
+				<body>
+					<![CDATA[
+					var tree = event.target
+					var view = tree.view
+					switch (event.which) {
+						case 40: 
+							var i = tree.currentIndex;
+							var isCont = view.isContainer(i)
+							if(isCont && view.isContainerOpen(i)) {
+								i += 3;
+								if (i > (tree.rowCount-1)) i = tree.rowCount-1;							
+								tree.currentIndex = i
+								if (!event.shiftKey && !event.ctrlKey) view.selection.clearSelection();
+								tree.onselect(event);
+								event.stopPropagation();
+							}
+							break;
+					}
+					]]>
+				</body>
+			</method>
+			<method name="selectItem">
+				<parameter name="event"/>
+				<body>
+					<![CDATA[
+					var tree = event.target
+					var view = tree.view
+					var sel = tree.view.selection
+					var i = tree.currentIndex
+					var p = (view.isContainer(i)) ? i : view.getParentIndex(i)
+					if (view.isContainerOpen(p)) {
+						if (!sel.isSelected(p+2)) sel.toggleSelect(p+2)
+						if (!sel.isSelected(p+1)) sel.toggleSelect(p+1)
+						if (!sel.isSelected(p)) sel.toggleSelect(p)
+						sel.currentIndex = p
+						tree.currentIndex = p
+					}
+					]]>
+				</body>
+			</method>
+			<method name="delete">
+				<body>
+					<![CDATA[
+				    var tree = this.tree
+					var view = this.view
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+				    var offset = 0
+					var item
+				    var cmd = "command_list_begin"
+				
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+							item = view.get(v)
+							if (item.type == 'file') {
+				                cmd += "\ndelete "+ (parseInt(item.Pos)-offset)
+				                offset++
+							}
+			            }
+			        }
+				
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="expandAll">
+				<body>
+					<![CDATA[
+		                var view = new playlistView()
+						view.load(mpd.plinfo, true)
+						this.view = view
+						this.tree.view = view
+		                var box = this.tree.boxObject;
+		                box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+						this.box = box
+						this.expanded = true		
+						var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+					                getService(Components.interfaces.nsIPrefBranch)
+						prefs.setBoolPref("extensions.mpm.playlistExpanded", this.expanded);		
+					]]>
+				</body>
+			</method>
+			<method name="collapseAll">
+				<body>
+					<![CDATA[
+		                var view = new playlistView()
+						view.load(mpd.plinfo, false)
+						this.view = view
+						this.tree.view = view
+		                var box = this.tree.boxObject;
+		                box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+						this.box = box
+						this.expanded = false
+						var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+					                getService(Components.interfaces.nsIPrefBranch)
+						prefs.setBoolPref("extensions.mpm.playlistExpanded", this.expanded);	
+					]]>
+				</body>
+			</method>
+        </implementation>
+    </binding>
+
+    <binding id="mpdBrowser">
+        <content>
+        	<xul:vbox flex="1">
+	        	<xul:hbox>
+	        		<xul:toolbarbutton class="mpdBrowserBack"
+						label="Back"
+						oncommand="this.parentNode.parentNode.parentNode.goBack()"/>
+	        		<xul:toolbarbutton class="mpdBrowserForward"
+						label="Forward"
+						oncommand="this.parentNode.parentNode.parentNode.goForward()"/>
+	        		<xul:vbox>
+	        			<xul:spacer flex="1"/>
+	        			<xul:label value="Address:"/>
+	        			<xul:spacer flex="1"/>
+	        		</xul:vbox>
+					<xul:textbox id="mpdAddress" value="" flex="1"
+						type="autocomplete"
+						autocompletesearch="simple-autocomplete"
+						completedefaultindex="true"
+						enablehistory="true"
+						enablecomments="true"
+						tabscrolling="true"
+						ontextentered="this.parentNode.parentNode.parentNode.goToURI(this.value)"/>
+					<xul:menulist id="searchType" 
+						label="Search"
+						sizetopopup="always">
+						<xul:menupopup>
+							<xul:menuitem label="Filter" 
+								tooltiptext="Filter contents of current location by Title"/>
+							<xul:menuitem label="Search" 
+								tooltiptext="Search all fields in database"
+								selected="true"/>
+							<xul:menuitem label="Title" 
+								tooltiptext="Search by song's Title"/>
+							<xul:menuitem label="Artist" 
+								tooltiptext="Search by song's Artist"/>
+							<xul:menuitem label="Album" 
+								tooltiptext="Search by song's "/>
+							<xul:menuitem label="File" 
+								tooltiptext="Search by song's file name"/>
+							<xul:menuitem label="Genre" 
+								tooltiptext="Search by song's genre"/>
+							<xul:menuitem label="Composer" 
+								tooltiptext="Search by song's composer"/>
+							<xul:menuitem label="Performer" 
+								tooltiptext="Search by song's performer"/>
+							<xul:menuitem label="Date" 
+								tooltiptext="Search by song's release date"/>
+						</xul:menupopup>
+					</xul:menulist>
+					<xul:textbox id="searchInput"
+						type="timed" 
+						timeout="200"
+						oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
+				</xul:hbox>
+				<xul:hbox flex="1">		
+		            <xul:tree
+		                id="mpdTree"
+		                flex="1"
+						seltype="single"
+						onclick="this.view.performActionOnRow('click', this.currentIndex)"
+		            	flags="dont-build-content">
+		                <xul:treecols id="mpdTreeCols">
+		                    <xul:treecol id="loc" label="loc" flex="1"
+									ordinal="1"
+		                            hidden="true"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter"
+									ordinal="2"/>
+		                    <xul:treecol id="title" label="Location" flex="1"
+									ordinal="3"
+		                            hidden="false"
+									primary="true"
+		                            class="sortDirectionIndicator"/>
+						</xul:treecols>
+		                <xul:treechildren id="tchildren"/>
+		            </xul:tree>
+					<xul:splitter/>
+		            <xul:tree
+		                id="mpdBrowserTree"
+		                flex="3"
+						seltype="multiple"
+		            	flags="dont-build-content">
+		                <xul:treecols id="mpdBrowserCols">
+		                    <xul:treecol id="pos" label="#" ordinal="1" width="30px"
+		                            hidden="false"
+		                            collapsed="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="2" />
+		                    <xul:treecol id="disc" label="Disc" ordinal="3" width="60px"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="4" />
+		                    <xul:treecol id="track" label="Track" ordinal="5" width="60px"
+		                            persist="width ordinal hidden"
+		                            style="text-align:right"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="6" />
+		                    <xul:treecol id="title" label="Title" ordinal="7" flex="3"
+		                            persist="width ordinal hidden"
+									overflow="true"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="8" />
+		                    <xul:treecol id="time" label="Time" ordinal="9" width="60px"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="10" />
+		                    <xul:treecol id="album" label="Album" ordinal="11" flex="1"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="12" />
+		                    <xul:treecol id="artist" label="Artist" ordinal="13" flex="1"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="13" />
+		                    <xul:treecol id="performer" label="Performer" ordinal="14" flex="1"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="15" />
+		                    <xul:treecol id="genre" label="Genre" ordinal="16" flex="1"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="17" />
+		                    <xul:treecol id="composer" label="Composer" ordinal="18" flex="1"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="19" />
+		                    <xul:treecol id="date" label="Date" ordinal="20" width="60px"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                    <xul:splitter class="tree-splitter" ordinal="21" />
+		                    <xul:treecol id="name" label="Name" ordinal="22" flex="1"
+		                            hidden="true"
+		                            persist="width ordinal hidden"
+		                            class="sortDirectionIndicator"/>
+		                </xul:treecols>
+		                <xul:treechildren id="bchildren"/>
+		            </xul:tree>
+				</xul:hbox>
+        	</xul:vbox>
+        </content>
+		<handlers>
+			<handler event="keypress" modifiers="accel" key="a"
+				action="this.tree.view.selection.selectAll()"/>
+			<handler event="dblclick" 
+				action="if (this.treefocused) this.goToURI(this.activeItem.URI)"/>
+			<handler event="keypress" keycode="VK_DELETE" 
+				action="this.delete()"/>
+			<handler event="keypress" keycode="VK_RETURN" 
+				action="if (this.tree.focused) this.goToURI(this.activeItem.URI); else this.goToURI(this.addr.value);"/>
+			<handler event="keypress" keycode="VK_BACK" 
+				action="if (this.treefocused) this.goBack()"/>
+			<handler event="keypress" modifiers="shift" keycode="VK_BACK" 
+				action="if (this.treefocused) this.goForward()"/>
+		</handlers>
+        <implementation>
+        	<field name="view"/>
+        	<field name="tview"/>
+        	<field name="addr"/>
+        	<field name="tree"/>
+        	<field name="ttree"/>
+			<field name="searchType"/>
+			<field name="searchInput"/>
+			<field name="history">new Array()</field>
+			<field name="historyIndex">0</field>
+			<field name="obsCurSong"/>
+        	<property name="activeItem" 
+				onget="if (this.ttreefocused) return this.tview.get(this.ttree.currentIndex); else return this.view.get(this.tree.currentIndex)"
+				readonly="true"/>
+        	<property name="ttreefocused" 
+				onget="return (this.ttree==document.commandDispatcher.focusedElement)"
+				readonly="true"/>
+        	<property name="treefocused" 
+				onget="return (this.tree==document.commandDispatcher.focusedElement)"
+				readonly="true"/>
+        	<property name="addrfocused" 
+				onget="return (this.addr==document.commandDispatcher.focusedElement)"
+				readonly="true"/>
+            <constructor>
+				<![CDATA[
+				var addr = document.getAnonymousElementByAttribute(this, 'id', 'mpdAddress')
+				var tree = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserTree')
+				var ttree = document.getAnonymousElementByAttribute(this, 'id', 'mpdTree')
+				this.searchType = document.getAnonymousElementByAttribute(this, 'id', 'searchType')
+				this.searchInput = document.getAnonymousElementByAttribute(this, 'id', 'searchInput')
+				this.addr = addr
+				this.tree = tree 
+				this.ttree = ttree 
+                Components.utils.import("resource://minion/trees.js");
+				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+			                getService(Components.interfaces.nsIPrefBranch)
+                var view = new browserView()
+				this.tree.view = view
+				var heirs = {
+					directory: 'directory',
+					genre: 'artist',
+					artist: 'album',
+					performer: 'album',
+					composer: 'album',
+					date: 'album',
+					album: 'file'
+				}					
+                var tview = new treeView(heirs, this)
+				this.ttree.view = tview
+				tview.load("select * from home")
+                var box = tree.boxObject;
+                box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+				
+				this.view = view
+				this.tview = tview
+				this.box = box
+                this.obsCurSong = {
+                    observe: function(subject,topic,data){
+                        box.invalidate()
+                    }
+                };
+                observerService.addObserver(this.obsCurSong,'state',false)
+                observerService.addObserver(this.obsCurSong,'file',false)
+				this.goToURI("Home")
+				]]>
+            </constructor>
+            <destructor>
+                Components.utils.import("resource://minion/trees.js");
+                observerService.removeObserver(this.obsCurSong,'state')
+                observerService.removeObserver(this.obsCurSong,'file')
+            </destructor>
+			<method name="goToURI">
+				<parameter name="URI"/>
+				<body>
+					<![CDATA[
+					if (URI != this.addr.value) {
+						if (URI=="" || URI=="Home") {
+							this.view.load("select * from home")
+							this.addr.value = URI
+							this.addr.selectionStart = this.addr.textLength
+							this.addr.selectionEnd = this.addr.textLength
+							this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
+						}
+						else {
+							var sql = URI
+							if(mpd.query(sql, this.view, this.addr)) {
+								this.addr.value = URI
+								this.addr.selectionStart = this.addr.textLength
+								this.addr.selectionEnd = this.addr.textLength
+							}
+						}
+						if (this.history[this.historyIndex] != URI) {
+							this.history.splice(this.historyIndex,0,URI)
+						}
+						debug(this.history)
+						debug(this.historyIndex)
+						if (!this.ttreefocused) this.tview.ensureURIisVisble(URI)
+					}
+					]]>
+				</body>
+			</method>
+			<method name="goBack">
+				<body>
+					if (this.historyIndex >= (this.history.length-1)) return null
+					this.historyIndex++
+					this.goToURI(this.history[this.historyIndex])
+				</body>
+			</method>
+			<method name="goForward">
+				<body>
+					if (this.historyIndex == 0) return null
+					this.historyIndex--
+					this.goToURI(this.history[this.historyIndex])
+				</body>
+			</method>
+			<method name="delete">
+				<body>
+					<![CDATA[
+				    var tree = this.tree
+					var view = this.view
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+				    var offset = 0
+					var item
+				    var cmd = "command_list_begin"
+				
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+							item = view.get(v)
+							if (item.type == 'file') {
+				                cmd += "\ndelete "+ (parseInt(item.Pos)-offset)
+				                offset++
+							}
+			            }
+			        }
+				
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="handleSearch">
+				<body>
+					<![CDATA[
+					switch (this.searchType.selectedItem.label) {
+						case "Search": this.goToURI("search://"+this.searchInput.value);break;
+						case "Filter": this.view.applyFilter(this.searchInput.value);break;
+						case "Title": this.goToURI("search://title="+this.searchInput.value);break;
+						case "Artist": this.goToURI("search://artist="+this.searchInput.value);break;
+						case "Album": this.goToURI("search://album="+this.searchInput.value);break;
+						case "Genre": this.goToURI("search://genre="+this.searchInput.value);break;
+						case "File": this.goToURI("search://name="+this.searchInput.value);break;
+						case "Performer": this.goToURI("search://performer="+this.searchInput.value);break;
+						case "Composer": this.goToURI("search://composer="+this.searchInput.value);break;
+						case "Date": this.goToURI("search://date="+this.searchInput.value);break;
+					}
+					]]>
+				</body>
+			</method>
+        </implementation>
+    </binding>
+
+</bindings>
