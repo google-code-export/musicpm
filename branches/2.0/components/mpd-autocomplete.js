@@ -16,13 +16,21 @@
 *      MA 02110-1301, USA.
 */
 
-Components.utils.import("resource://minion/mpd.js");
-
+//Components.utils.import("resource://minion/mpd.js");
 const Ci = Components.interfaces;
 
 const CLASS_ID = Components.ID("6224daa1-71a2-4d1a-ad90-01ca1c08e323");
-const CLASS_NAME = "MPD AutoComplete";
-const CONTRACT_ID = "@mozilla.org/autocomplete/search;1?name=mpd-autocomplete";
+const CLASS_NAME = "Simple AutoComplete";
+const CONTRACT_ID = "@mozilla.org/autocomplete/search;1?name=simple-autocomplete";
+
+
+var dbfile = Components.classes["@mozilla.org/file/directory_service;1"]
+                     .getService(Components.interfaces.nsIProperties)
+						.get("Home", Components.interfaces.nsIFile);
+dbfile.append("mpd.sqlite");
+var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
+                        .getService(Components.interfaces.mozIStorageService)
+							.openDatabase(dbfile);
 
 // Implements nsIAutoCompleteResult
 function SimpleAutoCompleteResult(searchString, searchResult,
@@ -143,27 +151,23 @@ SimpleAutoCompleteSearch.prototype = {
    * @param listener - A listener to notify when the search is complete
    */
   startSearch: function(searchString, searchParam, result, listener) {
-    // This autocomplete source assumes the developer attached a JSON string
-    // to the the "autocompletesearchparam" attribute or "searchParam" property
-    // of the <textbox> element. The JSON is converted into an array and used
-    // as the source of match data. Any values that match the search string
-    // are moved into temporary arrays and passed to the AutoCompleteResult
-    if (searchParam.length > 0) {
-      var searchResults = "directory:// album:// artist:// playlist://";
-      var results = [];
-      var comments = [];
-      for (i=0; i<searchResults.length; i++) {
-        if (searchResults[i].value.indexOf(searchString) == 0) {
-          results.push(searchResults[i].value);
-          if (searchResults[i].comment)
-            comments.push(searchResults[i].comment);
-          else
-            comments.push(null);
-        }
-      }
-      var newResult = new SimpleAutoCompleteResult(searchString, Ci.nsIAutoCompleteResult.RESULT_SUCCESS, 0, "", results, comments);
-      listener.onSearchResult(this, newResult);
-    }
+	var i = searchString.indexOf('://')
+	if (i > -1) {
+		var type = searchString.slice(0,i)
+	}
+	else {
+		var type = 'home'
+	}
+	var results = []
+	var comments = []
+	var q = mDBConn.createStatement("select URI, title from " + type +
+		" where URI like '" + searchString + "%'")
+	while (q.executeStep()) {
+		results.push(q.getUTF8String(0))
+		comments.push(q.getUTF8String(1))
+	}
+	var newResult = new SimpleAutoCompleteResult(searchString, Ci.nsIAutoCompleteResult.RESULT_SUCCESS, 0, "", results, comments);
+	listener.onSearchResult(this, newResult);
   },
 
   /*
