@@ -389,7 +389,6 @@ function browserView () {
 			}
 			while (--i)
 			this.rs[0] = record
-			debug(record)
 		}
 		q.reset()
 		if (this.treeBox) {
@@ -416,7 +415,6 @@ function browserView () {
 		q.executeStep()
 		var rowCount = q.getInt32(0)
 		q.reset()
-		debug("select count(*) from "+this.table+this.sqlWHERE+"="+rowCount)
 		this.rs = []
 		this.rs.length = rowCount
 		if (this.treeBox) {

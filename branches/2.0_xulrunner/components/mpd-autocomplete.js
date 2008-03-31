@@ -26,7 +26,7 @@ const CONTRACT_ID = "@mozilla.org/autocomplete/search;1?name=simple-autocomplete
 
 var dbfile = Components.classes["@mozilla.org/file/directory_service;1"]
                      .getService(Components.interfaces.nsIProperties)
-						.get("Home", Components.interfaces.nsIFile);
+						.get("ProfD", Components.interfaces.nsIFile);
 dbfile.append("mpd.sqlite");
 var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService)

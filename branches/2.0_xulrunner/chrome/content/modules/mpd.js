@@ -21,14 +21,13 @@ EXPORTED_SYMBOLS = ["mpd", "Sz", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTE
 var mpd_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 
-var USE_CACHE = false
 var prefService = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefService);
 var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefBranch);
 var dbfile = Components.classes["@mozilla.org/file/directory_service;1"]
                      .getService(Components.interfaces.nsIProperties)
-						.get("Home", Components.interfaces.nsIFile);
+						.get("ProfD", Components.interfaces.nsIFile);
 dbfile.append("mpd.sqlite");
 var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService)
@@ -350,57 +349,6 @@ function lsinfoCallback(data){
 	debug("Current Playlist existence ensured.")
 }
 
-function sqlQuery (sql, view) {
-	view.load(sql)
-	return true
-	var db = []
-	var loadTypedValue = function (q, row, idx) {
-		switch(q.getTypeOfIndex(idx)) {
-			case 0: row[idx] = null; break;
-			case 1: row[idx] = q.getInt32(idx); break
-			default: row[idx] = q.getUTF8String(idx); break;
-		}		
-	}
-	try {
-		mpd.set('lastCommand', sql)
-		var q = mDBConn.createStatement(sql)
-		var hasValues = q.executeStep()
-		if (hasValues){
-			var cols = []
-			var num = q.numEntries
-			var i = num
-			var row = []
-			do {
-				var idx = num-i
-				cols[idx] = q.getColumnName(idx)
-				loadTypedValue(q, row, idx)
-			} while (--i)
-			db.push(row)
-			while (q.executeStep()) {
-				i = num
-				row = []
-				do {
-					idx = num - i
-					loadTypedValue(q, row, idx)
-				} while (--i)
-				db.push(row)
-			}
-		}
-		q.reset()
-		if (USE_CACHE) {
-			mpd.cache[sql] = {
-				db: db,
-				cols: cols,
-				searchParam: ""
-			}
-		}
-		view.load(db, cols, sql)
-	} catch (e) {
-		debug(e)
-		debug (sql + "\n" + mDBConn.lastErrorString)
-	}
-}
-
 var mpd = {
     _host: null,
     _port: null,
@@ -541,7 +489,6 @@ var mpd = {
         mpd.playlist = Nz(obj.playlist)
 		if (mpd.updating_db) {
 			if (!Nz(obj.updating_db)) {
-				mpd.cache = {}
         		mpd.set('updating_db', null)
 				mpd.doCmd('stats',statsCallback,true)
 			}
@@ -642,7 +589,6 @@ var mpd = {
         }
         mpd.set("pltime", prettyTime(tm))
     },
-	cache: {},
 	query: function (URI, view, addrBox){
 		/* Query mpd and return database results to nslTreeView view,
 		 * then load addrBox.searchParam with appropriate autocomplete
@@ -654,12 +600,6 @@ var mpd = {
 		 * 
 		 * If '://' is not in string, it is assumed to be an MPD command.
 		 */
-		var cache = Nz(mpd.cache[URI], false)
-		if (cache) {
-			view.load(cache.db, false)
-			if (Nz(addrBox)) addrBox.searchParam = cache.searchParam
-			return true
-		}
 		
 	    var chkDupes = false
 		var cmd = URI
