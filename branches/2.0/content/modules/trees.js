@@ -20,6 +20,7 @@ Components.utils.import("resource://minion/mpd.js");
 EXPORTED_SYMBOLS = ["playlistView", "treeView", "browserView", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
 var trees_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
+
 function customTreeView () {
 	this.getRowCount = function() {return this.rs.length},
 	this.rs = []
@@ -82,7 +83,7 @@ function customTreeView () {
 			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
 			props.AppendElement(aserv.getAtom(item.type))
 			aserv = null
-		} 
+		}
 		catch (e) {
 		}
 	}
@@ -126,7 +127,7 @@ function playlistView(){
 				do {
 					var i = rc - n
 					rs[i] = this.getPointer(i)
-					
+
 				}
 				while (--n)
 			}
@@ -158,7 +159,7 @@ function playlistView(){
 					idx++
 				}
 				while (--n)
-			}			
+			}
 		}
 		if (this.treeBox) {
 			var chg = rs.length-this.rs.length
@@ -259,7 +260,7 @@ function playlistView(){
 	this.getLevel = function(row){
 		try {
 			return (this.rs[row].isContainer) ? 0 : 1
-		} 
+		}
 		catch (e) {
 			debug(e)
 			return 0
@@ -299,7 +300,7 @@ function playlistView(){
 				this.treeBox.rowCountChanged(row, 2)
 				//this.rowCount = this.rs.length
 			}
-		} 
+		}
 		catch (e) {
 			debug(e)
 		}
@@ -318,7 +319,7 @@ function playlistView(){
 				}
 				aserv = null
 			}
-		} 
+		}
 		catch (e) {
 		}
 	}
@@ -355,7 +356,7 @@ function browserView () {
 					mpd.db.executeSimpleSQL("INSERT OR IGNORE INTO " +
 					this.table +
 					" " +
-					sql);	
+					sql);
 					this.sqlORDER = ' ORDER BY loc'
 					break;
 				case 'delete':
@@ -363,9 +364,9 @@ function browserView () {
 					this.table + sql);
 					this.sqlORDER = ' ORDER BY loc'
 					break;
-					
+
 			}
-		} 
+		}
 		catch (e) {
 			debug(sql + "\n" + mpd.db.lastErrorString)
 		}
@@ -402,7 +403,7 @@ function browserView () {
 			}
 			else {
 				this.treeBox.rowCountChanged(atIndex, chg)
-				this.treeBox.invalidate()				
+				this.treeBox.invalidate()
 			}
 		}
 		mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS "+this.table+"_map;")
@@ -426,7 +427,7 @@ function browserView () {
 			this.treeBox.invalidate()
 			this.treeBox.scrollToRow(0)
 		}
-		this.rowCount = rowCount;		
+		this.rowCount = rowCount;
 	}
 	this.get = function (row) {
 		if (typeof(this.rs[row])=='object') return this.rs[row]
@@ -551,7 +552,7 @@ function treeView (heirs, parent) {
 	this.getLevel = function(row){
 		try {
 			return this.get(row).level
-		} 
+		}
 		catch (e) {
 			debug(e)
 			return 0
@@ -574,7 +575,7 @@ function treeView (heirs, parent) {
 					var type = 'directory'
 					sql = "(children,type,title,level,loc,URI,name) " +
 					"select children,type,title," +
-					(parseInt(item.level) + 1) + " as level," + 
+					(parseInt(item.level) + 1) + " as level," +
 					Sz(item.loc + "\n") + " || URI as loc, URI, name " +
 					"from dir where directory=" + Sz(item.URI.slice(12))
 				}
@@ -585,16 +586,16 @@ function treeView (heirs, parent) {
 							data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
 							var ins1 = "INSERT INTO browse (URI) VALUES('playlist://"
 							var ins2 = "');"
-							var _sql = "DELETE FROM browse;" + 
+							var _sql = "DELETE FROM browse;" +
 								"BEGIN TRANSACTION;" +
 								data.replace(/'/g,"''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
 								"COMMIT TRANSACTION"
 							mpd.db.executeSimpleSQL(_sql)
 							view.load("(type,title,URI,children,level,loc) select 'playlist' AS type, " +
 								"replace(URI,'playlist://','') as title, URI, 0 as children, "+
-								(parseInt(item.level) + 1) + " as level," + 
+								(parseInt(item.level) + 1) + " as level," +
 								Sz(item.loc + "\n") + " || URI as loc FROM browse", 'insert',row+1)
-						} 
+						}
 						catch (e) {
 							debug(e)
 							debug(sql + "\n" + mpd.db.lastErrorString)
@@ -605,12 +606,12 @@ function treeView (heirs, parent) {
 				else {
 					if (item.name == '') {
 						var sql = "(children,type,title,URI,name,level,loc) " +
-						"select children,type,title,URI, title as name," + 
+						"select children,type,title,URI, title as name," +
 						(parseInt(item.level)+1) +
 						" as level, " +
 						Sz(item.loc + "\n") +
 						" || URI " +
-						"as loc FROM " + item.type + 
+						"as loc FROM " + item.type +
 						" ORDER BY title"
 					}
 					else {
@@ -629,7 +630,7 @@ function treeView (heirs, parent) {
 				if (sql) this.load(sql, 'insert', row+1)
 			//this.rowCount = this.rs.length
 			}
-		} 
+		}
 		catch (e) {
 			debug(e)
 		}

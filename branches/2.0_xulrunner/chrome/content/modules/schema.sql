@@ -38,17 +38,17 @@ CREATE TRIGGER IF NOT EXISTS ensure_db_update BEFORE INSERT ON tag_cache
     	UPDATE tag_cache SET db_update = new.db_update
 		WHERE directory=new.directory AND name=new.name;
 	END;
-	
+
 CREATE TRIGGER IF NOT EXISTS make_URI AFTER INSERT ON tag_cache
 	BEGIN
     	UPDATE tag_cache SET URI=
     	new.type || '://' || ifnull(nullif(new.directory || '/', '/'), '') || new.name
 		WHERE rowid=new.rowid;
 	END;
-	
+
 CREATE TRIGGER IF NOT EXISTS make_any AFTER INSERT ON tag_cache WHEN new.type='file'
 	BEGIN
-    	UPDATE tag_cache SET any=lower( ifnull(new.title,'') || ifnull(new.artist,'') 
+    	UPDATE tag_cache SET any=lower( ifnull(new.title,'') || ifnull(new.artist,'')
     	|| ifnull(new.album,'') || new.name || ifnull(new.genre,'')
     	|| ifnull(new.performer,'') || ifnull(new.composer,'') )
 		WHERE rowid=new.rowid;
@@ -69,29 +69,17 @@ CREATE TABLE IF NOT EXISTS home (
 CREATE TABLE IF NOT EXISTS stats (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     type      TEXT UNIQUE,
-	value	  INTEGER
+	value	  INTEGER,
+    title     TEXT
 );
+CREATE TRIGGER IF NOT EXISTS make_title AFTER INSERT ON stats
+	BEGIN
+    	UPDATE stats SET title=new.type || ':  ' || CAST(new.value AS TEXT)
+		WHERE rowid=new.rowid;
+	END;
 CREATE UNIQUE INDEX IF NOT EXISTS  stats_index ON stats (type);
 
 
-CREATE VIEW IF NOT EXISTS file AS
-	SELECT *
-	    FROM tag_cache
-	    WHERE type='file'
-	    ORDER BY title;
-	
-CREATE VIEW IF NOT EXISTS directory AS
-	SELECT type,track,ifnull(nullif(title,''),name) as title,time,album,artist,genre,performer,composer,
-	    date,disc,directory,name, URI
-	    FROM tag_cache
-	    ORDER BY type, directory, name;
-	
-CREATE VIEW IF NOT EXISTS stats_view AS
-	SELECT 'stats' AS type, type || ': ' || CAST(value AS TEXT) as title
-	    FROM stats;
-	    
-	    
-	    
 ATTACH DATABASE ':memory:' AS mem;
 
 CREATE TABLE IF NOT EXISTS mem.playlist (
@@ -105,4 +93,4 @@ CREATE TABLE IF NOT EXISTS mem.browse(
     URI       TEXT
 );
 
-	
+

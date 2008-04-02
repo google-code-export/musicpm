@@ -17,8 +17,9 @@
 */
 
 Components.utils.import("resource://minion/mpd.js");
-EXPORTED_SYMBOLS = ["playlistView", "treeView", "browserView", "trees_EXPORTED_SYMBOLS"].concat(mpd_EXPORTED_SYMBOLS)
-var trees_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
+EXPORTED_SYMBOLS = ["playlistView", "treeView", "browserView"]
+test ()
+
 
 function customTreeView () {
 	this.getRowCount = function() {return this.rs.length},
@@ -82,7 +83,7 @@ function customTreeView () {
 			var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
 			props.AppendElement(aserv.getAtom(item.type))
 			aserv = null
-		} 
+		}
 		catch (e) {
 		}
 	}
@@ -126,7 +127,7 @@ function playlistView(){
 				do {
 					var i = rc - n
 					rs[i] = this.getPointer(i)
-					
+
 				}
 				while (--n)
 			}
@@ -158,7 +159,7 @@ function playlistView(){
 					idx++
 				}
 				while (--n)
-			}			
+			}
 		}
 		if (this.treeBox) {
 			var chg = rs.length-this.rs.length
@@ -259,7 +260,7 @@ function playlistView(){
 	this.getLevel = function(row){
 		try {
 			return (this.rs[row].isContainer) ? 0 : 1
-		} 
+		}
 		catch (e) {
 			debug(e)
 			return 0
@@ -299,7 +300,7 @@ function playlistView(){
 				this.treeBox.rowCountChanged(row, 2)
 				//this.rowCount = this.rs.length
 			}
-		} 
+		}
 		catch (e) {
 			debug(e)
 		}
@@ -318,7 +319,7 @@ function playlistView(){
 				}
 				aserv = null
 			}
-		} 
+		}
 		catch (e) {
 		}
 	}
@@ -326,129 +327,172 @@ function playlistView(){
 
 playlistView.prototype = new customTreeView
 
+function test () {
+    test
+}
 
-function browserView () {
-	var sql = ''
-	this.db = null
-	this.cols = null
-	this.rs = null
-	this.treeBox = null
-	this.colCount = 0
-	this.rowCount = 0
-	this.table = "mem.content"
-	this.load = function (sqlstr, action, atIndex){
-		action = Nz(action, 'create')
-		try {
-			debug(this.table + "\n" + action + ": " + sql)
-			sql = (sqlstr.slice(-1) == ";") ? sqlstr.slice(0, -1) : sqlstr
-			switch (action) {
-				case 'create':
-					this.sqlWHERE = ''
-					mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS " + this.table +
-					";CREATE TABLE " +
-					this.table +
-					" AS " +
-					sql);
-					this.sqlORDER = ''
-					break;
-				case 'insert':
-					mpd.db.executeSimpleSQL("INSERT OR IGNORE INTO " +
-					this.table +
-					" " +
-					sql);	
-					this.sqlORDER = ' ORDER BY loc'
-					break;
-				case 'delete':
-					mpd.db.executeSimpleSQL("DELETE FROM " +
-					this.table + sql);
-					this.sqlORDER = ' ORDER BY loc'
-					break;
-					
-			}
-		} 
-		catch (e) {
-			debug(sql + "\n" + mpd.db.lastErrorString)
-		}
-		q = mpd.db.createStatement("SELECT count(*) FROM "+this.table)
-		q.executeStep()
-		var rowCount = q.getInt32(0)
-		q.reset()
-		this.rs = []
-		this.rs.length = rowCount
-		var q = mpd.db.createStatement("SELECT * FROM "+this.table+
-			this.sqlORDER + " LIMIT 1")
-		if (q.executeStep()) {
-			this.cols = []
-			this.colCount = q.numEntries
-			var i = this.colCount
-			var record = {}
-			do {
-				var idx = this.colCount - i
-				this.cols[idx] = q.getColumnName(idx)
-				record[this.cols[idx]] = q.getUTF8String(idx)
-			}
-			while (--i)
-			this.rs[0] = record
-		}
-		q.reset()
-		if (this.treeBox) {
-			var chg = rowCount - this.rowCount
-			if (action == 'create') {
-				var n = (chg < 0) ? 1 : this.rowCount
-				this.treeBox.rowCountChanged(n - 1, chg)
-				this.treeBox.invalidate()
-				this.treeBox.scrollToRow(0)
-			}
-			else {
-				this.treeBox.rowCountChanged(atIndex, chg)
-				this.treeBox.invalidate()				
-			}
-		}
-		mpd.db.executeSimpleSQL("DROP TABLE IF EXISTS "+this.table+"_map;")
-		mpd.db.executeSimpleSQL("CREATE TABLE "+this.table+"_map AS "+
-			"SELECT URI FROM "+this.table+this.sqlORDER)
-		this.rowCount = rowCount;
-	}
-	this.applyFilter = function (filter) {
-		this.sqlWHERE = " WHERE lower(title) glob('" + filter + "*') "
-		var q = mpd.db.createStatement("select count(*) from "+this.table+this.sqlWHERE)
-		q.executeStep()
-		var rowCount = q.getInt32(0)
-		q.reset()
-		this.rs = []
-		this.rs.length = rowCount
-		if (this.treeBox) {
-			var chg = rowCount - this.rowCount
-			var n = (chg < 0) ? 1 : this.rowCount
-			this.treeBox.rowCountChanged(n - 1, chg)
-			this.treeBox.invalidate()
-			this.treeBox.scrollToRow(0)
-		}
-		this.rowCount = rowCount;		
-	}
-	this.get = function (row) {
-		if (typeof(this.rs[row])=='object') return this.rs[row]
-		try {
-			var record = {}
-			var q = mpd.db.createStatement("SELECT * FROM "+this.table+this.sqlWHERE+
-				this.sqlORDER + " LIMIT 1 OFFSET "+row)
-			if (q.executeStep()) {
-				var i = this.colCount
-				do {
-					var x = this.colCount - i
-					record[this.cols[x]] = q.getUTF8String(x)
-				}
-				while (--i)
-			}
-			q.reset()
-			this.rs[row] = record
-			return record
-		}
-		catch(e) {debug(e)}
-	}
+function browserView(){
+    var sql = ''
+    this.db = Components.classes["@mozilla.org/storage/service;1"].getService(Components.interfaces.mozIStorageService).openDatabase(null);
+    this.dbPath = dbfile.path
+    this.fetchOne = function(sqlstr){
+        var row = []
+        var q = this.db.createStatement(sqlstr)
+        if (q.executeStep()) {
+            var n = q.numEntries
+            var i = n
+            do {
+                var idx = n - i
+                switch (q.getTypeOfIndex(idx)) {
+                    case 0:
+                        row[idx] = null;
+                        break;
+                    case 1:
+                        row[idx] = q.getInt32(idx);
+                        break;
+                    default:
+                        row[idx] = q.getUTF8String(idx);
+                        break;
+                }
+            }
+            while (--i)
+        }
+        q.reset()
+        return row
+    }
+    this.cols = null
+    this.rs = null
+    this.treeBox = null
+    this.colCount = 0
+    this.rowCount = 0
+    this.table = "content"
+    this.sqlORDER = ''
+    this.load = function(sqlstr, action, atIndex){
+        action = Nz(action, 'create')
+        try {
+            try {
+                debug(this.dbPath)
+                this.db.executeSimpleSQL("ATTACH DATABASE '" +
+                    this.dbPath + "' AS source;")
+            } catch (e) {}
+            sql = (sqlstr.slice(-1) == ";") ? sqlstr.slice(0, -1) : sqlstr
+            switch (action) {
+                case 'create':
+                    this.sqlWHERE = '';
+                    this.db.executeSimpleSQL("DROP TABLE IF EXISTS " + this.table +
+                    ";CREATE TABLE " +
+                    this.table +
+                    " AS " +
+                    sql);
+                    this.sqlORDER = '';
+                    break;
+                case 'insert':
+                    this.db.executeSimpleSQL("INSERT OR IGNORE INTO " +
+                    this.table +
+                    " " +
+                    sql);
+                    this.sqlORDER = ' ORDER BY loc'
+                    break;
+                case 'delete':
+                    this.db.executeSimpleSQL("DELETE FROM " +
+                    this.table +
+                    sql);
+                    this.sqlORDER = ' ORDER BY loc'
+                    break;
+            }
+            var rowCount = this.fetchOne("SELECT count(*) FROM " + this.table)[0]
+            this.rs = []
+            this.rs.length = rowCount
+            sql = "SELECT * FROM " + this.table +
+                this.sqlORDER +
+                " LIMIT 1";
+            var q = this.db.createStatement(sql)
+            if (q.executeStep()) {
+                this.cols = []
+                this.colCount = q.numEntries
+                var i = this.colCount
+                var record = {}
+                do {
+                    var idx = this.colCount - i
+                    this.cols[idx] = q.getColumnName(idx)
+                    record[this.cols[idx]] = q.getUTF8String(idx)
+                }
+                while (--i)
+                this.rs[0] = record
+            }
+            q.reset()
+            if (this.treeBox) {
+                var chg = rowCount - this.rowCount
+                if (action == 'create') {
+                    var n = (chg < 0) ? 1 : this.rowCount
+                    this.treeBox.rowCountChanged(n - 1, chg)
+                    this.treeBox.invalidate()
+                    this.treeBox.scrollToRow(0)
+                }
+                else {
+                    this.treeBox.rowCountChanged(atIndex, chg)
+                    this.treeBox.invalidate()
+                }
+            }
+            this.db.executeSimpleSQL("DROP TABLE IF EXISTS " + this.table + "_map;")
+            this.db.executeSimpleSQL("CREATE TABLE " + this.table + "_map AS " +
+            "SELECT URI FROM " +
+            this.table +
+            this.sqlORDER)
+            this.rowCount = rowCount;
+            this.db.executeSimpleSQL("DETACH DATABASE source;")
+        }
+        catch (e) {
+            debug(sql)
+            debug(this.db.lastErrorString)
+            this.db.executeSimpleSQL("EXPLAIN "+sql)
+            debug()
+        }
+    }
+    this.applyFilter = function(filter){
+        this.sqlWHERE = " WHERE lower(title) glob('" + filter + "*') "
+        var rowCount = this.fetchOne("select count(*) from " + this.table + this.sqlWHERE)[0]
+        this.rs = []
+        this.rs.length = rowCount
+        if (this.treeBox) {
+            var chg = rowCount - this.rowCount
+            var n = (chg < 0) ? 1 : this.rowCount
+            this.treeBox.rowCountChanged(n - 1, chg)
+            this.treeBox.invalidate()
+            this.treeBox.scrollToRow(0)
+        }
+        this.rowCount = rowCount;
+    }
+    this.get = function(row){
+        if (typeof(this.rs[row]) == 'object')
+            return this.rs[row]
+        try {
+            var record = {}
+            var q = this.db.createStatement("SELECT * FROM " + this.table + this.sqlWHERE +
+            this.sqlORDER +
+            " LIMIT 1 OFFSET " +
+            row)
+            if (q.executeStep()) {
+                var i = this.colCount
+                do {
+                    var x = this.colCount - i
+                    record[this.cols[x]] = q.getUTF8String(x)
+                }
+                while (--i)
+            }
+            q.reset()
+            this.rs[row] = record
+            return record
+        }
+        catch (e) {
+            debug(e)
+            debug(sql + "\n" + this.db.lastErrorString)
+        }
+    }
     this.getCellText = function(R, C){
-		var item = this.get(R)
-        if (!Nz(item)) return "";
+        var item = this.get(R)
+        if (!Nz(item))
+            return "";
         switch (C.id) {
             case "time":
                 return (item.time) ? hmsFromSec(item.time) : "";
@@ -465,173 +509,190 @@ function browserView () {
         }
     }
     this.cycleHeader = function(col, elem){
-		var ord = ' ORDER BY ' + col.id
-		switch (this.sqlORDER) {
-			case '':
-				this.sqlORDER = ord;
-				break;
-			case ord:
-				this.sqlORDER += ' DESC';
-				break;
-			default:
-				this.sqlORDER = '';
-				break;
-		}
-		this.rs = []
-		this.treeBox.invalidate()
+        var ord = ' ORDER BY ' + col.id
+        switch (this.sqlORDER) {
+            case '':
+                this.sqlORDER = ord;
+                break;
+            case ord:
+                this.sqlORDER += ' DESC';
+                break;
+            default:
+                this.sqlORDER = '';
+                break;
+        }
+        this.rs = []
+        this.treeBox.invalidate()
     }
 }
 browserView.prototype = new customTreeView
 
-function treeView (heirs, parent) {
-	this.heirs = heirs
-	this.table = "mem.tree"
-	this.ensureURIisVisble = function (uri) {
-		var sql = "select rowid-1 from "+this.table+"_map where URI="
-		var q = mpd.db.createStatement(sql+Sz(uri))
-		if (q.executeStep()) {
-			var idx = q.getInt32(0)
-			q.reset()
-			this.treeBox.scrollToRow(idx)
-			if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
-				this.toggleOpenState(idx)
-			}
-			this.selection.select(idx)
-			this.selection.currentIndex = idx
-		}
-		else {
-			q.reset()
-			q = mpd.db.createStatement(sql+"'"+uri.split('://')[0] + "://'")
-			if (q.executeStep()) {
-				var idx = q.getInt32(0)
-				q.reset()
-				this.treeBox.scrollToRow(idx)
-				if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
-					this.toggleOpenState(idx)
-				}
-				q = mpd.db.createStatement(sql+Sz(uri))
-				if (q.executeStep()) {
-					var idx = q.getInt32(0)
-					q.reset()
-					this.treeBox.scrollToRow(idx)
-					if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
-						this.toggleOpenState(idx)
-					}
-					this.selection.select(idx)
-					this.selection.currentIndex = idx
-				}
-			}
-			q.reset()
-		}
-	}
-	this.performActionOnRow = function (action, row) {
-		switch (action) {
-			case 'click':
-				var item = this.get(row);
-				parent.goToURI(item.URI);
-				break;
-		}
-	}
-	this.isContainerOpen = function(row){
-		var item = this.get(row)
-		var next = Nz(this.get(row+1))
-		if (!Nz(next.loc)) return false
-		return (next.loc == item.loc+"\n"+next.URI)
-	}
-	this.isContainer = function(row){
-		var item = this.get(row)
-		return (item.children>0)
-	}
-	this.getParentIndex = function(idx){
-		var item = this.get(idx)
-		return item.level-1
-	}
-	this.getLevel = function(row){
-		try {
-			return this.get(row).level
-		} 
-		catch (e) {
-			debug(e)
-			return 0
-		}
-	}
-	this.hasNextSibling = function(row, afterIndex){
-		var item = this.get(row)
-		var after = this.get(afterIndex)
-		return (after.type == item.type && after.level == item.level)
-	}
-	this.toggleOpenState = function(row){
-		try {
-			var item = this.get(row)
-			if (this.isContainerOpen(row)) {
-				var sql = " WHERE loc glob(" +Sz(item.loc+"\n*") + ")"
-				this.load(sql, 'delete', row+1)
-			}
-			else {
-				if (item.type == 'directory') {
-					var type = 'directory'
-					sql = "(children,type,title,level,loc,URI,name) " +
-					"select children,type,title," +
-					(parseInt(item.level) + 1) + " as level," + 
-					Sz(item.loc + "\n") + " || URI as loc, URI, name " +
-					"from dir where directory=" + Sz(item.URI.slice(12))
-				}
-				else if (item.type == 'playlist') {
-					var view = this
-					mpd.doCmd('lsinfo', function(data){
-						try {
-							data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
-							var ins1 = "INSERT INTO browse (URI) VALUES('playlist://"
-							var ins2 = "');"
-							var _sql = "DELETE FROM browse;" + 
-								"BEGIN TRANSACTION;" +
-								data.replace(/'/g,"''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
-								"COMMIT TRANSACTION"
-							mpd.db.executeSimpleSQL(_sql)
-							view.load("(type,title,URI,children,level,loc) select 'playlist' AS type, " +
-								"replace(URI,'playlist://','') as title, URI, 0 as children, "+
-								(parseInt(item.level) + 1) + " as level," + 
-								Sz(item.loc + "\n") + " || URI as loc FROM browse", 'insert',row+1)
-						} 
-						catch (e) {
-							debug(e)
-							debug(sql + "\n" + mpd.db.lastErrorString)
-						}
-					}, false)
-					sql = null
-				}
-				else {
-					if (item.name == '') {
-						var sql = "(children,type,title,URI,name,level,loc) " +
-						"select children,type,title,URI, title as name," + 
-						(parseInt(item.level)+1) +
-						" as level, " +
-						Sz(item.loc + "\n") +
-						" || URI " +
-						"as loc FROM " + item.type + 
-						" ORDER BY title"
-					}
-					else {
-						var sql = "(children,type,title,URI,name,level,loc) " +
-						"SELECT DISTINCT {get}.children,{get}.type,{get}.title," +
-						"{get}.URI,{get}.title as name," +
-						(parseInt(item.level)+1) +
-						" as level, " +
-						Sz(item.loc + "\n") +
-						" || {get}.URI as loc FROM {get} " +
-						"INNER JOIN tag_cache ON {get}.title=tag_cache.{get} " +
-						"WHERE " + item.type + "=" + Sz(item.name)
-						sql = sql.replace(/\{get\}/g, this.heirs[item.type])
-					}
-				}
-				if (sql) this.load(sql, 'insert', row+1)
-			//this.rowCount = this.rs.length
-			}
-		} 
-		catch (e) {
-			debug(e)
-		}
-	}
+function treeView(heirs, parent){
+    this.heirs = heirs
+    this.table = "tree"
+    this.ensureURIisVisble = function(uri){
+        try {
+        var sql = "select rowid-1 from " + this.table + "_map where URI="
+        var q = this.db.createStatement(sql + Sz(uri))
+        if (q.executeStep()) {
+            var idx = q.getInt32(0)
+            q.reset()
+            this.treeBox.scrollToRow(idx)
+            if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
+                this.toggleOpenState(idx)
+            }
+            this.selection.select(idx)
+            this.selection.currentIndex = idx
+        }
+        else {
+            q.reset()
+            q = this.db.createStatement(sql + "'" + uri.split('://')[0] + "://'")
+            if (q.executeStep()) {
+                var idx = q.getInt32(0)
+                q.reset()
+                this.treeBox.scrollToRow(idx)
+                if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
+                    this.toggleOpenState(idx)
+                }
+                q = this.db.createStatement(sql + Sz(uri))
+                if (q.executeStep()) {
+                    var idx = q.getInt32(0)
+                    q.reset()
+                    this.treeBox.scrollToRow(idx)
+                    if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
+                        this.toggleOpenState(idx)
+                    }
+                    this.selection.select(idx)
+                    this.selection.currentIndex = idx
+                }
+            }
+            q.reset()
+        }
+        } catch(e){
+                debug(e)
+                debug(sql + "\n" + this.db.lastErrorString)
+        }
+    }
+    this.performActionOnRow = function(action, row){
+        switch (action) {
+            case 'click':
+                var item = this.get(row);
+                parent.goToURI(item.URI);
+                break;
+        }
+    }
+    this.isContainerOpen = function(row){
+        var item = this.get(row)
+        var next = Nz(this.get(row + 1))
+        if (!Nz(next.loc))
+            return false
+        return (next.loc == item.loc + "\n" + next.URI)
+    }
+    this.isContainer = function(row){
+        var item = this.get(row)
+        return (item.children > 0)
+    }
+    this.getParentIndex = function(idx){
+        var item = this.get(idx)
+        return item.level - 1
+    }
+    this.getLevel = function(row){
+        try {
+            return this.get(row).level
+        }
+        catch (e) {
+            debug(e)
+            return 0
+        }
+    }
+    this.hasNextSibling = function(row, afterIndex){
+        var item = this.get(row)
+        var after = this.get(afterIndex)
+        return (after.type == item.type && after.level == item.level)
+    }
+    this.toggleOpenState = function(row){
+        try {
+            var item = this.get(row)
+            if (this.isContainerOpen(row)) {
+                var sql = " WHERE loc glob(" + Sz(item.loc + "\n*") + ")"
+                this.load(sql, 'delete', row + 1)
+            }
+            else {
+                if (item.type == 'directory') {
+                    var type = 'directory'
+                    sql = "(children,type,title,level,loc,URI,name) " +
+                    "select children,type,title," +
+                    (parseInt(item.level) + 1) +
+                    " as level," +
+                    Sz(item.loc + "\n") +
+                    " || URI as loc, URI, name " +
+                    "from dir where directory=" +
+                    Sz(item.URI.slice(12))
+                }
+                else
+                    if (item.type == 'playlist') {
+                        var view = this
+                        mpd.doCmd('lsinfo', function(data){
+                            try {
+                                data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
+                                var ins1 = "INSERT INTO browse (URI) VALUES('playlist://"
+                                var ins2 = "');"
+                                var _sql = "DELETE FROM browse;" +
+                                "BEGIN TRANSACTION;" +
+                                data.replace(/'/g, "''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
+                                "COMMIT TRANSACTION"
+                                mpd.db.executeSimpleSQL(_sql)
+                                view.load("(type,title,URI,children,level,loc) select 'playlist' AS type, " +
+                                "replace(URI,'playlist://','') as title, URI, 0 as children, " +
+                                (parseInt(item.level) + 1) +
+                                " as level," +
+                                Sz(item.loc + "\n") +
+                                " || URI as loc FROM browse", 'insert', row + 1)
+                            }
+                            catch (e) {
+                                debug(e)
+                                debug(sql + "\n" + mpd.db.lastErrorString)
+                            }
+                        }, false)
+                        sql = null
+                    }
+                    else {
+                        if (item.name == '') {
+                            var sql = "(children,type,title,URI,name,level,loc) " +
+                            "select children,type,title,URI, title as name," +
+                            (parseInt(item.level) + 1) +
+                            " as level, " +
+                            Sz(item.loc + "\n") +
+                            " || URI " +
+                            "as loc FROM " +
+                            item.type +
+                            " ORDER BY title"
+                        }
+                        else {
+                            var sql = "(children,type,title,URI,name,level,loc) " +
+                            "SELECT DISTINCT {get}.children,{get}.type,{get}.title," +
+                            "{get}.URI,{get}.title as name," +
+                            (parseInt(item.level) + 1) +
+                            " as level, " +
+                            Sz(item.loc + "\n") +
+                            " || {get}.URI as loc FROM {get} " +
+                            "INNER JOIN tag_cache ON {get}.title=tag_cache.{get} " +
+                            "WHERE " +
+                            item.type +
+                            "=" +
+                            Sz(item.name)
+                            sql = sql.replace(/\{get\}/g, this.heirs[item.type])
+                        }
+                    }
+                if (sql)
+                    this.load(sql, 'insert', row + 1)
+                //this.rowCount = this.rs.length
+            }
+        }
+        catch (e) {
+            debug(e)
+        }
+    }
     this.cycleHeader = function(col, elem){
     }
 }

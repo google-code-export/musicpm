@@ -17,7 +17,7 @@
 */
 
 Components.utils.import("resource://minion/mpmUtils.js");
-EXPORTED_SYMBOLS = ["mpd", "Sz", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
+EXPORTED_SYMBOLS = ["mpd", "Sz", "dbfile", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
 var mpd_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 
@@ -43,8 +43,7 @@ try {
 		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'6.',1);"
 	mDBConn.executeSimpleSQL(schema)
 	mDBConn.executeSimpleSQL(home)
-	debug("schema created, "+mDBConn.lastErrorString)
-} 
+}
 catch (e) {
 	debug(e)
 	debug(mDBConn.lastErrorString)
@@ -63,7 +62,7 @@ function updateDirStructure(data){
 	var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
 	db_up = (q.executeStep()) ? q.getInt32(0) : 0
 	q.reset()
-	
+
 	var sql = ''
 	var num = 0
 	data = data.split("\n")
@@ -113,7 +112,7 @@ function updateDirStructure(data){
 	mpd.set('lastCommand', 'Directories loaded')
 }
 function updateTagCache(data){
-	mpd.set('lastCommand', 'Parsing tag_cache')	
+	mpd.set('lastCommand', 'Parsing tag_cache')
 	var sql = ''
 	var maybeInt = function (test) {
 		if (isNaN(test)) return Sz(test)
@@ -128,7 +127,7 @@ function updateTagCache(data){
 			return r
 		}
 	}
-	
+
 	data = data.split("\n")
 	var dl = data.length
 	if (dl > 0) {
@@ -142,7 +141,7 @@ function updateTagCache(data){
 				sql = "UPDATE tag_cache SET " + up.join(',') +
 				" WHERE URI=" + URI
 				mDBConn.executeSimpleSQL(sql)
-			} 
+			}
 			catch (e) {
 				debug(sql + "\n" + mDBConn.lastErrorString)
 			}
@@ -209,7 +208,7 @@ function updateTagCache(data){
 			sql = getFileContents("resource://minion/analyze.sql")
 			mpd.set('lastCommand', 'Analyzing Data...')
 			mDBConn.executeSimpleSQL(sql)
-			
+
 		}
 		catch (e) {
 			debug(sql+"/n"+ mDBConn.lastErrorString)
@@ -240,15 +239,14 @@ function statsCallback(data){
 				data[i].substr(0, sep) +
 				"'," +
 				data[i].slice(sep + 2) +
-				");")
+				",NULL);")
 			}
 		}
 		while (--n)
-	}	
+	}
 	var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
 	mpd.db_update = (q.executeStep()) ? q.getInt32(0) : 0
 	q.reset()
-	debug(db_update + ", " +mpd.db_update)
 	if (db_update != mpd.db_update) {
 		debug("Database update needed.")
 		mpd.doCmd('listall', updateDirStructure)
@@ -303,7 +301,7 @@ function parse_data(data){
 					song.directory = branch
 					db.push(song);
 				}
-				else 
+				else
 					if (fld == 'directory') {
 						var sep = val.lastIndexOf("/")
 						var leaf = val
@@ -346,7 +344,6 @@ function lsinfoCallback(data){
 		}
 	}
 	if (!hasCurrent) mpd.doCmd('save "Current Playlist"')
-	debug("Current Playlist existence ensured.")
 }
 
 var mpd = {
@@ -380,7 +377,7 @@ var mpd = {
     Composer: null,
 
 	db_update: null,
-	
+
     // Playlist contents and total playtime
     plinfo: [],
     pltime: 0,
@@ -452,7 +449,7 @@ var mpd = {
     // Any property that may be observed must be set with these methods.
     set: function (prop, val) {
         if (val != mpd[prop]) {
-            debug("Notify: mpd."+prop+" = "+val)
+            //debug("Notify: mpd."+prop+" = "+val)
             mpd[prop] = val
             observerService.notifyObservers(null, prop, val)
         }
@@ -593,14 +590,14 @@ var mpd = {
 		/* Query mpd and return database results to nslTreeView view,
 		 * then load addrBox.searchParam with appropriate autocomplete
 		 * entries.
-		 * 
-		 * URI should be: return_tag_type://specifier or 
+		 *
+		 * URI should be: return_tag_type://specifier or
 		 * return_tag_type://where_other_tag_type=specifier or
 		 * an actual MPD command.
-		 * 
+		 *
 		 * If '://' is not in string, it is assumed to be an MPD command.
 		 */
-		
+
 	    var chkDupes = false
 		var cmd = URI
 		if (URI.indexOf("://") < 0) {
@@ -609,7 +606,7 @@ var mpd = {
 				return true
 			}
 			// Clean up and validate command lists.
-		    
+
 			if (cmd.indexOf('command_list_begin') > -1) {
 		        if  (cmd.indexOf('command_list_end') < 0) {
 		            cmd += "\ncommand_list_end"
@@ -622,11 +619,11 @@ var mpd = {
 		        }
 				cmd = cmd.replace(/;/g,"\n")
 		    }
-			
+
 			// Check if this command returns database results.
 			// If so, check if it will return multiple sets that
 			// will need to be combined.
-			
+
 	        var dbc = ["search ", "find ", "lsinfo", "plchanges ",
 	                "list ", "listall", "listallinfo", "listplaylistinfo ",
 	                "playlistsearch ", "playlistinfo", "playlistfind "]
@@ -650,24 +647,24 @@ var mpd = {
 		}
 		else {
 			// Not a command, proccess URI
-			
+
 			URI = URI.split("://")
 			var type = URI[0]
 			var id = Nz(URI[1], "")
 			var sql = null
-						
+
 			switch (type) {
 				case "directory":
 					var criteria = id.replace(/'/g, "''")
-					sql = "select * from directory where directory='"+criteria+"';"
+					sql = "select * from tag_cache where directory='"+criteria+"';"
 					break;
 				case "file":
 					if (id.length==0){
-						sql = "select * from file;"
+						sql = "select * from tag_cache where type='file';"
 					}
 					else if (id.indexOf("=") > 0) {
 						var criteria = id[0].replace(/'/g, "''")
-						sql = "select * from file where "+Lz(id[0])+"='"+criteria+"';"
+						sql = "select * from tag_cache where type='file' and "+Lz(id[0])+"='"+criteria+"';"
 					}
 					else {
 						mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
@@ -681,14 +678,14 @@ var mpd = {
 							try {
 								var ins1 = "INSERT INTO browse (URI) VALUES('file://"
 								var ins2 = "');"
-								var sql = "DELETE FROM browse;" + 
+								var sql = "DELETE FROM browse;" +
 									"BEGIN TRANSACTION;" +
 									data.replace(/'/g,"''").replace(/file: /g, ins1).replace(/\n/g, ins2) +
 									"COMMIT TRANSACTION"
 								mDBConn.executeSimpleSQL(sql)
 								view.load("SELECT browse.pos, file.* FROM browse \
 											JOIN file ON browse.URI=file.URI;")
-							} 
+							}
 							catch (e) {
 								debug(e)
 								debug(sql + "\n" + mDBConn.lastErrorString)
@@ -703,13 +700,13 @@ var mpd = {
 								data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
 								var ins1 = "INSERT INTO browse (URI) VALUES('playlist://"
 								var ins2 = "');"
-								var sql = "DELETE FROM browse;" + 
+								var sql = "DELETE FROM browse;" +
 									"BEGIN TRANSACTION;" +
 									data.replace(/'/g,"''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
 									"COMMIT TRANSACTION"
 								mDBConn.executeSimpleSQL(sql)
 								view.load("SELECT 'playlist' AS type, replace(URI,'playlist://','') as title, URI FROM browse")
-							} 
+							}
 							catch (e) {
 								debug(e)
 								debug(sql + "\n" + mDBConn.lastErrorString)
@@ -726,18 +723,18 @@ var mpd = {
 							//var flds = ["title","artist","album","URI","genre","performer","composer"]
 							//sql = "select * from tag_cache where type='file' AND " + flds.join(" like '%"+criteria+"%' OR ")
 							sql = "select * from tag_cache where any glob('*"+criteria+"*');"
-							
+
 						}
-						else 
+						else
 							if (id.length == 2) {
 								var criteria = id[1].replace(/'/g, "''")
-								sql = "select * from file where lower("+Lz(id[0])+") glob('*"+criteria+"*');"
+								sql = "select * from tag_cache where type='file' and lower("+Lz(id[0])+") glob('*"+criteria+"*');"
 							}
 					}
 					else {
-						sql = "select * from file;"
+						return false
 					}
-					break;					
+					break;
 				default:
 					if (id.length > 0) {
 						id = id.replace("/","=").split("=")
@@ -745,23 +742,23 @@ var mpd = {
 							var criteria = id[0].replace(/'/g, "''")
 							sql = "select * from tag_cache WHERE " + Lz(type) + "='" + criteria + "';"
 						}
-						else 
+						else
 							if (id.length == 2) {
 								var criteria = id[1].replace(/'/g, "''")
 								sql = "select distinct '" + Lz(type) + "' as type, " + Lz(type) + " as name from tag_cache WHERE " + Lz(id[0]) + "='" + criteria + "';"
 							}
 					}
 					else {
-						sql = "select * from " + type.toLowerCase() + ";"						
+						sql = "select * from " + type.toLowerCase() + ";"
 					}
 					break;
 			}
-			if (sql) {	
+			if (sql) {
 				view.load(sql)
 				return true
 			}
 		}
-		
+
 		var cb = function(data){
 			data = data.split("\n")
 			var db = []
@@ -819,10 +816,10 @@ var mpd = {
 				}
 				while (--n)
 			}
-			
+
 			view.load(db, false)
 		}
-		
+
 		mpd.doCmd(cmd, cb, false)
 		return true
 	}

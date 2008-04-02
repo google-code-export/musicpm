@@ -31,7 +31,7 @@ function debug(s) {
     //return null
     if (typeof(s) == 'object') {
         var str = ""
-        for (x in s) {str += x + ": " + s[x] + "\n"}
+        for (x in s) {try{str += x + ": " + s[x] + "\n"} catch(e) {str += x + ": ERROR"}}
     }
     else {var str = s}
     dump(str+"\n\n")
