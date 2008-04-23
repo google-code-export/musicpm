@@ -17,8 +17,7 @@
 */
 
 Components.utils.import("resource://minion/mpd.js");
-EXPORTED_SYMBOLS = ["playlistView", "treeView", "browserView"]
-test ()
+EXPORTED_SYMBOLS = ["playlistView", "sqlView", "customTreeViewView"]
 
 
 function customTreeView () {
@@ -327,14 +326,11 @@ function playlistView(){
 
 playlistView.prototype = new customTreeView
 
-function test () {
-    test
-}
-
-function browserView(){
-    var sql = ''
-    this.db = Components.classes["@mozilla.org/storage/service;1"].getService(Components.interfaces.mozIStorageService).openDatabase(null);
-    this.dbPath = dbfile.path
+function sqlView(dbFileObj,parent,heirs){
+    this.sqlSELECT = ''
+    this.db = Components.classes["@mozilla.org/storage/service;1"].
+        getService(Components.interfaces.mozIStorageService).
+            openDatabase(Nz(dbFileObj));
     this.fetchOne = function(sqlstr){
         var row = []
         var q = this.db.createStatement(sqlstr)
@@ -365,22 +361,51 @@ function browserView(){
     this.treeBox = null
     this.colCount = 0
     this.rowCount = 0
-    this.table = "content"
+    this.table = "treeview"
     this.sqlORDER = ''
     this.load = function(sqlstr, action, atIndex){
         action = Nz(action, 'create')
         try {
-            try {
-                debug(this.dbPath)
-                this.db.executeSimpleSQL("ATTACH DATABASE '" +
-                    this.dbPath + "' AS source;")
-            } catch (e) {}
-            sql = (sqlstr.slice(-1) == ";") ? sqlstr.slice(0, -1) : sqlstr
+            if (action == 'filelist') {
+                this.db.executeSimpleSQL("DROP TABLE IF EXISTS "
+                    + this.table + "_map;")
+                this.db.executeSimpleSQL("CREATE TEMP TABLE " +
+                    this.table + "_map (pos INTEGER PRIMARY KEY AUTOINCREMENT,URI TEXT)")
+                var ins1 = "INSERT INTO " + this.table + "_map (URI) VALUES('file://"
+                var ins2 = "');"
+                var sql = "BEGIN TRANSACTION;" +
+                    sqlstr.replace(/'/g,"''").replace(/file: /g, ins1).replace(/\n/g, ins2) +
+                    "COMMIT TRANSACTION"
+                this.db.executeSimpleSQL(sql)
+                sqlstr = "SELECT " + this.table + "_map.pos, file.* FROM " +
+                    this.table + "_map JOIN file ON " +
+                    this.table + "_map.URI=file.URI;"
+            }
+            if (action == 'playlists') {
+                this.db.executeSimpleSQL("DROP TABLE IF EXISTS "
+                    + this.table + "_map;")
+                this.db.executeSimpleSQL("CREATE TEMP TABLE " +
+                    this.table + "_map (URI TEXT)")
+                var ins1 = "INSERT INTO " + this.table + "_map (URI) VALUES('playlist://"
+                var ins2 = "');"
+                var sql = "BEGIN TRANSACTION;" +
+                    sqlstr.replace(/'/g,"''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
+                    "COMMIT TRANSACTION"
+                this.db.executeSimpleSQL(sql)
+                sqlstr = "SELECT 'playlist' AS type, replace(URI,'playlist://','') as title, URI FROM " +
+                    this.table + "_map"
+            }
+
+            sql = sqlstr
             switch (action) {
+                case 'filelist':
+                case 'playlists':
                 case 'create':
+                    this.sqlSELECT = (sqlstr.slice(-1) == ";") ? sqlstr.slice(0, -1) : sqlstr
                     this.sqlWHERE = '';
+                    this.sqlORDER = '';
                     this.db.executeSimpleSQL("DROP TABLE IF EXISTS " + this.table +
-                    ";CREATE TABLE " +
+                    ";CREATE TEMP TABLE " +
                     this.table +
                     " AS " +
                     sql);
@@ -434,19 +459,20 @@ function browserView(){
                     this.treeBox.invalidate()
                 }
             }
-            this.db.executeSimpleSQL("DROP TABLE IF EXISTS " + this.table + "_map;")
-            this.db.executeSimpleSQL("CREATE TABLE " + this.table + "_map AS " +
-            "SELECT URI FROM " +
-            this.table +
-            this.sqlORDER)
+            if (action != 'filelist' && action != 'playlists') {
+                this.db.executeSimpleSQL("DROP TABLE IF EXISTS " + this.table + "_map;")
+                this.db.executeSimpleSQL("CREATE TEMP TABLE " + this.table + "_map AS " +
+                "SELECT URI FROM " +
+                this.table +
+                this.sqlORDER)
+            }
             this.rowCount = rowCount;
-            this.db.executeSimpleSQL("DETACH DATABASE source;")
+            //this.db.executeSimpleSQL("DETACH DATABASE source;")
         }
         catch (e) {
+            debug(e)
             debug(sql)
             debug(this.db.lastErrorString)
-            this.db.executeSimpleSQL("EXPLAIN "+sql)
-            debug()
         }
     }
     this.applyFilter = function(filter){
@@ -462,6 +488,9 @@ function browserView(){
             this.treeBox.scrollToRow(0)
         }
         this.rowCount = rowCount;
+    }
+    this.requery = function () {
+        this.load(this.sqlSELECT, 'create')
     }
     this.get = function(row){
         if (typeof(this.rs[row]) == 'object')
@@ -524,12 +553,10 @@ function browserView(){
         this.rs = []
         this.treeBox.invalidate()
     }
-}
-browserView.prototype = new customTreeView
 
-function treeView(heirs, parent){
+    // The following methods are used for hierarchical trees only
+
     this.heirs = heirs
-    this.table = "tree"
     this.ensureURIisVisble = function(uri){
         try {
         var sql = "select rowid-1 from " + this.table + "_map where URI="
@@ -590,29 +617,27 @@ function treeView(heirs, parent){
     }
     this.isContainer = function(row){
         var item = this.get(row)
-        return (item.children > 0)
+        return (Nz(item.children,-1) > 0)
     }
     this.getParentIndex = function(idx){
         var item = this.get(idx)
-        return item.level - 1
+        return Nz(item.level,0) - 1
     }
     this.getLevel = function(row){
-        try {
-            return this.get(row).level
-        }
-        catch (e) {
-            debug(e)
-            return 0
-        }
+        var item = this.get(row)
+        return Nz(item.level,0)
     }
     this.hasNextSibling = function(row, afterIndex){
         var item = this.get(row)
+        if (!Nz(item.level)) return true
         var after = this.get(afterIndex)
         return (after.type == item.type && after.level == item.level)
     }
     this.toggleOpenState = function(row){
         try {
             var item = this.get(row)
+            if (!Nz(item.level)) return null
+            if (!Nz(item.loc)) return null
             if (this.isContainerOpen(row)) {
                 var sql = " WHERE loc glob(" + Sz(item.loc + "\n*") + ")"
                 this.load(sql, 'delete', row + 1)
@@ -626,7 +651,7 @@ function treeView(heirs, parent){
                     " as level," +
                     Sz(item.loc + "\n") +
                     " || URI as loc, URI, name " +
-                    "from dir where directory=" +
+                    "from directory where directory=" +
                     Sz(item.URI.slice(12))
                 }
                 else
@@ -637,11 +662,13 @@ function treeView(heirs, parent){
                                 data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
                                 var ins1 = "INSERT INTO browse (URI) VALUES('playlist://"
                                 var ins2 = "');"
-                                var _sql = "DELETE FROM browse;" +
+                                var _sql = "DROP TABLE IF EXISTS browse;" +
+                                "CREATE TEMP TABLE browse (URI);" +
                                 "BEGIN TRANSACTION;" +
                                 data.replace(/'/g, "''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
                                 "COMMIT TRANSACTION"
-                                mpd.db.executeSimpleSQL(_sql)
+                                debug(_sql)
+                                view.db.executeSimpleSQL(_sql)
                                 view.load("(type,title,URI,children,level,loc) select 'playlist' AS type, " +
                                 "replace(URI,'playlist://','') as title, URI, 0 as children, " +
                                 (parseInt(item.level) + 1) +
@@ -676,7 +703,7 @@ function treeView(heirs, parent){
                             " as level, " +
                             Sz(item.loc + "\n") +
                             " || {get}.URI as loc FROM {get} " +
-                            "INNER JOIN tag_cache ON {get}.title=tag_cache.{get} " +
+                            "INNER JOIN file ON {get}.title=file.{get} " +
                             "WHERE " +
                             item.type +
                             "=" +
@@ -693,7 +720,5 @@ function treeView(heirs, parent){
             debug(e)
         }
     }
-    this.cycleHeader = function(col, elem){
-    }
 }
-treeView.prototype = new browserView
+sqlView.prototype = new customTreeView

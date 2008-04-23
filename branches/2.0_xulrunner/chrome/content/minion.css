@@ -22,9 +22,6 @@ window {
 .mpdButtonConnected {
 	font-weight: bold;
 }
-.mpdButtonConnect {
-	list-style-image: url("chrome://minion/content/images/help.png");
-}
 
 
 
@@ -131,6 +128,9 @@ treechildren::-moz-tree-image() {
 treechildren::-moz-tree-image(title_genre) {
     list-style-image: url("chrome://minion/content/images/unknown.png");
     }
+treechildren::-moz-tree-image(title_topgenre) {
+    list-style-image: url("chrome://minion/content/images/unknown.png");
+    }
 treechildren::-moz-tree-image(title_date) {
     list-style-image: url("chrome://minion/content/images/unknown.png");
     }
@@ -138,6 +138,10 @@ treechildren::-moz-tree-image(title_file) {
     list-style-image: url("chrome://minion/content/images/song.png");
     }
 treechildren::-moz-tree-image(title_artist) {
+    list-style-image: url("chrome://minion/content/images/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(title_topartist) {
     list-style-image: url("chrome://minion/content/images/artist.png");
     margin: 0px 3px 0px 1px;
     }

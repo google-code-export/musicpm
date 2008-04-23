@@ -708,7 +708,7 @@
                 Components.utils.import("resource://minion/trees.js");
 				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
 			                getService(Components.interfaces.nsIPrefBranch);
-                var view = new browserView()
+                var view = new sqlView(dbfile,this)
 				this.tree.view = view
 				var heirs = {
 					directory: 'directory',
@@ -719,7 +719,7 @@
 					date: 'album',
 					album: 'file'
 				}
-                var tview = new treeView(heirs, this)
+                var tview = new sqlView(dbfile,this,heirs)
 				this.ttree.view = tview
 				tview.load("select * from home")
                 var box = tree.boxObject;

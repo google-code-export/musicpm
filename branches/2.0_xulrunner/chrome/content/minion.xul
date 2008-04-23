@@ -9,7 +9,6 @@
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	onload="if(!mpd._socket)mpd.connect()">
-    	
 	<hbox>
 		<vbox pack="center" align="center">
 			<mpdcontrols hidestop="false"/>
@@ -27,10 +26,17 @@
 		<splitter/>
 		<mpdplaylist id="playlist" flex="1"/>
 	</hbox>
-	<statusbar>
-		<mpdlabel value="command" observes="pltime"/>
-		<mpdlabel value="command" observes="lastCommand" flex="1" crop="end"/>
-		<mpdlabel value="response" observes="lastResponse"/>
+	<statusbar pack="center">
+        <vbox flex="1">
+            <spacer flex="1"/>
+            <hbox>
+                <mpdlabel value="command" observes="pltime"/>
+                <mpdlabel value="last" observes="lastCommand"/>
+                <spacer flex="1"/>
+                <mpdlabel value="response" observes="lastResponse"/>
+            </hbox>
+            <spacer flex="1"/>
+        </vbox>
 		<mpdconnection/>
 	</statusbar>
 </window>

@@ -36,11 +36,13 @@ var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
 try {
 	var schema = getFileContents("resource://minion/schema.sql")
 	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('genre://', 'genre','Genres','',0,'2.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','Artists','',0,'3.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'4.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('date://', 'date','Release Dates','',0,'5.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'6.',1);"
+		"INSERT OR IGNORE INTO home VALUES('genre://', 'genre','All Genres','',0,'2.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('topgenre://', 'topgenre','Top Genres','',0,'3.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','All Artists','',0,'4.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('topartist://', 'topartist','Top Artists','',0,'5.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'6.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('date://', 'date','Release Dates','',0,'7.',1);" +
+		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'8.',1);"
 	mDBConn.executeSimpleSQL(schema)
 	mDBConn.executeSimpleSQL(home)
 }
@@ -58,7 +60,6 @@ function Lz (str) {
 	return ''
 }
 function updateDirStructure(data){
-	mpd.set('lastCommand', 'Parsing directories')
 	var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
 	db_up = (q.executeStep()) ? q.getInt32(0) : 0
 	q.reset()
@@ -105,6 +106,9 @@ function updateDirStructure(data){
 	try {
 		sql = "DELETE FROM tag_cache WHERE db_update<" + db_up + ";"
 		mDBConn.executeSimpleSQL(sql)
+		sql = "INSERT OR IGNORE INTO file (ID,URI,type,title) \
+            SELECT ID,URI,type,name FROM tag_cache WHERE type='file'"
+		mDBConn.executeSimpleSQL(sql)
 	} catch (e) {
 		debug(sql+"/n"+ mDBConn.lastErrorString)
 		debug(e)
@@ -138,7 +142,7 @@ function updateTagCache(data){
 				up[x] = _cols[x] + "=" + _vals[x]
 			}
 			try {
-				sql = "UPDATE tag_cache SET " + up.join(',') +
+				sql = "UPDATE file SET " + up.join(',') +
 				" WHERE URI=" + URI
 				mDBConn.executeSimpleSQL(sql)
 			}
@@ -220,9 +224,11 @@ function updateTagCache(data){
 
 function statsCallback(data){
 	debug(data)
-	var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
-	var db_update = (q.executeStep()) ? q.getInt32(0) : 0
-	q.reset()
+    try {
+        var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
+        var db_update = (q.executeStep()) ? q.getInt32(0) : 0
+        q.reset()
+    } catch (e) { db_update = -1 }
 	data = data.split("\n")
 	var dl = data.length
 	var stats = []
@@ -249,7 +255,11 @@ function statsCallback(data){
 	q.reset()
 	if (db_update != mpd.db_update) {
 		debug("Database update needed.")
-		mpd.doCmd('listall', updateDirStructure)
+		mpd.doCmd('listall', function(d){
+                mpd.set('lastCommand', 'Parsing directories');
+                updateDirStructure(d)
+            }
+        )
 		mpd.doCmd('listallinfo', updateTagCache)
 	}
 }
@@ -585,246 +595,230 @@ var mpd = {
             } while (--l)
         }
         mpd.set("pltime", prettyTime(tm))
-    },
-	query: function (URI, view, addrBox){
-		/* Query mpd and return database results to nslTreeView view,
-		 * then load addrBox.searchParam with appropriate autocomplete
-		 * entries.
-		 *
-		 * URI should be: return_tag_type://specifier or
-		 * return_tag_type://where_other_tag_type=specifier or
-		 * an actual MPD command.
-		 *
-		 * If '://' is not in string, it is assumed to be an MPD command.
-		 */
-
-	    var chkDupes = false
-		var cmd = URI
-		if (URI.indexOf("://") < 0) {
-			if (URI.toLowerCase().indexOf('select') == 0) {
-				sqlQuery(URI, view, addrBox)
-				return true
-			}
-			// Clean up and validate command lists.
-
-			if (cmd.indexOf('command_list_begin') > -1) {
-		        if  (cmd.indexOf('command_list_end') < 0) {
-		            cmd += "\ncommand_list_end"
-		        }
-		    }
-		    else if (cmd.indexOf(';') > -1) {
-		        cmd = "command_list_begin;"+cmd
-		        if  (cmd.indexOf('command_list_end') < 0) {
-		            cmd += ";command_list_end"
-		        }
-				cmd = cmd.replace(/;/g,"\n")
-		    }
-
-			// Check if this command returns database results.
-			// If so, check if it will return multiple sets that
-			// will need to be combined.
-
-	        var dbc = ["search ", "find ", "lsinfo", "plchanges ",
-	                "list ", "listall", "listallinfo", "listplaylistinfo ",
-	                "playlistsearch ", "playlistinfo", "playlistfind "]
-	        var is_dbc = false
-	        for (x in dbc) {
-	            if (cmd.indexOf(dbc[x]) > -1) {
-	                is_dbc = true
-	            }
-	        }
-	        if (is_dbc) {
-	            for (x in dbc) {
-	                if (cmd.indexOf(dbc[x]) > -1) {
-	                    chkDupes = true
-	                }
-	            }
-	        }
-	        if (!is_dbc) {
-	            mpd.doCmd(cmd, null, false)
-	            return null
-	        }
-		}
-		else {
-			// Not a command, proccess URI
-
-			URI = URI.split("://")
-			var type = URI[0]
-			var id = Nz(URI[1], "")
-			var sql = null
-
-			switch (type) {
-				case "directory":
-					var criteria = id.replace(/'/g, "''")
-					sql = "select * from tag_cache where directory='"+criteria+"';"
-					break;
-				case "file":
-					if (id.length==0){
-						sql = "select * from tag_cache where type='file';"
-					}
-					else if (id.indexOf("=") > 0) {
-						var criteria = id[0].replace(/'/g, "''")
-						sql = "select * from tag_cache where type='file' and "+Lz(id[0])+"='"+criteria+"';"
-					}
-					else {
-						mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
-						return null;
-					}
-					break;
-				case "playlist":
-					if (id.length > 0) {
-						cmd = 'listplaylist  "' + id.replace(/"/g, '\\"') + '"';
-						mpd.doCmd(cmd, function(data){
-							try {
-								var ins1 = "INSERT INTO browse (URI) VALUES('file://"
-								var ins2 = "');"
-								var sql = "DELETE FROM browse;" +
-									"BEGIN TRANSACTION;" +
-									data.replace(/'/g,"''").replace(/file: /g, ins1).replace(/\n/g, ins2) +
-									"COMMIT TRANSACTION"
-								mDBConn.executeSimpleSQL(sql)
-								view.load("SELECT browse.pos, file.* FROM browse \
-											JOIN file ON browse.URI=file.URI;")
-							}
-							catch (e) {
-								debug(e)
-								debug(sql + "\n" + mDBConn.lastErrorString)
-							}
-						}, false)
-						return true
-					}
-					else {
-						cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
-						mpd.doCmd(cmd, function(data){
-							try {
-								data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
-								var ins1 = "INSERT INTO browse (URI) VALUES('playlist://"
-								var ins2 = "');"
-								var sql = "DELETE FROM browse;" +
-									"BEGIN TRANSACTION;" +
-									data.replace(/'/g,"''").replace(/playlist: /g, ins1).replace(/\n/g, ins2) +
-									"COMMIT TRANSACTION"
-								mDBConn.executeSimpleSQL(sql)
-								view.load("SELECT 'playlist' AS type, replace(URI,'playlist://','') as title, URI FROM browse")
-							}
-							catch (e) {
-								debug(e)
-								debug(sql + "\n" + mDBConn.lastErrorString)
-							}
-						}, false)
-						return true
-					}
-					break;
-				case "search":
-					if (id.length > 0) {
-						id = id.split("=")
-						if (id.length == 1) {
-							var criteria = id[0].replace(/'/g, "''")
-							//var flds = ["title","artist","album","URI","genre","performer","composer"]
-							//sql = "select * from tag_cache where type='file' AND " + flds.join(" like '%"+criteria+"%' OR ")
-							sql = "select * from tag_cache where any glob('*"+criteria+"*');"
-
-						}
-						else
-							if (id.length == 2) {
-								var criteria = id[1].replace(/'/g, "''")
-								sql = "select * from tag_cache where type='file' and lower("+Lz(id[0])+") glob('*"+criteria+"*');"
-							}
-					}
-					else {
-						return false
-					}
-					break;
-				default:
-					if (id.length > 0) {
-						id = id.replace("/","=").split("=")
-						if (id.length == 1) {
-							var criteria = id[0].replace(/'/g, "''")
-							sql = "select * from tag_cache WHERE " + Lz(type) + "='" + criteria + "';"
-						}
-						else
-							if (id.length == 2) {
-								var criteria = id[1].replace(/'/g, "''")
-								sql = "select distinct '" + Lz(type) + "' as type, " + Lz(type) + " as name from tag_cache WHERE " + Lz(id[0]) + "='" + criteria + "';"
-							}
-					}
-					else {
-						sql = "select * from " + type.toLowerCase() + ";"
-					}
-					break;
-			}
-			if (sql) {
-				view.load(sql)
-				return true
-			}
-		}
-
-		var cb = function(data){
-			data = data.split("\n")
-			var db = []
-			var dl = data.length
-			if (dl > 0) {
-				var n = dl
-				do {
-					var i = dl - n
-					var sep = data[i].indexOf(": ")
-					if (sep > -1) {
-						var fld = data[i].substr(0, sep)
-						var val = data[i].slice(sep + 2)
-						if (fld == 'file') {
-							var song = {
-								type: 'file',
-								name: val,
-								track: '0',
-								title: val,
-								artist: 'unknown',
-								album: 'unknown',
-								time: 0,
-								URI: "file://" + val
-							};
-							var d = data[i + 1]
-							while (d && d.substr(0, 6) != "file: ") {
-								var sep = d.indexOf(": ")
-								song[d.substr(0, sep).toLowerCase()] = d.slice(sep + 2);
-								--n;
-								var d = data[dl - n + 1]
-							};
-							db.push(song);
-						}
-						else {
-							if (fld == 'directory') {
-								if (type == 'directory') {
-									var dir = val.split("/")
-									db.push({
-										type: 'directory',
-										name: val,
-										title: dir[dir.length - 1],
-										URI: "directory://" + val
-									})
-								}
-							}
-							else {
-								db.push({
-									type: fld,
-									name: val,
-									title: val,
-									URI: fld.toLowerCase() + "://" + val
-								})
-							}
-						}
-					}
-				}
-				while (--n)
-			}
-
-			view.load(db, false)
-		}
-
-		mpd.doCmd(cmd, cb, false)
-		return true
-	}
+    }
 }
+mpd.query = function (URI, view, addrBox){
+    /* Query mpd and return database results to nslTreeView view,
+     * then load addrBox.searchParam with appropriate autocomplete
+     * entries.
+     *
+     * URI should be: return_tag_type://specifier or
+     * return_tag_type://where_other_tag_type=specifier or
+     * an actual MPD command.
+     *
+     * If '://' is not in string, it is assumed to be an MPD command.
+     */
 
+    var chkDupes = false
+    var cmd = URI
+    if (URI.indexOf("://") < 0) {
+        if (URI.toLowerCase().indexOf('select') == 0) {
+            sqlQuery(URI, view, addrBox)
+            return true
+        }
+        // Clean up and validate command lists.
+
+        if (cmd.indexOf('command_list_begin') > -1) {
+            if  (cmd.indexOf('command_list_end') < 0) {
+                cmd += "\ncommand_list_end"
+            }
+        }
+        else if (cmd.indexOf(';') > -1) {
+            cmd = "command_list_begin;"+cmd
+            if  (cmd.indexOf('command_list_end') < 0) {
+                cmd += ";command_list_end"
+            }
+            cmd = cmd.replace(/;/g,"\n")
+        }
+
+        // Check if this command returns database results.
+        // If so, check if it will return multiple sets that
+        // will need to be combined.
+
+        var dbc = ["search ", "find ", "lsinfo", "plchanges ",
+                "list ", "listall", "listallinfo", "listplaylistinfo ",
+                "playlistsearch ", "playlistinfo", "playlistfind "]
+        var is_dbc = false
+        for (x in dbc) {
+            if (cmd.indexOf(dbc[x]) > -1) {
+                is_dbc = true
+            }
+        }
+        if (is_dbc) {
+            for (x in dbc) {
+                if (cmd.indexOf(dbc[x]) > -1) {
+                    chkDupes = true
+                }
+            }
+        }
+        if (!is_dbc) {
+            mpd.doCmd(cmd, null, false)
+            return null
+        }
+    }
+    else {
+        // Not a command, proccess URI
+
+        URI = URI.split("://")
+        var type = URI[0]
+        var id = Nz(URI[1], "")
+        var sql = null
+
+        switch (type) {
+            case "directory":
+                var criteria = id.replace(/'/g, "''")
+                sql = "select * from lsinfo where directory='"+criteria+"';"
+                break;
+            case "file":
+                if (id.length==0){
+                    sql = "select * from file;"
+                }
+                else if (id.indexOf("=") > 0) {
+                    var criteria = id[0].replace(/'/g, "''")
+                    sql = "select * from file where "+Lz(id[0])+"='"+criteria+"';"
+                }
+                else {
+                    mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
+                    return null;
+                }
+                break;
+            case "playlist":
+                if (id.length > 0) {
+                    cmd = 'listplaylist  "' + id.replace(/"/g, '\\"') + '"';
+                    mpd.doCmd(cmd, function(data){
+                        try {
+                            view.load(data,'filelist')
+                        }
+                        catch (e) {
+                            debug(e)
+                            debug(sql + "\n" + mDBConn.lastErrorString)
+                        }
+                    }, false)
+                    return true
+                }
+                else {
+                    cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
+                    mpd.doCmd(cmd, function(data){
+                        try {
+                            data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
+                            view.load(data, 'playlists')
+                        }
+                        catch (e) {
+                            debug(e)
+                            debug(sql + "\n" + mDBConn.lastErrorString)
+                        }
+                    }, false)
+                    return true
+                }
+                break;
+            case "search":
+                if (id.length > 0) {
+                    id = id.split("=")
+                    if (id.length == 1) {
+                        var criteria = id[0].replace(/'/g, "''")
+                        //var flds = ["title","artist","album","URI","genre","performer","composer"]
+                        //sql = "select * from tag_cache where type='file' AND " + flds.join(" like '%"+criteria+"%' OR ")
+                        sql = "select * from file where any glob('*"+criteria+"*');"
+
+                    }
+                    else
+                        if (id.length == 2) {
+                            var criteria = id[1].replace(/'/g, "''")
+                            sql = "select * from file where lower("+Lz(id[0])+") glob('*"+criteria+"*');"
+                        }
+                }
+                else {
+                    return false
+                }
+                break;
+            default:
+                if (id.length > 0) {
+                    id = id.replace("/","=").split("=")
+                    if (id.length == 1) {
+                        var criteria = id[0].replace(/'/g, "''")
+                        sql = "select * from file WHERE " + Lz(type) + "='" + criteria + "';"
+                    }
+                    else
+                        if (id.length == 2) {
+                            var criteria = id[1].replace(/'/g, "''")
+                            sql = "select distinct '" + Lz(type) + "' as type, " + Lz(type) + " as name from tag_cache WHERE " + Lz(id[0]) + "='" + criteria + "';"
+                        }
+                }
+                else {
+                    sql = "select * from " + type.toLowerCase() + ";"
+                }
+                break;
+        }
+        if (sql) {
+            view.load(sql)
+            return true
+        }
+    }
+
+    var cb = function(data){
+        data = data.split("\n")
+        var db = []
+        var dl = data.length
+        if (dl > 0) {
+            var n = dl
+            do {
+                var i = dl - n
+                var sep = data[i].indexOf(": ")
+                if (sep > -1) {
+                    var fld = data[i].substr(0, sep)
+                    var val = data[i].slice(sep + 2)
+                    if (fld == 'file') {
+                        var song = {
+                            type: 'file',
+                            name: val,
+                            track: '0',
+                            title: val,
+                            artist: 'unknown',
+                            album: 'unknown',
+                            time: 0,
+                            URI: "file://" + val
+                        };
+                        var d = data[i + 1]
+                        while (d && d.substr(0, 6) != "file: ") {
+                            var sep = d.indexOf(": ")
+                            song[d.substr(0, sep).toLowerCase()] = d.slice(sep + 2);
+                            --n;
+                            var d = data[dl - n + 1]
+                        };
+                        db.push(song);
+                    }
+                    else {
+                        if (fld == 'directory') {
+                            if (type == 'directory') {
+                                var dir = val.split("/")
+                                db.push({
+                                    type: 'directory',
+                                    name: val,
+                                    title: dir[dir.length - 1],
+                                    URI: "directory://" + val
+                                })
+                            }
+                        }
+                        else {
+                            db.push({
+                                type: fld,
+                                name: val,
+                                title: val,
+                                URI: fld.toLowerCase() + "://" + val
+                            })
+                        }
+                    }
+                }
+            }
+            while (--n)
+        }
+
+        view.load(db, false)
+    }
+
+    mpd.doCmd(cmd, cb, false)
+    return true
+}
 function dbOR(db) {
     var rdb = []
     var dl = db.length
