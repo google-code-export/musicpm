@@ -66,12 +66,39 @@ CREATE TRIGGER IF NOT EXISTS f_make_any AFTER UPDATE ON file
 	END;
 
 
+CREATE TABLE IF NOT EXISTS playlist (
+    pos       INTEGER PRIMARY KEY,
+    URI       TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS pl_index ON playlist (URI);
+CREATE UNIQUE INDEX IF NOT EXISTS pl_pos_index ON playlist (pos);
+
+
 CREATE VIEW IF NOT EXISTS lsinfo AS
     SELECT t.URI as URI, t.type as type, t.directory as directory, t.name as name,
         f.disc as disc, f.track as track, f.title as title, f.album as album,
         f.artist as artist, f.composer as composer, f.performer as performer,
-        f.genre as genre, f.time as time
-    FROM tag_cache as t LEFT OUTER JOIN file as f on t.ID = f.ID;
+        f.genre as genre, f.time as time, p.pos as pos
+    FROM tag_cache as t
+    LEFT OUTER JOIN file as f on t.ID = f.ID
+    LEFT OUTER JOIN playlist as p on t.URI = p.URI
+    ORDER BY type,title;
+
+CREATE VIEW IF NOT EXISTS plinfo AS
+    select * from lsinfo where pos not null order by pos;
+
+CREATE VIEW IF NOT EXISTS plalbums AS
+    SELECT * FROM
+    (
+    SELECT 'album' AS type, min(pos) + 1 AS pos, album AS title,
+        CASE count(DISTINCT artist)
+        WHEN 1 THEN artist
+        ELSE 'Various Artists'
+        END artist
+        FROM plinfo GROUP BY album
+    UNION SELECT 'file' AS type, pos + 1 AS pos, title, artist FROM plinfo
+    )
+    ORDER BY pos, type;
 
 
 CREATE TABLE IF NOT EXISTS home (
@@ -98,8 +125,4 @@ CREATE TRIGGER IF NOT EXISTS make_title AFTER INSERT ON stats
 	END;
 CREATE UNIQUE INDEX IF NOT EXISTS  stats_index ON stats (type);
 
-CREATE TABLE IF NOT EXISTS playlist (
-    pos       INTEGER PRIMARY KEY AUTOINCREMENT,
-    URI       TEXT
-);
 

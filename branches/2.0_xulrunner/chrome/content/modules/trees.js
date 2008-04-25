@@ -564,7 +564,7 @@ function sqlView(dbFileObj,parent,heirs){
         if (q.executeStep()) {
             var idx = q.getInt32(0)
             q.reset()
-            this.treeBox.scrollToRow(idx)
+            this.treeBox.ensureRowIsVisible(idx)
             if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
                 this.toggleOpenState(idx)
             }
@@ -577,7 +577,9 @@ function sqlView(dbFileObj,parent,heirs){
             if (q.executeStep()) {
                 var idx = q.getInt32(0)
                 q.reset()
-                this.treeBox.scrollToRow(idx)
+                if (this.treeBox.getPageLength() < this.rowCount) {
+                    this.treeBox.scrollToRow(idx)
+                }
                 if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
                     this.toggleOpenState(idx)
                 }

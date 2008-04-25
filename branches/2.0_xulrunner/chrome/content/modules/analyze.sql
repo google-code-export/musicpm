@@ -90,7 +90,11 @@ DROP TABLE IF EXISTS album;
 CREATE TABLE album AS
     SELECT rowid AS rank, * FROM (
             SELECT 'album' AS type, 'album://' || album AS URI, album as title,
-	            count(*) as track, 0 as children
+	            count(*) as track, 0 as children,
+                CASE count(DISTINCT artist)
+                WHEN 1 THEN artist
+                ELSE 'Various Artists'
+                END artist
             FROM file
             WHERE album NOTNULL
             GROUP BY album

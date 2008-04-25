@@ -23,24 +23,34 @@ window {
 	font-weight: bold;
 }
 
+.albumdisplay {
+	font-weight: bold;
+	font-size: 1.1em;
+}
 
+#playlist richlistcol{
+	max-width: 260px !important;
+}
+#playlist richlistitem description{
+	max-width: 240px !important;
+}
 
-treechildren::-moz-tree-cell-text() {
+#playlist treechildren::-moz-tree-cell-text() {
     color: #EDEDED;
     }
-treechildren::-moz-tree-cell-text(title) {
+#playlist treechildren::-moz-tree-cell-text(title) {
     color: white;
     }
-treechildren::-moz-tree-cell-text(artist){
+#playlist treechildren::-moz-tree-cell-text(artist){
     font-style: italic;
     }
-treechildren::-moz-tree-cell-text(time_file){
+#playlist treechildren::-moz-tree-cell-text(time_file){
     text-align: right;
     }
-treechildren::-moz-tree-cell-text(title_file) {
+#playlist treechildren::-moz-tree-cell-text(title_file) {
     color: #FAFABE;
     }
-treechildren::-moz-tree-cell-text(title_song) {
+#playlist treechildren::-moz-tree-cell-text(title_song) {
     color: #FAFABE;
     }
 treechildren::-moz-tree-cell-text(currentsong) {
@@ -64,21 +74,21 @@ treechildren::-moz-tree-image(title_updating) {
     list-style-image: url("chrome://minion/content/images/rescan_small.png");
     }
 
-treechildren {
+#playlist treechildren {
 	background-color: #151515;
 }
-treechildren::-moz-tree-row {
+#playlist treechildren::-moz-tree-row {
   border-bottom: 1px solid transparent;
   min-height: 20px;
   height: 1.4em;
 }
-treechildren::-moz-tree-row(closed) {
+#playlist treechildren::-moz-tree-row(closed) {
   border-bottom: 1px solid #151515;
 }
-treechildren::-moz-tree-row(open, odd) {
+#playlist treechildren::-moz-tree-row(open, odd) {
   border-top: 1px solid #434343;
 }
-treechildren::-moz-tree-row(open, even) {
+#playlist treechildren::-moz-tree-row(open, even) {
   border-top: 1px solid #505050;
 }
 #playlist treechildren::-moz-tree-row(Artist, odd) {
@@ -91,25 +101,25 @@ treechildren::-moz-tree-row(open, even) {
 	min-height: 400px;
 	min-width: 200px;
 }
-treechildren::-moz-tree-row(selected) {
+#playlist treechildren::-moz-tree-row(selected) {
   background-color: black;
 }
-treechildren::-moz-tree-row(even) {
+#playlist treechildren::-moz-tree-row(even) {
     background-color: #303030;
 }
-treechildren::-moz-tree-row(odd) {
+#playlist treechildren::-moz-tree-row(odd) {
     background-color: #232323;
 }
 
-treechildren::-moz-tree-row(selected, focus) {
+#playlist treechildren::-moz-tree-row(selected, focus) {
   background-color: black;
 }
 
-treechildren::-moz-tree-row(current, focus) {
+#playlist treechildren::-moz-tree-row(current, focus) {
   border: 1px dotted #6D0505;
 }
 
-treechildren::-moz-tree-cell {
+#playlist treechildren::-moz-tree-cell {
   border-right: 1px dotted #444444;
 }
 .tree-columnpicker-icon {

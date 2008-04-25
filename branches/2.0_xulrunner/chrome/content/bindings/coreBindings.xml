@@ -301,22 +301,20 @@
             	flags="dont-build-content"
 				onselect="this.parentNode.selectItem(event)">
                 <xul:treecols>
-                    <xul:treecol id="Pos"
+                    <xul:treecol id="pos"
                         label="#"
                         width="40"
                         ordinal="1"
-                        overflow="true"
-						primary="true"
 						persist="width ordinal hidden"/>
                     <xul:splitter class="tree-splitter" ordinal="2"/>
-                    <xul:treecol id="Title"
+                    <xul:treecol id="title"
                         label="Title"
                         ordinal="3"
                         overflow="true"
                         flex="1"
 						persist="width ordinal hidden"/>
                     <xul:splitter class="tree-splitter" ordinal="4"/>
-                    <xul:treecol id="Time"
+                    <xul:treecol id="time"
 						label="Time"
 						ordinal="5"
 						width="50"
@@ -352,9 +350,11 @@
 				readonly="true"/>
             <constructor>
 				<![CDATA[
+                Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
 				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
-			                getService(Components.interfaces.nsIPrefBranch)
+			                getService(Components.interfaces.nsIPrefBranch);
+
                 try {
 				    this.expanded = prefs.getBoolPref("extensions.mpm.playlistExpanded");
 				} catch (e) {
@@ -362,8 +362,8 @@
                 }
 				var me = this
 				function applyView() {
-					me.view = new playlistView()
-					me.view.load(mpd.plinfo, true)
+					me.view = new sqlView(dbfile,this)
+					me.view.load("select * from lsinfo where pos not null")
 					me.tree.view = me.view
 	                me.box = me.tree.boxObject;
 	                me.box.QueryInterface(Components.interfaces.nsITreeBoxObject);
@@ -371,7 +371,7 @@
 				applyView()
                 this.obsPL = {
                     observe: function(subject,topic,data){
-						me.box.invalidate()
+                        me.view.load("select * from lsinfo where pos not null")
                     }
                 };
                 this.obsLn = {

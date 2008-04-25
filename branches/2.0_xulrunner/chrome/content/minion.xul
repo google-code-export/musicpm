@@ -10,28 +10,60 @@
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	onload="if(!mpd._socket)mpd.connect()">
 	<hbox>
-		<vbox pack="center" align="center">
-			<mpdcontrols hidestop="false"/>
-			<mpdvolume/>
-		</vbox>
+		<mpdcontrols hidestop="false"/>
+		<mpdvolume/>
 		<vbox flex="1">
 			<mpdlabel value="Title" observes="Title"/>
-			<mpdlabel value="Artist" observes="Artist" default="unknown"/>
-			<mpdlabel value="Album" observes="Album" default="unknown"/>
+            <hbox flex="1">
+                <label value="by "/>
+                <mpdlabel value="Artist" observes="Artist" default="unknown"/>
+                <label value=" from "/>
+                <mpdlabel value="Album" observes="Album" default="unknown"/>
+            </hbox>
 			<mpdtime id="mytime"/>
 		</vbox>
 	</hbox>
 	<hbox flex="1">
 		<mpdbrowser flex="4"/>
 		<splitter/>
-		<mpdplaylist id="playlist" flex="1"/>
+		<richlistbox id="playlist"
+            flex="1"
+            datasources="profile:mpd.sqlite"
+            ref="*"
+            querytype="storage">
+            <template>
+                <query>
+                    select * from plalbums
+                </query>
+                <rule>
+                    <where subject="?type" rel="equals" value="album"/>
+                    <action>
+                        <richlistitem uri="?">
+                            <description class="albumdisplay">
+                                <textnode value="?title by ?artist"/>
+                            </description>
+                        </richlistitem>
+                    </action>
+                </rule>
+                <rule>
+                    <action>
+                        <richlistitem uri="?">
+                            <description>
+                                <textnode value="?pos^.  ?title"/>
+                            </description>
+                        </richlistitem>
+                    </action>
+                </rule>
+            </template>
+        </richlistbox>
+
 	</hbox>
 	<statusbar pack="center">
         <vbox flex="1">
             <spacer flex="1"/>
             <hbox>
-                <mpdlabel value="command" observes="pltime"/>
-                <mpdlabel value="last" observes="lastCommand"/>
+                <label value="Playlist Time:"/>
+                <mpdlabel observes="pltime"/>
                 <spacer flex="1"/>
                 <mpdlabel value="response" observes="lastResponse"/>
             </hbox>
@@ -39,4 +71,13 @@
         </vbox>
 		<mpdconnection/>
 	</statusbar>
+    <script>
+        Components.utils.import("resource://minion/mpd.js");
+        this.obsPL = {
+            observe: function(subject,topic,data){
+                document.getElementById("playlist").builder.rebuild()
+            }
+        };
+        observerService.addObserver(this.obsPL,'plinfo',false)
+    </script>
 </window>

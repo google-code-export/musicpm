@@ -467,53 +467,61 @@ var mpd = {
 
     // Parse output from status command, internal use only.
     _update: function (data) {
-        //parse the incoming data into a status object
-        var obj = new Object()
-        data = data.split("\n")
-        var dl = data.length
-        var pair
-        do {
-            pair = data[dl - 1].split(": ", 2)
-            if (pair.length == 2) {
-                obj[pair[0]] = pair[1]
+        try {
+            //parse the incoming data into a status object
+            var obj = new Object()
+            data = data.split("\n")
+            var dl = data.length
+            var pair
+            do {
+                pair = data[dl - 1].split(": ", 2)
+                if (pair.length == 2) {
+                    obj[pair[0]] = pair[1]
+                }
+            } while (--dl)
+
+            // React to and alter certain values.
+            if (obj.state == 'stop') {
+                obj.time = 0
             }
-        } while (--dl)
+            else {
+                obj.time = Nz(obj.time,'0').split(":")[0]
+            }
+            if (obj.song != mpd.song) {
+                mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
+            }
+            if (obj.playlist != mpd.playlist) {
+                mpd.plinfo.length = obj.playlistlength
+                mpd.db.executeSimpleSQL("delete from playlist where pos > " +
+                    Nz(obj.playlistlength,1)+"-1")
+                mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
+            }
+            mpd.playlist = Nz(obj.playlist)
+            if (mpd.updating_db) {
+                if (!Nz(obj.updating_db)) {
+                    mpd.set('updating_db', null)
+                    mpd.doCmd('stats',statsCallback,true)
+                }
+            }
 
-        // React to and alter certain values.
-        if (obj.state == 'stop') {
-            obj.time = 0
-        }
-        else {
-            obj.time = Nz(obj.time,'0').split(":")[0]
-        }
-        if (obj.song != mpd.song) {
-            mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
-        }
-        if (obj.playlist != mpd.playlist) {
-            mpd.plinfo.length = obj.playlistlength
-            mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
-        }
-        mpd.playlist = Nz(obj.playlist)
-		if (mpd.updating_db) {
-			if (!Nz(obj.updating_db)) {
-        		mpd.set('updating_db', null)
-				mpd.doCmd('stats',statsCallback,true)
-			}
-		}
+            //set status values
+            mpd.set('volume', Nz(obj.volume))
+            mpd.set('repeat', Nz(obj.repeat))
+            mpd.set('random', Nz(obj.random))
+            mpd.set('playlistlength', Nz(obj.playlistlength))
+            mpd.set('xfade', Nz(obj.xfade))
+            mpd.set('state', Nz(obj.state))
+            mpd.set('song', Nz(obj.song))
+            mpd.set('time', Nz(obj.time))
+            mpd.set('bitrate', Nz(obj.bitrate))
+            mpd.set('updating_db', Nz(obj.updating_db))
 
-        //set status values
-        mpd.set('volume', Nz(obj.volume))
-        mpd.set('repeat', Nz(obj.repeat))
-        mpd.set('random', Nz(obj.random))
-        mpd.set('playlistlength', Nz(obj.playlistlength))
-        mpd.set('xfade', Nz(obj.xfade))
-        mpd.set('state', Nz(obj.state))
-        mpd.set('song', Nz(obj.song))
-        mpd.set('time', Nz(obj.time))
-        mpd.set('bitrate', Nz(obj.bitrate))
-        mpd.set('updating_db', Nz(obj.updating_db))
-
-        mpd._doStatus = false
+            mpd._doStatus = false
+        }
+        catch (e) {
+            debug(e)
+            debug(mpd.db.lastErrorString)
+        }
     },
 
     // Parse output from currentsong command, internal use only.
@@ -545,58 +553,55 @@ var mpd = {
         mpd.set('Date', Nz(obj.Date))
         mpd.set('Genre', Nz(obj.Genre))
         mpd.set('Composer', Nz(obj.Composer))
-    },
-
-    _parsePL: function (data) {
-		data = data.split("\n")
-		var dirty = false
-        var dl = data.length
-        if (dl > 0) {
-            var n = dl
-            do {
-                var i = dl - n
-                var sep = data[i].indexOf(": ")
-                if (data[i].substr(0, sep) == 'file') {
-                    var fname = data[i].slice(sep+2)
-                    var song = {
-                        'type': 'file',
-                        'Name': fname,
-                        'Title': fname,
-                        'Artist': 'unknown',
-                        'Album': 'unknown',
-                        'Time': 0,
-                        'Pos': 0
-                    };
-                    var d = data[i + 1]
-                    while (d && d.substr(0, 6) != "file: ") {
-                        var sep = d.indexOf(": ")
-                        if (sep > 0) {
-                            song[d.substr(0, sep)] = d.slice(sep + 2);
-                        }
-                        --n;
-                        var d = data[dl - n + 1]
-                    };
-                    mpd.plinfo[parseInt(song.Pos)] = song
-					dirty = true
-                }
-            }
-            while (--n)
-			if (dirty) {
-				debug("Notify: mpd.plinfo = " + mpd.playlist)
-				observerService.notifyObservers(null, "plinfo", mpd.playlist)
-			}
-        }
-        var tm = 0
-        var l = mpd.plinfo.length
-        if (l > 0) {
-            do {
-                try {tm += parseInt(mpd.plinfo[l-1]['Time'])}
-                catch (e) {debug(e)}
-            } while (--l)
-        }
-        mpd.set("pltime", prettyTime(tm))
     }
 }
+
+mpd._parsePL = function (data) {
+    data = data.split("\n")
+    var dirty = false
+    var dl = data.length
+    if (dl > 0) {
+        mpd.db.beginTransaction()
+        var n = dl
+        do {
+            var i = dl - n
+            var sep = data[i].indexOf(": ")
+            if (data[i].substr(0, sep) == 'file') {
+                var fname = data[i].slice(sep+2)
+                var d = data[i + 1]
+                while (d && d.substr(0, 6) != "file: ") {
+                    var sep = d.indexOf(": ")
+                    if (sep > 0) {
+                        if(d.substr(0, sep) == "Pos") {
+                            sql = "replace into playlist values(" +
+                                d.slice(sep+2) + "," + Sz("file://"+fname) + ")"
+                            try {
+                                mpd.db.executeSimpleSQL(sql)
+                            } catch (e) {
+                                debug(sql)
+                                debug(mpd.db.lastErrorString)
+                            }
+                        }
+                    }
+                    --n;
+                    var d = data[dl - n + 1]
+                };
+                dirty = true
+            }
+        }
+        while (--n)
+        mpd.db.commitTransaction()
+        if (dirty) {
+            debug("Notify: mpd.plinfo = " + mpd.playlist)
+            observerService.notifyObservers(null, "plinfo", mpd.playlist)
+        }
+    }
+    var q = mpd.db.createStatement("select total(time) from lsinfo where pos not null")
+    var tm = (q.executeStep()) ? q.getInt32(0) : 0
+    q.reset()
+    mpd.set("pltime", prettyTime(tm))
+}
+
 mpd.query = function (URI, view, addrBox){
     /* Query mpd and return database results to nslTreeView view,
      * then load addrBox.searchParam with appropriate autocomplete
@@ -613,7 +618,7 @@ mpd.query = function (URI, view, addrBox){
     var cmd = URI
     if (URI.indexOf("://") < 0) {
         if (URI.toLowerCase().indexOf('select') == 0) {
-            sqlQuery(URI, view, addrBox)
+            view.load(URI)
             return true
         }
         // Clean up and validate command lists.
@@ -956,7 +961,7 @@ function socketTalker() {
                 }
                 else
                     if (this.data.substr(0, 6) == "OK MPD") {
-                        mpd.set('greeting', this.data)
+                        mpd.set('greeting', this.data.slice(3))
                         this.data = ""
                         if (mpd._password.length > 0) {
                             mpd._cmdQueue.unshift({
