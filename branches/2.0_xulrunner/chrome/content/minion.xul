@@ -35,25 +35,22 @@
                 <query>
                     select * from plalbums
                 </query>
-                <rule>
-                    <where subject="?type" rel="equals" value="album"/>
-                    <action>
-                        <richlistitem uri="?">
-                            <description class="albumdisplay">
-                                <textnode value="?title by ?artist"/>
+                <action>
+                <richlistitem uri="?">
+                    <hbox>
+                        <image id="?title :: ?artist"
+                            src="chrome://minion/content/blank.png"/>
+                        <vbox>
+                            <description class="title">
+                                <textnode value="?title"/>
                             </description>
-                        </richlistitem>
-                    </action>
-                </rule>
-                <rule>
-                    <action>
-                        <richlistitem uri="?">
-                            <description>
-                                <textnode value="?pos^.  ?title"/>
+                            <description class="artist">
+                                <textnode value="?artist"/>
                             </description>
-                        </richlistitem>
-                    </action>
-                </rule>
+                        </vbox>
+                    </hbox>
+                </richlistitem>
+                </action>
             </template>
         </richlistbox>
 
@@ -79,5 +76,6 @@
             }
         };
         observerService.addObserver(this.obsPL,'plinfo',false)
+        observerService.addObserver(this.obsPL,'playlistlength',false)
     </script>
 </window>

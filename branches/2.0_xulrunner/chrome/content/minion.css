@@ -28,6 +28,14 @@ window {
 	font-size: 1.1em;
 }
 
+.title {
+	font-weight: bold;
+}
+
+.artist {
+	font-style: italic;
+}
+
 #playlist richlistcol{
 	max-width: 260px !important;
 }
