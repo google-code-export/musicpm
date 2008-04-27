@@ -25,7 +25,6 @@ window {
 
 .albumdisplay {
 	font-weight: bold;
-	font-size: 1.1em;
 }
 
 .title {
@@ -36,13 +35,38 @@ window {
 	font-style: italic;
 }
 
-#playlist richlistcol{
-	max-width: 260px !important;
+#playlist{
+	min-width: 250px !important;
+	max-width: 250px !important;
+}
+#playlist richlistitem {
+	overflow: hidden;
 }
 #playlist richlistitem description{
-	max-width: 240px !important;
+	max-width: 150px !important;
 }
 
+#playlist listbox {
+	margin-bottom: 10px;
+}
+#playlist image {
+	max-width: 72px;
+	max-height: 66px;
+	min-width: 72px;
+	min-height: 66px;
+	margin: 4px;
+	background-color: #303030;
+	border: 1px solid #101010;
+	border-left: 7px solid #151515;
+}
+#playlist image:hover {
+	margin-top: 3px;
+	margin-bottom:5px;
+}
+#playlist image:active {
+	margin-top: 5px;
+	margin-bottom:3px;
+}
 #playlist treechildren::-moz-tree-cell-text() {
     color: #EDEDED;
     }

@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS _dir_filter;
+
 DROP TABLE IF EXISTS directory;
 CREATE TEMP TABLE _dir_filter AS
 	SELECT type, directory, name as title,
@@ -6,6 +6,7 @@ CREATE TEMP TABLE _dir_filter AS
 	    FROM tag_cache
 	    WHERE type='directory'
 	    ORDER BY directory, title;
+
 CREATE TABLE directory AS
     SELECT p.URI AS URI, count(p.URI <> c.URI) as children,
         p.title AS title, p.type AS type,
@@ -16,6 +17,7 @@ CREATE TABLE directory AS
     GROUP BY p.name
     ORDER BY p.URI;
 DROP TABLE IF EXISTS _dir_filter;
+
 
 DROP TABLE IF EXISTS genre;
 CREATE TABLE genre AS
@@ -29,8 +31,10 @@ CREATE TABLE genre AS
             ORDER BY count(*) DESC
         )
         ORDER BY title;
+
 CREATE VIEW IF NOT EXISTS topgenre AS
     SELECT * FROM genre WHERE rank < ((SELECT count(*) FROM genre)/10)+1;
+
 
 DROP TABLE IF EXISTS artist;
 CREATE TABLE artist AS
@@ -48,6 +52,7 @@ CREATE TABLE artist AS
 CREATE VIEW IF NOT EXISTS topartist AS
     SELECT * FROM artist WHERE rank < ((SELECT count(*) FROM artist)/10)+1;
 
+
 DROP TABLE IF EXISTS performer;
 CREATE TABLE performer AS
     SELECT rowid AS rank, * FROM (
@@ -60,6 +65,7 @@ CREATE TABLE performer AS
             ORDER BY count(*) DESC
         )
         ORDER BY title;
+
 
 DROP TABLE IF EXISTS composer;
 CREATE TABLE composer AS
@@ -74,6 +80,7 @@ CREATE TABLE composer AS
         )
         ORDER BY title;
 
+
 DROP TABLE IF EXISTS date;
 CREATE TABLE date AS
     SELECT rowid AS rank, * FROM (
@@ -85,6 +92,7 @@ CREATE TABLE date AS
             ORDER BY count(*) DESC
         )
         ORDER BY title;
+
 
 DROP TABLE IF EXISTS album;
 CREATE TABLE album AS
@@ -101,5 +109,16 @@ CREATE TABLE album AS
             ORDER BY count(*) DESC
         )
         ORDER BY title;
+
+
+CREATE VIEW plalbums AS
+    SELECT 'album' AS type, min(pos) AS pos,
+        ifnull(p.album,'<Unknown Album>') AS title,
+        ifnull(p.album,p.artist,b.artist) as artist
+    FROM plinfo as p
+    LEFT OUTER JOIN album as b ON p.album = b.album
+    GROUP BY p.album
+    ORDER BY pos;
+
 
 ANALYZE;

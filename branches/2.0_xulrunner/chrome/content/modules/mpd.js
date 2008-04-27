@@ -29,10 +29,10 @@ var dbfile = Components.classes["@mozilla.org/file/directory_service;1"]
                      .getService(Components.interfaces.nsIProperties)
 						.get("ProfD", Components.interfaces.nsIFile);
 dbfile.append("mpd.sqlite");
-var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
+
+mDBConn = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService)
 							.openDatabase(dbfile);
-
 try {
 	var schema = getFileContents("resource://minion/schema.sql")
 	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);" +
@@ -60,16 +60,22 @@ function Lz (str) {
 	return ''
 }
 function updateDirStructure(data){
-	var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
-	db_up = (q.executeStep()) ? q.getInt32(0) : 0
-	q.reset()
+    try {
+        var q = mpd.db.createStatement("SELECT value FROM stats WHERE type='db_update';")
+        db_up = (q.executeStep()) ? q.getInt32(0) : 0
+    }
+    catch (e) {
+        debug(sql+"/n"+ mpd.db.lastErrorString)
+        debug(e)
+    }
+	finally { q.reset() }
 
 	var sql = ''
 	var num = 0
 	data = data.split("\n")
 	var dl = data.length
 	if (dl > 0) {
-		mDBConn.beginTransaction(mDBConn.TRANSACTION_DEFERRED)
+		mpd.db.beginTransaction(mpd.db.TRANSACTION_DEFERRED)
 		var n = dl
 		try {
 			do {
@@ -90,33 +96,45 @@ function updateDirStructure(data){
 					"VALUES(" +
 					[db_up,Sz(fld),Sz(leaf),Sz(branch)].join(",") +
 					");"
-					mDBConn.executeSimpleSQL(sql)
+					mpd.db.executeSimpleSQL(sql)
 					num++
 				}
 			}
 			while (--n)
-			mDBConn.commitTransaction()
+			mpd.db.commitTransaction()
 			debug(num+" directories and files added.")
 		}
 		catch (e) {
-			debug(sql+"/n"+ mDBConn.lastErrorString)
+			debug(sql+"/n"+ mpd.db.lastErrorString)
 			debug(e)
 		}
 	}
 	try {
 		sql = "DELETE FROM tag_cache WHERE db_update<" + db_up + ";"
-		mDBConn.executeSimpleSQL(sql)
+		mpd.db.executeSimpleSQL(sql)
 		sql = "INSERT OR IGNORE INTO file (ID,URI,type,title) \
             SELECT ID,URI,type,name FROM tag_cache WHERE type='file'"
-		mDBConn.executeSimpleSQL(sql)
+		mpd.db.executeSimpleSQL(sql)
+        sql = "DROP TABLE IF EXISTS directory; \
+            CREATE TABLE directory AS \
+                SELECT p.URI AS URI, count(p.URI <> c.URI) as children, \
+                    p.title AS title, p.type AS type, \
+                    p.directory AS directory, p.name AS name \
+                FROM _dir_filter as p \
+                LEFT OUTER JOIN _dir_filter as c \
+                ON c.directory=p.title \
+                GROUP BY p.name \
+                ORDER BY p.URI;"
+		mpd.db.executeSimpleSQL(sql)
 	} catch (e) {
-		debug(sql+"/n"+ mDBConn.lastErrorString)
+		debug(sql+"/n"+ mpd.db.lastErrorString)
 		debug(e)
 	}
 	mpd.set('lastCommand', 'Directories loaded')
 }
 function updateTagCache(data){
 	mpd.set('lastCommand', 'Parsing tag_cache')
+	debug('Parsing tag_cache')
 	var sql = ''
 	var maybeInt = function (test) {
 		if (isNaN(test)) return Sz(test)
@@ -135,7 +153,6 @@ function updateTagCache(data){
 	data = data.split("\n")
 	var dl = data.length
 	if (dl > 0) {
-		mDBConn.beginTransaction(mDBConn.TRANSACTION_DEFERRED)
 		var insert = function (_cols, _vals, URI) {
 			var up = []
 			for (x in _cols) {
@@ -144,14 +161,15 @@ function updateTagCache(data){
 			try {
 				sql = "UPDATE file SET " + up.join(',') +
 				" WHERE URI=" + URI
-				mDBConn.executeSimpleSQL(sql)
+				mpd.db.executeSimpleSQL(sql)
 			}
 			catch (e) {
-				debug(sql + "\n" + mDBConn.lastErrorString)
+				debug(sql + "\n" + mpd.db.lastErrorString)
 			}
 		}
 		var n = dl
 		try {
+            mpd.db.beginTransaction()
 			do {
 				var i = dl - n
 				var sep = data[i].indexOf(": ")
@@ -208,15 +226,14 @@ function updateTagCache(data){
 				}
 			}
 			while (--n)
-			mDBConn.commitTransaction()
-			sql = getFileContents("resource://minion/analyze.sql")
+			mpd.db.commitTransaction()
+            debug("Time to analyze...")
 			mpd.set('lastCommand', 'Analyzing Data...')
-			mDBConn.executeSimpleSQL(sql)
+			//mpd.db.executeSimpleSQL(getFileContents("resource://minion/analyze.sql"))
 
 		}
 		catch (e) {
-			debug(sql+"/n"+ mDBConn.lastErrorString)
-			debug(e)
+			debug(mpd.db.lastErrorString)
 		}
 	}
 	mpd.set('lastCommand', 'Database loaded')
@@ -225,10 +242,11 @@ function updateTagCache(data){
 function statsCallback(data){
 	debug(data)
     try {
-        var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
+        var q = mpd.db.createStatement("SELECT value FROM stats WHERE type='db_update';")
         var db_update = (q.executeStep()) ? q.getInt32(0) : 0
-        q.reset()
-    } catch (e) { db_update = -1 }
+    }
+    catch (e) { db_update = -1 }
+    finally { q.reset() }
 	data = data.split("\n")
 	var dl = data.length
 	var stats = []
@@ -240,7 +258,7 @@ function statsCallback(data){
 			if (sep > -1) {
 				var fld = data[i].substr(0, sep)
 				var val = data[i].slice(sep + 2)
-				mDBConn.executeSimpleSQL("REPLACE INTO stats " +
+				mpd.db.executeSimpleSQL("REPLACE INTO stats " +
 				"VALUES(NULL,'" +
 				data[i].substr(0, sep) +
 				"'," +
@@ -250,9 +268,12 @@ function statsCallback(data){
 		}
 		while (--n)
 	}
-	var q = mDBConn.createStatement("SELECT value FROM stats WHERE type='db_update';")
-	mpd.db_update = (q.executeStep()) ? q.getInt32(0) : 0
-	q.reset()
+    try {
+        var q = mpd.db.createStatement("SELECT value FROM stats WHERE type='db_update';")
+        mpd.db_update = (q.executeStep()) ? q.getInt32(0) : 0
+    }
+    catch (e) { mpd.db_update = 0 }
+	finally { q.reset() }
 	if (db_update != mpd.db_update) {
 		debug("Database update needed.")
 		mpd.doCmd('listall', function(d){
@@ -409,8 +430,7 @@ var mpd = {
             mpd._socket.cancel()
         }
 		mpd._socket = socketTalker()
-		mpd.doCmd('lsinfo', lsinfoCallback, true)
-		mpd.doCmd('stats', statsCallback, true)
+		mpd.doCmd('stats', statsCallback, true, true)
         mpd._checkStatus()
     },
     disconnect: function () {
@@ -438,13 +458,23 @@ var mpd = {
     // Talk directlty to MPD, outputData must be properly escaped and quoted.
     // callBack is optional, if left out or null and no socket is in use,
     // a single use connection will be made for this command.
-    doCmd: function (outputData, callBack, hide){
+    doCmd: function (outputData, callBack, hide, priority){
         hide = Nz(hide)
-        mpd._cmdQueue.push({
-            outputData: outputData+"\n",
-            callBack: Nz(callBack),
-            hide: hide
-            })
+        priority = Nz(priority)
+        if (priority) {
+            mpd._cmdQueue.unshift({
+                outputData: outputData+"\n",
+                callBack: Nz(callBack),
+                hide: hide
+                })
+        }
+        else {
+            mpd._cmdQueue.push({
+                outputData: outputData+"\n",
+                callBack: Nz(callBack),
+                hide: hide
+                })
+        }
         mpd._doStatus = true
         if (mpd._socket) {
             if (mpd._idle) {
@@ -596,9 +626,15 @@ mpd._parsePL = function (data) {
             observerService.notifyObservers(null, "plinfo", mpd.playlist)
         }
     }
-    var q = mpd.db.createStatement("select total(time) from lsinfo where pos not null")
-    var tm = (q.executeStep()) ? q.getInt32(0) : 0
-    q.reset()
+    try {
+        var q = mpd.db.createStatement("select total(time) from lsinfo where pos not null")
+        var tm = (q.executeStep()) ? q.getInt32(0) : 0
+    }
+    catch (e) {
+        debug(sql)
+        debug(mpd.db.lastErrorString)
+    }
+    finally { q.reset() }
     mpd.set("pltime", prettyTime(tm))
 }
 
@@ -676,11 +712,11 @@ mpd.query = function (URI, view, addrBox){
                 break;
             case "file":
                 if (id.length==0){
-                    sql = "select * from file;"
+                    sql = "select * from lsinfo;"
                 }
                 else if (id.indexOf("=") > 0) {
                     var criteria = id[0].replace(/'/g, "''")
-                    sql = "select * from file where "+Lz(id[0])+"='"+criteria+"';"
+                    sql = "select * from lsinfo where "+Lz(id[0])+"='"+criteria+"';"
                 }
                 else {
                     mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
@@ -696,7 +732,7 @@ mpd.query = function (URI, view, addrBox){
                         }
                         catch (e) {
                             debug(e)
-                            debug(sql + "\n" + mDBConn.lastErrorString)
+                            debug(sql + "\n" + mpd.db.lastErrorString)
                         }
                     }, false)
                     return true
@@ -710,7 +746,7 @@ mpd.query = function (URI, view, addrBox){
                         }
                         catch (e) {
                             debug(e)
-                            debug(sql + "\n" + mDBConn.lastErrorString)
+                            debug(sql + "\n" + mpd.db.lastErrorString)
                         }
                     }, false)
                     return true
@@ -729,7 +765,7 @@ mpd.query = function (URI, view, addrBox){
                     else
                         if (id.length == 2) {
                             var criteria = id[1].replace(/'/g, "''")
-                            sql = "select * from file where lower("+Lz(id[0])+") glob('*"+criteria+"*');"
+                            sql = "select * from lsinfo where lower("+Lz(id[0])+") glob('*"+criteria+"*');"
                         }
                 }
                 else {
@@ -741,12 +777,12 @@ mpd.query = function (URI, view, addrBox){
                     id = id.replace("/","=").split("=")
                     if (id.length == 1) {
                         var criteria = id[0].replace(/'/g, "''")
-                        sql = "select * from file WHERE " + Lz(type) + "='" + criteria + "';"
+                        sql = "select * from lsinfo WHERE " + Lz(type) + "='" + criteria + "';"
                     }
                     else
                         if (id.length == 2) {
                             var criteria = id[1].replace(/'/g, "''")
-                            sql = "select distinct '" + Lz(type) + "' as type, " + Lz(type) + " as name from tag_cache WHERE " + Lz(id[0]) + "='" + criteria + "';"
+                            sql = "select distinct '" + Lz(type) + "' as type, " + Lz(type) + " as name from lsinfo WHERE " + Lz(id[0]) + "='" + criteria + "';"
                         }
                 }
                 else {

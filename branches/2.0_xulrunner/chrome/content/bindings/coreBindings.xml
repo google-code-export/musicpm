@@ -538,7 +538,7 @@
 						<xul:menupopup>
 							<xul:menuitem label="Filter"
 								tooltiptext="Filter contents of current location by Title"/>
-							<xul:menuitem label="Search"
+							<xul:menuitem label="Search All"
 								tooltiptext="Search all fields in database"
 								selected="true"/>
 							<xul:menuitem label="Title"
@@ -593,11 +593,12 @@
 						seltype="multiple"
 		            	flags="dont-build-content">
 		                <xul:treecols id="mpdBrowserCols">
-		                    <xul:treecol id="pos" label="#" ordinal="1" width="30px"
+		                    <xul:treecol id="position" label="#" ordinal="1" width="40px"
 		                            hidden="false"
-		                            collapsed="true"
+		                            collapsed="false"
 		                            persist="width ordinal hidden"
-		                            class="sortDirectionIndicator"/>
+		                            class="sortDirectionIndicator"
+                                    tooltiptext="Playlist Position"/>
 		                    <xul:splitter class="tree-splitter" ordinal="2" />
 		                    <xul:treecol id="disc" label="Disc" ordinal="3" width="60px"
 		                            hidden="true"
@@ -605,6 +606,7 @@
 		                            class="sortDirectionIndicator"/>
 		                    <xul:splitter class="tree-splitter" ordinal="4" />
 		                    <xul:treecol id="track" label="Track" ordinal="5" width="60px"
+		                            collapsed="true"
 		                            persist="width ordinal hidden"
 		                            style="text-align:right"
 		                            class="sortDirectionIndicator"/>
@@ -735,6 +737,13 @@
                 };
                 observerService.addObserver(this.obsCurSong,'state',false)
                 observerService.addObserver(this.obsCurSong,'file',false)
+                this.obsPL = {
+                    observe: function(subject,topic,data){
+                        view.requery()
+                    }
+                };
+                observerService.addObserver(this.obsPL,'plinfo',false)
+                observerService.addObserver(this.obsPL,'playlistlength',false)
                 dump("constructed")
 				this.goToURI("Home")
 				]]>
@@ -832,7 +841,7 @@
 				<body>
 					<![CDATA[
 					switch (this.searchType.selectedItem.label) {
-						case "Search": this.goToURI("search://"+this.searchInput.value);break;
+						case "Search All": this.goToURI("search://"+this.searchInput.value);break;
 						case "Filter": this.view.applyFilter(this.searchInput.value);break;
 						case "Title": this.goToURI("search://title="+this.searchInput.value);break;
 						case "Artist": this.goToURI("search://artist="+this.searchInput.value);break;

@@ -17,7 +17,8 @@
 */
 
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
-                    "observerService", "getFileContents", "mpmUtils_EXPORTED_SYMBOLS"]
+                    "observerService", "getFileContents",
+                    "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 
@@ -31,7 +32,11 @@ function debug(s) {
     //return null
     if (typeof(s) == 'object') {
         var str = ""
-        for (x in s) {try{str += x + ": " + s[x] + "\n"} catch(e) {str += x + ": ERROR"}}
+        for (x in s) {
+            try {
+                str += (typeof(s[x]) == 'object') ? s[x].toSource() :  x + ": " + s[x]
+                str += "\n"
+            } catch(e) {str += x + ": ERROR"}}
     }
     else {var str = s}
     dump(str+"\n\n")
@@ -159,3 +164,7 @@ function copyArray (oldArray) {
     }
     else return oldArray
 }
+
+
+
+

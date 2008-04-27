@@ -8,7 +8,7 @@
     title="Music Player Minion"
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-	onload="if(!mpd._socket)mpd.connect()">
+	onload="if(!mpd._socket)mpd.connect();minion_init()">
 	<hbox>
 		<mpdcontrols hidestop="false"/>
 		<mpdvolume/>
@@ -24,7 +24,7 @@
 		</vbox>
 	</hbox>
 	<hbox flex="1">
-		<mpdbrowser flex="4"/>
+		<mpdbrowser id="browse" flex="4"/>
 		<splitter/>
 		<richlistbox id="playlist"
             flex="1"
@@ -38,15 +38,20 @@
                 <action>
                 <richlistitem uri="?">
                     <hbox>
-                        <image id="?title :: ?artist"
-                            src="chrome://minion/content/blank.png"/>
                         <vbox>
-                            <description class="title">
-                                <textnode value="?title"/>
-                            </description>
-                            <description class="artist">
-                                <textnode value="?artist"/>
-                            </description>
+                            <image pos="?pos"
+                                album="?title"
+                                artist="?key_artist"
+                                src="chrome://minion/content/images/album_blank.png"
+                                validate="never"
+                                onclick="openAlbum()"/>
+                        </vbox>
+                        <vbox flex="1">
+                            <description class="title" value="?title"/>
+                            <description class="artist" value="?artist"/>
+                            <listbox album="?title"
+                                collapsed="true"
+                                empty="true"/>
                         </vbox>
                     </hbox>
                 </richlistitem>
@@ -68,14 +73,6 @@
         </vbox>
 		<mpdconnection/>
 	</statusbar>
-    <script>
-        Components.utils.import("resource://minion/mpd.js");
-        this.obsPL = {
-            observe: function(subject,topic,data){
-                document.getElementById("playlist").builder.rebuild()
-            }
-        };
-        observerService.addObserver(this.obsPL,'plinfo',false)
-        observerService.addObserver(this.obsPL,'playlistlength',false)
-    </script>
+
+    <script src="chrome://minion/content/minion.js"/>
 </window>

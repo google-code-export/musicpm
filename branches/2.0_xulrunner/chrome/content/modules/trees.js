@@ -706,7 +706,7 @@ function sqlView(dbFileObj,parent,heirs){
                             Sz(item.loc + "\n") +
                             " || {get}.URI as loc FROM {get} " +
                             "INNER JOIN file ON {get}.title=file.{get} " +
-                            "WHERE " +
+                            "WHERE file." +
                             item.type +
                             "=" +
                             Sz(item.name)
