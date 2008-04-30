@@ -516,21 +516,8 @@
     <binding id="mpdBrowser">
         <content>
         	<xul:vbox flex="1">
-	        	<xul:hbox>
-	        		<xul:toolbarbutton class="mpdBrowserBack"
-						label="Back"
-						oncommand="this.parentNode.parentNode.parentNode.goBack()"/>
-	        		<xul:toolbarbutton class="mpdBrowserForward"
-						label="Forward"
-						oncommand="this.parentNode.parentNode.parentNode.goForward()"/>
-					<xul:textbox id="mpdAddress" value="" flex="1"
-						type="autocomplete"
-						autocompletesearch="simple-autocomplete"
-						completedefaultindex="true"
-						enablehistory="true"
-						showcommentscolumn="true"
-                        tabscrolling="true"
-						ontextentered="this.parentNode.parentNode.parentNode.goToURI(this.value)"/>
+                <xul:hbox>
+                    <xul:spacer flex="1"/>
 					<xul:menulist id="searchType"
 						label="Search"
 						sizetopopup="always"
@@ -563,6 +550,22 @@
 						type="timed"
 						timeout="200"
 						oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
+                </xul:hbox>
+	        	<xul:hbox>
+	        		<xul:toolbarbutton class="mpdBrowserBack"
+						label="Back"
+						oncommand="this.parentNode.parentNode.parentNode.goBack()"/>
+	        		<xul:toolbarbutton class="mpdBrowserForward"
+						label="Forward"
+						oncommand="this.parentNode.parentNode.parentNode.goForward()"/>
+					<xul:textbox id="mpdAddress" value="" flex="1"
+						type="autocomplete"
+						autocompletesearch="simple-autocomplete"
+						completedefaultindex="true"
+						enablehistory="true"
+						showcommentscolumn="true"
+                        tabscrolling="true"
+						ontextentered="this.parentNode.parentNode.parentNode.goToURI(this.value)"/>
 				</xul:hbox>
 				<xul:hbox flex="1">
 		            <xul:tree
@@ -570,7 +573,8 @@
 		                flex="1"
 						seltype="single"
 						onclick="this.view.performActionOnRow('click', this.currentIndex)"
-		            	flags="dont-build-content">
+		            	flags="dont-build-content"
+                        min-width="100px">
 		                <xul:treecols id="mpdTreeCols">
 		                    <xul:treecol id="loc" label="loc" flex="1"
 									ordinal="1"
@@ -586,7 +590,7 @@
 						</xul:treecols>
 		                <xul:treechildren id="tchildren"/>
 		            </xul:tree>
-					<xul:splitter/>
+					<xul:splitter collapse="before"/>
 		            <xul:tree
 		                id="mpdBrowserTree"
 		                flex="3"
@@ -701,6 +705,7 @@
 				var addr = document.getAnonymousElementByAttribute(this, 'id', 'mpdAddress')
 				var tree = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserTree')
 				var ttree = document.getAnonymousElementByAttribute(this, 'id', 'mpdTree')
+				this.browserColumns = document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserCols')
 				this.searchType = document.getAnonymousElementByAttribute(this, 'id', 'searchType')
 				this.searchInput = document.getAnonymousElementByAttribute(this, 'id', 'searchInput')
 				this.addr = addr
@@ -855,6 +860,22 @@
 					]]>
 				</body>
 			</method>
+            <method name="displayColumns">
+                <parameter name="columns"/>
+                <body>
+					<![CDATA[
+                        // Collapse unused columns.
+                        try {
+                        var cols = this.browserColumns.childNodes
+                        var len = cols.length
+                        for (var i=0; i < len; i++) {
+                            cols[i].collapsed = (typeof(columns[cols[i].id]) == 'undefined')
+                        }
+                        } catch (e) { dump(e.description) }
+
+                    ]]>
+                </body>
+            </method>
         </implementation>
     </binding>
 

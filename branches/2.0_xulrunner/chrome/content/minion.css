@@ -36,29 +36,35 @@ window {
 }
 
 #playlist{
-	min-width: 250px !important;
-	max-width: 250px !important;
+	min-width: 262px !important;
+	width: 262px !important;
 }
+
 #playlist richlistitem {
-	overflow: hidden;
-}
-#playlist richlistitem description{
-	max-width: 150px !important;
+	overflow: expand;
 }
 
 #playlist listbox {
-	margin-bottom: 10px;
+	margin-left: 20px;
+	overflow: -moz-scrollbars-none;
 }
-#playlist image {
-	max-width: 72px;
+
+.isLink:hover {
+	text-decoration: underline;
+}
+
+
+.albumCover {
+	max-width: 73px;
 	max-height: 66px;
-	min-width: 72px;
+	min-width: 73px;
 	min-height: 66px;
 	margin: 4px;
 	background-color: #303030;
 	border: 1px solid #101010;
-	border-left: 7px solid #151515;
+	border-left: 8px solid #151515;
 }
+
 #playlist image:hover {
 	margin-top: 3px;
 	margin-bottom:5px;

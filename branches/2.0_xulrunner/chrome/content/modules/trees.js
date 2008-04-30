@@ -100,7 +100,9 @@ function customTreeView () {
 	this.selectionChanged  = function ( ) {}
 	this.setCellText  = function (row, col, value ) {}
 	this.setCellValue  = function (row, col, value ) {}
-	this.setTree  = function ( tree ) { this.treeBox = tree}
+	this.setTree  = function ( tree ) {
+        this.treeBox = tree
+    }
 	this.toggleOpenState  = function (index ) {}
 }
 
@@ -428,24 +430,31 @@ function sqlView(dbFileObj,parent,heirs){
             var rowCount = this.fetchOne("SELECT count(*) FROM " + this.table)[0]
             this.rs = []
             this.rs.length = rowCount
+
+            // Read one record to get the columns used.
             sql = "SELECT * FROM " + this.table +
                 this.sqlORDER +
                 " LIMIT 1";
             var q = this.db.createStatement(sql)
             if (q.executeStep()) {
                 this.cols = []
+                var needCols = {}
                 this.colCount = q.numEntries
                 var i = this.colCount
-                var record = {}
+                var record = {'title': true}
                 do {
                     var idx = this.colCount - i
                     this.cols[idx] = q.getColumnName(idx)
                     record[this.cols[idx]] = q.getUTF8String(idx)
+                    needCols[this.cols[idx]] = true
                 }
                 while (--i)
                 this.rs[0] = record
             }
             q.reset()
+            this.rs[0] = record
+            parent.displayColumns(needCols)
+
             if (this.treeBox) {
                 var chg = rowCount - this.rowCount
                 if (action == 'create') {
@@ -459,6 +468,7 @@ function sqlView(dbFileObj,parent,heirs){
                     this.treeBox.invalidate()
                 }
             }
+
             if (action != 'filelist' && action != 'playlists') {
                 this.db.executeSimpleSQL("DROP TABLE IF EXISTS " + this.table + "_map;")
                 this.db.executeSimpleSQL("CREATE TEMP TABLE " + this.table + "_map AS " +

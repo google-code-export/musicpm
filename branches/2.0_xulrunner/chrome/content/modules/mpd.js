@@ -33,7 +33,85 @@ dbfile.append("mpd.sqlite");
 mDBConn = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService)
 							.openDatabase(dbfile);
+
+Array.prototype.getIndex = function (val) {
+    var l = this.length;
+    switch (l) {
+        case 0: return -1; break;
+        case 1: return (this[0] == val) ? 0 : -1; break;
+        default:
+            var n = l;
+            do {
+                if (this[l-n] == val) return l-n;
+            } while (--n);
+            return -1;
+            break;
+    }
+}
+
+
 try {
+    var mostFrequent = {
+        calls: 0,
+        _vals: [],
+        _counts: [],
+
+        reset: function() {
+            this.calls = 0;
+            this._vals = [];
+            this._counts = [];
+        },
+
+        onStep: function(val) {
+            ++this.calls;
+            var v = false;
+            switch (val.getTypeOfIndex(0)) {
+                case 0:
+                    break;
+                case 1:
+                    v = val.getInt32(0);
+                    break;
+                default:
+                    v = val.getUTF8String(0);
+                    break;
+            }
+            if (v) {
+                var i = this._vals.getIndex(v)
+                if (i > -1) {
+                    this._counts[i]++
+                }
+                else {
+                    i = this._vals.length;
+                    this._vals[i] = v;
+                    this._counts[i] = 1;
+                }
+            }
+        },
+
+        onFinal: function() {
+            switch (this._vals.length) {
+                case 0: var topval = null; break;
+                case 1: var topval = this._vals[0];break;
+                default:
+                    var topval = this._vals[0];
+                    var topcnt = this._counts[0];
+                    var ln = this._vals.length;
+                    for (var i = 1; i < ln; i++) {
+                        if (this._counts[i] > topcnt) {
+                            topval = this._vals[i];
+                            topcnt = this._counts[i];
+                        }
+                    }
+                    break;
+            }
+            this._vals = [];
+            this._counts = [];
+            return topval;
+        }
+    };
+
+    mDBConn.createAggregateFunction("top", 1, mostFrequent);
+
 	var schema = getFileContents("resource://minion/schema.sql")
 	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);" +
 		"INSERT OR IGNORE INTO home VALUES('genre://', 'genre','All Genres','',0,'2.',1);" +
@@ -562,9 +640,9 @@ var mpd = {
         var dl = data.length
         var pair
         do {
-            pair = data[dl - 1].split(": ", 2)
-            if (pair.length == 2) {
-                obj[pair[0]] = pair[1]
+            var sep = data[dl - 1].indexOf(": ")
+            if (sep > 0) {
+                obj[data[dl - 1].substr(0, sep)] = data[dl - 1].slice(sep+2)
             }
         } while (--dl)
 

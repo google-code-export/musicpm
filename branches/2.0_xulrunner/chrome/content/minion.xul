@@ -8,58 +8,72 @@
     title="Music Player Minion"
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-	onload="if(!mpd._socket)mpd.connect();minion_init()">
-	<hbox>
-		<mpdcontrols hidestop="false"/>
-		<mpdvolume/>
-		<vbox flex="1">
-			<mpdlabel value="Title" observes="Title"/>
-            <hbox flex="1">
-                <label value="by "/>
-                <mpdlabel value="Artist" observes="Artist" default="unknown"/>
-                <label value=" from "/>
-                <mpdlabel value="Album" observes="Album" default="unknown"/>
+	onload="if(!mpd._socket)mpd.connect();minion_init()"
+    width="780px"
+    height="550px">
+    <hbox flex="1">
+        <vbox>
+            <hbox>
+                <mpdcontrols hidestop="false"/>
+                <mpdvolume/>
             </hbox>
-			<mpdtime id="mytime"/>
-		</vbox>
-	</hbox>
-	<hbox flex="1">
-		<mpdbrowser id="browse" flex="4"/>
-		<splitter/>
-		<richlistbox id="playlist"
-            flex="1"
-            datasources="profile:mpd.sqlite"
-            ref="*"
-            querytype="storage">
-            <template>
-                <query>
-                    select * from plalbums
-                </query>
-                <action>
-                <richlistitem uri="?">
-                    <hbox>
-                        <vbox>
-                            <image pos="?pos"
-                                album="?title"
-                                artist="?key_artist"
-                                src="chrome://minion/content/images/album_blank.png"
-                                validate="never"
-                                onclick="openAlbum()"/>
-                        </vbox>
+            <hbox>
+                <mpdlabel id="album"
+                    value="0"
+                    observes="Album"
+                    collapsed="true"/>
+                <mpdlabel
+                    onclick="goToAlbum(document.getElementById('album').value)"
+                    value="Title"
+                    observes="Title"
+                    class="title"/>
+            </hbox>
+            <mpdtime id="mytime"/>
+            <richlistbox id="playlist"
+                flex="1"
+                datasources="profile:mpd.sqlite"
+                ref="*"
+                querytype="storage">
+                <template>
+                    <query>
+                        select * from plalbums
+                    </query>
+                    <action>
+                    <richlistitem uri="?">
                         <vbox flex="1">
-                            <description class="title" value="?title"/>
-                            <description class="artist" value="?artist"/>
+                            <hbox flex="1">
+                                <image class="albumCover"
+                                    pos="?pos"
+                                    album="?title"
+                                    artist="?key_artist"
+                                    src="chrome://minion/content/images/album_blank.png"
+                                    validate="never"
+                                    onclick="openAlbum()"/>
+                                <vbox flex="1">
+                                    <description
+                                        class="title"
+                                        crop="end"
+                                        onclick="browseTo('album','?title^')">
+                                        <textnode maxheight="2em" value="?title"/>
+                                    </description>
+                                    <label class="artist"
+                                        onclick="browseTo('artist','?artist^')"
+                                        value="?artist"/>
+                                </vbox>
+                            </hbox>
                             <listbox album="?title"
                                 collapsed="true"
-                                empty="true"/>
+                                flex="1"
+                                ondblclick="playItem(this)"
+                                onblur="this.clearSelection()"/>
                         </vbox>
-                    </hbox>
-                </richlistitem>
-                </action>
-            </template>
-        </richlistbox>
-
-	</hbox>
+                    </richlistitem>
+                    </action>
+                </template>
+            </richlistbox>
+        </vbox>
+        <mpdbrowser id="browse" flex="1"/>
+    </hbox>
 	<statusbar pack="center">
         <vbox flex="1">
             <spacer flex="1"/>

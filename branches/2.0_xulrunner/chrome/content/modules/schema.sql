@@ -156,17 +156,18 @@ CREATE VIEW IF NOT EXISTS date AS
         )
         ORDER BY title;
 
-
-CREATE VIEW IF NOT EXISTS album AS
+DROP TABLE IF EXISTS album;
+CREATE TABLE album AS
     SELECT rowid AS rank, * FROM (
             SELECT 'album' AS type, 'album://' || album AS URI, album as title,
-	            count(*) as track, 0 as children,
+	            count(*) as track,
                 CASE count(DISTINCT artist)
                 WHEN 1 THEN artist
-                WHEN 2 then group_concat(DISTINCT artist)
-                WHEN 3 then group_concat(DISTINCT artist)
+                WHEN 2 then top(artist)
+                WHEN 3 then top(artist)
                 ELSE 'Various Artists'
-                END artist
+                END artist,
+                top(date) as date
             FROM file
             GROUP BY album
             ORDER BY count(*) DESC
