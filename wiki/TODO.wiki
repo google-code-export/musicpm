@@ -13,6 +13,7 @@
   * Add auto-complete address bar option.
   * Add support for server profiles.
   * Add support for switching outputs.
+  * Add Playlist search.
 
 
 
