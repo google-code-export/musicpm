@@ -73,20 +73,19 @@ window {
 	margin-top: 5px;
 	margin-bottom:3px;
 }
-#playlist treechildren::-moz-tree-cell-text() {
-    color: #EDEDED;
+treechildren::-moz-tree-cell-text() {
+    color: #303030;
     }
-#playlist treechildren::-moz-tree-cell-text(title) {
-    color: white;
+treechildren::-moz-tree-cell-text(title) {
+    color: black;
     }
-#playlist treechildren::-moz-tree-cell-text(artist){
+treechildren::-moz-tree-cell-text(artist){
     font-style: italic;
     }
-#playlist treechildren::-moz-tree-cell-text(time_file){
+treechildren::-moz-tree-cell-text(time_file){
     text-align: right;
     }
-#playlist treechildren::-moz-tree-cell-text(title_file) {
-    color: #FAFABE;
+treechildren::-moz-tree-cell-text(title_file) {
     }
 #playlist treechildren::-moz-tree-cell-text(title_song) {
     color: #FAFABE;

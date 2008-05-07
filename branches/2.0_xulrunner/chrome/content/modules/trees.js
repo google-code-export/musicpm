@@ -453,7 +453,7 @@ function sqlView(dbFileObj,parent,heirs){
             }
             q.reset()
             this.rs[0] = record
-            parent.displayColumns(needCols)
+            //parent.displayColumns(needCols)
 
             if (this.treeBox) {
                 var chg = rowCount - this.rowCount
@@ -629,7 +629,7 @@ function sqlView(dbFileObj,parent,heirs){
     }
     this.isContainer = function(row){
         var item = this.get(row)
-        return (Nz(item.children,-1) > 0)
+        return (Nz(item.container,-1) > 0)
     }
     this.getParentIndex = function(idx){
         var item = this.get(idx)
@@ -657,8 +657,8 @@ function sqlView(dbFileObj,parent,heirs){
             else {
                 if (item.type == 'directory') {
                     var type = 'directory'
-                    sql = "(children,type,title,level,loc,URI,name) " +
-                    "select children,type,title," +
+                    sql = "(container,type,title,level,loc,URI,name) " +
+                    "select container,type,title," +
                     (parseInt(item.level) + 1) +
                     " as level," +
                     Sz(item.loc + "\n") +
@@ -681,8 +681,8 @@ function sqlView(dbFileObj,parent,heirs){
                                 "COMMIT TRANSACTION"
                                 debug(_sql)
                                 view.db.executeSimpleSQL(_sql)
-                                view.load("(type,title,URI,children,level,loc) select 'playlist' AS type, " +
-                                "replace(URI,'playlist://','') as title, URI, 0 as children, " +
+                                view.load("(type,title,URI,container,level,loc) select 'playlist' AS type, " +
+                                "replace(URI,'playlist://','') as title, URI, 0 as container, " +
                                 (parseInt(item.level) + 1) +
                                 " as level," +
                                 Sz(item.loc + "\n") +
@@ -697,8 +697,8 @@ function sqlView(dbFileObj,parent,heirs){
                     }
                     else {
                         if (item.name == '') {
-                            var sql = "(children,type,title,URI,name,level,loc) " +
-                            "select children,type,title,URI, title as name," +
+                            var sql = "(container,type,title,URI,name,level,loc) " +
+                            "select container,type,title,URI, title as name," +
                             (parseInt(item.level) + 1) +
                             " as level, " +
                             Sz(item.loc + "\n") +
@@ -708,8 +708,8 @@ function sqlView(dbFileObj,parent,heirs){
                             " ORDER BY title"
                         }
                         else {
-                            var sql = "(children,type,title,URI,name,level,loc) " +
-                            "SELECT DISTINCT {get}.children,{get}.type,{get}.title," +
+                            var sql = "(container,type,title,URI,name,level,loc) " +
+                            "SELECT DISTINCT {get}.container,{get}.type,{get}.title," +
                             "{get}.URI,{get}.title as name," +
                             (parseInt(item.level) + 1) +
                             " as level, " +

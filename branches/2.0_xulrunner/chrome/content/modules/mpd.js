@@ -34,48 +34,31 @@ mDBConn = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService)
 							.openDatabase(dbfile);
 
-Array.prototype.getIndex = function (val) {
-    var l = this.length;
-    switch (l) {
-        case 0: return -1; break;
-        case 1: return (this[0] == val) ? 0 : -1; break;
-        default:
-            var n = l;
-            do {
-                if (this[l-n] == val) return l-n;
-            } while (--n);
-            return -1;
-            break;
+
+function utf (s) {
+    var r = []
+    for (var i = 0; i < s.length;i++) {
+        r[i] = "\\u"+s.charCodeAt(i)
     }
+    r = r.join("")
+    debug(r)
+    return r
 }
 
 
 try {
-    var mostFrequent = {
-        calls: 0,
+    var mostFrequenta = {
         _vals: [],
         _counts: [],
 
         reset: function() {
-            this.calls = 0;
             this._vals = [];
             this._counts = [];
         },
 
         onStep: function(val) {
-            ++this.calls;
-            var v = false;
-            switch (val.getTypeOfIndex(0)) {
-                case 0:
-                    break;
-                case 1:
-                    v = val.getInt32(0);
-                    break;
-                default:
-                    v = val.getUTF8String(0);
-                    break;
-            }
-            if (v) {
+            var v = val.getUTF8String(0);
+            if (v.length > 0) {
                 var i = this._vals.getIndex(v)
                 if (i > -1) {
                     this._counts[i]++
@@ -93,8 +76,8 @@ try {
                 case 0: var topval = null; break;
                 case 1: var topval = this._vals[0];break;
                 default:
-                    var topval = this._vals[0];
-                    var topcnt = this._counts[0];
+                    var topval = null;
+                    var topcnt = 1;
                     var ln = this._vals.length;
                     for (var i = 1; i < ln; i++) {
                         if (this._counts[i] > topcnt) {
@@ -102,15 +85,65 @@ try {
                             topcnt = this._counts[i];
                         }
                     }
+                    if (!topval) topval = this._vals.join(", ")
                     break;
             }
+            this.reset()
+            return utf(topval);
+        }
+    };
+    var mostFrequentd = {
+        calls: 0,
+        _vals: [],
+        _counts: [],
+
+        reset: function() {
+            this.calls = 0;
             this._vals = [];
             this._counts = [];
+        },
+
+        onStep: function(val) {
+            ++this.calls;
+            var v = val.getUTF8String(0);
+            if (v.length > 0) {
+                var i = this._vals.getIndex(v)
+                if (i > -1) {
+                    this._counts[i]++
+                }
+                else {
+                    i = this._vals.length;
+                    this._vals[i] = v;
+                    this._counts[i] = 1;
+                }
+            }
+        },
+
+        onFinal: function() {
+            switch (this._vals.length) {
+                case 0: var topval = null; break;
+                case 1: var topval = this._vals[0];break;
+                default:
+                    var topval = null;
+                    var topcnt = 1;
+                    var ln = this._vals.length;
+                    for (var i = 1; i < ln; i++) {
+                        if (this._counts[i] > topcnt) {
+                            topval = this._vals[i];
+                            topcnt = this._counts[i];
+                        }
+                    }
+                    if (!topval) topval = this._vals.join(", ")
+                    debug(topval)
+                    break;
+            }
+            this.reset()
             return topval;
         }
     };
 
-    mDBConn.createAggregateFunction("top", 1, mostFrequent);
+    mDBConn.createAggregateFunction("topa", 1, mostFrequenta);
+    mDBConn.createAggregateFunction("topd", 1, mostFrequentd);
 
 	var schema = getFileContents("resource://minion/schema.sql")
 	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);" +
@@ -169,7 +202,7 @@ function updateDirStructure(data){
 						branch = val.slice(0, sep)
 						leaf =  val.slice(sep+1)
 					}
-					sql = "INSERT OR IGNORE INTO tag_cache " +
+					sql = "INSERT OR IGNORE INTO FS " +
 					"(db_update,type,name,directory) " +
 					"VALUES(" +
 					[db_up,Sz(fld),Sz(leaf),Sz(branch)].join(",") +
@@ -188,21 +221,15 @@ function updateDirStructure(data){
 		}
 	}
 	try {
-		sql = "DELETE FROM tag_cache WHERE db_update<" + db_up + ";"
+		sql = "DELETE FROM FS WHERE db_update<" + db_up + ";"
 		mpd.db.executeSimpleSQL(sql)
 		sql = "INSERT OR IGNORE INTO file (ID,URI,type,title) \
-            SELECT ID,URI,type,name FROM tag_cache WHERE type='file'"
+            SELECT ID,URI,type,name FROM FS WHERE type='file'"
 		mpd.db.executeSimpleSQL(sql)
-        sql = "DROP TABLE IF EXISTS directory; \
-            CREATE TABLE directory AS \
-                SELECT p.URI AS URI, count(p.URI <> c.URI) as children, \
-                    p.title AS title, p.type AS type, \
-                    p.directory AS directory, p.name AS name \
-                FROM _dir_filter as p \
-                LEFT OUTER JOIN _dir_filter as c \
-                ON c.directory=p.title \
-                GROUP BY p.name \
-                ORDER BY p.URI;"
+        var flds = "URI,type,name,directory,title,container"
+        sql = "DELETE FROM directory;" +
+            "INSERT OR IGNORE INTO directory (" + flds + ") select " +
+            flds + " from directory_view"
 		mpd.db.executeSimpleSQL(sql)
 	} catch (e) {
 		debug(sql+"/n"+ mpd.db.lastErrorString)
@@ -211,8 +238,8 @@ function updateDirStructure(data){
 	mpd.set('lastCommand', 'Directories loaded')
 }
 function updateTagCache(data){
-	mpd.set('lastCommand', 'Parsing tag_cache')
-	debug('Parsing tag_cache')
+	mpd.set('lastCommand', 'Parsing tags')
+	debug('Parsing tags')
 	var sql = ''
 	var maybeInt = function (test) {
 		if (isNaN(test)) return Sz(test)
@@ -307,10 +334,25 @@ function updateTagCache(data){
 			mpd.db.commitTransaction()
             debug("Time to analyze...")
 			mpd.set('lastCommand', 'Analyzing Data...')
-			//mpd.db.executeSimpleSQL(getFileContents("resource://minion/analyze.sql"))
+
+            sql = "DELETE FROM album;" +
+            "INSERT OR IGNORE INTO album (URI,type,title,artist,date,track)" +
+            "select URI,type,title,artist,date,track FROM album_view;"
+            var flds = "URI,type,title,track,container,rank"
+            var tags = ["genre", "artist", "performer", "composer", "date"]
+            for (x in tags) {
+                debug(tags[x])
+                sql += "DELETE FROM " + tags[x] + ";" +
+                    "INSERT INTO " + tags[x] + " (" + flds + ") " +
+                    "select " + flds + " FROM " + tags[x] + "_view;"
+            }
+            sql += "VACUUM;ANALYZE;"
+
+			mpd.db.executeSimpleSQL(sql)
 
 		}
 		catch (e) {
+            debug(sql)
 			debug(mpd.db.lastErrorString)
 		}
 	}
@@ -319,8 +361,8 @@ function updateTagCache(data){
 
 function statsCallback(data){
 	debug(data)
+    var q = mpd.db.createStatement("SELECT value FROM stats WHERE type='db_update';")
     try {
-        var q = mpd.db.createStatement("SELECT value FROM stats WHERE type='db_update';")
         var db_update = (q.executeStep()) ? q.getInt32(0) : 0
     }
     catch (e) { db_update = -1 }
@@ -336,12 +378,12 @@ function statsCallback(data){
 			if (sep > -1) {
 				var fld = data[i].substr(0, sep)
 				var val = data[i].slice(sep + 2)
-				mpd.db.executeSimpleSQL("REPLACE INTO stats " +
-				"VALUES(NULL,'" +
+				mpd.db.executeSimpleSQL("REPLACE INTO stats (type,value)" +
+				"VALUES('" +
 				data[i].substr(0, sep) +
 				"'," +
 				data[i].slice(sep + 2) +
-				",NULL);")
+				");")
 			}
 		}
 		while (--n)
@@ -716,12 +758,8 @@ mpd._parsePL = function (data) {
     mpd.set("pltime", prettyTime(tm))
 }
 
-mpd.query = function (URI, view, addrBox){
-    /* Query mpd and return database results to nslTreeView view,
-     * then load addrBox.searchParam with appropriate autocomplete
-     * entries.
-     *
-     * URI should be: return_tag_type://specifier or
+mpd.query = function (URI){
+    /* URI should be: return_tag_type://specifier or
      * return_tag_type://where_other_tag_type=specifier or
      * an actual MPD command.
      *
@@ -836,7 +874,7 @@ mpd.query = function (URI, view, addrBox){
                     if (id.length == 1) {
                         var criteria = id[0].replace(/'/g, "''")
                         //var flds = ["title","artist","album","URI","genre","performer","composer"]
-                        //sql = "select * from tag_cache where type='file' AND " + flds.join(" like '%"+criteria+"%' OR ")
+                        //sql = "select * from FS where type='file' AND " + flds.join(" like '%"+criteria+"%' OR ")
                         sql = "select * from file where any glob('*"+criteria+"*');"
 
                     }
@@ -868,10 +906,7 @@ mpd.query = function (URI, view, addrBox){
                 }
                 break;
         }
-        if (sql) {
-            view.load(sql)
-            return true
-        }
+        return sql
     }
 
     var cb = function(data){

@@ -45,7 +45,7 @@
                                 <image class="albumCover"
                                     pos="?pos"
                                     album="?title"
-                                    artist="?key_artist"
+                                    artist="?artist"
                                     src="chrome://minion/content/images/album_blank.png"
                                     validate="never"
                                     onclick="openAlbum()"/>
@@ -57,8 +57,13 @@
                                         <textnode maxheight="2em" value="?title"/>
                                     </description>
                                     <label class="artist"
+                                        crop="end"
                                         onclick="browseTo('artist','?artist^')"
                                         value="?artist"/>
+                                    <label class="file"
+                                        crop="end"
+                                        onclick="openAlbum()"
+                                        value="?track"/>
                                 </vbox>
                             </hbox>
                             <listbox album="?title"
@@ -72,7 +77,7 @@
                 </template>
             </richlistbox>
         </vbox>
-        <mpdbrowser id="browse" flex="1"/>
+        <mpdbrowser id="browser" flex="1"/>
     </hbox>
 	<statusbar pack="center">
         <vbox flex="1">
