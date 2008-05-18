@@ -1,24 +1,24 @@
 mpdlabel {
-	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdObserverLabel")
+	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdObserverLabel")
 }
 mpdtime {
-	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdTime")
+	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdTime")
 }
 mpdvolume {
-	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdVolume")
+	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdVolume")
 }
 mpdcontrols {
-	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdPlaybackControls")
+	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdPlaybackControls")
 }
 mpdconnection {
-	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdConnection")
+	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdConnection")
 }
 mpdplaylist {
-	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdPlaylist")
+	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdPlaylist")
 }
 mpdbrowser {
-	-moz-binding: url("chrome://minion/content/bindings/treeBindings.xml#mpdBrowser")
+	-moz-binding: url("chrome://miniondev/content/bindings/treeBindings.xml#mpdBrowser")
 }
 mpdsqlbrowser {
-	-moz-binding: url("chrome://minion/content/bindings/coreBindings.xml#mpdSQLBrowser")
+	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdSQLBrowser")
 }

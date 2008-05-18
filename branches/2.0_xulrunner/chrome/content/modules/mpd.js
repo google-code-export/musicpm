@@ -16,7 +16,7 @@
 *      MA 02110-1301, USA.
 */
 
-Components.utils.import("resource://minion/mpmUtils.js");
+Components.utils.import("resource://miniondev/mpmUtils.js");
 EXPORTED_SYMBOLS = ["mpd", "Sz", "dbfile", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
 var mpd_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
@@ -34,20 +34,10 @@ mDBConn = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService)
 							.openDatabase(dbfile);
 
-
-function utf (s) {
-    var r = []
-    for (var i = 0; i < s.length;i++) {
-        r[i] = "\\u"+s.charCodeAt(i)
-    }
-    r = r.join("")
-    debug(r)
-    return r
-}
-
+var tm = new Date()
 
 try {
-    var mostFrequenta = {
+    var mostFrequent = {
         _vals: [],
         _counts: [],
 
@@ -57,9 +47,9 @@ try {
         },
 
         onStep: function(val) {
-            var v = val.getUTF8String(0);
-            if (v.length > 0) {
-                var i = this._vals.getIndex(v)
+            var v = val.getInt32(0);
+            if (v > 0) {
+                var i = this._vals.indexOf(v)
                 if (i > -1) {
                     this._counts[i]++
                 }
@@ -86,55 +76,6 @@ try {
                         }
                     }
                     if (!topval) topval = this._vals.join(", ")
-                    break;
-            }
-            this.reset()
-            return utf(topval);
-        }
-    };
-    var mostFrequentd = {
-        calls: 0,
-        _vals: [],
-        _counts: [],
-
-        reset: function() {
-            this.calls = 0;
-            this._vals = [];
-            this._counts = [];
-        },
-
-        onStep: function(val) {
-            ++this.calls;
-            var v = val.getUTF8String(0);
-            if (v.length > 0) {
-                var i = this._vals.getIndex(v)
-                if (i > -1) {
-                    this._counts[i]++
-                }
-                else {
-                    i = this._vals.length;
-                    this._vals[i] = v;
-                    this._counts[i] = 1;
-                }
-            }
-        },
-
-        onFinal: function() {
-            switch (this._vals.length) {
-                case 0: var topval = null; break;
-                case 1: var topval = this._vals[0];break;
-                default:
-                    var topval = null;
-                    var topcnt = 1;
-                    var ln = this._vals.length;
-                    for (var i = 1; i < ln; i++) {
-                        if (this._counts[i] > topcnt) {
-                            topval = this._vals[i];
-                            topcnt = this._counts[i];
-                        }
-                    }
-                    if (!topval) topval = this._vals.join(", ")
-                    debug(topval)
                     break;
             }
             this.reset()
@@ -142,18 +83,19 @@ try {
         }
     };
 
-    mDBConn.createAggregateFunction("topa", 1, mostFrequenta);
-    mDBConn.createAggregateFunction("topd", 1, mostFrequentd);
+    mDBConn.createAggregateFunction("mode", 1, mostFrequent);
 
-	var schema = getFileContents("resource://minion/schema.sql")
-	var home = "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('genre://', 'genre','All Genres','',0,'2.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('topgenre://', 'topgenre','Top Genres','',0,'3.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('artist://', 'artist','All Artists','',0,'4.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('topartist://', 'topartist','Top Artists','',0,'5.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'6.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('date://', 'date','Release Dates','',0,'7.',1);" +
-		"INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'8.',1);"
+	var schema = getFileContents("resource://miniondev/schema.sql")
+	var home = ""
+    home += "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);"
+	//home += "INSERT OR IGNORE INTO home VALUES('topgenre://', 'topgenre','Genres - Top 10%','',0,'2.',1);"
+    //home += "INSERT OR IGNORE INTO home VALUES('topartist://', 'topartist','Artists - Top 10%','',0,'3.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('genre://', 'genre','Genres','',0,'4.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('artist://', 'artist','Artists','',0,'5.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'6.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('date://', 'date','Dates','',0,'7.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'8.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('stats://', 'custom','Statistics','',0,'9.',0);"
 	mDBConn.executeSimpleSQL(schema)
 	mDBConn.executeSimpleSQL(home)
 }
@@ -181,6 +123,9 @@ function updateDirStructure(data){
     }
 	finally { q.reset() }
 
+    tm = new Date()
+    debug (tm.toString() + ":  Begin listall parse.")
+
 	var sql = ''
 	var num = 0
 	data = data.split("\n")
@@ -197,15 +142,16 @@ function updateDirStructure(data){
 					var val = data[i].slice(sep + 2)
 					var sep = val.lastIndexOf("/")
 					var leaf = val
+                    var uri = Sz(fld + '://' + val)
 					var branch  = ''
 					if (sep != -1) {
 						branch = val.slice(0, sep)
 						leaf =  val.slice(sep+1)
 					}
 					sql = "INSERT OR IGNORE INTO FS " +
-					"(db_update,type,name,directory) " +
+					"(URI,created,db_update,type,name,directory) " +
 					"VALUES(" +
-					[db_up,Sz(fld),Sz(leaf),Sz(branch)].join(",") +
+					[uri,db_up,db_up,Sz(fld),Sz(leaf),Sz(branch)].join(",") +
 					");"
 					mpd.db.executeSimpleSQL(sql)
 					num++
@@ -236,10 +182,28 @@ function updateDirStructure(data){
 		debug(e)
 	}
 	mpd.set('lastCommand', 'Directories loaded')
+    tm = new Date()
+    debug (tm.toString() + ":  listall parse complete.")
+
+    // Update only directories with new content
+    debug("Updating where created > " + db_up)
+    sql = "SELECT distinct directory FROM FS WHERE created=" + db_up
+    var q = mpd.db.createStatement(sql)
+    var ls = ['command_list_begin']
+    var i = 1
+    while (q.executeStep()) {
+        ls[i++] = 'lsinfo "' + q.getUTF8String(0).replace(/"/g, '\\"') + '"'
+    }
+    ls[i] = 'command_list_end'
+    q.reset()
+    var cmd = ls.join("\n")
+    debug(cmd)
+    mpd.doCmd(cmd, updateTagCache)
 }
 function updateTagCache(data){
 	mpd.set('lastCommand', 'Parsing tags')
-	debug('Parsing tags')
+    tm = new Date()
+    debug (tm.toString() + ":  Begin listallinfo parse.")
 	var sql = ''
 	var maybeInt = function (test) {
 		if (isNaN(test)) return Sz(test)
@@ -326,18 +290,33 @@ function updateTagCache(data){
 								}
 							}
 						};
+                        cols[cl++] = "any"
+                        vals[vl++] = "NULL";
 						insert(cols, vals, Sz('file://'+val))
 					}
 				}
 			}
 			while (--n)
 			mpd.db.commitTransaction()
-            debug("Time to analyze...")
+            tm = new Date()
+            debug (tm.toString() + ":  listallinfo parse complete, analyzing db.")
 			mpd.set('lastCommand', 'Analyzing Data...')
 
             sql = "DELETE FROM album;" +
-            "INSERT OR IGNORE INTO album (URI,type,title,artist,date,track)" +
-            "select URI,type,title,artist,date,track FROM album_view;"
+            "INSERT OR IGNORE INTO album (type,URI,title,track,artist,date) " +
+            "SELECT 'album' AS type, 'album://' || album AS URI, album as title, " +
+                "count(*) as track, " +
+                "CASE count(DISTINCT artist) " +
+                "WHEN 1 THEN artist " +
+                "WHEN 2 then max(artist) " +
+                "WHEN 3 then max(artist) " +
+                "ELSE 'Various Artists' " +
+                "END artist, " +
+                "mode(date) as date " +
+            "FROM file " +
+            "WHERE album NOTNULL " +
+            "GROUP BY album " +
+            "ORDER BY title; "
             var flds = "URI,type,title,track,container,rank"
             var tags = ["genre", "artist", "performer", "composer", "date"]
             for (x in tags) {
@@ -346,7 +325,11 @@ function updateTagCache(data){
                     "INSERT INTO " + tags[x] + " (" + flds + ") " +
                     "select " + flds + " FROM " + tags[x] + "_view;"
             }
-            sql += "VACUUM;ANALYZE;"
+            sql += "UPDATE file SET any=lower( ifnull(title,'') || ifnull(artist,'') " +
+                    "|| ifnull(album,'') || replace(URI,'file://','') " +
+                    "|| ifnull(performer,'') || ifnull(composer,'') ) " +
+                "WHERE any is null;"
+            sql += "ANALYZE;"
 
 			mpd.db.executeSimpleSQL(sql)
 
@@ -357,6 +340,8 @@ function updateTagCache(data){
 		}
 	}
 	mpd.set('lastCommand', 'Database loaded')
+    tm = new Date()
+    debug (tm.toString() + ":  Database update complete.")
 }
 
 function statsCallback(data){
@@ -395,13 +380,15 @@ function statsCallback(data){
     catch (e) { mpd.db_update = 0 }
 	finally { q.reset() }
 	if (db_update != mpd.db_update) {
-		debug("Database update needed.")
+        tm = new Date()
+		debug(tm.toString() + ":  Database update needed.")
 		mpd.doCmd('listall', function(d){
                 mpd.set('lastCommand', 'Parsing directories');
+                tm = new Date()
+                debug(tm.toString() + ":  Parsing directories")
                 updateDirStructure(d)
             }
         )
-		mpd.doCmd('listallinfo', updateTagCache)
 	}
 }
 
@@ -758,7 +745,7 @@ mpd._parsePL = function (data) {
     mpd.set("pltime", prettyTime(tm))
 }
 
-mpd.query = function (URI){
+mpd.query = function (URI, view){
     /* URI should be: return_tag_type://specifier or
      * return_tag_type://where_other_tag_type=specifier or
      * an actual MPD command.
@@ -880,13 +867,19 @@ mpd.query = function (URI){
                     }
                     else
                         if (id.length == 2) {
+                            if (id[0] == 'title') id[0] = 'file'
                             var criteria = id[1].replace(/'/g, "''")
-                            sql = "select * from lsinfo where lower("+Lz(id[0])+") glob('*"+criteria+"*');"
+                            sql = "select * from " + id[0] +
+                                " where lower(title) glob('*"+criteria+"*');"
                         }
                 }
                 else {
                     return false
                 }
+                break;
+            case "stats":
+                mpd.doCmd("stats", statsCallback, false);
+                sql = "select 'stats://' as URI, type, title from stats"
                 break;
             default:
                 if (id.length > 0) {
@@ -995,7 +988,6 @@ function dbOR(db) {
 }
 
 function loadSrvPref () {
-    var srv = prefBranch.getCharPref("extensions.mpm.server");
     if (prefBranch.getPrefType("extensions.mpm.server") == prefBranch.PREF_STRING) {
         var srv = prefBranch.getCharPref("extensions.mpm.server");
         srv = srv.split(":", 3);

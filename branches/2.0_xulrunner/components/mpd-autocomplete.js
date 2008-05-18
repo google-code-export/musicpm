@@ -23,15 +23,6 @@ const CLASS_ID = Components.ID("6224daa1-71a2-4d1a-ad90-01ca1c08e323");
 const CLASS_NAME = "Simple AutoComplete";
 const CONTRACT_ID = "@mozilla.org/autocomplete/search;1?name=simple-autocomplete";
 
-
-var dbfile = Components.classes["@mozilla.org/file/directory_service;1"]
-                     .getService(Components.interfaces.nsIProperties)
-						.get("ProfD", Components.interfaces.nsIFile);
-dbfile.append("mpd.sqlite");
-var mDBConn = Components.classes["@mozilla.org/storage/service;1"]
-                        .getService(Components.interfaces.mozIStorageService)
-							.openDatabase(dbfile);
-
 // Implements nsIAutoCompleteResult
 function SimpleAutoCompleteResult(searchString, searchResult,
                                   defaultIndex, errorDescription,
@@ -106,6 +97,13 @@ SimpleAutoCompleteResult.prototype = {
   },
 
   /**
+   * Get the comment of the result at the given index
+   */
+  getImageAt: function(index) {
+    return null;
+  },
+
+  /**
    * Get the style hint for the result at the given index
    */
   getStyleAt: function(index) {
@@ -150,24 +148,43 @@ SimpleAutoCompleteSearch.prototype = {
    * @param previousResult - A previous result to use for faster searchinig
    * @param listener - A listener to notify when the search is complete
    */
+    db: null,
   startSearch: function(searchString, searchParam, result, listener) {
-	var i = searchString.indexOf('://')
-	if (i > -1) {
-		var type = searchString.slice(0,i)
-	}
-	else {
-		var type = 'home'
-	}
-	var results = []
-	var comments = []
-	var q = mDBConn.createStatement("select URI, title from " + type +
-		" where URI like '" + searchString + "%'")
-	while (q.executeStep()) {
-		results.push(q.getUTF8String(0))
-		comments.push(q.getUTF8String(1))
-	}
-	var newResult = new SimpleAutoCompleteResult(searchString, Ci.nsIAutoCompleteResult.RESULT_SUCCESS, 0, "", results, comments);
-	listener.onSearchResult(this, newResult);
+    if (!this.db) {
+        var dbfile = Components.classes["@mozilla.org/file/directory_service;1"]
+                     .getService(Components.interfaces.nsIProperties)
+						.get("ProfD", Components.interfaces.nsIFile);
+        dbfile.append("mpd.sqlite");
+        this.db = Components.classes["@mozilla.org/storage/service;1"]
+                        .getService(Components.interfaces.mozIStorageService)
+							.openDatabase(dbfile);
+    }
+    try {
+        var i = searchString.indexOf('://')
+        if (i > 0) {
+            var type = searchString.slice(0,i)
+            var q = this.db.createStatement("select URI, title from " + type +
+                " where URI like '" + searchString + "%'")
+        }
+        else {
+            var type = 'home'
+            var q = this.db.createStatement("select URI, title from home" +
+                " where URI like '" + searchString + "%'" +
+                " union select cmd, syntax from commands where cmd like '" +
+                searchString + "%'")
+        }
+        var results = []
+        var comments = []
+        while (q.executeStep()) {
+            results.push(q.getUTF8String(0))
+            comments.push(q.getUTF8String(1))
+        }
+        var newResult = new SimpleAutoCompleteResult(searchString, Ci.nsIAutoCompleteResult.RESULT_SUCCESS, 0, "", results, comments);
+    } catch (e) {
+        var newResult = new SimpleAutoCompleteResult(searchString, Ci.nsIAutoCompleteResult.RESULT_FAILURE, 0, e.description, [], []);
+    }
+    finally {q.reset()}
+    listener.onSearchResult(this, newResult);
   },
 
   /*
@@ -175,7 +192,7 @@ SimpleAutoCompleteSearch.prototype = {
    */
   stopSearch: function() {
   },
-    
+
   QueryInterface: function(aIID) {
     if (!aIID.equals(Ci.nsIAutoCompleteSearch) && !aIID.equals(Ci.nsISupports))
         throw Components.results.NS_ERROR_NO_INTERFACE;
@@ -204,9 +221,9 @@ var SimpleAutoCompleteSearchModule = {
 
   unregisterSelf: function(aCompMgr, aLocation, aType) {
     aCompMgr = aCompMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-    aCompMgr.unregisterFactoryLocation(CLASS_ID, aLocation);        
+    aCompMgr.unregisterFactoryLocation(CLASS_ID, aLocation);
   },
-  
+
   getClassObject: function(aCompMgr, aCID, aIID) {
     if (!aIID.equals(Components.interfaces.nsIFactory))
       throw Components.results.NS_ERROR_NOT_IMPLEMENTED;

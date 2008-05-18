@@ -16,7 +16,7 @@
 *      MA 02110-1301, USA.
 */
 
-Components.utils.import("resource://minion/mpd.js");
+Components.utils.import("resource://miniondev/mpd.js");
 EXPORTED_SYMBOLS = ["playlistView", "sqlView", "customTreeViewView"]
 
 
@@ -366,6 +366,7 @@ function sqlView(dbFileObj,parent,heirs){
     this.table = "treeview"
     this.sqlORDER = ''
     this.load = function(sqlstr, action, atIndex){
+        if (typeof(sqlstr) != 'string') return null
         action = Nz(action, 'create')
         try {
             if (action == 'filelist') {

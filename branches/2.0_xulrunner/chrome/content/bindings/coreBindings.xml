@@ -13,7 +13,7 @@
                 onget="return document.getAnonymousNodes(this)[0].value"
                 onset="document.getAnonymousNodes(this)[0].value=val"/>
             <constructor>
-                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://miniondev/mpd.js");
                 var lbl = document.getAnonymousNodes(this)[0]
                 lbl.className = "mpdLabel"+this.observes
                 lbl.value = mpd[this.observes]
@@ -22,10 +22,12 @@
                         lbl.value = data
                     }
                 };
+                this.obs = obs
                 observerService.addObserver(obs,this.observes,false)
             </constructor>
             <destructor>
-                observerService.removeObserver(obs,this.observes)
+                Components.utils.import("resource://miniondev/mpd.js");
+                observerService.removeObserver(this.obs,this.observes)
             </destructor>
         </implementation>
     </binding>
@@ -53,14 +55,14 @@
                 onget="return document.getAnonymousNodes(this)[3].seconds"
                 onset=""/>
             <constructor>
-                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://miniondev/mpd.js");
                 var lbl1 = document.getAnonymousNodes(this)[0]
                 var progress = document.getAnonymousNodes(this)[1]
                 var lblSep = document.getAnonymousNodes(this)[2]
                 var lbl2 = document.getAnonymousNodes(this)[3]
                 lblSep.collapsed = !progress.collapsed
 
-                function seekScroll(event) {
+                var seekScroll = function (event) {
                     lbl1.parentNode.seekBySec(event.detail * -2);
                 }
                 function prgmtrClick(event) {
@@ -84,15 +86,19 @@
                     }
                 };
 
+                this.obs1 = obs1
+                this.obs2 = obs2
+                this.seekScroll = seekScroll
                 observerService.addObserver(obs1,"time",false)
                 observerService.addObserver(obs2,"Time",false)
                 this.addEventListener("DOMMouseScroll", seekScroll, false)
                 progress.addEventListener("click", prgmtrClick, false)
             </constructor>
             <destructor>
-                observerService.removeObserver(obs1, "time")
-                observerService.removeObserver(obs2, "Time")
-                this.removeEventListener("DOMMouseScroll", seekScroll, false)
+                Components.utils.import("resource://miniondev/mpd.js");
+                observerService.removeObserver(this.obs1, "time")
+                observerService.removeObserver(this.obs2, "Time")
+                this.removeEventListener("DOMMouseScroll", this.seekScroll, false)
                 progress.removeEventListener("click", prgmtrClick, false)
             </destructor>
             <method name="seekBySec">
@@ -132,10 +138,10 @@
                 onget="return mpd.volume"
                 onset="this.setvol(val)"/>
             <constructor>
-                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://miniondev/mpd.js");
                 var scale = document.getAnonymousNodes(this)[0];
                 scale.value = mpd.volume
-                function volScroll(event) {
+                var volScroll = function (event) {
                     var vol = parseInt(mpd.volume) + (event.detail * -1);
                     scale.parentNode.setvol(vol)
                 }
@@ -144,12 +150,15 @@
                         scale.value = data;
                     }
                 };
+                this.obs = obs
+                this.volScroll = volScroll
                 observerService.addObserver(obs, "volume", false);
                 this.addEventListener("DOMMouseScroll", volScroll, false)
             </constructor>
             <destructor>
-                observerService.removeObserver(obs, "volume");
-                this.removeEventListener("DOMMouseScroll", volScroll, false)
+                Components.utils.import("resource://miniondev/mpd.js");
+                observerService.removeObserver(this.obs, "volume");
+                this.removeEventListener("DOMMouseScroll", this.volScroll, false)
             </destructor>
             <method name="setvol">
                 <parameter name="vol"/>
@@ -205,7 +214,7 @@
                 onget="return mpd.state"
                 onset="if (val=='play' || val=='pause' || val=='stop') mpd.doCmd(val)"/>
             <constructor>
-                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://miniondev/mpd.js");
                 var prev = document.getAnonymousNodes(this)[0]
                 var deck = document.getAnonymousNodes(this)[1]
                 var next = document.getAnonymousNodes(this)[2]
@@ -218,10 +227,12 @@
                         }
                     }
                 };
+                this.obs = obs
                 observerService.addObserver(obs,'state',false)
             </constructor>
             <destructor>
-                observerService.removeObserver(obs,'state')
+                Components.utils.import("resource://miniondev/mpd.js");
+                observerService.removeObserver(this.obs,'state')
             </destructor>
             <method name="prev">
                 <body>
@@ -268,7 +279,7 @@
                 onget="return (mpd._socket) ? true : false"
                 onset="if (val) mpd.connect(); else mpd.disconnect()"/>
             <constructor>
-                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://miniondev/mpd.js");
                 var btn = document.getAnonymousNodes(this)[0]
                 var showlabel = this.showlabel
                 if (showlabel) btn.label = mpd.greeting
@@ -285,10 +296,12 @@
                         }
                     }
                 };
+                this.obs = obs
                 observerService.addObserver(obs,'greeting',false)
             </constructor>
             <destructor>
-                observerService.removeObserver(obs,'greeting')
+                Components.utils.import("resource://miniondev/mpd.js");
+                observerService.removeObserver(this.obs,'greeting')
             </destructor>
         </implementation>
     </binding>
@@ -350,8 +363,8 @@
 				readonly="true"/>
             <constructor>
 				<![CDATA[
-                Components.utils.import("resource://minion/mpd.js");
-                Components.utils.import("resource://minion/trees.js");
+                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://miniondev/trees.js");
 				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
 			                getService(Components.interfaces.nsIPrefBranch);
 
@@ -399,7 +412,7 @@
 				]]>
             </constructor>
             <destructor>
-                Components.utils.import("resource://minion/trees.js");
+                Components.utils.import("resource://miniondev/trees.js");
                 observerService.removeObserver(this.obsPL,'plinfo')
                 observerService.removeObserver(this.obsLn,'playlistlength')
                 observerService.removeObserver(this.obsCurSong,'state')

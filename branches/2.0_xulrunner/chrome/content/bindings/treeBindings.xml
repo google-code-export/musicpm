@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <binding id="mpdBrowser">
+        <content>
+        	<xul:vbox flex="1">
+                <xul:hbox>
+                    <xul:toolbarbutton label="Add All"
+                        class="mpm_btn_AddAll"
+                        oncommand="this.parentNode.parentNode.parentNode.addAll()"/>
+                    <xul:toolbarbutton label="Add Selected"
+                        class="mpm_btn_AddSelected"
+                        oncommand="this.parentNode.parentNode.parentNode.addSelected()"/>
+                    <xul:spacer flex="1"/>
+					<xul:menulist id="searchType"
+						label="Search"
+						sizetopopup="always"
+                        onselect="this.parentNode.parentNode.parentNode.searchTypeSelect()">
+						<xul:menupopup>
+							<xul:menuitem label="Filter"
+								tooltiptext="Filter contents of current location by Title column"/>
+							<xul:menuitem label="Search All"
+								tooltiptext="Search for Songs on all fields"
+								selected="true"/>
+							<xul:menuitem label="Title"
+								tooltiptext="Search by song's Title only"/>
+							<xul:menuitem label="Artist"
+								tooltiptext="Search Artists"/>
+							<xul:menuitem label="Album"
+								tooltiptext="Search Albums"/>
+							<xul:menuitem label="Genre"
+								tooltiptext="Search Genres"/>
+							<xul:menuitem label="Composer"
+								tooltiptext="Search Composers"/>
+							<xul:menuitem label="Performer"
+								tooltiptext="Search Performers"/>
+							<xul:menuitem label="Date"
+								tooltiptext="Search Release Years"/>
+						</xul:menupopup>
+					</xul:menulist>
+					<xul:textbox id="searchInput"
+						type="timed"
+						timeout="200"
+						oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
+                </xul:hbox>
+	        	<xul:hbox>
+	        		<xul:toolbarbutton class="mpm_btn_Back"
+						label="Back"
+						oncommand="this.parentNode.parentNode.parentNode.goBack()"/>
+	        		<xul:toolbarbutton class="mpm_btn_Forward"
+						label="Forward"
+						oncommand="this.parentNode.parentNode.parentNode.goForward()"/>
+	        		<xul:toolbarbutton class="mpm_btn_Home"
+						label="Home"
+						oncommand="this.parentNode.parentNode.parentNode.goToURI('Home')"/>
+					<xul:textbox id="mpdAddress" value="" flex="1"
+						type="autocomplete"
+						autocompletesearch="simple-autocomplete"
+						completedefaultindex="true"
+						enablehistory="true"
+						showcommentcolumn="true"
+                        tabscrolling="true"
+						ontextentered="this.parentNode.parentNode.parentNode.goToURI(this.value)"/>
+				</xul:hbox>
+				<xul:hbox flex="1">
+		            <xul:tree
+		                id="mpdTree"
+		                flex="1"
+						seltype="single"
+						onclick="this.view.performActionOnRow('click', this.currentIndex)"
+		            	flags="dont-build-content"
+                        min-width="100px">
+		                <xul:treecols id="mpdTreeCols">
+		                    <xul:treecol id="location" label="Location"
+									ordinal="1"
+		                            hidden="true"/>
+		                    <xul:treecol id="title" label="Location" flex="1"
+									ordinal="2"
+		                            hidden="false"
+									primary="true"
+		                            class="sortDirectionIndicator"/>
+						</xul:treecols>
+		                <xul:treechildren id="tchildren"/>
+		            </xul:tree>
+					<xul:splitter collapse="before"/>
+                    <xul:deck id="mpmBrowserContent" flex="3" selectedIndex="0">
+                        <xul:tree id="mpmBrowserContent_tree"
+                            datasources="rdf:null"
+                            ref="*"
+                            seltype="multiple"
+                            flags="dont-build-content"
+                            flex="1">
+                            <xul:treecols id="mpdBrowserCols">
+                                <xul:treecol id="position" label="Position" ordinal="1" width="40px"
+                                        hidden="false"
+                                        persist="width ordinal hidden"
+                                        class="sortDirectionIndicator"
+                                        tooltiptext="Playlist Position"/>
+                                <xul:splitter class="tree-splitter" ordinal="2" />
+                                <xul:treecol id="title" label="Title" ordinal="3" flex="3"
+                                        persist="width ordinal hidden"
+                                        overflow="true"
+                                        class="sortDirectionIndicator"/>
+                                <xul:splitter class="tree-splitter" ordinal="4" />
+                                <xul:treecol id="time" label="Time" ordinal="5" width="60px"
+                                        hidden="true"
+                                        persist="width ordinal hidden"
+                                        class="sortDirectionIndicator"/>
+                                <xul:splitter class="tree-splitter" ordinal="6" />
+                                <xul:treecol id="album" label="Album" ordinal="7" flex="1"
+                                        persist="width ordinal hidden"
+                                        class="sortDirectionIndicator"/>
+                                <xul:splitter class="tree-splitter" ordinal="8" />
+                                <xul:treecol id="artist" label="Artist" ordinal="9" flex="1"
+                                        persist="width ordinal hidden"
+                                        class="sortDirectionIndicator"/>
+                                <xul:splitter class="tree-splitter" ordinal="10" />
+                                <xul:treecol id="performer" label="Performer" ordinal="11" flex="1"
+                                        hidden="true"
+                                        persist="width ordinal hidden"
+                                        class="sortDirectionIndicator"/>
+                                <xul:splitter class="tree-splitter" ordinal="12" />
+                                <xul:treecol id="composer" label="Composer" ordinal="13" flex="1"
+                                        hidden="true"
+                                        persist="width ordinal hidden"
+                                        class="sortDirectionIndicator"/>
+                                <xul:splitter class="tree-splitter" ordinal="14" />
+                                <xul:treecol id="genre" label="Genre" ordinal="15" flex="1"
+                                        hidden="true"
+                                        persist="width ordinal hidden"
+                                        class="sortDirectionIndicator"/>
+                                <xul:splitter class="tree-splitter" ordinal="16" />
+                                <xul:treecol id="date" label="Date" ordinal="17" width="60px"
+                                        hidden="true"
+                                        persist="width ordinal hidden"
+                                        class="sortDirectionIndicator"/>
+                            </xul:treecols>
+                            <xul:treechildren/>
+                        </xul:tree>
+                    </xul:deck>
+				</xul:hbox>
+        	</xul:vbox>
+        </content>
+		<handlers>
+			<handler event="keypress" modifiers="accel" key="a"
+				action="this.browser.view.selection.selectAll()"/>
+			<handler event="dblclick"
+				action="if (this.browserfocused) this.goToURI(this.activeItem.URI)"/>
+			<handler event="keypress" keycode="VK_DELETE"
+				action="this.delete()"/>
+			<handler event="keypress" keycode="VK_RETURN"
+				action="var a=this.activeItem;if (a) this.goToURI(a.URI); else this.goToURI(this.addr.value);"/>
+			<handler event="keypress" keycode="VK_BACK"
+				action="if (this.browserfocused) this.goBack()"/>
+			<handler event="keypress" modifiers="shift" keycode="VK_BACK"
+				action="if (this.browserfocused) this.goForward()"/>
+		</handlers>
+        <implementation>
+        	<field name="hview"/>
+        	<field name="cview"/>
+        	<field name="addr">document.getAnonymousElementByAttribute(this, 'id', 'mpdAddress')</field>
+        	<field name="columns">document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserCols')</field>
+        	<field name="query">document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserQuery')</field>
+        	<field name="htree">document.getAnonymousElementByAttribute(this, 'id', 'mpdTree')</field>
+			<field name="searchType">document.getAnonymousElementByAttribute(this, 'id', 'searchType')</field>
+			<field name="searchInput">document.getAnonymousElementByAttribute(this, 'id', 'searchInput')</field>
+			<field name="history">new Array()</field>
+			<field name="historyIndex">0</field>
+			<field name="obsCurSong"/>
+        	<property name="browser">
+                <getter>
+                    return document.getAnonymousElementByAttribute(this, 'id', 'mpmBrowserContent').selectedPanel
+                </getter>
+                <setter>
+                    var browser = document.getAnonymousElementByAttribute(this, 'id', 'mpmBrowserContent')
+                    if (typeof(val) == 'integer') {browser.selectedIndex = val}
+                    else {browser.selectedPanel = val}
+                </setter>
+            </property>
+        	<property name="activeItem"
+				readonly="true">
+                <getter>
+				<![CDATA[
+                    if (this.htreefocused) {
+                        return this.hview.get(this.htree.currentIndex);
+                    }
+                    else if (this.browserfocused) {
+                        return this.cview.get(this.browser.currentIndex);
+                    }
+                    else { return null }
+                ]]>
+                </getter>
+            </property>
+        	<property name="htreefocused"
+				onget="return (this.htree==document.commandDispatcher.focusedElement)"
+				readonly="true"/>
+        	<property name="browserfocused"
+				onget="return (this.browser==document.commandDispatcher.focusedElement)"
+				readonly="true"/>
+        	<property name="addrfocused"
+				onget="return (this.addr==document.commandDispatcher.focusedElement)"
+				readonly="true"/>
+            <constructor>
+				<![CDATA[
+                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://miniondev/trees.js");
+				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+			                getService(Components.interfaces.nsIPrefBranch);
+
+				var heirs = {
+					directory: 'directory',
+					genre: 'artist',
+					artist: 'album',
+					performer: 'album',
+					composer: 'album',
+					date: 'album',
+					album: 'file'
+				}
+                this.hview = new sqlView(dbfile,this,heirs)
+				this.htree.view = this.hview
+				this.hview.load("select * from home")
+
+                this.cview = new sqlView(dbfile,this)
+				this.browser.view = this.cview
+                this.cview.load("select * from home")
+
+                var box = this.browser.boxObject;
+                box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+				this.box = box
+                this.obsCurSong = {
+                    observe: function(subject,topic,data){
+                        box.invalidate()
+                    }
+                };
+                observerService.addObserver(this.obsCurSong,'state',false)
+                observerService.addObserver(this.obsCurSong,'file',false)
+                this.obsPL = {
+                    observe: function(subject,topic,data){
+                        box.invalidate()
+                    }
+                };
+                observerService.addObserver(this.obsPL,'plinfo',false)
+                observerService.addObserver(this.obsPL,'playlistlength',false)
+				]]>
+            </constructor>
+            <destructor>
+                Components.utils.import("resource://miniondev/trees.js");
+                observerService.removeObserver(this.obsCurSong,'state')
+                observerService.removeObserver(this.obsCurSong,'file')
+            </destructor>
+            <method name="_build_mpdAddCmd">
+                <parameter name="item"/>
+                <body>
+                    <![CDATA[
+                        var cmd = ""
+                        if (item.type == 'file') {
+                            var loc = item.URI.slice(7)
+                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                        }
+                        else if (item.type == 'directory') {
+                            var loc = item.URI.slice(12)
+                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                        }
+                        else {
+                            var sql = "select URI from file where " + item.type +
+                                "='" + item.title.replace(/'/g,"''") + "'"
+                            var q = mpd.db.createStatement(sql)
+                            try {
+                                while (q.executeStep()) {
+                                    var loc = q.getUTF8String(0).slice(7)
+                                    debug("    "+loc)
+                                    cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                                }
+                            }
+                            catch(e) { debug(e) }
+                            finally { q.reset() }
+                        }
+                        return cmd
+                    ]]>
+                </body>
+            </method>
+			<method name="addAll">
+				<body>
+					<![CDATA[
+					var view = this.cview
+                    var rc = view.rowCount
+                    if (rc < 1) return null
+                    var n = rc
+
+				    var cmd = "command_list_begin"
+
+			        do {
+                        cmd += this._build_mpdAddCmd(view.get(rc-n))
+			        } while (--n)
+
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="addSelected">
+				<body>
+					<![CDATA[
+					var view = this.cview
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+
+				    var cmd = "command_list_begin"
+
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+                            cmd += this._build_mpdAddCmd(view.get(v))
+			            }
+			        }
+
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="goToURI">
+				<parameter name="URI"/>
+				<body>
+					<![CDATA[
+					if (URI=="" || URI=="Home") {
+						this.cview.load("select * from home")
+						this.addr.value = URI
+						this.addr.selectionStart = this.addr.textLength
+						this.addr.selectionEnd = this.addr.textLength
+						this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
+					}
+					else {
+						var sql = mpd.query(URI, this.cview)
+						if(sql) {
+                            this.cview.load(sql)
+							this.addr.value = URI
+							this.addr.selectionStart = this.addr.textLength
+							this.addr.selectionEnd = this.addr.textLength
+						}
+					}
+					if (URI.indexOf("search://") != 0) {
+						if (this.history[this.historyIndex] != URI) {
+							this.history.splice(this.historyIndex,0,URI)
+							if (this.history.length > 20) this.history.length = 20
+						}
+					}
+					if (!this.htreefocused) this.hview.ensureURIisVisble(URI)
+					]]>
+				</body>
+			</method>
+			<method name="goBack">
+				<body>
+					if (this.historyIndex >= (this.history.length-1)) return null
+					this.historyIndex++
+					this.goToURI(this.history[this.historyIndex])
+				</body>
+			</method>
+			<method name="goForward">
+				<body>
+					if (this.historyIndex == 0) return null
+					this.historyIndex--
+					this.goToURI(this.history[this.historyIndex])
+				</body>
+			</method>
+			<method name="delete">
+				<body>
+					<![CDATA[
+				    var tree = this.tree
+					var view = this.view
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+				    var offset = 0
+					var item
+				    var cmd = "command_list_begin"
+
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+							item = view.get(v)
+							if (item.type == 'file') {
+				                cmd += "\ndelete "+ (parseInt(item.Pos)-offset)
+				                offset++
+							}
+			            }
+			        }
+
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="searchTypeSelect">
+				<body>
+					<![CDATA[
+					if (this.searchType.selectedItem.label == 'Filter') {
+                        this.searchInput.select()
+					}
+                    else {
+                        if (this.searchInput.value.length > 0) this.handleSearch()
+                    }
+                    this.searchInput.focus()
+					]]>
+				</body>
+			</method>
+			<method name="handleSearch">
+				<body>
+					<![CDATA[
+					switch (this.searchType.selectedItem.label) {
+						case "Search All": this.goToURI("search://"+this.searchInput.value);break;
+						case "Filter": this.cview.applyFilter(this.searchInput.value);break;
+						case "Title": this.goToURI("search://title="+this.searchInput.value);break;
+						case "Artist": this.goToURI("search://artist="+this.searchInput.value);break;
+						case "Album": this.goToURI("search://album="+this.searchInput.value);break;
+						case "Genre": this.goToURI("search://genre="+this.searchInput.value);break;
+						case "File": this.goToURI("search://name="+this.searchInput.value);break;
+						case "Performer": this.goToURI("search://performer="+this.searchInput.value);break;
+						case "Composer": this.goToURI("search://composer="+this.searchInput.value);break;
+						case "Date": this.goToURI("search://date="+this.searchInput.value);break;
+					}
+					]]>
+				</body>
+			</method>
+            <method name="displayColumns">
+                <parameter name="columns"/>
+                <body>
+					<![CDATA[
+                        // Collapse unused columns.
+                        try {
+                        var cols = this.browserColumns.childNodes
+                        var len = cols.length
+                        for (var i=0; i < len; i++) {
+                            cols[i].collapsed = (typeof(columns[cols[i].id]) == 'undefined')
+                        }
+                        } catch (e) { dump(e.description) }
+
+                    ]]>
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+</bindings>

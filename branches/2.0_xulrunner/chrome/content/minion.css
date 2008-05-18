@@ -2,22 +2,22 @@ window {
 	background-color: black;
 }
 .mpdButtonPrevious {
-	list-style-image: url("chrome://minion/content/images/prev_large.png");
+	list-style-image: url("chrome://miniondev/content/images/prev_large.png");
 }
 .mpdButtonPlay {
-	list-style-image: url("chrome://minion/content/images/play.png");
+	list-style-image: url("chrome://miniondev/content/images/play.png");
 }
 .mpdStatePause > .mpdButtonPlay {
-	list-style-image: url("chrome://minion/content/images/play_large.png");
+	list-style-image: url("chrome://miniondev/content/images/play_large.png");
 }
 .mpdButtonPause {
-	list-style-image: url("chrome://minion/content/images/pause_large.png");
+	list-style-image: url("chrome://miniondev/content/images/pause_large.png");
 }
 .mpdButtonStop {
-	list-style-image: url("chrome://minion/content/images/stop_large.png");
+	list-style-image: url("chrome://miniondev/content/images/stop_large.png");
 }
 .mpdButtonNext {
-	list-style-image: url("chrome://minion/content/images/next_large.png");
+	list-style-image: url("chrome://miniondev/content/images/next_large.png");
 }
 .mpdButtonConnected {
 	font-weight: bold;
@@ -40,6 +40,27 @@ window {
 	width: 262px !important;
 }
 
+#playlist .title, #playlist .artist, #playlist .file {
+    margin: 0px;
+	padding:  1px 2px 0px 0px;
+}
+
+#playlist .outerTitleBox {
+	max-height: 34px;
+	min-height: 34px;
+	overflow: hidden;
+	display: tabel-cell;
+	vertical-align: middle;
+}
+
+#playlist .innerTitleBox {
+	overflow: expand;
+}
+
+#playlist .title{
+    margin-top: auto;
+}
+
 #playlist richlistitem {
 	overflow: expand;
 }
@@ -50,10 +71,14 @@ window {
 }
 
 .isLink:hover {
+	color: blue;
 	text-decoration: underline;
 }
 
-
+.isLink:active {
+	color: black;
+	text-decoration: underline;
+}
 .albumCover {
 	max-width: 73px;
 	max-height: 66px;
@@ -94,21 +119,21 @@ treechildren::-moz-tree-cell-text(currentsong) {
     font-weight: bold;
     }
 treechildren::-moz-tree-image(play_currentsong) {
-    list-style-image: url("chrome://minion/content/images/play_small.png");
+    list-style-image: url("chrome://miniondev/content/images/play_small.png");
 	margin-right: 4px;
     }
 treechildren::-moz-tree-image(pause_currentsong) {
-    list-style-image: url("chrome://minion/content/images/pause_small.png");
+    list-style-image: url("chrome://miniondev/content/images/pause_small.png");
 	margin-right: 4px;
     }
 treechildren::-moz-tree-image(stop_currentsong) {
     list-style-image: none;
     }
 treechildren::-moz-tree-image(name_updating) {
-    list-style-image: url("chrome://minion/content/images/rescan_small.png");
+    list-style-image: url("chrome://miniondev/content/images/rescan_small.png");
     }
 treechildren::-moz-tree-image(title_updating) {
-    list-style-image: url("chrome://minion/content/images/rescan_small.png");
+    list-style-image: url("chrome://miniondev/content/images/rescan_small.png");
     }
 
 #playlist treechildren {
@@ -160,7 +185,7 @@ treechildren::-moz-tree-image(title_updating) {
   border-right: 1px dotted #444444;
 }
 .tree-columnpicker-icon {
-    list-style-image: url("chrome://minion/content/images/columnpicker.png");
+    list-style-image: url("chrome://miniondev/content/images/columnpicker.png");
 }
 
 
@@ -168,43 +193,43 @@ treechildren::-moz-tree-image(title_song) {
     list-style-image: none;
     }
 
-treechildren::-moz-tree-image() {
-    margin-right: 2px;
+treechildren::-moz-tree-image(title) {
+    list-style-image: url("chrome://miniondev/content/images/custom.png");
+    margin: 0px 4px 0px 2px;
     }
 
-treechildren::-moz-tree-image(title_genre) {
-    list-style-image: url("chrome://minion/content/images/unknown.png");
-    }
+treechildren::-moz-tree-image(title_genre),
 treechildren::-moz-tree-image(title_topgenre) {
-    list-style-image: url("chrome://minion/content/images/unknown.png");
+    list-style-image: url("chrome://miniondev/content/images/unknown.png");
     }
 treechildren::-moz-tree-image(title_date) {
-    list-style-image: url("chrome://minion/content/images/unknown.png");
+    list-style-image: url("chrome://miniondev/content/images/unknown.png");
     }
-treechildren::-moz-tree-image(title_file) {
-    list-style-image: url("chrome://minion/content/images/song.png");
+treechildren::-moz-tree-image(title_file),
+treechildren::-moz-tree-image(title_songs){
+    list-style-image: url("chrome://miniondev/content/images/song.png");
     }
-treechildren::-moz-tree-image(title_artist) {
-    list-style-image: url("chrome://minion/content/images/artist.png");
+treechildren::-moz-tree-image(title_artist),
+treechildren::-moz-tree-image(title_artists),
+treechildren::-moz-tree-image(title_topartist){
+    list-style-image: url("chrome://miniondev/content/images/artist.png");
     margin: 0px 3px 0px 1px;
-    }
+}
 treechildren::-moz-tree-image(title_topartist) {
-    list-style-image: url("chrome://minion/content/images/artist.png");
+    list-style-image: url("chrome://miniondev/content/images/artist.png");
     margin: 0px 3px 0px 1px;
     }
 treechildren::-moz-tree-image(title_composer) {
-    list-style-image: url("chrome://minion/content/images/artist.png");
+    list-style-image: url("chrome://miniondev/content/images/artist.png");
     margin: 0px 3px 0px 1px;
     }
-treechildren::-moz-tree-image(title_album) {
-    list-style-image: url("chrome://minion/content/images/album.png");
-    }
+treechildren::-moz-tree-image(title_album),
+treechildren::-moz-tree-image(title_albums){
+    list-style-image: url("chrome://miniondev/content/images/album.png");
+}
 treechildren::-moz-tree-image(title_directory) {
-    list-style-image: url("chrome://minion/content/images/folder.png");
+    list-style-image: url("chrome://miniondev/content/images/folder.png");
     }
 treechildren::-moz-tree-image(title_playlist) {
-    list-style-image: url("chrome://minion/content/images/playlist.png");
-    }
-treechildren::-moz-tree-image(title_custom) {
-    list-style-image: url("chrome://minion/content/images/custom.png");
+    list-style-image: url("chrome://miniondev/content/images/playlist.png");
     }

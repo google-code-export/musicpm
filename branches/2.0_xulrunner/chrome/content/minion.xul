@@ -1,16 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://minion/content/bindings/coreBindings.css" type="text/css"?>
-<?xml-stylesheet href="chrome://minion/content/minion.css" type="text/css"?>
+<?xml-stylesheet href="chrome://miniondev/content/bindings/coreBindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://miniondev/content/minion.css" type="text/css"?>
 
 <window
     id="main"
     title="Music Player Minion"
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:html="http://www.w3.org/1999/xhtml"
 	onload="if(!mpd._socket)mpd.connect();minion_init()"
     width="780px"
     height="550px">
+    <html:link id="mpm_favicon"
+        rel="shortcut icon"
+        type="image/x-icon"
+        href="chrome://miniondev/content/images/album_blank.png"/>
+
+    <menubar>
+        <menu id="menu_Tools" label="Tools">
+            <menupopup id="menu_ToolsPopup"/>
+        </menu>
+        <menu label="Test" id="menu_test">
+            <menupopup>
+                <menuitem label="Item"/>
+            </menupopup>
+        </menu>
+        <spacer flex="1"/>
+        <mpdlabel value="response" observes="lastResponse"/>
+        <mpdconnection/>
+    </menubar>
     <hbox flex="1">
         <vbox>
             <hbox>
@@ -46,21 +65,23 @@
                                     pos="?pos"
                                     album="?title"
                                     artist="?artist"
-                                    src="chrome://minion/content/images/album_blank.png"
+                                    src="chrome://miniondev/content/images/album_blank.png"
                                     validate="never"
                                     onclick="openAlbum()"/>
                                 <vbox flex="1">
-                                    <description
-                                        class="title"
-                                        crop="end"
-                                        onclick="browseTo('album','?title^')">
-                                        <textnode maxheight="2em" value="?title"/>
-                                    </description>
-                                    <label class="artist"
+                                    <vbox class="outerTitleBox">
+                                        <spacer flex="1"/>
+                                        <description
+                                            class="title isLink innerTitleBox"
+                                            onclick="browseTo('album','?title^')">
+                                            <textnode value="?title"/>
+                                        </description>
+                                    </vbox>
+                                    <label class="artist isLink"
                                         crop="end"
                                         onclick="browseTo('artist','?artist^')"
                                         value="?artist"/>
-                                    <label class="file"
+                                    <label class="file isLink"
                                         crop="end"
                                         onclick="openAlbum()"
                                         value="?track"/>
@@ -70,7 +91,12 @@
                                 collapsed="true"
                                 flex="1"
                                 ondblclick="playItem(this)"
-                                onblur="this.clearSelection()"/>
+                                onblur="this.clearSelection()">
+                                <listcols>
+                                    <listcol flex="1"/>
+                                    <listcol/>
+                                </listcols>
+                            </listbox>
                         </vbox>
                     </richlistitem>
                     </action>
@@ -93,5 +119,6 @@
 		<mpdconnection/>
 	</statusbar>
 
-    <script src="chrome://minion/content/minion.js"/>
+    <script src="chrome://miniondev/content/minion.js"/>
+
 </window>

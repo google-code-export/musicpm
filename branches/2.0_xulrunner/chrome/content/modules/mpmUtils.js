@@ -40,7 +40,7 @@ function debug(s) {
     }
     else {var str = s}
     dump(str+"\n\n")
-    //consoleService.logStringMessage(str)
+    consoleService.logStringMessage(str)
 }
 
 function Nz(obj, def){
