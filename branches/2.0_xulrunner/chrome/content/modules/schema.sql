@@ -14,12 +14,12 @@ CREATE TABLE IF NOT EXISTS FS (
 );
 
 CREATE TABLE IF NOT EXISTS directory (
-    ID        INTEGER PRIMARY KEY AUTOINCREMENT,
-    URI       TEXT UNIQUE,
-	type	  TEXT,
+    ID        INTEGER UNIQUE,
+    URI       TEXT UNIQUE PRIMARY KEY,
+	type	  TEXT DEFAULT 'directory',
     name      TEXT,
 	directory TEXT DEFAULT '',
-    title     TEXT,
+    title     TEXT COLLATE NOCASE,
     container BOOLEAN DEFAULT 1
 );
 
@@ -27,16 +27,17 @@ CREATE TABLE IF NOT EXISTS file (
     ID        INTEGER UNIQUE,
     URI       TEXT UNIQUE PRIMARY KEY,
 	type	  TEXT DEFAULT 'file',
-	title     TEXT,
-	album     TEXT,
-	artist    TEXT,
-	genre     TEXT,
-	composer  TEXT,
-	performer TEXT,
+	title     TEXT COLLATE NOCASE,
+	album     TEXT COLLATE NOCASE,
+	artist    TEXT COLLATE NOCASE,
+	genre     TEXT COLLATE NOCASE,
+	composer  TEXT COLLATE NOCASE,
+	performer TEXT COLLATE NOCASE,
 	track     INTEGER,
 	date      INTEGER,
 	disc      INTEGER,
-	time      INTEGER,
+	secs      INTEGER,
+	time      TEXT,
 	any 	  TEXT,
     lyrics    TEXT
 );
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS genre (
     ID        INTEGER PRIMARY KEY AUTOINCREMENT,
     URI       TEXT UNIQUE,
 	type	  TEXT DEFAULT 'genre',
-    title     TEXT,
+    title     TEXT COLLATE NOCASE,
     track     INTEGER,
     container BOOLEAN DEFAULT 1,
     rank      INTEGER
@@ -55,8 +56,9 @@ CREATE TABLE IF NOT EXISTS artist (
     ID        INTEGER PRIMARY KEY AUTOINCREMENT,
     URI       TEXT UNIQUE,
 	type	  TEXT DEFAULT 'artist',
-    title     TEXT,
+    title     TEXT COLLATE NOCASE,
     track     INTEGER,
+    groupon   TEXT DEFAULT '!#...0-9...?@',
     container BOOLEAN DEFAULT 1,
     rank      INTEGER
 );
@@ -65,7 +67,7 @@ CREATE TABLE IF NOT EXISTS performer (
     ID        INTEGER PRIMARY KEY AUTOINCREMENT,
     URI       TEXT UNIQUE,
 	type	  TEXT DEFAULT 'performer',
-    title     TEXT,
+    title     TEXT COLLATE NOCASE,
     track     INTEGER,
     container BOOLEAN DEFAULT 1,
     rank      INTEGER
@@ -75,7 +77,7 @@ CREATE TABLE IF NOT EXISTS composer (
     ID        INTEGER PRIMARY KEY AUTOINCREMENT,
     URI       TEXT UNIQUE,
 	type	  TEXT DEFAULT 'composer',
-    title     TEXT,
+    title     TEXT COLLATE NOCASE,
     track     INTEGER,
     container BOOLEAN DEFAULT 1,
     rank      INTEGER
@@ -95,10 +97,11 @@ CREATE TABLE IF NOT EXISTS album (
     ID        INTEGER PRIMARY KEY AUTOINCREMENT,
     URI       TEXT UNIQUE,
 	type	  TEXT DEFAULT 'album',
-    title     TEXT,
-    artist    TEXT,
+    title     TEXT COLLATE NOCASE,
+    artist    TEXT COLLATE NOCASE,
     date      INTEGER,
     track     INTEGER,
+    groupon   TEXT DEFAULT '!#...0-9...?@',
     container BOOLEAN DEFAULT 0
 );
 
@@ -117,7 +120,7 @@ CREATE TABLE IF NOT EXISTS playlist (
 CREATE TABLE IF NOT EXISTS home (
     URI       TEXT UNIQUE PRIMARY KEY,
 	type	  TEXT,
-	title     TEXT,
+	title     TEXT COLLATE NOCASE,
 	name      TEXT DEFAULT '',
 	level     INTEGER DEFAULT 0,
 	loc       TEXT DEFAULT 'Z.',
@@ -128,7 +131,7 @@ CREATE TABLE IF NOT EXISTS stats (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     type      TEXT UNIQUE,
 	value	  INTEGER,
-    title     TEXT,
+    title     TEXT COLLATE NOCASE,
 	container BOOLEAN DEFAULT 0
 );
 
@@ -180,6 +183,10 @@ CREATE VIEW IF NOT EXISTS artist_view AS
     SELECT rowid AS rank, * FROM (
 	        SELECT 'artist' AS type, 'artist://' || artist AS URI,
 	            artist as title, count(*) as track,
+                CASE (substr(artist,1,1) < 'A')
+                WHEN 1 THEN '!#...0-9...?@'
+                ELSE substr(replace(upper(artist),'THE ',''),1,1)
+                END AS groupon,
 	            album not null as container
             FROM file
             WHERE artist NOTNULL
@@ -252,7 +259,11 @@ CREATE view IF NOT EXISTS album_view AS
         WHEN 3 then max(artist)
         ELSE 'Various Artists'
         END artist,
-        max(date) as date
+        max(date) as date,
+        CASE (substr(album,1,1) < 'A')
+        WHEN 1 THEN '!#...0-9...?@'
+        ELSE substr(replace(upper(album),'THE ',''),1,1)
+        END AS groupon
     FROM file
     WHERE album NOTNULL
     GROUP BY album
@@ -262,8 +273,8 @@ CREATE VIEW IF NOT EXISTS lsinfo AS
     SELECT t.URI as URI, t.type as type, t.directory as directory, t.name as name,
         f.disc as disc, f.track as track, ifnull(f.title,t.name) as title, f.album as album,
         f.artist as artist, f.composer as composer, f.performer as performer,
-        f.genre as genre, f.date as date, f.time as time, p.pos as pos,
-        p.pos + 1 as position
+        f.genre as genre, f.date as date, f.secs as secs, f.time as time,
+        p.pos as pos, p.pos + 1 as position
     FROM FS as t
     LEFT OUTER JOIN file as f on t.ID = f.ID
     LEFT OUTER JOIN playlist as p on t.URI = p.URI
@@ -271,7 +282,8 @@ CREATE VIEW IF NOT EXISTS lsinfo AS
 
 CREATE VIEW IF NOT EXISTS plinfo AS
     SELECT f.URI as URI, f.type as type,
-        f.disc as disc, f.track as track, f.title as title, f.album as album,
+        f.disc as disc, f.track as track, f.title as title,
+        ifnull(f.album, 'unknown by ' || ifnull(f.artist, 'unknown')) as album,
         f.artist as artist, f.composer as composer, f.performer as performer,
         f.genre as genre, f.time as time, p.pos as pos, p.pos + 1 as position
     FROM playlist AS p
@@ -281,7 +293,7 @@ CREATE VIEW IF NOT EXISTS plinfo AS
 CREATE VIEW IF NOT EXISTS plalbums AS
     SELECT 'album' AS type, min(pos) AS pos,
         p.album AS title,
-        b.artist as artist,
+        ifnull(b.artist, p.artist) as artist,
         CASE count(*) WHEN 1 THEN
             p.position || '.  ' || p.title
         ELSE count(*) || ' songs...' END track,
@@ -345,8 +357,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS aa_unique_index ON album_art (album, artist);
 
 CREATE TRIGGER IF NOT EXISTS fs_ensure_db_update BEFORE INSERT ON FS
 	BEGIN
-    	UPDATE FS SET db_update = new.db_update
-		WHERE URI=new.URI;
+    	UPDATE FS SET db_update = new.created
+		WHERE type=new.type AND directory=new.directory AND name=new.name;
+	END;
+
+CREATE TRIGGER IF NOT EXISTS fs_create_URI AFTER INSERT ON FS
+	BEGIN
+    	UPDATE FS SET URI = new.type || '://' || ifnull(nullif(directory || '/', '/'), '') || new.name
+		WHERE rowid=new.rowid;
 	END;
 
 CREATE TRIGGER IF NOT EXISTS fs_delete_file AFTER DELETE ON FS WHEN old.type='file'
@@ -364,9 +382,11 @@ CREATE TRIGGER IF NOT EXISTS f_check_date BEFORE UPDATE ON file
 		WHERE rowid=new.rowid;
 	END;
 
-CREATE TRIGGER IF NOT EXISTS f_ensure_album AFTER UPDATE ON file WHEN new.album IS NULL
+CREATE TRIGGER IF NOT EXISTS f_make_time AFTER UPDATE ON file
 	BEGIN
-    	UPDATE file SET album='unknown by ' || ifnull(new.artist, 'unknown')
+    	UPDATE file SET time=ifnull(nullif(ltrim(strftime('%H:',datetime(new.secs, 'unixepoch')),'0'),':'),'') ||
+            ifnull(nullif(ltrim(strftime('%M:',datetime(new.secs, 'unixepoch')),'0'),':'),'0:') ||
+            strftime('%S',datetime(new.secs, 'unixepoch'))
 		WHERE rowid=new.rowid;
 	END;
 
@@ -408,16 +428,16 @@ CREATE TRIGGER IF NOT EXISTS stats_make_title_date AFTER INSERT ON stats
 
 
 
-insert or ignore into commands (cmd, syntax) values('add', 'add <string>');
-insert or ignore into commands (cmd, syntax) values('clear', 'clear');
+insert or ignore into commands (cmd, syntax) values('add', 'add <string>  (add to playlist)');
+insert or ignore into commands (cmd, syntax) values('clear', '(clears playlist)');
 insert or ignore into commands (cmd, syntax) values('crossfade', 'crossfade <int seconds>');
 insert or ignore into commands (cmd, syntax) values('delete', 'delete <int song>');
 insert or ignore into commands (cmd, syntax) values('disableoutput', 'disableoutput <int outputid>');
 insert or ignore into commands (cmd, syntax) values('enableoutput', 'enableoutput <int outputid>');
-insert or ignore into commands (cmd, syntax) values('kill', 'kill');
+insert or ignore into commands (cmd, syntax) values('kill', "(kill mpd proccess, don't do it)");
 insert or ignore into commands (cmd, syntax) values('load', 'load <string name>');
 insert or ignore into commands (cmd, syntax) values('move', 'move <int from> <int to>');
-insert or ignore into commands (cmd, syntax) values('next', 'next');
+insert or ignore into commands (cmd, syntax) values('next', '(next track)');
 insert or ignore into commands (cmd, syntax) values('password', 'password <string password>');
 insert or ignore into commands (cmd, syntax) values('pause', 'pause [<bool pause>]');
 insert or ignore into commands (cmd, syntax) values('play', 'play [<int song>]');
@@ -425,7 +445,7 @@ insert or ignore into commands (cmd, syntax) values('playlistadd', 'playlistadd 
 insert or ignore into commands (cmd, syntax) values('playlistclear', 'playlistclear <str playlist name>');
 insert or ignore into commands (cmd, syntax) values('playlistdelete', 'playlistdelete <str playlist name> <int song id>');
 insert or ignore into commands (cmd, syntax) values('playlistmove', 'playlistmove <str playlist name> <int song id> <int position>');
-insert or ignore into commands (cmd, syntax) values('previous', 'previous');
+insert or ignore into commands (cmd, syntax) values('previous', '(previous track)');
 insert or ignore into commands (cmd, syntax) values('random', 'random <int state>');
 insert or ignore into commands (cmd, syntax) values('rename', 'rename <str name> <str new_name>');
 insert or ignore into commands (cmd, syntax) values('repeat', 'repeat <int state>');

@@ -3,16 +3,1016 @@
           xmlns:xbl="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+    <binding id="mpmTreeBase">
+        <implementation>
+            <field name="treeNode">document.getAnonymousNodes(this)[0]</field>
+            <field name="queryNode">document.getAnonymousNodes(this)[0].childNodes[1].childNodes[0]</field>
+        	<property name="query">
+                <getter>
+                    return this.queryNode.textContent
+                </getter>
+                <setter>
+                    this.queryNode.textContent = val
+                    this.rebuild()
+                </setter>
+            </property>
+            <property name="activeItem" readonly="true">
+                <getter>
+                    <![CDATA[
+                    return this.getItemAt(this.currentIndex)
+                    ]]>
+                </getter>
+            </property>
+            <method name="_build_mpdAddCmd">
+                <parameter name="item"/>
+                <body>
+                    <![CDATA[
+                        if (item.type == 'file') {
+                            var loc = item.URI.slice(7)
+                            return '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                        }
+                        else if (item.type == 'directory') {
+                            var loc = item.URI.slice(12)
+                            return '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                        }
+                        else {
+                            var cmd = ""
+                            var sql = "select URI from file where " + item.type +
+                                "='" + item.title.replace(/'/g,"''") + "'"
+                            var q = mpd.db.createStatement(sql)
+                            try {
+                                while (q.executeStep()) {
+                                    var loc = q.getUTF8String(0).slice(7)
+                                    cmd += '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                                }
+                                return cmd
+                            }
+                            catch(e) { debug(e);debug(item) }
+                            finally { q.reset() }
+                        }
+                    ]]>
+                </body>
+            </method>
+			<method name="addAll">
+				<body>
+					<![CDATA[
+					var view = this.treeNode.view
+                    var rc = view.rowCount
+                    if (rc < 1) return null
+                    var n = rc
+
+				    var cmd = "command_list_begin"
+			        do {
+                        cmd += this._build_mpdAddCmd(this.getItemAt(rc-n))
+			        } while (--n)
+				    cmd += "\ncommand_list_end"
+
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="addSelected">
+				<body>
+					<![CDATA[
+					var view = this.treeNode.view
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+
+				    var cmd = "command_list_begin"
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+                            cmd += this._build_mpdAddCmd(this.getItemAt(v))
+			            }
+			        }
+				    cmd += "\ncommand_list_end"
+
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+            <method name="getItemAt">
+                <parameter name="index"/>
+                <body>
+                    <![CDATA[
+                    var item = {}
+                    var tree = this.treeNode
+                    var cols = tree.columns
+                    var len = cols.length
+
+                    var col = cols.getColumnAt(0)
+                    item['type'] = tree.view.getCellValue(index, col)
+                    item['URI'] = tree.view.getCellText(index,col)
+                    for (var idx = 0; idx < len; idx++) {
+                        col = cols.getColumnAt(idx)
+                        item[col.id] = tree.view.getCellText(index, col)
+                    }
+                    return item
+                    ]]>
+                </body>
+            </method>
+            <method name="filter">
+                <parameter name="criteria"/>
+                <body>
+                    <![CDATA[
+                    var select = this.query.replace(/\;$/,"")
+                    select = select.replace(/lower\(title\) glob\(.*\)$/,"")
+                    select = select.replace(/ and $/,"").replace(/ where $/,"")
+
+                    if (criteria > "") {
+                        if (select.indexOf(" where") > 0) {select += " and "}
+                        else {select += " where "}
+                        select += "lower(title) glob('" + criteria.toLowerCase() + "*')"
+                        debug('FILTER:  '+select)
+                    }
+                    this.query = select
+                    ]]>
+                </body>
+            </method>
+            <method name="rebuild">
+                <body>
+                    this.treeNode.builder.rebuild()
+                </body>
+            </method>
+            <method name="selectAll">
+                <body>
+                    this.treeNode.view.selection.selectAll()
+                </body>
+            </method>
+            <method name="sort">
+                <parameter name="column"/>
+                <body>
+                    <![CDATA[
+                    var select = this.query.replace(/\;$/,"").replace(/ order by .*/i,"")
+                    if (this.query.indexOf(" order by "+column) > 0) {
+                        if (this.query.indexOf(" order by "+column+" DESC") > 0) {
+                            this.query = select
+                        }
+                        else {
+                            this.query = select + " order by " + column + " DESC"
+                        }
+                    }
+                    else {
+                        this.query = select + " order by " + column
+                    }
+                    ]]>
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpmTree_file" extends="#mpmTreeBase">
+        <content>
+            <xul:tree
+                datasources="profile:mpd.sqlite"
+                ref="*"
+                querytype="storage"
+                seltype="multiple"
+                flags="dont-build-content"
+                flex="1">
+                <xul:treecols>
+                    <xul:treecol id="URI" label="URI" ordinal="0" hidden="true"/>
+                    <xul:treecol id="position" label="Position" ordinal="1" width="70px"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            tooltiptext="Playlist Position"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="2" />
+                    <xul:treecol id="title" label="Title" ordinal="3" flex="3"
+                            persist="width ordinal hidden"
+                            overflow="true"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:treecol id="time" label="Time" ordinal="5" width="60px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="6" />
+                    <xul:treecol id="album" label="Album" ordinal="7" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="8" />
+                    <xul:treecol id="artist" label="Artist" ordinal="9" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="10" />
+                    <xul:treecol id="performer" label="Performer" ordinal="11" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="12" />
+                    <xul:treecol id="composer" label="Composer" ordinal="13" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="14" />
+                    <xul:treecol id="genre" label="Genre" ordinal="15" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="16" />
+                    <xul:treecol id="date" label="Date" ordinal="17" width="60px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                </xul:treecols>
+                <xul:template>
+                    <xul:query>
+                        <![CDATA[select * from home]]>
+                    </xul:query>
+                    <xul:action>
+                        <xul:treechildren>
+                            <xul:treeitem uri="?">
+                                <xul:treerow properties="?type">
+                                    <xul:treecell
+                                        value="?type"
+                                        label="?URI"
+                                        properties="URI_?type^"/>
+                                    <xul:treecell label="?position" properties="position_?type^"/>
+                                    <xul:treecell label="?title" properties="title_?type^"/>
+                                    <xul:treecell label="?time" properties="time_?type^"/>
+                                    <xul:treecell label="?album" properties="album_?type^"/>
+                                    <xul:treecell label="?artist" properties="artist_?type^"/>
+                                    <xul:treecell label="?performer" properties="performer_?type^"/>
+                                    <xul:treecell label="?composer" properties="composer_?type^"/>
+                                    <xul:treecell label="?genre" properties="genre_?type^"/>
+                                    <xul:treecell label="?date" properties="date_?type^"/>
+                                </xul:treerow>
+                            </xul:treeitem>
+                        </xul:treechildren>
+                    </xul:action>
+                </xul:template>
+            </xul:tree>
+        </content>
+    </binding>
+
+    <binding id="mpmTree_tags" extends="#mpmTreeBase">
+        <content>
+            <xul:tree
+                datasources="profile:mpd.sqlite"
+                ref="*"
+                querytype="storage"
+                seltype="multiple"
+                flags="dont-build-content"
+                flex="1">
+                <xul:treecols>
+                    <xul:treecol id="URI" label="URI" ordinal="0" hidden="true"/>
+                    <xul:splitter class="tree-splitter" ordinal="1" />
+                    <xul:treecol id="track" label="Songs" ordinal="2" width="70px"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="3" />
+                    <xul:treecol id="title" label="Title" ordinal="4" flex="5"
+                            persist="width ordinal hidden"
+                            overflow="true"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="5" />
+                    <xul:treecol id="rank" label="Rank" ordinal="6" flex="1"
+                            persist="width ordinal hidden"
+                            overflow="true"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                </xul:treecols>
+                <xul:template>
+                    <xul:query>
+                        <![CDATA[select * from home]]>
+                    </xul:query>
+                    <xul:action>
+                        <xul:treechildren>
+                            <xul:treeitem uri="?">
+                                <xul:treerow properties="?type">
+                                    <xul:treecell
+                                        value="?type"
+                                        label="?URI"
+                                        properties="URI_?type^"/>
+                                    <xul:treecell label="?track"
+                                        properties="track_?type^"/>
+                                    <xul:treecell label="?title"
+                                        properties="title_?type^"/>
+                                    <xul:treecell label="?rank"
+                                        properties="rank_?type^"/>                                         </xul:treerow>
+                            </xul:treeitem>
+                        </xul:treechildren>
+                    </xul:action>
+                </xul:template>
+            </xul:tree>
+        </content>
+    </binding>
+
+    <binding id="mpmTree_albums" extends="#mpmTreeBase">
+        <content>
+            <xul:tree
+                datasources="profile:mpd.sqlite"
+                ref="*"
+                querytype="storage"
+                seltype="multiple"
+                flags="dont-build-content"
+                flex="1">
+                <xul:treecols>
+                    <xul:treecol id="URI" label="URI" ordinal="0" hidden="true"/>
+                    <xul:treecol id="track" label="Songs" ordinal="1" width="70px"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="2" />
+                    <xul:treecol id="title" label="Title" ordinal="3" flex="5"
+                            persist="width ordinal hidden"
+                            overflow="true"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:treecol id="artist" label="Artist" ordinal="5" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="6" />
+                    <xul:treecol id="date" label="Year" ordinal="7" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                </xul:treecols>
+                <xul:template>
+                    <xul:query>
+                        <![CDATA[select * from home]]>
+                    </xul:query>
+                    <xul:action>
+                        <xul:treechildren>
+                            <xul:treeitem uri="?">
+                                <xul:treerow properties="?type">
+                                    <xul:treecell
+                                        value="?type"
+                                        label="?URI"
+                                        properties="URI_?type^"/>
+                                    <xul:treecell label="?track"
+                                        properties="track_?type^"/>
+                                    <xul:treecell label="?title" properties="title_?type^"/>
+                                    <xul:treecell label="?artist" properties="artist_?type^"/>
+                                    <xul:treecell label="?date" properties="date_?type^"/>
+                                </xul:treerow>
+                            </xul:treeitem>
+                        </xul:treechildren>
+                    </xul:action>
+                </xul:template>
+            </xul:tree>
+        </content>
+    </binding>
+
+    <binding id="mpmTree_album" extends="#mpmTreeBase">
+        <content>
+            <xul:vbox flex="1">
+                <xul:hbox>
+                    <xul:box  class="albumCoverLarge"
+                        width="160px"
+                        height="160px"
+                        align="center"
+                        pack="center">
+                        <xul:image
+                            anonid="albumArt"
+                            src="chrome://miniondev/content/images/album_blank.png"
+                            validate="never"/>
+                    </xul:box>
+                    <xul:vbox>
+                        <xul:spacer flex="1"/>
+                        <xul:grid>
+                            <xul:columns>
+                                    <xul:column/>
+                                    <xul:column flex="1"/>
+                            </xul:columns>
+                            <xul:rows>
+                                <xul:description anonid="albumTitle"
+                                        class="album albumheader"
+                                        crop="end">
+                                    <![CDATA[Album Title]]>
+                                </xul:description>
+                                <xul:row>
+                                    <xul:label class="gridtag" value="Artist:"/>
+                                    <xul:label anonid="albumArtist"
+                                        class="artist"
+                                        value="by artist"/>
+                                </xul:row>
+                                <xul:row>
+                                    <xul:label class="gridtag" value="Date:"/>
+                                    <xul:label anonid="albumDate"
+                                        value="Released ?"/>
+                                </xul:row>
+                                <xul:row>
+                                    <xul:label class="gridtag" value="Songs:"/>
+                                    <xul:label anonid="albumSongs"
+                                        value="? Songs"/>
+                                </xul:row>
+                            </xul:rows>
+                        </xul:grid>
+                        <xul:spacer flex="1"/>
+                    </xul:vbox>
+                </xul:hbox>
+                <xul:tree id="mpmBrowserContent_album"
+                    datasources="profile:mpd.sqlite"
+                    ref="*"
+                    querytype="storage"
+                    seltype="multiple"
+                    flags="dont-build-content"
+                    flex="1">
+                    <xul:treecols>
+                        <xul:treecol id="URI" label="URI" ordinal="0" hidden="true"/>
+                        <xul:treecol id="position" label="Position" ordinal="1" width="70px"
+                                persist="width ordinal hidden"
+                                class="sortDirectionIndicator"
+                                tooltiptext="Playlist Position"
+                                onclick="this.parentNode.parentNode.parentNode.parentNode.sort(this.id)"/>
+                        <xul:splitter class="tree-splitter" ordinal="2" />
+                        <xul:treecol id="track" label="Track" ordinal="3" width="60px"
+                                persist="width ordinal hidden"
+                                class="sortDirectionIndicator"
+                                onclick="this.parentNode.parentNode.parentNode.parentNode.sort(this.id)"/>
+                        <xul:splitter class="tree-splitter" ordinal="4" />
+                        <xul:treecol id="title" label="Title" ordinal="5" flex="4"
+                                persist="width ordinal hidden"
+                                overflow="true"
+                                class="sortDirectionIndicator"
+                                onclick="this.parentNode.parentNode.parentNode.parentNode.sort(this.id)"/>
+                        <xul:splitter class="tree-splitter" ordinal="6" />
+                        <xul:treecol id="time" label="Time" ordinal="7" width="100px"
+                                persist="width ordinal hidden"
+                                class="sortDirectionIndicator"
+                                onclick="this.parentNode.parentNode.parentNode.parentNode.sort(this.id)"/>
+                        <xul:splitter class="tree-splitter" ordinal="8" />
+                        <xul:treecol id="artist" label="Artist" ordinal="9" flex="1"
+                                persist="width ordinal hidden"
+                                class="sortDirectionIndicator"
+                                hidden="true"
+                                onclick="this.parentNode.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    </xul:treecols>
+                    <xul:template>
+                        <xul:query>
+                            <![CDATA[select * from home]]>
+                        </xul:query>
+                        <xul:action>
+                            <xul:treechildren>
+                                <xul:treeitem uri="?">
+                                    <xul:treerow properties="?type">
+                                        <xul:treecell
+                                            value="?type"
+                                            label="?URI"
+                                            properties="URI_?type^"/>
+                                        <xul:treecell label="?position"
+                                            properties="position_?type^"/>
+                                        <xul:treecell label="?track"
+                                            properties="track_?type^"/>
+                                        <xul:treecell label="?title" properties="title_?type^"/>
+                                        <xul:treecell label="?time" properties="time_?type^"/>
+                                        <xul:treecell label="?artist" properties="artist_?type^"/>
+                                    </xul:treerow>
+                                </xul:treeitem>
+                            </xul:treechildren>
+                        </xul:action>
+                    </xul:template>
+                </xul:tree>
+            </xul:vbox>
+        </content>
+        <implementation>
+            <field name="treeNode">document.getAnonymousNodes(this)[0].childNodes[1]</field>
+            <field name="templateNode">document.getAnonymousNodes(this)[0].childNodes[1].childNodes[1]</field>
+            <field name="queryNode">document.getAnonymousNodes(this)[0].childNodes[1].childNodes[1].childNodes[0]</field>
+            <field name="artNode">document.getAnonymousElementByAttribute(this, 'anonid', 'albumArt')</field>
+            <field name="albumNode">document.getAnonymousElementByAttribute(this, 'anonid', 'albumTitle')</field>
+            <field name="artistNode">document.getAnonymousElementByAttribute(this, 'anonid', 'albumArtist')</field>
+            <field name="dateNode">document.getAnonymousElementByAttribute(this, 'anonid', 'albumDate')</field>
+            <field name="songsNode">document.getAnonymousElementByAttribute(this, 'anonid', 'albumSongs')</field>
+        	<property name="query">
+                <getter>
+                    return this.queryNode.textContent
+                </getter>
+                <setter>
+                    this.queryNode.textContent = val.replace(/\;$/,"").replace(/ order by .*/i,"") +
+                        " order by track"
+                    this.treeNode.builder.rebuild()
+                    var re = / album='(.*)'/
+                    var sql = "select * from album where URI='album://" + val.match(re)[1]  + "'"
+                    var art = this.artNode
+                    try {
+                        var q = mpd.db.createStatement(sql)
+                        if (q.executeStep()) {
+                            var cb = function (url) {art.src = url}
+                            mpd.getArt(q.getUTF8String(q.getColumnIndex('artist')),
+                                q.getUTF8String(q.getColumnIndex('title')),
+                                cb)
+                            this.albumNode.textContent = q.getUTF8String(q.getColumnIndex('title'))
+                            this.artistNode.value = q.getUTF8String(q.getColumnIndex('artist'))
+                            this.dateNode.value = q.getUTF8String(q.getColumnIndex('date'))
+                            this.songsNode.value = q.getUTF8String(q.getColumnIndex('track'))
+                        }
+                    }
+                    catch (e) {
+                        debug(e)
+                        debug(sql)
+                    }
+                    finally {
+                        q.reset()
+                    }
+                </setter>
+            </property>
+            <constructor>
+                Components.utils.import("resource://miniondev/mpd.js");
+            </constructor>
+        </implementation>
+    </binding>
+
+    <binding id="mpmTree_simple" extends="#mpmTreeBase">
+        <content>
+            <xul:tree
+                datasources="profile:mpd.sqlite"
+                ref="*"
+                querytype="storage"
+                seltype="multiple"
+                flags="dont-build-content"
+                flex="1">
+                <xul:treecols>
+                    <xul:treecol id="URI" label="URI" ordinal="0" hidden="true"/>
+                    <xul:treecol id="title" label="" ordinal="1" flex="4"
+                            persist="width ordinal hidden"
+                            overflow="true"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                </xul:treecols>
+                <xul:template>
+                    <xul:query>
+                        <![CDATA[select * from home]]>
+                    </xul:query>
+                    <xul:action>
+                        <xul:treechildren>
+                            <xul:treeitem uri="?">
+                                <xul:treerow properties="?type">
+                                    <xul:treecell
+                                        value="?type"
+                                        label="?URI"
+                                        properties="URI_?type^"/>
+                                    <xul:treecell
+                                        label="?title"
+                                        properties="title_?type^"/>
+                                </xul:treerow>
+                            </xul:treeitem>
+                        </xul:treechildren>
+                    </xul:action>
+                </xul:template>
+            </xul:tree>
+        </content>
+    </binding>
+
+    <binding id="mpmTreeCustomView">
+        <content>
+            <xul:tree
+                id="mpdTree"
+                seltype="single"
+                flags="dont-build-content"
+                flex="1">
+                <xul:treecols>
+                    <xul:treecol id="URI" label="URI" ordinal="0" hidden="true"/>
+                    <xul:treecol id="position" label="Position" ordinal="1" width="70px"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            tooltiptext="Playlist Position"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="2" />
+                    <xul:treecol id="title" label="Title" ordinal="3" flex="3"
+                            persist="width ordinal hidden"
+                            overflow="true"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:treecol id="secs" label="Time" ordinal="5" width="60px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="6" />
+                    <xul:treecol id="album" label="Album" ordinal="7" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="8" />
+                    <xul:treecol id="artist" label="Artist" ordinal="9" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="10" />
+                    <xul:treecol id="performer" label="Performer" ordinal="11" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="12" />
+                    <xul:treecol id="composer" label="Composer" ordinal="13" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="14" />
+                    <xul:treecol id="genre" label="Genre" ordinal="15" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="16" />
+                    <xul:treecol id="date" label="Date" ordinal="17" width="60px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                </xul:treecols>
+                <xul:treechildren id="tchildren"/>
+            </xul:tree>
+
+        </content>
+        <implementation>
+            <field name="treeNode">document.getAnonymousNodes(this)[0]</field>
+            <field name="view"/>
+        	<property name="query">
+                <getter>
+                    return this.view.sqlSELECT
+                </getter>
+                <setter>
+                    this.view.load(val)
+                </setter>
+            </property>
+            <property name="activeItem" readonly="true">
+                <getter>
+                    <![CDATA[
+                    return this.view.get(this.treeNode.currentIndex)
+                    ]]>
+                </getter>
+            </property>
+            <constructor>
+				<![CDATA[
+                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://miniondev/trees.js");
+                this.view = new sqlView(dbfile,this)
+				this.treeNode.view = this.view
+				]]>
+            </constructor>
+            <destructor>
+                this.view = null
+            </destructor>
+            <method name="_build_mpdAddCmd">
+                <parameter name="item"/>
+                <body>
+                    <![CDATA[
+                        var cmd = ""
+                        if (item.type == 'file') {
+                            var loc = item.URI.slice(7)
+                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                        }
+                        else if (item.type == 'directory') {
+                            var loc = item.URI.slice(12)
+                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                        }
+                        else {
+                            var sql = "select URI from file where " + item.type +
+                                "='" + item.title.replace(/'/g,"''") + "'"
+                            var q = mpd.db.createStatement(sql)
+                            try {
+                                while (q.executeStep()) {
+                                    var loc = q.getUTF8String(0).slice(7)
+                                    debug("    "+loc)
+                                    cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                                }
+                            }
+                            catch(e) { debug(e) }
+                            finally { q.reset() }
+                        }
+                        return cmd
+                    ]]>
+                </body>
+            </method>
+			<method name="addAll">
+				<body>
+					<![CDATA[
+                    var rc = this.view.rowCount
+                    if (rc < 1) return null
+                    var n = rc
+
+				    var cmd = "command_list_begin"
+			        do {
+                        cmd += this._build_mpdAddCmd(this.view.get(rc-n))
+			        } while (--n)
+
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="addSelected">
+				<body>
+					<![CDATA[
+					var view = this.treeNode.view
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+
+				    var cmd = "command_list_begin"
+
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+                            cmd += this._build_mpdAddCmd(this.view.get(this.treeNode.currentIndex))
+			            }
+			        }
+
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+            <method name="filter">
+                <parameter name="criteria"/>
+                <body>
+                    <![CDATA[
+                        this.view.applyFilter(criteria)
+                    ]]>
+                </body>
+            </method>
+            <method name="rebuild">
+                <body>
+                    this.view.requery()
+                </body>
+            </method>
+            <method name="selectAll">
+                <body>
+                    this.treeNode.view.selection.selectAll()
+                </body>
+            </method>
+            <method name="sort">
+                <parameter name="column"/>
+                <body>
+                    <![CDATA[
+                    this.view.sort(column)
+                    ]]>
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpmTreeArrayView">
+        <content>
+            <xul:tree
+                id="mpdTree"
+                seltype="single"
+                flags="dont-build-content"
+                flex="1">
+                <xul:treecols>
+                    <xul:treecol id="URI" label="URI" ordinal="0" hidden="true"/>
+                    <xul:treecol id="pos" label="Position" ordinal="1" width="70px"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            tooltiptext="Playlist Position"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="2" />
+                    <xul:treecol id="title" label="Title" ordinal="3" flex="3"
+                            persist="width ordinal hidden"
+                            overflow="true"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:treecol id="time" label="Time" ordinal="5" width="60px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="6" />
+                    <xul:treecol id="album" label="Album" ordinal="7" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="8" />
+                    <xul:treecol id="artist" label="Artist" ordinal="9" flex="1"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="10" />
+                    <xul:treecol id="performer" label="Performer" ordinal="11" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="12" />
+                    <xul:treecol id="composer" label="Composer" ordinal="13" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="14" />
+                    <xul:treecol id="genre" label="Genre" ordinal="15" flex="1"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="16" />
+                    <xul:treecol id="date" label="Date" ordinal="17" width="60px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                </xul:treecols>
+                <xul:treechildren id="tchildren"/>
+            </xul:tree>
+        </content>
+        <implementation>
+            <field name="treeNode"></field>
+            <field name="view"/>
+            <property name="activeItem" readonly="true">
+                <getter>
+                    <![CDATA[
+                    return this.view.get(this.treeNode.currentIndex)
+                    ]]>
+                </getter>
+            </property>
+            <constructor>
+				<![CDATA[
+                Components.utils.import("resource://miniondev/trees.js");
+                this.treeNode = document.getAnonymousNodes(this)[0]
+				]]>
+            </constructor>
+            <destructor>
+                this.view = null
+            </destructor>
+            <method name="_build_mpdAddCmd">
+                <parameter name="item"/>
+                <body>
+                    <![CDATA[
+                        var cmd = ""
+                        if (item.type == 'file') {
+                            var loc = item.URI.slice(7)
+                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                        }
+                        else if (item.type == 'directory') {
+                            var loc = item.URI.slice(12)
+                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                        }
+                        else {
+                            var sql = "select URI from file where " + item.type +
+                                "='" + item.title.replace(/'/g,"''") + "'"
+                            var q = mpd.db.createStatement(sql)
+                            try {
+                                while (q.executeStep()) {
+                                    var loc = q.getUTF8String(0).slice(7)
+                                    debug("    "+loc)
+                                    cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                                }
+                            }
+                            catch(e) { debug(e) }
+                            finally { q.reset() }
+                        }
+                        return cmd
+                    ]]>
+                </body>
+            </method>
+			<method name="addAll">
+				<body>
+					<![CDATA[
+                    var rc = this.view.rowCount
+                    if (rc < 1) return null
+                    var n = rc
+
+				    var cmd = "command_list_begin"
+			        do {
+                        cmd += this._build_mpdAddCmd(this.view.get(this.treeNode.currentIndex))
+			        } while (--n)
+
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+			<method name="addSelected">
+				<body>
+					<![CDATA[
+					var view = this.treeNode.view
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+
+				    var cmd = "command_list_begin"
+
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+                            cmd += this._build_mpdAddCmd(this.view.get(this.treeNode.currentIndex))
+			            }
+			        }
+
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+            <method name="load">
+                <parameter name="cmd"/>
+                <body>
+					<![CDATA[
+                    var me = this
+                    var cb = function (data) {
+                        data = data.split("\n")
+                        var db = []
+                        var dl = data.length
+                        if (dl > 0) {
+                            var n = dl
+                            do {
+                                var i = dl - n
+                                var sep = data[i].indexOf(": ")
+                                if (sep > -1) {
+                                    var fld = data[i].substr(0, sep)
+                                    var val = data[i].slice(sep + 2)
+                                    if (fld == 'file') {
+                                        var song = {
+                                            type: 'file',
+                                            title: val,
+                                            time: 0,
+                                            URI: "file://" + val
+                                        };
+                                        var d = data[i + 1]
+                                        while (d && d.substr(0, 6) != "file: ") {
+                                            var sep = d.indexOf(": ")
+                                            song[d.substr(0, sep).toLowerCase()] = d.slice(sep + 2);
+                                            --n;
+                                            var d = data[dl - n + 1]
+                                        };
+                                        db.push(song);
+                                    }
+                                    else {
+                                        if (fld == 'directory') {
+                                            if (type == 'directory') {
+                                                var dir = val.split("/")
+                                                db.push({
+                                                    type: 'directory',
+                                                    title: dir[dir.length - 1],
+                                                    URI: "directory://" + val
+                                                })
+                                            }
+                                        }
+                                        else {
+                                            db.push({
+                                                type: fld.toLowerCase(),
+                                                title: val,
+                                                URI: fld.toLowerCase() + "://" + val
+                                            })
+                                        }
+                                    }
+                                }
+                            }
+                            while (--n)
+                        }
+                        me.view = new arrayView(db)
+                        me.treeNode.view = me.view
+                    }
+                    mpd.doCmd(cmd, cb, false)
+					]]>
+                </body>
+            </method>
+            <method name="filter">
+                <parameter name="criteria"/>
+                <body>
+                    return null
+                </body>
+            </method>
+            <method name="rebuild">
+                <body>
+                    return null
+                </body>
+            </method>
+            <method name="selectAll">
+                <body>
+                    this.treeNode.view.selection.selectAll()
+                </body>
+            </method>
+            <method name="sort">
+                <parameter name="column"/>
+                <body>
+                    return null
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
     <binding id="mpdBrowser">
         <content>
         	<xul:vbox flex="1">
                 <xul:hbox>
                     <xul:toolbarbutton label="Add All"
                         class="mpm_btn_AddAll"
-                        oncommand="this.parentNode.parentNode.parentNode.addAll()"/>
+                        oncommand="this.parentNode.parentNode.parentNode.browser.addAll()"/>
                     <xul:toolbarbutton label="Add Selected"
                         class="mpm_btn_AddSelected"
-                        oncommand="this.parentNode.parentNode.parentNode.addSelected()"/>
+                        oncommand="this.parentNode.parentNode.parentNode.browser.addSelected()"/>
                     <xul:spacer flex="1"/>
 					<xul:menulist id="searchType"
 						label="Search"
@@ -73,9 +1073,6 @@
 		            	flags="dont-build-content"
                         min-width="100px">
 		                <xul:treecols id="mpdTreeCols">
-		                    <xul:treecol id="location" label="Location"
-									ordinal="1"
-		                            hidden="true"/>
 		                    <xul:treecol id="title" label="Location" flex="1"
 									ordinal="2"
 		                            hidden="false"
@@ -86,66 +1083,20 @@
 		            </xul:tree>
 					<xul:splitter collapse="before"/>
                     <xul:deck id="mpmBrowserContent" flex="3" selectedIndex="0">
-                        <xul:tree id="mpmBrowserContent_tree"
-                            datasources="rdf:null"
-                            ref="*"
-                            seltype="multiple"
-                            flags="dont-build-content"
-                            flex="1">
-                            <xul:treecols id="mpdBrowserCols">
-                                <xul:treecol id="position" label="Position" ordinal="1" width="40px"
-                                        hidden="false"
-                                        persist="width ordinal hidden"
-                                        class="sortDirectionIndicator"
-                                        tooltiptext="Playlist Position"/>
-                                <xul:splitter class="tree-splitter" ordinal="2" />
-                                <xul:treecol id="title" label="Title" ordinal="3" flex="3"
-                                        persist="width ordinal hidden"
-                                        overflow="true"
-                                        class="sortDirectionIndicator"/>
-                                <xul:splitter class="tree-splitter" ordinal="4" />
-                                <xul:treecol id="time" label="Time" ordinal="5" width="60px"
-                                        hidden="true"
-                                        persist="width ordinal hidden"
-                                        class="sortDirectionIndicator"/>
-                                <xul:splitter class="tree-splitter" ordinal="6" />
-                                <xul:treecol id="album" label="Album" ordinal="7" flex="1"
-                                        persist="width ordinal hidden"
-                                        class="sortDirectionIndicator"/>
-                                <xul:splitter class="tree-splitter" ordinal="8" />
-                                <xul:treecol id="artist" label="Artist" ordinal="9" flex="1"
-                                        persist="width ordinal hidden"
-                                        class="sortDirectionIndicator"/>
-                                <xul:splitter class="tree-splitter" ordinal="10" />
-                                <xul:treecol id="performer" label="Performer" ordinal="11" flex="1"
-                                        hidden="true"
-                                        persist="width ordinal hidden"
-                                        class="sortDirectionIndicator"/>
-                                <xul:splitter class="tree-splitter" ordinal="12" />
-                                <xul:treecol id="composer" label="Composer" ordinal="13" flex="1"
-                                        hidden="true"
-                                        persist="width ordinal hidden"
-                                        class="sortDirectionIndicator"/>
-                                <xul:splitter class="tree-splitter" ordinal="14" />
-                                <xul:treecol id="genre" label="Genre" ordinal="15" flex="1"
-                                        hidden="true"
-                                        persist="width ordinal hidden"
-                                        class="sortDirectionIndicator"/>
-                                <xul:splitter class="tree-splitter" ordinal="16" />
-                                <xul:treecol id="date" label="Date" ordinal="17" width="60px"
-                                        hidden="true"
-                                        persist="width ordinal hidden"
-                                        class="sortDirectionIndicator"/>
-                            </xul:treecols>
-                            <xul:treechildren/>
-                        </xul:tree>
+                        <xul:box id="browser_file" style="-moz-binding: url('#mpmTree_file')"/>
+                        <xul:box id="browser_tags" style="-moz-binding: url('#mpmTree_tags')"/>
+                        <xul:box id="browser_albumlist" style="-moz-binding: url('#mpmTree_albums')"/>
+                        <xul:box id="browser_album" style="-moz-binding: url('#mpmTree_album')"/>
+                        <xul:box id="browser_other" style="-moz-binding: url('#mpmTree_simple')"/>
+                        <xul:box id="browser_playlist" style="-moz-binding: url('#mpmTreeCustomView')"/>
+                        <xul:box id="browser_mpdarray" style="-moz-binding: url('#mpmTreeArrayView')"/>
                     </xul:deck>
 				</xul:hbox>
         	</xul:vbox>
         </content>
 		<handlers>
 			<handler event="keypress" modifiers="accel" key="a"
-				action="this.browser.view.selection.selectAll()"/>
+				action="this.browser.selectAll()"/>
 			<handler event="dblclick"
 				action="if (this.browserfocused) this.goToURI(this.activeItem.URI)"/>
 			<handler event="keypress" keycode="VK_DELETE"
@@ -159,10 +1110,7 @@
 		</handlers>
         <implementation>
         	<field name="hview"/>
-        	<field name="cview"/>
         	<field name="addr">document.getAnonymousElementByAttribute(this, 'id', 'mpdAddress')</field>
-        	<field name="columns">document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserCols')</field>
-        	<field name="query">document.getAnonymousElementByAttribute(this, 'id', 'mpdBrowserQuery')</field>
         	<field name="htree">document.getAnonymousElementByAttribute(this, 'id', 'mpdTree')</field>
 			<field name="searchType">document.getAnonymousElementByAttribute(this, 'id', 'searchType')</field>
 			<field name="searchInput">document.getAnonymousElementByAttribute(this, 'id', 'searchInput')</field>
@@ -175,7 +1123,7 @@
                 </getter>
                 <setter>
                     var browser = document.getAnonymousElementByAttribute(this, 'id', 'mpmBrowserContent')
-                    if (typeof(val) == 'integer') {browser.selectedIndex = val}
+                    if (typeof(val) == 'number') {browser.setAttribute('selectedIndex',val)}
                     else {browser.selectedPanel = val}
                 </setter>
             </property>
@@ -187,7 +1135,7 @@
                         return this.hview.get(this.htree.currentIndex);
                     }
                     else if (this.browserfocused) {
-                        return this.cview.get(this.browser.currentIndex);
+                        return this.browser.activeItem;
                     }
                     else { return null }
                 ]]>
@@ -197,7 +1145,7 @@
 				onget="return (this.htree==document.commandDispatcher.focusedElement)"
 				readonly="true"/>
         	<property name="browserfocused"
-				onget="return (this.browser==document.commandDispatcher.focusedElement)"
+				onget="return (this.browser.treeNode==document.commandDispatcher.focusedElement)"
 				readonly="true"/>
         	<property name="addrfocused"
 				onget="return (this.addr==document.commandDispatcher.focusedElement)"
@@ -208,7 +1156,7 @@
                 Components.utils.import("resource://miniondev/trees.js");
 				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
 			                getService(Components.interfaces.nsIPrefBranch);
-
+                this.dbfile = dbfile
 				var heirs = {
 					directory: 'directory',
 					genre: 'artist',
@@ -222,23 +1170,17 @@
 				this.htree.view = this.hview
 				this.hview.load("select * from home")
 
-                this.cview = new sqlView(dbfile,this)
-				this.browser.view = this.cview
-                this.cview.load("select * from home")
-
-                var box = this.browser.boxObject;
-                box.QueryInterface(Components.interfaces.nsITreeBoxObject);
-				this.box = box
+                var me = this
                 this.obsCurSong = {
                     observe: function(subject,topic,data){
-                        box.invalidate()
+                        me.browser.rebuild()
                     }
                 };
                 observerService.addObserver(this.obsCurSong,'state',false)
                 observerService.addObserver(this.obsCurSong,'file',false)
                 this.obsPL = {
                     observe: function(subject,topic,data){
-                        box.invalidate()
+                        me.browser.rebuild()
                     }
                 };
                 observerService.addObserver(this.obsPL,'plinfo',false)
@@ -246,112 +1188,9 @@
 				]]>
             </constructor>
             <destructor>
-                Components.utils.import("resource://miniondev/trees.js");
                 observerService.removeObserver(this.obsCurSong,'state')
                 observerService.removeObserver(this.obsCurSong,'file')
             </destructor>
-            <method name="_build_mpdAddCmd">
-                <parameter name="item"/>
-                <body>
-                    <![CDATA[
-                        var cmd = ""
-                        if (item.type == 'file') {
-                            var loc = item.URI.slice(7)
-                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                        }
-                        else if (item.type == 'directory') {
-                            var loc = item.URI.slice(12)
-                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                        }
-                        else {
-                            var sql = "select URI from file where " + item.type +
-                                "='" + item.title.replace(/'/g,"''") + "'"
-                            var q = mpd.db.createStatement(sql)
-                            try {
-                                while (q.executeStep()) {
-                                    var loc = q.getUTF8String(0).slice(7)
-                                    debug("    "+loc)
-                                    cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                                }
-                            }
-                            catch(e) { debug(e) }
-                            finally { q.reset() }
-                        }
-                        return cmd
-                    ]]>
-                </body>
-            </method>
-			<method name="addAll">
-				<body>
-					<![CDATA[
-					var view = this.cview
-                    var rc = view.rowCount
-                    if (rc < 1) return null
-                    var n = rc
-
-				    var cmd = "command_list_begin"
-
-			        do {
-                        cmd += this._build_mpdAddCmd(view.get(rc-n))
-			        } while (--n)
-
-				    cmd += "\ncommand_list_end"
-				    mpd.doCmd(cmd, null, false)
-					]]>
-				</body>
-			</method>
-			<method name="addSelected">
-				<body>
-					<![CDATA[
-					var view = this.cview
-				    var start = new Object();
-				    var end = new Object();
-				    var numRanges = view.selection.getRangeCount();
-
-				    var cmd = "command_list_begin"
-
-			        for (var t=0; t<numRanges; t++){
-			            view.selection.getRangeAt(t,start,end);
-			            for (var v=start.value; v<=end.value; v++){
-                            cmd += this._build_mpdAddCmd(view.get(v))
-			            }
-			        }
-
-				    cmd += "\ncommand_list_end"
-				    mpd.doCmd(cmd, null, false)
-					]]>
-				</body>
-			</method>
-			<method name="goToURI">
-				<parameter name="URI"/>
-				<body>
-					<![CDATA[
-					if (URI=="" || URI=="Home") {
-						this.cview.load("select * from home")
-						this.addr.value = URI
-						this.addr.selectionStart = this.addr.textLength
-						this.addr.selectionEnd = this.addr.textLength
-						this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
-					}
-					else {
-						var sql = mpd.query(URI, this.cview)
-						if(sql) {
-                            this.cview.load(sql)
-							this.addr.value = URI
-							this.addr.selectionStart = this.addr.textLength
-							this.addr.selectionEnd = this.addr.textLength
-						}
-					}
-					if (URI.indexOf("search://") != 0) {
-						if (this.history[this.historyIndex] != URI) {
-							this.history.splice(this.historyIndex,0,URI)
-							if (this.history.length > 20) this.history.length = 20
-						}
-					}
-					if (!this.htreefocused) this.hview.ensureURIisVisble(URI)
-					]]>
-				</body>
-			</method>
 			<method name="goBack">
 				<body>
 					if (this.historyIndex >= (this.history.length-1)) return null
@@ -366,31 +1205,218 @@
 					this.goToURI(this.history[this.historyIndex])
 				</body>
 			</method>
-			<method name="delete">
+			<method name="goToURI">
+				<parameter name="URI"/>
 				<body>
 					<![CDATA[
-				    var tree = this.tree
-					var view = this.view
-				    var start = new Object();
-				    var end = new Object();
-				    var numRanges = view.selection.getRangeCount();
-				    var offset = 0
-					var item
-				    var cmd = "command_list_begin"
+					if (URI=="" || URI=="Home") {
+                        this.browser = 4
+						this.browser.query = "select * from home"
+						this.addr.value = URI
+						this.addr.selectionStart = this.addr.textLength
+						this.addr.selectionEnd = this.addr.textLength
+						this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
+					}
+					else {
+                        var addr = URI
+                        /* URI should be: return_tag_type://specifier or
+                         * return_tag_type://where_other_tag_type=specifier or
+                         * an actual MPD command.
+                         *
+                         * If '://' is not in string, it is assumed to be an MPD command.
+                         */
 
-			        for (var t=0; t<numRanges; t++){
-			            view.selection.getRangeAt(t,start,end);
-			            for (var v=start.value; v<=end.value; v++){
-							item = view.get(v)
-							if (item.type == 'file') {
-				                cmd += "\ndelete "+ (parseInt(item.Pos)-offset)
-				                offset++
-							}
-			            }
-			        }
+                        var chkDupes = false
+                        var cmd = URI
+                        if (URI.indexOf("://") < 0) {
+                            if (URI.toLowerCase().indexOf('select') == 0) {
+                                this.browser = 5
+                                this.browser.query = URI
+                            }
+                            // Clean up and validate command lists.
 
-				    cmd += "\ncommand_list_end"
-				    mpd.doCmd(cmd, null, false)
+                            if (cmd.indexOf('command_list_begin') > -1) {
+                                if  (cmd.indexOf('command_list_end') < 0) {
+                                    cmd += "\ncommand_list_end"
+                                }
+                            }
+                            else if (cmd.indexOf(';') > -1) {
+                                cmd = "command_list_begin;"+cmd
+                                if  (cmd.indexOf('command_list_end') < 0) {
+                                    cmd += ";command_list_end"
+                                }
+                                cmd = cmd.replace(/;/g,"\n")
+                            }
+
+                            // Check if this command returns database results.
+                            // If so, check if it will return multiple sets that
+                            // will need to be combined.
+
+                            var dbc = ["search ", "find ", "lsinfo", "plchanges ",
+                                    "list ", "listall", "listallinfo", "listplaylistinfo ",
+                                    "playlistsearch ", "playlistinfo", "playlistfind "]
+                            var is_dbc = false
+                            for (x in dbc) {
+                                if (cmd.indexOf(dbc[x]) > -1) {
+                                    is_dbc = true
+                                }
+                            }
+                            if (is_dbc) {
+                                this.browser = 6
+                                this.browser.load(cmd)
+                            }
+                            if (!is_dbc) {
+                                mpd.doCmd(cmd, null, false)
+                                return null
+                            }
+                        }
+                        else {
+                            // Not a command, proccess URI
+
+                            var uri = URI.split("://")
+                            var type = uri[0]
+                            var id = Nz(uri[1], "")
+
+                            switch (type) {
+                                case "directory":
+                                    this.browser = 0
+                                    var criteria = id.replace(/'/g, "''")
+                                    this.browser.query = "select * from lsinfo where directory='"+criteria+"';"
+                                    break;
+                                case "file":
+                                    this.browser = 0
+                                    if (id.length==0){
+                                        this.browser.query = "select * from lsinfo;"
+                                    }
+                                    else if (id.indexOf("=") > 0) {
+                                        id = id.split("=")
+                                        var criteria = id[1].replace(/'/g, "''")
+                                        this.browser.query = "select * from lsinfo where "+Lz(id[0])+"='"+criteria+"';"
+                                    }
+                                    else {
+                                        mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
+                                        return null;
+                                    }
+                                    break;
+                                case "playlist":
+                                    this.browser = 5
+                                    var browser = this.browser
+                                    if (id.length > 0) {
+                                        cmd = 'listplaylist  "' + id.replace(/"/g, '\\"') + '"';
+                                        mpd.doCmd(cmd, function(data){
+                                            try {
+                                                browser.view.load(data,'filelist')
+                                            }
+                                            catch (e) {
+                                                debug(e)
+                                                debug(sql + "\n" + mpd.db.lastErrorString)
+                                            }
+                                        }, false)
+                                        return true
+                                    }
+                                    else {
+                                        cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
+                                        mpd.doCmd(cmd, function(data){
+                                            try {
+                                                data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
+                                                browser.view.load(data, 'playlists')
+                                            }
+                                            catch (e) {
+                                                debug(e)
+                                                debug(sql + "\n" + mpd.db.lastErrorString)
+                                            }
+                                        }, false)
+                                        return true
+                                    }
+                                    break;
+                                case "search":
+                                    if (id.length > 0) {
+                                        this.browser = 0
+                                        id = id.split("=")
+                                        if (id.length == 1) {
+                                            var criteria = id[0].replace(/'/g, "''")
+                                            //var flds = ["title","artist","album","URI","genre","performer","composer"]
+                                            //sql = "select * from FS where type='file' AND " + flds.join(" like '%"+criteria+"%' OR ")
+                                            this.browser.query = "select * from file where any glob('*"+criteria+"*');"
+
+                                        }
+                                        else
+                                            if (id.length == 2) {
+                                                if (id[0] == 'title') id[0] = 'file'
+                                                var criteria = id[1].replace(/'/g, "''")
+                                                this.browser.query = "select * from " + id[0] +
+                                                    " where lower(title) glob('*"+criteria+"*');"
+                                            }
+                                    }
+                                    break;
+                                case "stats":
+                                    this.browser = 4
+                                    mpd.getStats();
+                                    this.browser.query = "select 'stats://' as URI, type, title from stats"
+                                    break;
+                                default:
+                                    if (id.length > 0) {
+                                        id = id.replace("/","=").split("=")
+                                        if (id.length == 1) {
+                                            var criteria = id[0].replace(/'/g, "''")
+                                            if (type == 'album') this.browser = 3
+                                            else this.browser = 0
+                                            this.browser.query = "select * from lsinfo WHERE " + Lz(type) + "='" + criteria + "';"
+                                        }
+                                        else
+                                            if (id.length == 2) {
+                                                if (type == 'album') this.browser = 2
+                                                else this.browser = 1
+                                                var criteria = id[1].replace(/'/g, "''")
+                                                var sql ="select distinct t.* from lsinfo as l inner join " +
+                                                    Lz(type) +
+                                                    " as t on t.title = l." +
+                                                    Lz(type) + " WHERE l." + Lz(id[0]) +
+                                                    "='" + criteria + "';"
+                                                this.browser.query = sql
+                                            }
+                                    }
+                                    else {
+                                        var tag = type.toLowerCase()
+                                        switch (tag) {
+                                            case 'album': this.browser = 2; break;
+                                            default: this.browser = 1; break;
+                                        }
+                                        this.browser.query = "select * from " + tag + ";"
+                                    }
+                                    break;
+                            }
+                        }
+					}
+
+                    this.addr.value = URI
+                    this.addr.selectionStart = this.addr.textLength
+                    this.addr.selectionEnd = this.addr.textLength
+					if (URI.indexOf("search://") != 0) {
+						if (this.history[this.historyIndex] != URI) {
+							this.history.splice(this.historyIndex,0,URI)
+							if (this.history.length > 20) this.history.length = 20
+						}
+					}
+					if (!this.htreefocused) this.hview.ensureURIisVisble(URI)
+					]]>
+				</body>
+			</method>
+			<method name="handleSearch">
+				<body>
+					<![CDATA[
+					switch (this.searchType.selectedItem.label) {
+						case "Search All": this.goToURI("search://"+this.searchInput.value);break;
+						case "Filter": this.browser.filter(this.searchInput.value);break;
+						case "Title": this.goToURI("search://title="+this.searchInput.value);break;
+						case "Artist": this.goToURI("search://artist="+this.searchInput.value);break;
+						case "Album": this.goToURI("search://album="+this.searchInput.value);break;
+						case "Genre": this.goToURI("search://genre="+this.searchInput.value);break;
+						case "File": this.goToURI("search://name="+this.searchInput.value);break;
+						case "Performer": this.goToURI("search://performer="+this.searchInput.value);break;
+						case "Composer": this.goToURI("search://composer="+this.searchInput.value);break;
+						case "Date": this.goToURI("search://date="+this.searchInput.value);break;
+					}
 					]]>
 				</body>
 			</method>
@@ -407,40 +1433,6 @@
 					]]>
 				</body>
 			</method>
-			<method name="handleSearch">
-				<body>
-					<![CDATA[
-					switch (this.searchType.selectedItem.label) {
-						case "Search All": this.goToURI("search://"+this.searchInput.value);break;
-						case "Filter": this.cview.applyFilter(this.searchInput.value);break;
-						case "Title": this.goToURI("search://title="+this.searchInput.value);break;
-						case "Artist": this.goToURI("search://artist="+this.searchInput.value);break;
-						case "Album": this.goToURI("search://album="+this.searchInput.value);break;
-						case "Genre": this.goToURI("search://genre="+this.searchInput.value);break;
-						case "File": this.goToURI("search://name="+this.searchInput.value);break;
-						case "Performer": this.goToURI("search://performer="+this.searchInput.value);break;
-						case "Composer": this.goToURI("search://composer="+this.searchInput.value);break;
-						case "Date": this.goToURI("search://date="+this.searchInput.value);break;
-					}
-					]]>
-				</body>
-			</method>
-            <method name="displayColumns">
-                <parameter name="columns"/>
-                <body>
-					<![CDATA[
-                        // Collapse unused columns.
-                        try {
-                        var cols = this.browserColumns.childNodes
-                        var len = cols.length
-                        for (var i=0; i < len; i++) {
-                            cols[i].collapsed = (typeof(columns[cols[i].id]) == 'undefined')
-                        }
-                        } catch (e) { dump(e.description) }
-
-                    ]]>
-                </body>
-            </method>
         </implementation>
     </binding>
 

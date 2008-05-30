@@ -17,7 +17,7 @@
 */
 
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
-                    "observerService", "getFileContents",
+                    "observerService", "getFileContents", "fetch",
                     "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
@@ -43,14 +43,14 @@ function debug(s) {
     consoleService.logStringMessage(str)
 }
 
-function Nz(obj, def){
+function Nz (obj, def){
     if (typeof(obj) == 'undefined') {
         return (typeof(def) == 'undefined') ? null : def
     }
     return obj
 }
 
-function getFileContents(aURL){
+function getFileContents (aURL){
   var ioService=Components.classes["@mozilla.org/network/io-service;1"]
     .getService(Components.interfaces.nsIIOService);
   var scriptableStream=Components
@@ -67,7 +67,7 @@ function getFileContents(aURL){
 }
 
 
-function hmsFromSec(sec){
+function hmsFromSec (sec){
     var hms = "0:00"
     try {
         sec = parseInt(sec)
@@ -101,7 +101,7 @@ function hmsFromSec(sec){
     return hms
 }
 
-function prettyTime(sec) {
+function prettyTime (sec) {
   var tm = ""
   try {sec = parseInt(sec)}
   catch (err) {debug("prettyTime: "+err.description);sec = 0}
@@ -165,6 +165,29 @@ function copyArray (oldArray) {
     else return oldArray
 }
 
+function fetch (url, callBack, arg){
+    try {
+        var request = Components.
+              classes["@mozilla.org/xmlextras/xmlhttprequest;1"].
+                createInstance();
+        request.QueryInterface(Components.interfaces.nsIDOMEventTarget);
+        request.QueryInterface(Components.interfaces.nsIXMLHttpRequest);
 
-
-
+        request.open("GET", url, true)
+        request.onreadystatechange = function() {
+            if (request.readyState == 4) {
+                if (request.status == 200) {
+                    callBack(request.responseText, arg)
+                    request.onreadystatechange = null
+                    request = null
+                }
+                else {
+                    request.onreadystatechange = null
+                    request = null
+                }
+            }
+        }
+        request.send("")
+    }
+    catch (e) {debug(e)}
+}

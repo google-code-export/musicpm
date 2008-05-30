@@ -35,6 +35,18 @@ window {
 	font-style: italic;
 }
 
+.albumheader {
+	font-weight: bold;
+	font-size: 1.5em;
+	margin-bottom: 10px;
+	max-width: 300px;
+}
+
+.gridtag {
+	text-align: right;
+	font-weight: bold;
+}
+
 #playlist{
 	min-width: 262px !important;
 	width: 262px !important;
@@ -88,6 +100,16 @@ window {
 	background-color: #303030;
 	border: 1px solid #101010;
 	border-left: 8px solid #151515;
+}
+
+.albumCoverLarge {
+	max-width: 162px;
+	max-height: 162px;
+	min-width: 162px;
+	min-height: 162px;
+	margin: 5px;
+	background-color: #303030;
+	border: 1px solid #101010;
 }
 
 #playlist image:hover {

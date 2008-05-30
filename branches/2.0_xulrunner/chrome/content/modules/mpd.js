@@ -17,7 +17,7 @@
 */
 
 Components.utils.import("resource://miniondev/mpmUtils.js");
-EXPORTED_SYMBOLS = ["mpd", "Sz", "dbfile", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
+EXPORTED_SYMBOLS = ["mpd", "Lz", "Sz", "dbfile", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
 var mpd_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 
@@ -27,12 +27,12 @@ var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefBranch);
 var dbfile = Components.classes["@mozilla.org/file/directory_service;1"]
                      .getService(Components.interfaces.nsIProperties)
-						.get("ProfD", Components.interfaces.nsIFile);
+                        .get("ProfD", Components.interfaces.nsIFile);
 dbfile.append("mpd.sqlite");
 
 mDBConn = Components.classes["@mozilla.org/storage/service;1"]
                         .getService(Components.interfaces.mozIStorageService)
-							.openDatabase(dbfile);
+                            .openDatabase(dbfile);
 
 var tm = new Date()
 
@@ -85,10 +85,10 @@ try {
 
     mDBConn.createAggregateFunction("mode", 1, mostFrequent);
 
-	var schema = getFileContents("resource://miniondev/schema.sql")
-	var home = ""
+    var schema = getFileContents("resource://miniondev/schema.sql")
+    var home = ""
     home += "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);"
-	//home += "INSERT OR IGNORE INTO home VALUES('topgenre://', 'topgenre','Genres - Top 10%','',0,'2.',1);"
+    //home += "INSERT OR IGNORE INTO home VALUES('topgenre://', 'topgenre','Genres - Top 10%','',0,'2.',1);"
     //home += "INSERT OR IGNORE INTO home VALUES('topartist://', 'topartist','Artists - Top 10%','',0,'3.',1);"
     home += "INSERT OR IGNORE INTO home VALUES('genre://', 'genre','Genres','',0,'4.',1);"
     home += "INSERT OR IGNORE INTO home VALUES('artist://', 'artist','Artists','',0,'5.',1);"
@@ -96,21 +96,21 @@ try {
     home += "INSERT OR IGNORE INTO home VALUES('date://', 'date','Dates','',0,'7.',1);"
     home += "INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'8.',1);"
     home += "INSERT OR IGNORE INTO home VALUES('stats://', 'custom','Statistics','',0,'9.',0);"
-	mDBConn.executeSimpleSQL(schema)
-	mDBConn.executeSimpleSQL(home)
+    mDBConn.executeSimpleSQL(schema)
+    mDBConn.executeSimpleSQL(home)
 }
 catch (e) {
-	debug(e)
-	debug(mDBConn.lastErrorString)
+    debug(e)
+    debug(mDBConn.lastErrorString)
 }
 
 function Sz (str) {
-	if (typeof(str) == "string") return "'"+str.replace(/\'/g, "''")+"'"
-	return "''"
+    if (typeof(str) == "string") return "'"+str.replace(/\'/g, "''")+"'"
+    return "''"
 }
 function Lz (str) {
-	if (typeof(str) == "string") return str.toLowerCase()
-	return ''
+    if (typeof(str) == "string") return str.toLowerCase()
+    return ''
 }
 function updateDirStructure(data){
     try {
@@ -121,189 +121,164 @@ function updateDirStructure(data){
         debug(sql+"/n"+ mpd.db.lastErrorString)
         debug(e)
     }
-	finally { q.reset() }
+    finally { q.reset() }
 
     tm = new Date()
     debug (tm.toString() + ":  Begin listall parse.")
 
-	var sql = ''
-	var num = 0
-	data = data.split("\n")
-	var dl = data.length
-	if (dl > 0) {
-		mpd.db.beginTransaction(mpd.db.TRANSACTION_DEFERRED)
-		var n = dl
-		try {
-			do {
-				var i = dl - n
-				var sep = data[i].indexOf(": ")
-				if (sep > -1) {
-					var fld = data[i].substr(0, sep)
-					var val = data[i].slice(sep + 2)
-					var sep = val.lastIndexOf("/")
-					var leaf = val
-                    var uri = Sz(fld + '://' + val)
-					var branch  = ''
-					if (sep != -1) {
-						branch = val.slice(0, sep)
-						leaf =  val.slice(sep+1)
-					}
-					sql = "INSERT OR IGNORE INTO FS " +
-					"(URI,created,db_update,type,name,directory) " +
-					"VALUES(" +
-					[uri,db_up,db_up,Sz(fld),Sz(leaf),Sz(branch)].join(",") +
-					");"
-					mpd.db.executeSimpleSQL(sql)
-					num++
-				}
-			}
-			while (--n)
-			mpd.db.commitTransaction()
-			debug(num+" directories and files added.")
-		}
-		catch (e) {
-			debug(sql+"/n"+ mpd.db.lastErrorString)
-			debug(e)
-		}
-	}
-	try {
-		sql = "DELETE FROM FS WHERE db_update<" + db_up + ";"
-		mpd.db.executeSimpleSQL(sql)
-		sql = "INSERT OR IGNORE INTO file (ID,URI,type,title) \
+    var insert = "INSERT OR IGNORE INTO FS (type,directory,name,created,db_update) VALUES("
+    var insertEnd = "'," + db_up + "," + db_up + ");\n"
+    data = data.replace(/\'/g,"''")
+    data = data.replace(/directory: /g, insert + "'directory','/")
+    data = data.replace(/file: /g, insert + "'file','/")
+    data = data.replace(/\/(?!.+\/.+\n)/g,"','")
+    data = data.replace(/\,\'\//g,",'")
+    data = data.replace(/\n/g, insertEnd)
+    tm = new Date()
+    debug (tm.toString() + ":  Data converted to insert statements.")
+    mpd.db.beginTransaction()
+    mpd.db.executeSimpleSQL(data)
+    mpd.db.commitTransaction()
+    tm = new Date()
+    debug (tm.toString() + ":  Data committed to db.")
+    try {
+        sql = "DELETE FROM FS WHERE db_update<" + db_up + ";"
+        mpd.db.executeSimpleSQL(sql)
+        sql = "INSERT OR IGNORE INTO file (ID,URI,type,title) \
             SELECT ID,URI,type,name FROM FS WHERE type='file'"
-		mpd.db.executeSimpleSQL(sql)
+        mpd.db.executeSimpleSQL(sql)
         var flds = "URI,type,name,directory,title,container"
         sql = "DELETE FROM directory;" +
-            "INSERT OR IGNORE INTO directory (" + flds + ") select " +
+            "REPLACE INTO directory (" + flds + ") select " +
             flds + " from directory_view"
-		mpd.db.executeSimpleSQL(sql)
-	} catch (e) {
-		debug(sql+"/n"+ mpd.db.lastErrorString)
-		debug(e)
-	}
-	mpd.set('lastCommand', 'Directories loaded')
+        mpd.db.executeSimpleSQL(sql)
+    } catch (e) {
+        debug(sql+"/n"+ mpd.db.lastErrorString)
+        debug(e)
+    }
+    mpd.set('lastCommand', 'Directories loaded')
     tm = new Date()
     debug (tm.toString() + ":  listall parse complete.")
 
     // Update only directories with new content
-    debug("Updating where created > " + db_up)
-    sql = "SELECT distinct directory FROM FS WHERE created=" + db_up
+    debug("Updating where created >= " + db_up)
+    sql = "SELECT distinct directory FROM FS WHERE created > " + (db_up-1)
     var q = mpd.db.createStatement(sql)
     var ls = ['command_list_begin']
     var i = 1
-    while (q.executeStep()) {
+   while (q.executeStep()) {
         ls[i++] = 'lsinfo "' + q.getUTF8String(0).replace(/"/g, '\\"') + '"'
     }
     ls[i] = 'command_list_end'
     q.reset()
+    debug(ls.length + " directories to update...")
     var cmd = ls.join("\n")
-    debug(cmd)
     mpd.doCmd(cmd, updateTagCache)
 }
 function updateTagCache(data){
-	mpd.set('lastCommand', 'Parsing tags')
+    mpd.set('lastCommand', 'Parsing tags')
     tm = new Date()
     debug (tm.toString() + ":  Begin listallinfo parse.")
-	var sql = ''
-	var maybeInt = function (test) {
-		if (isNaN(test)) return Sz(test)
-		try {
-			var r = parseInt(test,10)
-			if (isNaN(r)) r = 0
-		}
-		catch (e) {
-			var r = 0
-		}
-		finally {
-			return r
-		}
-	}
+    var sql = ''
+    var maybeInt = function (test) {
+        if (isNaN(test)) return Sz(test)
+        try {
+            var r = parseInt(test,10)
+            if (isNaN(r)) r = 0
+        }
+        catch (e) {
+            var r = 0
+        }
+        finally {
+            return r
+        }
+    }
 
-	data = data.split("\n")
-	var dl = data.length
-	if (dl > 0) {
-		var insert = function (_cols, _vals, URI) {
-			var up = []
-			for (x in _cols) {
-				up[x] = _cols[x] + "=" + _vals[x]
-			}
-			try {
-				sql = "UPDATE file SET " + up.join(',') +
-				" WHERE URI=" + URI
-				mpd.db.executeSimpleSQL(sql)
-			}
-			catch (e) {
-				debug(sql + "\n" + mpd.db.lastErrorString)
-			}
-		}
-		var n = dl
-		try {
+    data = data.split("\n")
+    var dl = data.length
+    if (dl > 0) {
+        var insert = function (_cols, _vals, URI) {
+            var up = []
+            for (x in _cols) {
+                up[x] = _cols[x] + "=" + _vals[x]
+            }
+            try {
+                sql = "UPDATE file SET " + up.join(',') +
+                " WHERE URI=" + URI
+                mpd.db.executeSimpleSQL(sql)
+            }
+            catch (e) {
+                debug(sql + "\n" + mpd.db.lastErrorString)
+            }
+        }
+        var n = dl
+        try {
             mpd.db.beginTransaction()
-			do {
-				var i = dl - n
-				var sep = data[i].indexOf(": ")
-				if (sep > -1) {
-					var fld = data[i].substr(0, sep)
-					var val = data[i].slice(sep + 2)
-					if (fld == 'file') {
-						var cols = ["'type'"]
-						var vals = ["'file'"]
-						var cl = 1
-						var vl = 1
-						var d = data[i + 1]
-						var more = true
-						while (d && more) {
-							var fsep = d.indexOf(": ")
-							if (fsep != -1) {
-								var ffld = d.substr(0, fsep)
-								var fval = d.slice(fsep + 2)
-								switch (ffld) {
-									case 'Time':
-										cols[cl++] = 'time'
-										vals[vl++] = fval;
-										break;
-									case 'Track':
-										cols[cl++] = 'track'
-										vals[vl++] = maybeInt(fval);
-										break;
-									case 'Date':
-										cols[cl++] = 'date'
-										vals[vl++] = maybeInt(fval);
-										break;
-									case 'Disc':
-										cols[cl++] = 'disc'
-										vals[vl++] = maybeInt(fval);
-										break;
-									case 'file':
-										more = false;
-										break;
-									case 'directory':
-										break;
-									default:
-										cols[cl++] = ffld.toLowerCase()
-										vals[vl++] = Sz(fval);
-										break;
-								}
-								if (more) {
-									--n;
-									var d = data[dl - n + 1]
-								}
-							}
-						};
+            do {
+                var i = dl - n
+                var sep = data[i].indexOf(": ")
+                if (sep > -1) {
+                    var fld = data[i].substr(0, sep)
+                    var val = data[i].slice(sep + 2)
+                    if (fld == 'file') {
+                        var cols = ["'type'"]
+                        var vals = ["'file'"]
+                        var cl = 1
+                        var vl = 1
+                        var d = data[i + 1]
+                        var more = true
+                        while (d && more) {
+                            var fsep = d.indexOf(": ")
+                            if (fsep != -1) {
+                                var ffld = d.substr(0, fsep)
+                                var fval = d.slice(fsep + 2)
+                                switch (ffld) {
+                                    case 'Time':
+                                        cols[cl++] = 'secs'
+                                        vals[vl++] = fval;
+                                        break;
+                                    case 'Track':
+                                        cols[cl++] = 'track'
+                                        vals[vl++] = maybeInt(fval);
+                                        break;
+                                    case 'Date':
+                                        cols[cl++] = 'date'
+                                        vals[vl++] = maybeInt(fval);
+                                        break;
+                                    case 'Disc':
+                                        cols[cl++] = 'disc'
+                                        vals[vl++] = maybeInt(fval);
+                                        break;
+                                    case 'file':
+                                        more = false;
+                                        break;
+                                    case 'directory':
+                                        break;
+                                    default:
+                                        cols[cl++] = ffld.toLowerCase()
+                                        vals[vl++] = Sz(fval);
+                                        break;
+                                }
+                                if (more) {
+                                    --n;
+                                    var d = data[dl - n + 1]
+                                }
+                            }
+                        };
                         cols[cl++] = "any"
                         vals[vl++] = "NULL";
-						insert(cols, vals, Sz('file://'+val))
-					}
-				}
-			}
-			while (--n)
-			mpd.db.commitTransaction()
+                        insert(cols, vals, Sz('file://'+val))
+                    }
+                }
+            }
+            while (--n)
+            mpd.db.commitTransaction()
             tm = new Date()
-            debug (tm.toString() + ":  listallinfo parse complete, analyzing db.")
-			mpd.set('lastCommand', 'Analyzing Data...')
+            debug (tm.toString() + ":  listallinfo parse complete, caching tags.")
+            mpd.set('lastCommand', 'Analyzing Data...')
 
             sql = "DELETE FROM album;" +
-            "INSERT OR IGNORE INTO album (type,URI,title,track,artist,date) " +
+            "INSERT OR IGNORE INTO album (type,URI,title,track,artist,date,groupon) " +
             "SELECT 'album' AS type, 'album://' || album AS URI, album as title, " +
                 "count(*) as track, " +
                 "CASE count(DISTINCT artist) " +
@@ -312,15 +287,24 @@ function updateTagCache(data){
                 "WHEN 3 then max(artist) " +
                 "ELSE 'Various Artists' " +
                 "END artist, " +
-                "mode(date) as date " +
+                "mode(date) as date, " +
+                "CASE (substr(album,1,1) < 'A') " +
+                "WHEN 1 THEN '!#...0-9...?@' " +
+                "ELSE substr(replace(upper(album),'THE ',''),1,1) " +
+                "END AS groupon " +
             "FROM file " +
             "WHERE album NOTNULL " +
             "GROUP BY album " +
             "ORDER BY title; "
+
+            sql += "DELETE FROM artist;" +
+                "INSERT INTO artist (URI,type,title,track,container,rank,groupon) " +
+                "select URI,type,title,track,container,rank,groupon " +
+                "FROM artist_view;"
+
             var flds = "URI,type,title,track,container,rank"
-            var tags = ["genre", "artist", "performer", "composer", "date"]
+            var tags = ["genre", "performer", "composer", "date"]
             for (x in tags) {
-                debug(tags[x])
                 sql += "DELETE FROM " + tags[x] + ";" +
                     "INSERT INTO " + tags[x] + " (" + flds + ") " +
                     "select " + flds + " FROM " + tags[x] + "_view;"
@@ -331,164 +315,183 @@ function updateTagCache(data){
                 "WHERE any is null;"
             sql += "ANALYZE;"
 
-			mpd.db.executeSimpleSQL(sql)
+            mpd.db.executeSimpleSQL(sql)
 
-		}
-		catch (e) {
+        }
+        catch (e) {
             debug(sql)
-			debug(mpd.db.lastErrorString)
-		}
-	}
-	mpd.set('lastCommand', 'Database loaded')
+            debug(mpd.db.lastErrorString)
+        }
+    }
+    mpd.set('lastCommand', 'Database loaded')
     tm = new Date()
     debug (tm.toString() + ":  Database update complete.")
 }
 
 function statsCallback(data){
-	debug(data)
+    debug(data)
     var q = mpd.db.createStatement("SELECT value FROM stats WHERE type='db_update';")
     try {
         var db_update = (q.executeStep()) ? q.getInt32(0) : 0
     }
     catch (e) { db_update = -1 }
     finally { q.reset() }
-	data = data.split("\n")
-	var dl = data.length
-	var stats = []
-	if (dl > 0) {
-		var n = dl
-		do {
-			var i = dl - n
-			var sep = data[i].indexOf(": ")
-			if (sep > -1) {
-				var fld = data[i].substr(0, sep)
-				var val = data[i].slice(sep + 2)
-				mpd.db.executeSimpleSQL("REPLACE INTO stats (type,value)" +
-				"VALUES('" +
-				data[i].substr(0, sep) +
-				"'," +
-				data[i].slice(sep + 2) +
-				");")
-			}
-		}
-		while (--n)
-	}
+    data = data.split("\n")
+    var dl = data.length
+    var stats = []
+    if (dl > 0) {
+        var n = dl
+        do {
+            var i = dl - n
+            var sep = data[i].indexOf(": ")
+            if (sep > -1) {
+                var fld = data[i].substr(0, sep)
+                var val = data[i].slice(sep + 2)
+                mpd.db.executeSimpleSQL("REPLACE INTO stats (type,value)" +
+                "VALUES('" +
+                data[i].substr(0, sep) +
+                "'," +
+                data[i].slice(sep + 2) +
+                ");")
+            }
+        }
+        while (--n)
+    }
     try {
         var q = mpd.db.createStatement("SELECT value FROM stats WHERE type='db_update';")
         mpd.db_update = (q.executeStep()) ? q.getInt32(0) : 0
     }
     catch (e) { mpd.db_update = 0 }
-	finally { q.reset() }
-	if (db_update != mpd.db_update) {
+    finally { q.reset() }
+    if (db_update != mpd.db_update) {
         tm = new Date()
-		debug(tm.toString() + ":  Database update needed.")
-		mpd.doCmd('listall', function(d){
+        debug(tm.toString() + ":  Database update needed.")
+        mpd.doCmd('listall', function(d){
                 mpd.set('lastCommand', 'Parsing directories');
                 tm = new Date()
                 debug(tm.toString() + ":  Parsing directories")
                 updateDirStructure(d)
             }
         )
-	}
+    }
 }
 
 function parse_data(data){
-	data = data.split("\n")
-	var db = []
-	var dl = data.length
-	if (dl > 0) {
-		var n = dl
-		do {
-			var i = dl - n
-			var sep = data[i].indexOf(": ")
-			if (sep > -1) {
-				var fld = data[i].substr(0, sep)
-				var val = Sz(data[i].slice(sep + 2))
-				if (fld == 'file') {
-					var sep = val.lastIndexOf("/")
-					var leaf = val
-					var branch = ''
-					if (sep != -1) {
-						branch = val.slice(0, sep)
-						leaf = val.slice(sep + 1)
-						var sep = branch.lastIndexOf("/")
-						var dleaf = branch
-						var dbranch = ''
-						if (sep != -1) {
-							dbranch = branch.slice(0, sep)
-							dleaf = branch.slice(sep + 1)
-						}
-						db.push({
-							type: 'directory',
-							name: dleaf,
-							directory: dbranch
-						})
-					}
-					var song = {
-						type: 'file',
-						name: leaf,
-						directory: branch
-					};
-					var d = data[i + 1]
-					while (d && d.substr(0, 6) != "file: ") {
-						var sep = d.indexOf(": ")
-						song[d.substr(0, sep)] = d.slice(sep + 2);
-						--n;
-						var d = data[dl - n + 1]
-					};
-					song.directory = branch
-					db.push(song);
-				}
-				else
-					if (fld == 'directory') {
-						var sep = val.lastIndexOf("/")
-						var leaf = val
-						var branch = ''
-						if (sep != -1) {
-							branch = val.slice(0, sep)
-							leaf = val.slice(sep + 1)
-						}
-						db.push({
-							type: 'directory',
-							name: leaf,
-							directory: branch
-						})
-					}
-					else {
-						db.push({
-							type: fld,
-							value: val
-						})
-					}
-			}
-		}
-		while (--n)
-		return db
-	}
+    data = data.split("\n")
+    var db = []
+    var dl = data.length
+    if (dl > 0) {
+        var n = dl
+        do {
+            var i = dl - n
+            var sep = data[i].indexOf(": ")
+            if (sep > -1) {
+                var fld = data[i].substr(0, sep)
+                var val = Sz(data[i].slice(sep + 2))
+                if (fld == 'file') {
+                    var sep = val.lastIndexOf("/")
+                    var leaf = val
+                    var branch = ''
+                    if (sep != -1) {
+                        branch = val.slice(0, sep)
+                        leaf = val.slice(sep + 1)
+                        var sep = branch.lastIndexOf("/")
+                        var dleaf = branch
+                        var dbranch = ''
+                        if (sep != -1) {
+                            dbranch = branch.slice(0, sep)
+                            dleaf = branch.slice(sep + 1)
+                        }
+                        db.push({
+                            type: 'directory',
+                            name: dleaf,
+                            directory: dbranch
+                        })
+                    }
+                    var song = {
+                        type: 'file',
+                        name: leaf,
+                        directory: branch
+                    };
+                    var d = data[i + 1]
+                    while (d && d.substr(0, 6) != "file: ") {
+                        var sep = d.indexOf(": ")
+                        song[d.substr(0, sep)] = d.slice(sep + 2);
+                        --n;
+                        var d = data[dl - n + 1]
+                    };
+                    song.directory = branch
+                    db.push(song);
+                }
+                else
+                    if (fld == 'directory') {
+                        var sep = val.lastIndexOf("/")
+                        var leaf = val
+                        var branch = ''
+                        if (sep != -1) {
+                            branch = val.slice(0, sep)
+                            leaf = val.slice(sep + 1)
+                        }
+                        db.push({
+                            type: 'directory',
+                            name: leaf,
+                            directory: branch
+                        })
+                    }
+                    else {
+                        db.push({
+                            type: fld,
+                            value: val
+                        })
+                    }
+            }
+        }
+        while (--n)
+        return db
+    }
 }
 
 function lsinfoCallback(data){
-	/* Check that mpd has a playlist named "Current Playlist"
-	 * and create one if it does not.  MPM works with the playlist
-	 * "Current Playlist" to take advantage of the listplaylist
-	 * command, which only returns filenames instead of all metadata
-	 * but only works with saved playlists.
-	 */
-	var info = parse_data(data)
-	var hasCurrent = false
-	for (x in info){
-		if (info[x].type == 'playlist') {
-			if (info[x].value == "'Current Playlist'") hasCurrent = true
-		}
-	}
-	if (!hasCurrent) mpd.doCmd('save "Current Playlist"')
+    /* Check that mpd has a playlist named "Current Playlist"
+     * and create one if it does not.  MPM works with the playlist
+     * "Current Playlist" to take advantage of the listplaylist
+     * command, which only returns filenames instead of all metadata
+     * but only works with saved playlists.
+     */
+    var info = parse_data(data)
+    var hasCurrent = false
+    for (x in info){
+        if (info[x].type == 'playlist') {
+            if (info[x].value == "'Current Playlist'") hasCurrent = true
+        }
+    }
+    if (!hasCurrent) mpd.doCmd('save "Current Playlist"')
+}
+
+
+function _clean (item) {
+    if (!Nz(item)) return ''
+    var s = item.indexOf("(",0)
+    if (s > 0) {
+        e = item.indexOf(")", s)
+        if (e < 0) {
+            e = s
+        }
+        item = item.slice(0, s-1) + item.slice(e+1)
+    }
+    item = item.replace(/&/g,"and").replace(/!/g,"").replace(/\?/g,"")
+    item = item.replace(/\./g,"").replace(/:/g,"").replace(/;/g,"").replace(/'/g,"")
+    item = item.replace(/"/g,"").replace(/,/g," ").replace(/ - /g," ")
+    item = item.replace(/-/g," ")
+    item = encodeURI(item)
+    return item
 }
 
 var mpd = {
     _host: null,
     _port: null,
     _password: null,
-	db: mDBConn,
+    db: mDBConn,
 
     // Output of status
     volume: null,
@@ -514,7 +517,7 @@ var mpd = {
     Genre: null,
     Composer: null,
 
-	db_update: null,
+    db_update: null,
 
     // Playlist contents and total playtime
     plinfo: [],
@@ -536,8 +539,8 @@ var mpd = {
         if (mpd._socket) {
             mpd._socket.cancel()
         }
-		mpd._socket = socketTalker()
-		mpd.doCmd('stats', statsCallback, true, true)
+        mpd._socket = socketTalker()
+        mpd.doCmd('stats', statsCallback, true, true)
         mpd._checkStatus()
     },
     disconnect: function () {
@@ -734,7 +737,7 @@ mpd._parsePL = function (data) {
         }
     }
     try {
-        var q = mpd.db.createStatement("select total(time) from lsinfo where pos not null")
+        var q = mpd.db.createStatement("select total(secs) from lsinfo where pos not null")
         var tm = (q.executeStep()) ? q.getInt32(0) : 0
     }
     catch (e) {
@@ -745,7 +748,9 @@ mpd._parsePL = function (data) {
     mpd.set("pltime", prettyTime(tm))
 }
 
-mpd.query = function (URI, view){
+mpd.getStats = function () {mpd.doCmd("stats", statsCallback, false)}
+
+mpd.query = function (URI, browser){
     /* URI should be: return_tag_type://specifier or
      * return_tag_type://where_other_tag_type=specifier or
      * an actual MPD command.
@@ -757,8 +762,7 @@ mpd.query = function (URI, view){
     var cmd = URI
     if (URI.indexOf("://") < 0) {
         if (URI.toLowerCase().indexOf('select') == 0) {
-            view.load(URI)
-            return true
+            return URI
         }
         // Clean up and validate command lists.
 
@@ -831,7 +835,7 @@ mpd.query = function (URI, view){
                     cmd = 'listplaylist  "' + id.replace(/"/g, '\\"') + '"';
                     mpd.doCmd(cmd, function(data){
                         try {
-                            view.load(data,'filelist')
+                            browser.view.load(data,'filelist')
                         }
                         catch (e) {
                             debug(e)
@@ -845,7 +849,7 @@ mpd.query = function (URI, view){
                     mpd.doCmd(cmd, function(data){
                         try {
                             data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
-                            view.load(data, 'playlists')
+                            browser.view.load(data, 'playlists')
                         }
                         catch (e) {
                             debug(e)
@@ -948,7 +952,7 @@ mpd.query = function (URI, view){
                         }
                         else {
                             db.push({
-                                type: fld,
+                                type: fld.toLowerCase(),
                                 name: val,
                                 title: val,
                                 URI: fld.toLowerCase() + "://" + val
@@ -960,12 +964,57 @@ mpd.query = function (URI, view){
             while (--n)
         }
 
-        view.load(db, false)
+        browser.query = db
     }
 
     mpd.doCmd(cmd, cb, false)
     return true
 }
+
+mpd.getArt = function (artist, album, callBack) {
+    var sql = 'select image from album_art where album=' +
+        Sz(album) + ' AND artist=' + Sz(artist) +
+        ' UNION select image from album_art where album=' + Sz(album)
+    var q = mpd.db.createStatement(sql)
+    try {
+        var art = (q.executeStep()) ? q.getUTF8String(0) : null
+    }
+    catch (e) { debug(e) }
+    finally { q.reset() }
+
+    if (typeof(art) == 'string') {
+        callBack(art)
+    }
+    else {
+        var cb = function(data){
+            try {
+                var asin = ""
+                var art = "chrome://miniondev/content/images/album_blank.png"
+                if (data != "") {
+                    var s = data.indexOf("<asin>") + 6
+                    if (s > 6) {
+                        var e = data.indexOf("</asin>", s)
+                        if (e > 0) {
+                            asin = data.slice(s, e)
+                        }
+                        if (asin.length == 10) {
+                            base = "http://images.amazon.com/images/P/" + asin
+                            art = base + ".01.MZZZZZZZ.jpg"
+                        }
+                    }
+                }
+                mpd.db.executeSimpleSQL("replace into album_art (album,artist,image) values(" +
+                    Sz(album) + ',' + Sz(artist) + ',' + Sz(art) + ')')
+                callBack(art)
+            }
+            catch (e) { debug(e) }
+        }
+        var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist=" +
+            _clean(artist) + "&title=" + _clean(album) + "&limit=1"
+        fetch(search_url, cb)
+    }
+}
+
 function dbOR(db) {
     var rdb = []
     var dl = db.length
@@ -1062,13 +1111,13 @@ function socketTalker() {
             try {
                 mpd._idle = false
                 var str = {};
-				var chunks = []
-				var chlen = 0
+                var chunks = []
+                var chlen = 0
                 var done = false
                 while (utf_instream.readString(4096, str) != 0) {
                     chunks[chlen++] = str.value
                 }
-				this.data += chunks.join("")
+                this.data += chunks.join("")
                 str = null
                 if (this.data.slice(-3) == "OK\n") {
                     if (mpd._cmdQueue.length > 0) {

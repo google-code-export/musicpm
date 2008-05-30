@@ -17,7 +17,7 @@
 */
 
 Components.utils.import("resource://miniondev/mpd.js");
-EXPORTED_SYMBOLS = ["playlistView", "sqlView", "customTreeViewView"]
+EXPORTED_SYMBOLS = ["arrayView", "playlistView", "sqlView", "customTreeViewView"]
 
 
 function customTreeView () {
@@ -106,6 +106,14 @@ function customTreeView () {
 	this.toggleOpenState  = function (index ) {}
 }
 
+function arrayView(dbArray) {
+    this.get = function (Row) {
+        return this.rs[Row]
+    }
+    this.rowCount = dbArray.length
+    this.rs = dbArray
+}
+arrayView.prototype = new customTreeView
 
 function playlistView(){
 	this.getPointer = function (idx) {
@@ -333,6 +341,12 @@ function sqlView(dbFileObj,parent,heirs){
     this.db = Components.classes["@mozilla.org/storage/service;1"].
         getService(Components.interfaces.mozIStorageService).
             openDatabase(Nz(dbFileObj));
+    this.destroy = function () {
+        this.db = null
+        dbFileObj = null
+        parent = null
+        heirs = null
+    }
     this.fetchOne = function(sqlstr){
         var row = []
         var q = this.db.createStatement(sqlstr)
@@ -478,7 +492,6 @@ function sqlView(dbFileObj,parent,heirs){
                 this.sqlORDER)
             }
             this.rowCount = rowCount;
-            //this.db.executeSimpleSQL("DETACH DATABASE source;")
         }
         catch (e) {
             debug(e)
@@ -549,7 +562,8 @@ function sqlView(dbFileObj,parent,heirs){
         }
     }
     this.cycleHeader = function(col, elem){
-        var ord = ' ORDER BY ' + col.id
+        var c = (typeof(col)=='string') ? col : col.id
+        var ord = ' ORDER BY ' + c
         switch (this.sqlORDER) {
             case '':
                 this.sqlORDER = ord;
@@ -584,7 +598,8 @@ function sqlView(dbFileObj,parent,heirs){
         }
         else {
             q.reset()
-            q = this.db.createStatement(sql + "'" + uri.split('://')[0] + "://'")
+            var type = uri.split('://')[0]
+            q = this.db.createStatement(sql + "'" + type + "://'")
             if (q.executeStep()) {
                 var idx = q.getInt32(0)
                 q.reset()
@@ -593,6 +608,21 @@ function sqlView(dbFileObj,parent,heirs){
                 }
                 if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
                     this.toggleOpenState(idx)
+                }
+                if (type == 'artist' || type == 'album') {
+                    var groupon = uri.split('://')[1].toUpperCase().replace('THE ','').slice(0,1)
+                    if (groupon < 'A') groupon = '!#...0-9...?@'
+                    q = this.db.createStatement(sql + "'" + type + "://" + groupon + "%'")
+                    if (q.executeStep()) {
+                        var idx = q.getInt32(0)
+                        q.reset()
+                        if (this.treeBox.getPageLength() < this.rowCount) {
+                            this.treeBox.scrollToRow(idx)
+                        }
+                        if (this.isContainer(idx) && !this.isContainerOpen(idx)) {
+                            this.toggleOpenState(idx)
+                        }
+                    }
                 }
                 q = this.db.createStatement(sql + Sz(uri))
                 if (q.executeStep()) {
@@ -624,9 +654,9 @@ function sqlView(dbFileObj,parent,heirs){
     this.isContainerOpen = function(row){
         var item = this.get(row)
         var next = Nz(this.get(row + 1))
-        if (!Nz(next.loc))
+        if (!Nz(next.level))
             return false
-        return (next.loc == item.loc + "\n" + next.URI)
+        return (next.level > item.level)
     }
     this.isContainer = function(row){
         var item = this.get(row)
@@ -698,33 +728,64 @@ function sqlView(dbFileObj,parent,heirs){
                     }
                     else {
                         if (item.name == '') {
-                            var sql = "(container,type,title,URI,name,level,loc) " +
-                            "select container,type,title,URI, title as name," +
-                            (parseInt(item.level) + 1) +
-                            " as level, " +
-                            Sz(item.loc + "\n") +
-                            " || URI " +
-                            "as loc FROM " +
-                            item.type +
-                            " ORDER BY title"
+                            if (item.type == 'artist' || item.type == 'album') {
+                                var sql = "(container,type,title,URI,name,level,loc) " +
+                                "select DISTINCT 1 as container,type,groupon as title," +
+                                " type || '://' || groupon || '%' as URI, NULL as name, " +
+                                (parseInt(item.level) + 1) +
+                                " as level, " +
+                                Sz(item.loc + "\n") +
+                                " || type || '://' || groupon " +
+                                "as loc FROM " +
+                                item.type +
+                                " ORDER BY title"
+                            }
+                            else {
+                                var sql = "(container,type,title,URI,name,level,loc) " +
+                                "select container,type,title,URI, title as name," +
+                                (parseInt(item.level) + 1) +
+                                " as level, " +
+                                Sz(item.loc + "\n") +
+                                " || URI " +
+                                "as loc FROM " +
+                                item.type +
+                                " ORDER BY title"
+                            }
                         }
                         else {
-                            var sql = "(container,type,title,URI,name,level,loc) " +
-                            "SELECT DISTINCT {get}.container,{get}.type,{get}.title," +
-                            "{get}.URI,{get}.title as name," +
-                            (parseInt(item.level) + 1) +
-                            " as level, " +
-                            Sz(item.loc + "\n") +
-                            " || {get}.URI as loc FROM {get} " +
-                            "INNER JOIN file ON {get}.title=file.{get} " +
-                            "WHERE file." +
-                            item.type +
-                            "=" +
-                            Sz(item.name)
-                            sql = sql.replace(/\{get\}/g, this.heirs[item.type])
+                            if (item.URI.slice(-1)  == '%') {
+                                var sql = "(container,type,title,URI,name,level,loc) " +
+                                "select DISTINCT container,type,title,URI" +
+                                ", NULL as name, " +
+                                (parseInt(item.level) + 1) +
+                                " as level, " +
+                                Sz(item.loc + "\n") +
+                                " || URI " +
+                                "as loc FROM " +
+                                item.type +
+                                " WHERE " +
+                                item.type +
+                                ".groupon=" + Sz(item.URI.slice(0,-1).replace(item.type+"://",""))
+                            }
+                            else {
+                                var sql = "(container,type,title,URI,name,level,loc) " +
+                                "SELECT DISTINCT {get}.container,{get}.type,{get}.title," +
+                                "{get}.URI,{get}.title as name," +
+                                (parseInt(item.level) + 1) +
+                                " as level, " +
+                                Sz(item.loc + "\n") +
+                                " || {get}.URI as loc FROM {get} " +
+                                "INNER JOIN file ON {get}.title=file.{get} " +
+                                "WHERE file." +
+                                item.type +
+                                "=" +
+                                Sz(item.title)
+                                sql = sql.replace(/\{get\}/g, this.heirs[item.type])
+                            }
                         }
                     }
                 if (sql)
+                    debug(sql)
                     this.load(sql, 'insert', row + 1)
                 //this.rowCount = this.rs.length
             }
