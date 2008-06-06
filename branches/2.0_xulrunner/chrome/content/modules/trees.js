@@ -56,14 +56,8 @@ function customTreeView () {
 		var item = this.get(R)
         if (!Nz(item)) return "";
         switch (C.id) {
-            case "Time":
-                return (item.Time) ? hmsFromSec(item.Time) : "";
-                break;
-            case "Pos":
-                return (item.Pos) ? (parseInt(item.Pos) + 1) + "." : "";
-                break;
-            case "Title":
-                return (item.Title) ? item.Title : item.name;
+            case "pos":
+                return (item.pos) ? (parseInt(item.pos) + 1) + "." : "";
                 break;
             default:
                 return (item[C.id]);
@@ -120,7 +114,7 @@ function playlistView(){
 		return {
 			type: 'pointer',
 			index: idx,
-			Title: 'Loading...',
+			title: 'Loading...',
 			pointer: "loading...",
 			isContainer: false,
 			isOpen: false
@@ -154,14 +148,14 @@ function playlistView(){
 					--n
 					rs[rc - n] = {
 						index: idx,
-						type: 'Album',
+						type: 'album',
 						Prefix: "from ",
 						isContainer: false
 					}
 					--n
 					rs[rc - n] = {
 						index: idx,
-						type: 'Artist',
+						type: 'artist',
 						Prefix: "by ",
 						isContainer: false
 					}
@@ -189,13 +183,13 @@ function playlistView(){
 			this.rs[i].isOpen = true
 			this.rs[i+1] = {
 				index: idx,
-				type: 'Album',
+				type: 'album',
 				Prefix: "from ",
 				isContainer: false
 			}
 			this.rs[i+2] = {
 				index: idx,
-				type: 'Artist',
+				type: 'artist',
 				Prefix: "by ",
 				isContainer: false
 			}
@@ -226,7 +220,7 @@ function playlistView(){
 		var cur = Nz(this.rs[row])
 		if (!cur) {
 			//this.treeBox.rowCountChanged(row, -1)
-			return {type: 'unknown', Pos: null, Time: null, Title: 'ERROR!'}
+			return {type: 'unknown', pos: null, time: null, title: 'ERROR!'}
 		}
 		if (cur.type == 'pointer') {
 			return Nz(this.db[cur.index], cur)
@@ -236,10 +230,9 @@ function playlistView(){
 			return {
 				type: cur.type,
 				index: cur.index,
-				Track: null,
-				Time: null,
-				Pos: null,
-				Title: cur.Prefix+item[cur.type]
+				time: null,
+				pos: null,
+				title: cur.Prefix+item[cur.type]
 			}
 		}
 	}
@@ -247,7 +240,7 @@ function playlistView(){
 		return {
 			type: 'pointer',
 			index: idx,
-			Title: 'Loading...',
+			title: 'Loading...',
 			pointer: "loading...",
 			isContainer: true,
 			isOpen: false
@@ -294,13 +287,13 @@ function playlistView(){
 				var item = this.get(row)
 				var art = {
 					index: item.Pos,
-					type: 'Artist',
+					type: 'artist',
 					Prefix: "by ",
 					isContainer: false
 				}
 				var alb = {
 					index: item.Pos,
-					type: 'Album',
+					type: 'album',
 					Prefix: "from ",
 					isContainer: false
 				}
@@ -547,9 +540,6 @@ function sqlView(dbFileObj,parent,heirs){
         if (!Nz(item))
             return "";
         switch (C.id) {
-            case "time":
-                return (item.time) ? hmsFromSec(item.time) : "";
-                break;
             case "pos":
                 return (item.pos) ? (parseInt(item.pos) + 1) + "." : "";
                 break;
@@ -784,10 +774,7 @@ function sqlView(dbFileObj,parent,heirs){
                             }
                         }
                     }
-                if (sql)
-                    debug(sql)
-                    this.load(sql, 'insert', row + 1)
-                //this.rowCount = this.rs.length
+                if (sql) this.load(sql, 'insert', row + 1)
             }
         }
         catch (e) {

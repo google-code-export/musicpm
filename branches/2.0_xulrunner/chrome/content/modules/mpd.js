@@ -90,12 +90,13 @@ try {
     home += "INSERT OR IGNORE INTO home VALUES('directory://', 'directory','Folders','',0,'1.',1);"
     //home += "INSERT OR IGNORE INTO home VALUES('topgenre://', 'topgenre','Genres - Top 10%','',0,'2.',1);"
     //home += "INSERT OR IGNORE INTO home VALUES('topartist://', 'topartist','Artists - Top 10%','',0,'3.',1);"
-    home += "INSERT OR IGNORE INTO home VALUES('genre://', 'genre','Genres','',0,'4.',1);"
-    home += "INSERT OR IGNORE INTO home VALUES('artist://', 'artist','Artists','',0,'5.',1);"
-    home += "INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'6.',1);"
-    home += "INSERT OR IGNORE INTO home VALUES('date://', 'date','Dates','',0,'7.',1);"
-    home += "INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'8.',1);"
-    home += "INSERT OR IGNORE INTO home VALUES('stats://', 'custom','Statistics','',0,'9.',0);"
+    home += "INSERT OR IGNORE INTO home VALUES('genre://', 'genre','Genres','',0,'2.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('artist://', 'artist','Artists','',0,'3.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('album://', 'album','Albums','',0,'4.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('date://', 'date','Dates','',0,'5.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('playlist://', 'playlist','Playlists','',0,'6.',1);"
+    home += "INSERT OR IGNORE INTO home VALUES('recent://', 'custom','Recently Added','',0,'7.',0);"
+    home += "INSERT OR IGNORE INTO home VALUES('stats://', 'custom','Statistics','',0,'8.',0);"
     mDBConn.executeSimpleSQL(schema)
     mDBConn.executeSimpleSQL(home)
 }
@@ -696,6 +697,69 @@ var mpd = {
     }
 }
 
+
+mpd.fetchOne = function (sql) {
+    var q = mDBConn.createStatement(sql)
+    var row = []
+
+    try {
+        if (q.executeStep()) {
+            var n = q.numEntries
+            for (var idx = 0; idx < n; idx++) {
+                switch (q.getTypeOfIndex(idx)) {
+                    case 0:
+                        row[idx] = null;
+                        break;
+                    case 1:
+                        row[idx] = q.getInt32(idx);
+                        break;
+                    default:
+                        row[idx] = q.getUTF8String(idx);
+                        break;
+                }
+            }
+        }
+    }
+    catch (e) { debug(e); debug(sql) }
+    finally { q.reset() }
+    return row
+}
+
+mpd.fetchAll = function (sql) {
+    var q = mDBConn.createStatement(sql)
+    var db = []
+
+    var addRow = function () {
+        var row = []
+        for (var idx = 0; idx < n; idx++) {
+            switch (q.getTypeOfIndex(idx)) {
+                case 0:
+                    row[idx] = null;
+                    break;
+                case 1:
+                    row[idx] = q.getInt32(idx);
+                    break;
+                default:
+                    row[idx] = q.getUTF8String(idx);
+                    break;
+            }
+        }
+        db.push(row)
+    }
+
+    try {
+        if (q.executeStep()) {
+            var n = q.numEntries
+            addRow()
+        }
+        while (q.executeStep()) {
+            addRow()
+        }
+    }
+    catch (e) { debug(e); debug(sql) }
+    finally { q.reset() }
+    return db
+}
 mpd._parsePL = function (data) {
     data = data.split("\n")
     var dirty = false

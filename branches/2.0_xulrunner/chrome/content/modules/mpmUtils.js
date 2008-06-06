@@ -18,6 +18,7 @@
 
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
                     "observerService", "getFileContents", "fetch",
+                    "openReuseByURL", "openReuseByAttribute",
                     "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
@@ -191,3 +192,57 @@ function fetch (url, callBack, arg){
     }
     catch (e) {debug(e)}
 }
+
+function openReuseByURL(url) {
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+  var browserEnumerator = wm.getEnumerator("navigator:browser");
+  var found = false;
+  while (!found && browserEnumerator.hasMoreElements()) {
+    var browserInstance = browserEnumerator.getNext().getBrowser();
+    var numTabs = browserInstance.tabContainer.childNodes.length;
+    for(var index=0; index<numTabs; index++) {
+      var currentBrowser = browserInstance.getBrowserAtIndex(index);
+      if (url == currentBrowser.currentURI.spec) {
+        browserInstance.selectedTab = browserInstance.tabContainer.childNodes[index];
+        browserInstance.focus();
+        found = true;
+        break;
+      }
+    }
+  }
+  if (!found) {
+    var recentWindow = wm.getMostRecentWindow("navigator:browser");
+    if (recentWindow) {
+      recentWindow.delayedOpenTab(url, null, null, null, null);
+    }
+    else {
+      window.open(url);
+    }
+  }
+}
+
+function openReuseByAttribute(url,attrName) {
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+           .getService(Components.interfaces.nsIWindowMediator);
+  attrName = Nz(attrName, 'mpm-unknown-tab')
+  for (var found = false, index = 0, browserInstance = wm.getEnumerator('navigator:browser').getNext().getBrowser();
+       index < browserInstance.mTabContainer.childNodes.length && !found;
+       index++) {
+    var currentTab = browserInstance.mTabContainer.childNodes[index];
+    if (currentTab.hasAttribute(attrName)) {
+      browserInstance.selectedTab = currentTab;
+      browserInstance.focus();
+      found = true;
+    }
+  }
+  if (!found) {
+    var browserEnumerator = wm.getEnumerator("navigator:browser");
+    var browserInstance = browserEnumerator.getNext().getBrowser(); 
+    var newTab = browserInstance.addTab(url);
+    newTab.setAttribute(attrName, "xyz");
+    browserInstance.selectedTab = newTab;
+    browserInstance.focus();
+  }
+}
+

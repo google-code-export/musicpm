@@ -269,16 +269,32 @@ CREATE view IF NOT EXISTS album_view AS
     GROUP BY album
     ORDER BY artist,title;
 
+drop view lsinfo;
 CREATE VIEW IF NOT EXISTS lsinfo AS
     SELECT t.URI as URI, t.type as type, t.directory as directory, t.name as name,
         f.disc as disc, f.track as track, ifnull(f.title,t.name) as title, f.album as album,
         f.artist as artist, f.composer as composer, f.performer as performer,
         f.genre as genre, f.date as date, f.secs as secs, f.time as time,
-        p.pos as pos, p.pos + 1 as position
+        strftime('%Y-%m-%d %H:%M', t.created, 'unixepoch') as created,
+        p.pos as pos, p.pos + 1 as position,f.ID as ID
     FROM FS as t
     LEFT OUTER JOIN file as f on t.ID = f.ID
     LEFT OUTER JOIN playlist as p on t.URI = p.URI
     ORDER BY type,title;
+
+
+CREATE VIEW IF NOT EXISTS recent AS
+    SELECT t.URI as URI, t.type as type, t.directory as directory, t.name as name,
+        f.disc as disc, f.track as track, ifnull(f.title,t.name) as title, f.album as album,
+        f.artist as artist, f.composer as composer, f.performer as performer,
+        f.genre as genre, f.date as date, f.secs as secs, f.time as time,
+        strftime('%m-%d %H:%M', t.created, 'unixepoch') as created,
+        p.pos as pos, p.pos + 1 as position
+    FROM FS as t
+    INNER JOIN file as f on t.ID = f.ID
+    LEFT OUTER JOIN playlist as p on t.URI = p.URI
+    WHERE t.created > strftime('%s',date('now','-1 week'))
+    ORDER BY created DESC,title;
 
 CREATE VIEW IF NOT EXISTS plinfo AS
     SELECT f.URI as URI, f.type as type,

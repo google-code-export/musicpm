@@ -2,6 +2,7 @@
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://miniondev/content/bindings/coreBindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://miniondev/content/minion.css" type="text/css"?>
+<?xml-stylesheet href="chrome://miniondev/content/dynamic.css" type="text/css"?>
 
 <window
     id="main"
@@ -17,19 +18,6 @@
         type="image/x-icon"
         href="chrome://miniondev/content/images/album_blank.png"/>
 
-    <menubar>
-        <menu id="menu_Tools" label="Tools">
-            <menupopup id="menu_ToolsPopup"/>
-        </menu>
-        <menu label="Test" id="menu_test">
-            <menupopup>
-                <menuitem label="Item"/>
-            </menupopup>
-        </menu>
-        <spacer flex="1"/>
-        <mpdlabel value="response" observes="lastResponse"/>
-        <mpdconnection/>
-    </menubar>
     <hbox flex="1">
         <vbox>
             <hbox>
@@ -48,60 +36,97 @@
                     class="title"/>
             </hbox>
             <mpdtime id="mytime"/>
-            <richlistbox id="playlist"
-                flex="1"
-                datasources="profile:mpd.sqlite"
-                ref="*"
-                querytype="storage">
-                <template>
-                    <query>
-                        select * from plalbums
-                    </query>
-                    <action>
-                    <richlistitem uri="?">
-                        <vbox flex="1">
-                            <hbox flex="1">
-                                <image class="albumCover"
-                                    pos="?pos"
-                                    album="?title"
-                                    artist="?artist"
-                                    src="chrome://miniondev/content/images/album_blank.png"
-                                    validate="never"
-                                    onclick="openAlbum()"/>
-                                <vbox flex="1">
-                                    <vbox class="outerTitleBox">
-                                        <spacer flex="1"/>
-                                        <description
-                                            class="title isLink innerTitleBox"
-                                            onclick="browseTo('album','?title^')">
-                                            <textnode value="?title"/>
-                                        </description>
+            <toolbar id="playlistToolbar">
+                <toolbarbutton id="clearPlaylist"
+                    label="c"
+                    oncommand="mpd.doCmd('clear');document.getElementById('playlistName').value='Untitled'"/>
+                <toolbarbutton id="loadPlaylist"
+                    label="l"
+                    oncommand="showPlaylists()"/>
+                <textbox id="playlistName"
+                    style="min-width: 40px !important"
+                    flex="1"/>
+                <toolbarbutton id="savePlaylist"
+                    label="v"
+                    oncommand="savePlaylist()"/>
+                <toolbarseparator/>
+                <toolbarbutton id="albumView"
+                    label="a"
+                    oncommand="refreshPlaylistAlbums()"/>
+                <toolbarbutton id="songView"
+                    label="s"
+                    oncommand="document.getElementById('playlistdeck').selectedIndex=0"/>
+            </toolbar>
+            <tree id="savedPlaylists"
+                height="100px"
+                seltype="single"
+                flags="dont-build-content"
+                collapsed="true"
+                hidecolumnpicker="true"
+                ondblclick="loadPlaylist(this.view.getCellText(this.currentIndex,this.columns[0]))">
+                <treecols height="0px">
+                    <treecol hideheader="true" id="title" flex="1"/>
+                </treecols>
+                <treechildren id="tchildren"/>
+            </tree>
+            <deck id="playlistdeck" flex="1">
+                <mpdplaylist id="playlistSongs" flex="1"/>
+                <richlistbox id="playlistAlbums"
+                    flex="1"
+                    datasources="profile:mpd.sqlite"
+                    ref="*"
+                    querytype="storage"
+                    onkeydown="album_keydown(event)">
+                    <template>
+                        <query>
+                            select * from plalbums limit 1000
+                        </query>
+                        <action>
+                        <richlistitem uri="?">
+                            <vbox flex="1">
+                                <hbox flex="1">
+                                    <image class="albumCover"
+                                        pos="?pos"
+                                        album="?title"
+                                        artist="?artist"
+                                        src="chrome://miniondev/content/images/album_blank.png"
+                                        validate="never"
+                                        onclick="openAlbum()"/>
+                                    <vbox flex="1">
+                                        <vbox class="outerTitleBox">
+                                            <spacer flex="1"/>
+                                            <description
+                                                class="title isLink innerTitleBox"
+                                                onclick="browseTo('album','?title^')">
+                                                <textnode value="?title"/>
+                                            </description>
+                                        </vbox>
+                                        <label class="artist isLink"
+                                            crop="end"
+                                            onclick="browseTo('artist','?artist^')"
+                                            value="?artist"/>
+                                        <label class="file isLink"
+                                            crop="end"
+                                            onclick="openAlbum()"
+                                            value="?track"/>
                                     </vbox>
-                                    <label class="artist isLink"
-                                        crop="end"
-                                        onclick="browseTo('artist','?artist^')"
-                                        value="?artist"/>
-                                    <label class="file isLink"
-                                        crop="end"
-                                        onclick="openAlbum()"
-                                        value="?track"/>
-                                </vbox>
-                            </hbox>
-                            <listbox album="?title"
-                                collapsed="true"
-                                flex="1"
-                                ondblclick="playItem(this)"
-                                onblur="this.clearSelection()">
-                                <listcols>
-                                    <listcol flex="1"/>
-                                    <listcol/>
-                                </listcols>
-                            </listbox>
-                        </vbox>
-                    </richlistitem>
-                    </action>
-                </template>
-            </richlistbox>
+                                </hbox>
+                                <listbox album="?title"
+                                    collapsed="true"
+                                    flex="1"
+                                    ondblclick="playItem(this)"
+                                    onblur="this.clearSelection()">
+                                    <listcols>
+                                        <listcol flex="1"/>
+                                        <listcol/>
+                                    </listcols>
+                                </listbox>
+                            </vbox>
+                        </richlistitem>
+                        </action>
+                    </template>
+                </richlistbox>
+            </deck>
         </vbox>
         <mpdbrowser id="browser" flex="1"/>
     </hbox>

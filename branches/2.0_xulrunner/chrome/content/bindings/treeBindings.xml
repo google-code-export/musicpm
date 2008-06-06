@@ -4,7 +4,18 @@
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <binding id="mpmTreeBase">
+        <handlers>
+			<handler event="keypress" modifiers="accel" key="a"
+				action="this.selectAll()"/>
+			<handler event="dblclick"
+				action="this.goToURI(this.activeItem.URI)"/>
+			<handler event="keypress" keycode="VK_DELETE"
+				action="this.delete()"/>
+			<handler event="keypress" keycode="VK_RETURN"
+				action="this.goToURI(this.activeItem.URI);"/>
+        </handlers>
         <implementation>
+            <field name="box"/>
             <field name="treeNode">document.getAnonymousNodes(this)[0]</field>
             <field name="queryNode">document.getAnonymousNodes(this)[0].childNodes[1].childNodes[0]</field>
         	<property name="query">
@@ -19,10 +30,14 @@
             <property name="activeItem" readonly="true">
                 <getter>
                     <![CDATA[
-                    return this.getItemAt(this.currentIndex)
+                    return this.getItemAt(this.treeNode.currentIndex)
                     ]]>
                 </getter>
             </property>
+            <constructor>
+                this.box = this.treeNode.boxObject;
+                this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
+            </constructor>
             <method name="_build_mpdAddCmd">
                 <parameter name="item"/>
                 <body>
@@ -111,6 +126,10 @@
                     return item
                     ]]>
                 </body>
+            </method>
+            <method name="goToURI">
+                <parameter name="URI"/>
+                <body>return null</body>
             </method>
             <method name="filter">
                 <parameter name="criteria"/>
@@ -224,6 +243,12 @@
                             persist="width ordinal hidden"
                             class="sortDirectionIndicator"
                             onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="18" />
+                    <xul:treecol id="created" label="Added" ordinal="19" width="100px"
+                            hidden="true"
+                            persist="width ordinal hidden"
+                            class="sortDirectionIndicator"
+                            onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                 </xul:treecols>
                 <xul:template>
                     <xul:query>
@@ -238,7 +263,7 @@
                                         label="?URI"
                                         properties="URI_?type^"/>
                                     <xul:treecell label="?position" properties="position_?type^"/>
-                                    <xul:treecell label="?title" properties="title_?type^"/>
+                                    <xul:treecell label="?title" properties="title_?type^ file?ID^"/>
                                     <xul:treecell label="?time" properties="time_?type^"/>
                                     <xul:treecell label="?album" properties="album_?type^"/>
                                     <xul:treecell label="?artist" properties="artist_?type^"/>
@@ -246,6 +271,7 @@
                                     <xul:treecell label="?composer" properties="composer_?type^"/>
                                     <xul:treecell label="?genre" properties="genre_?type^"/>
                                     <xul:treecell label="?date" properties="date_?type^"/>
+                                    <xul:treecell label="?created" properties="created_?type^"/>
                                 </xul:treerow>
                             </xul:treeitem>
                         </xul:treechildren>
@@ -299,7 +325,7 @@
                                     <xul:treecell label="?track"
                                         properties="track_?type^"/>
                                     <xul:treecell label="?title"
-                                        properties="title_?type^"/>
+                                        properties="title_?type^ ?URI"/>
                                     <xul:treecell label="?rank"
                                         properties="rank_?type^"/>                                         </xul:treerow>
                             </xul:treeitem>
@@ -356,7 +382,7 @@
                                         properties="URI_?type^"/>
                                     <xul:treecell label="?track"
                                         properties="track_?type^"/>
-                                    <xul:treecell label="?title" properties="title_?type^"/>
+                                    <xul:treecell label="?title" properties="title_?type^ ?URI"/>
                                     <xul:treecell label="?artist" properties="artist_?type^"/>
                                     <xul:treecell label="?date" properties="date_?type^"/>
                                 </xul:treerow>
@@ -469,7 +495,7 @@
                                             properties="position_?type^"/>
                                         <xul:treecell label="?track"
                                             properties="track_?type^"/>
-                                        <xul:treecell label="?title" properties="title_?type^"/>
+                                        <xul:treecell label="?title" properties="title_?type^ file?ID^"/>
                                         <xul:treecell label="?time" properties="time_?type^"/>
                                         <xul:treecell label="?artist" properties="artist_?type^"/>
                                     </xul:treerow>
@@ -522,9 +548,6 @@
                     }
                 </setter>
             </property>
-            <constructor>
-                Components.utils.import("resource://miniondev/mpd.js");
-            </constructor>
         </implementation>
     </binding>
 
@@ -559,7 +582,7 @@
                                         properties="URI_?type^"/>
                                     <xul:treecell
                                         label="?title"
-                                        properties="title_?type^"/>
+                                        properties="title_?type^ ?URI"/>
                                 </xul:treerow>
                             </xul:treeitem>
                         </xul:treechildren>
@@ -569,7 +592,7 @@
         </content>
     </binding>
 
-    <binding id="mpmTreeCustomView">
+    <binding id="mpmTreeCustomView" extends="#mpmTreeBase">
         <content>
             <xul:tree
                 id="mpdTree"
@@ -632,9 +655,9 @@
                 </xul:treecols>
                 <xul:treechildren id="tchildren"/>
             </xul:tree>
-
         </content>
         <implementation>
+            <field name="box"/>
             <field name="treeNode">document.getAnonymousNodes(this)[0]</field>
             <field name="view"/>
         	<property name="query">
@@ -658,42 +681,13 @@
                 Components.utils.import("resource://miniondev/trees.js");
                 this.view = new sqlView(dbfile,this)
 				this.treeNode.view = this.view
+                this.box = this.treeNode.boxObject;
+                this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
 				]]>
             </constructor>
             <destructor>
                 this.view = null
             </destructor>
-            <method name="_build_mpdAddCmd">
-                <parameter name="item"/>
-                <body>
-                    <![CDATA[
-                        var cmd = ""
-                        if (item.type == 'file') {
-                            var loc = item.URI.slice(7)
-                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                        }
-                        else if (item.type == 'directory') {
-                            var loc = item.URI.slice(12)
-                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                        }
-                        else {
-                            var sql = "select URI from file where " + item.type +
-                                "='" + item.title.replace(/'/g,"''") + "'"
-                            var q = mpd.db.createStatement(sql)
-                            try {
-                                while (q.executeStep()) {
-                                    var loc = q.getUTF8String(0).slice(7)
-                                    debug("    "+loc)
-                                    cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                                }
-                            }
-                            catch(e) { debug(e) }
-                            finally { q.reset() }
-                        }
-                        return cmd
-                    ]]>
-                </body>
-            </method>
 			<method name="addAll">
 				<body>
 					<![CDATA[
@@ -724,7 +718,7 @@
 			        for (var t=0; t<numRanges; t++){
 			            view.selection.getRangeAt(t,start,end);
 			            for (var v=start.value; v<=end.value; v++){
-                            cmd += this._build_mpdAddCmd(this.view.get(this.treeNode.currentIndex))
+                            cmd += this._build_mpdAddCmd(this.view.get(v))
 			            }
 			        }
 
@@ -736,9 +730,7 @@
             <method name="filter">
                 <parameter name="criteria"/>
                 <body>
-                    <![CDATA[
-                        this.view.applyFilter(criteria)
-                    ]]>
+                    this.view.applyFilter(criteria)
                 </body>
             </method>
             <method name="rebuild">
@@ -746,23 +738,16 @@
                     this.view.requery()
                 </body>
             </method>
-            <method name="selectAll">
-                <body>
-                    this.treeNode.view.selection.selectAll()
-                </body>
-            </method>
             <method name="sort">
                 <parameter name="column"/>
                 <body>
-                    <![CDATA[
                     this.view.sort(column)
-                    ]]>
                 </body>
             </method>
         </implementation>
     </binding>
 
-    <binding id="mpmTreeArrayView">
+    <binding id="mpmTreeArrayView" extends="#mpmTreeBase">
         <content>
             <xul:tree
                 id="mpdTree"
@@ -827,6 +812,7 @@
             </xul:tree>
         </content>
         <implementation>
+            <field name="box"/>
             <field name="treeNode"></field>
             <field name="view"/>
             <property name="activeItem" readonly="true">
@@ -840,81 +826,13 @@
 				<![CDATA[
                 Components.utils.import("resource://miniondev/trees.js");
                 this.treeNode = document.getAnonymousNodes(this)[0]
+                this.box = this.treeNode.boxObject;
+                this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
 				]]>
             </constructor>
             <destructor>
                 this.view = null
             </destructor>
-            <method name="_build_mpdAddCmd">
-                <parameter name="item"/>
-                <body>
-                    <![CDATA[
-                        var cmd = ""
-                        if (item.type == 'file') {
-                            var loc = item.URI.slice(7)
-                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                        }
-                        else if (item.type == 'directory') {
-                            var loc = item.URI.slice(12)
-                            cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                        }
-                        else {
-                            var sql = "select URI from file where " + item.type +
-                                "='" + item.title.replace(/'/g,"''") + "'"
-                            var q = mpd.db.createStatement(sql)
-                            try {
-                                while (q.executeStep()) {
-                                    var loc = q.getUTF8String(0).slice(7)
-                                    debug("    "+loc)
-                                    cmd = '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
-                                }
-                            }
-                            catch(e) { debug(e) }
-                            finally { q.reset() }
-                        }
-                        return cmd
-                    ]]>
-                </body>
-            </method>
-			<method name="addAll">
-				<body>
-					<![CDATA[
-                    var rc = this.view.rowCount
-                    if (rc < 1) return null
-                    var n = rc
-
-				    var cmd = "command_list_begin"
-			        do {
-                        cmd += this._build_mpdAddCmd(this.view.get(this.treeNode.currentIndex))
-			        } while (--n)
-
-				    cmd += "\ncommand_list_end"
-				    mpd.doCmd(cmd, null, false)
-					]]>
-				</body>
-			</method>
-			<method name="addSelected">
-				<body>
-					<![CDATA[
-					var view = this.treeNode.view
-				    var start = new Object();
-				    var end = new Object();
-				    var numRanges = view.selection.getRangeCount();
-
-				    var cmd = "command_list_begin"
-
-			        for (var t=0; t<numRanges; t++){
-			            view.selection.getRangeAt(t,start,end);
-			            for (var v=start.value; v<=end.value; v++){
-                            cmd += this._build_mpdAddCmd(this.view.get(this.treeNode.currentIndex))
-			            }
-			        }
-
-				    cmd += "\ncommand_list_end"
-				    mpd.doCmd(cmd, null, false)
-					]]>
-				</body>
-			</method>
             <method name="load">
                 <parameter name="cmd"/>
                 <body>
@@ -989,11 +907,6 @@
                     return null
                 </body>
             </method>
-            <method name="selectAll">
-                <body>
-                    this.treeNode.view.selection.selectAll()
-                </body>
-            </method>
             <method name="sort">
                 <parameter name="column"/>
                 <body>
@@ -1022,8 +935,10 @@
 							<xul:menuitem label="Filter"
 								tooltiptext="Filter contents of current location by Title column"/>
 							<xul:menuitem label="Search All"
-								tooltiptext="Search for Songs on all fields"
+								tooltiptext="Search songs on all fields"
 								selected="true"/>
+							<xul:menuitem label="Search Playlist"
+								tooltiptext="Search in Playlist on all fields"/>
 							<xul:menuitem label="Title"
 								tooltiptext="Search by song's Title only"/>
 							<xul:menuitem label="Artist"
@@ -1071,7 +986,7 @@
 						seltype="single"
 						onclick="this.view.performActionOnRow('click', this.currentIndex)"
 		            	flags="dont-build-content"
-                        min-width="100px">
+                        minwidth="200px">
 		                <xul:treecols id="mpdTreeCols">
 		                    <xul:treecol id="title" label="Location" flex="1"
 									ordinal="2"
@@ -1095,14 +1010,6 @@
         	</xul:vbox>
         </content>
 		<handlers>
-			<handler event="keypress" modifiers="accel" key="a"
-				action="this.browser.selectAll()"/>
-			<handler event="dblclick"
-				action="if (this.browserfocused) this.goToURI(this.activeItem.URI)"/>
-			<handler event="keypress" keycode="VK_DELETE"
-				action="this.delete()"/>
-			<handler event="keypress" keycode="VK_RETURN"
-				action="var a=this.activeItem;if (a) this.goToURI(a.URI); else this.goToURI(this.addr.value);"/>
 			<handler event="keypress" keycode="VK_BACK"
 				action="if (this.browserfocused) this.goBack()"/>
 			<handler event="keypress" modifiers="shift" keycode="VK_BACK"
@@ -1154,8 +1061,14 @@
 				<![CDATA[
                 Components.utils.import("resource://miniondev/mpd.js");
                 Components.utils.import("resource://miniondev/trees.js");
-				var prefs = Components.classes["@mozilla.org/preferences-service;1"].
-			                getService(Components.interfaces.nsIPrefBranch);
+                var deck = document.getAnonymousElementByAttribute(this, 'id', 'mpmBrowserContent')
+                var browsers = deck.childNodes
+                var me = this
+                for (i in browsers) {
+                    if (Nz(browsers[i].goToURI)) {
+                        browsers[i].goToURI = function (URI) {me.goToURI(URI, me)}
+                    }
+                }
                 this.dbfile = dbfile
 				var heirs = {
 					directory: 'directory',
@@ -1171,25 +1084,16 @@
 				this.hview.load("select * from home")
 
                 var me = this
-                this.obsCurSong = {
-                    observe: function(subject,topic,data){
-                        me.browser.rebuild()
-                    }
-                };
-                observerService.addObserver(this.obsCurSong,'state',false)
-                observerService.addObserver(this.obsCurSong,'file',false)
                 this.obsPL = {
                     observe: function(subject,topic,data){
                         me.browser.rebuild()
                     }
                 };
                 observerService.addObserver(this.obsPL,'plinfo',false)
-                observerService.addObserver(this.obsPL,'playlistlength',false)
 				]]>
             </constructor>
             <destructor>
-                observerService.removeObserver(this.obsCurSong,'state')
-                observerService.removeObserver(this.obsCurSong,'file')
+                observerService.removeObserver(this.obsPL,'plinfo')
             </destructor>
 			<method name="goBack">
 				<body>
@@ -1207,15 +1111,17 @@
 			</method>
 			<method name="goToURI">
 				<parameter name="URI"/>
+				<parameter name="me"/>
 				<body>
 					<![CDATA[
+                    me = Nz(me,this)
 					if (URI=="" || URI=="Home") {
-                        this.browser = 4
-						this.browser.query = "select * from home"
-						this.addr.value = URI
-						this.addr.selectionStart = this.addr.textLength
-						this.addr.selectionEnd = this.addr.textLength
-						this.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
+                        me.browser = 4
+						me.browser.query = "select * from home"
+						me.addr.value = URI
+						me.addr.selectionStart = me.addr.textLength
+						me.addr.selectionEnd = me.addr.textLength
+						me.addr.searchParam = '["directory://","artist://","album://","playlist://"]'
 					}
 					else {
                         var addr = URI
@@ -1230,8 +1136,8 @@
                         var cmd = URI
                         if (URI.indexOf("://") < 0) {
                             if (URI.toLowerCase().indexOf('select') == 0) {
-                                this.browser = 5
-                                this.browser.query = URI
+                                me.browser = 5
+                                me.browser.query = URI
                             }
                             // Clean up and validate command lists.
 
@@ -1248,7 +1154,7 @@
                                 cmd = cmd.replace(/;/g,"\n")
                             }
 
-                            // Check if this command returns database results.
+                            // Check if me command returns database results.
                             // If so, check if it will return multiple sets that
                             // will need to be combined.
 
@@ -1262,8 +1168,8 @@
                                 }
                             }
                             if (is_dbc) {
-                                this.browser = 6
-                                this.browser.load(cmd)
+                                me.browser = 6
+                                me.browser.load(cmd)
                             }
                             if (!is_dbc) {
                                 mpd.doCmd(cmd, null, false)
@@ -1279,19 +1185,19 @@
 
                             switch (type) {
                                 case "directory":
-                                    this.browser = 0
+                                    me.browser = 0
                                     var criteria = id.replace(/'/g, "''")
-                                    this.browser.query = "select * from lsinfo where directory='"+criteria+"';"
+                                    me.browser.query = "select * from lsinfo where directory='"+criteria+"';"
                                     break;
                                 case "file":
-                                    this.browser = 0
+                                    me.browser = 0
                                     if (id.length==0){
-                                        this.browser.query = "select * from lsinfo;"
+                                        me.browser.query = "select * from lsinfo;"
                                     }
                                     else if (id.indexOf("=") > 0) {
                                         id = id.split("=")
                                         var criteria = id[1].replace(/'/g, "''")
-                                        this.browser.query = "select * from lsinfo where "+Lz(id[0])+"='"+criteria+"';"
+                                        me.browser.query = "select * from lsinfo where "+Lz(id[0])+"='"+criteria+"';"
                                     }
                                     else {
                                         mpd.doCmd('add "' + id.replace(/"/g, '\\"') + '"', null, false);
@@ -1299,8 +1205,8 @@
                                     }
                                     break;
                                 case "playlist":
-                                    this.browser = 5
-                                    var browser = this.browser
+                                    me.browser = 5
+                                    var browser = me.browser
                                     if (id.length > 0) {
                                         cmd = 'listplaylist  "' + id.replace(/"/g, '\\"') + '"';
                                         mpd.doCmd(cmd, function(data){
@@ -1312,11 +1218,10 @@
                                                 debug(sql + "\n" + mpd.db.lastErrorString)
                                             }
                                         }, false)
-                                        return true
                                     }
                                     else {
-                                        cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
-                                        mpd.doCmd(cmd, function(data){
+                                        //cmd = 'lsinfo  "' + id.replace(/"/g, '\\"') + '"';
+                                        mpd.doCmd('lsinfo', function(data){
                                             try {
                                                 data = data.replace(/(directory:.+\n|file:.+\n)/g, "")
                                                 browser.view.load(data, 'playlists')
@@ -1326,79 +1231,96 @@
                                                 debug(sql + "\n" + mpd.db.lastErrorString)
                                             }
                                         }, false)
-                                        return true
                                     }
                                     break;
                                 case "search":
                                     if (id.length > 0) {
-                                        this.browser = 0
+                                        me.browser = 0
                                         id = id.split("=")
                                         if (id.length == 1) {
                                             var criteria = id[0].replace(/'/g, "''")
                                             //var flds = ["title","artist","album","URI","genre","performer","composer"]
                                             //sql = "select * from FS where type='file' AND " + flds.join(" like '%"+criteria+"%' OR ")
-                                            this.browser.query = "select * from file where any glob('*"+criteria+"*');"
+                                            me.browser.query = "select * from file where any glob('*"+criteria+"*');"
 
                                         }
                                         else
                                             if (id.length == 2) {
-                                                if (id[0] == 'title') id[0] = 'file'
-                                                var criteria = id[1].replace(/'/g, "''")
-                                                this.browser.query = "select * from " + id[0] +
-                                                    " where lower(title) glob('*"+criteria+"*');"
+                                                if (id[0].toLowerCase() == 'playlist') {
+                                                    var criteria = id[1].replace(/'/g, "''")
+                                                    me.browser.query = "select plinfo.* from plinfo " +
+                                                        "INNER JOIN file ON file.URI = plinfo.URI " +
+                                                        "where file.any glob('*"+criteria+"*');"
+                                                }
+                                                else {
+                                                    if (id[0] == 'title') id[0] = 'file'
+                                                    var criteria = id[1].replace(/'/g, "''")
+                                                    me.browser.query = "select * from " + id[0] +
+                                                        " where lower(title) glob('*"+criteria+"*');"
+                                                }
                                             }
                                     }
                                     break;
                                 case "stats":
-                                    this.browser = 4
+                                    me.browser = 4
                                     mpd.getStats();
-                                    this.browser.query = "select 'stats://' as URI, type, title from stats"
+                                    me.browser.query = "select 'stats://' as URI, type, title from stats"
                                     break;
                                 default:
                                     if (id.length > 0) {
                                         id = id.replace("/","=").split("=")
                                         if (id.length == 1) {
-                                            var criteria = id[0].replace(/'/g, "''")
-                                            if (type == 'album') this.browser = 3
-                                            else this.browser = 0
-                                            this.browser.query = "select * from lsinfo WHERE " + Lz(type) + "='" + criteria + "';"
+                                            if (id[0].slice(-1) == '%') {
+                                                if (type == 'album') me.browser = 2
+                                                else me.browser = 0
+                                                me.browser.query = "select * from " + type +
+                                                    " where groupon=" + Sz(id[0].slice(0,-1))
+                                            }
+                                            else {
+                                                if (type == 'album') me.browser = 3
+                                                else if (type == 'recent') me.browser = 0
+                                                else me.browser = 0
+                                                var criteria = id[0].replace(/'/g, "''")
+                                                me.browser.query = "select * from lsinfo WHERE " + Lz(type) + "='" + criteria + "';"
+                                            }
                                         }
                                         else
                                             if (id.length == 2) {
-                                                if (type == 'album') this.browser = 2
-                                                else this.browser = 1
+                                                if (type == 'album') me.browser = 2
+                                                else me.browser = 1
                                                 var criteria = id[1].replace(/'/g, "''")
                                                 var sql ="select distinct t.* from lsinfo as l inner join " +
                                                     Lz(type) +
                                                     " as t on t.title = l." +
                                                     Lz(type) + " WHERE l." + Lz(id[0]) +
                                                     "='" + criteria + "';"
-                                                this.browser.query = sql
+                                                me.browser.query = sql
                                             }
                                     }
                                     else {
                                         var tag = type.toLowerCase()
                                         switch (tag) {
-                                            case 'album': this.browser = 2; break;
-                                            default: this.browser = 1; break;
+                                            case 'album': me.browser = 2; break;
+                                            case 'recent': me.browser = 0; break;
+                                            default: me.browser = 1; break;
                                         }
-                                        this.browser.query = "select * from " + tag + ";"
+                                        me.browser.query = "select * from " + tag + ";"
                                     }
                                     break;
                             }
                         }
 					}
 
-                    this.addr.value = URI
-                    this.addr.selectionStart = this.addr.textLength
-                    this.addr.selectionEnd = this.addr.textLength
+                    me.addr.value = URI
+                    me.addr.selectionStart = me.addr.textLength
+                    me.addr.selectionEnd = me.addr.textLength
 					if (URI.indexOf("search://") != 0) {
-						if (this.history[this.historyIndex] != URI) {
-							this.history.splice(this.historyIndex,0,URI)
-							if (this.history.length > 20) this.history.length = 20
+						if (me.history[me.historyIndex] != URI) {
+							me.history.splice(me.historyIndex,0,URI)
+							if (me.history.length > 20) me.history.length = 20
 						}
 					}
-					if (!this.htreefocused) this.hview.ensureURIisVisble(URI)
+					if (!me.htreefocused) me.hview.ensureURIisVisble(URI)
 					]]>
 				</body>
 			</method>
@@ -1407,6 +1329,7 @@
 					<![CDATA[
 					switch (this.searchType.selectedItem.label) {
 						case "Search All": this.goToURI("search://"+this.searchInput.value);break;
+						case "Search Playlist": this.goToURI("search://playlist="+this.searchInput.value);break;
 						case "Filter": this.browser.filter(this.searchInput.value);break;
 						case "Title": this.goToURI("search://title="+this.searchInput.value);break;
 						case "Artist": this.goToURI("search://artist="+this.searchInput.value);break;

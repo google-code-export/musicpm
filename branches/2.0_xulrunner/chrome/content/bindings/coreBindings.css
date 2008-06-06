@@ -14,7 +14,7 @@ mpdconnection {
 	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdConnection")
 }
 mpdplaylist {
-	-moz-binding: url("chrome://miniondev/content/bindings/coreBindings.xml#mpdPlaylist")
+	-moz-binding: url("chrome://miniondev/content/bindings/playlistBindings.xml#mpdPlaylist")
 }
 mpdbrowser {
 	-moz-binding: url("chrome://miniondev/content/bindings/treeBindings.xml#mpdBrowser")
