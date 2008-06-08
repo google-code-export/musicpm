@@ -17,8 +17,8 @@
         rel="shortcut icon"
         type="image/x-icon"
         href="chrome://miniondev/content/images/album_blank.png"/>
-
     <hbox flex="1">
+        <mpdbrowser id="browser" flex="1"/>
         <vbox>
             <hbox>
                 <mpdcontrols hidestop="false"/>
@@ -128,7 +128,6 @@
                 </richlistbox>
             </deck>
         </vbox>
-        <mpdbrowser id="browser" flex="1"/>
     </hbox>
 	<statusbar pack="center">
         <vbox flex="1">
@@ -142,6 +141,10 @@
             <spacer flex="1"/>
         </vbox>
 		<mpdconnection/>
+        <toolbarbutton label="Output" type="menu">
+            <menupopup id="outputsPopup" onpopupshowing="prepareOutputs()">
+            </menupopup>
+        </toolbarbutton>
 	</statusbar>
 
     <script src="chrome://miniondev/content/minion.js"/>

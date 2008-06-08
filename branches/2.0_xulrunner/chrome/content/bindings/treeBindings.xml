@@ -142,7 +142,7 @@
                     if (criteria > "") {
                         if (select.indexOf(" where") > 0) {select += " and "}
                         else {select += " where "}
-                        select += "lower(title) glob('" + criteria.toLowerCase() + "*')"
+                        select += "lower(title) glob('*" + criteria.toLowerCase() + "*')"
                         debug('FILTER:  '+select)
                     }
                     this.query = select

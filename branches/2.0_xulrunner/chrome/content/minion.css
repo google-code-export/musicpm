@@ -67,8 +67,9 @@ window {
 	vertical-align: middle;
 }
 
+
 #playlistAlbums .innerTitleBox {
-	overflow: expand;
+        overflow: expand;
 }
 
 #playlistAlbums .title{
@@ -117,11 +118,11 @@ window {
 	border: 1px solid #101010;
 }
 
-#playlist image:hover {
+#playlistAlbums image:hover {
 	margin-top: 3px;
 	margin-bottom:5px;
 }
-#playlist image:active {
+#playlistAlbums image:active {
 	margin-top: 5px;
 	margin-bottom:3px;
 }

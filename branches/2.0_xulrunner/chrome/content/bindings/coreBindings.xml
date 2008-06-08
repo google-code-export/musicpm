@@ -32,16 +32,62 @@
         </implementation>
     </binding>
 
+    <binding id="mpdOutputs" extends="xul:box">
+        <handlers>
+            <handler event="command" phase="capturing">
+              <![CDATA[
+                Components.utils.import("resource://miniondev/mpd.js")
+                var cmd = (this.hasAttribute("checked")) ? "enable" : "disable";
+                debug(cmd)
+                mpd.doCmd(cmd+"output "+this.value);
+              ]]>
+            </handler>
+
+            <handler event="popupshowing">
+              <![CDATA[
+                Components.utils.import("resource://miniondev/mpd.js")
+                debug(this)
+                var popup = this
+                var buildMenu = function (outputs) {
+                    while (popup.hasChildNodes()) { popup.removeChild(popup.firstChild) }
+                    var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+                    var len = outputs.length
+                    for (var i=0;i<len;i++) {
+                        var item = document.createElementNS(NS, "menuitem")
+                        item.setAttribute("type", "checkbox")
+                        item.setAttribute("value", outputs[i].id)
+                        item.setAttribute("label", outputs[i].name)
+                        if (outputs[i].enabled) item.setAttribute("checked", true)
+                        item.onclick = function () {
+                            var cmd = (this.hasAttribute("checked")) ? "enable" : "disable";
+                            debug(cmd)
+                            mpd.doCmd(cmd+"output "+this.value);
+                        }
+                        popup.appendChild(item)
+                    }
+                }
+                mpd.getOutputs(buildMenu)
+              ]]>
+            </handler>
+        </handlers>
+    </binding>
+
     <binding id="mpdTime">
         <content>
             <xul:label class="mpdTimeElapsed" seconds="0" value="0:00"/>
-            <xul:progressmeter
+            <xul:scale
                 class="mpdTimeProgressmeter"
 				flex="1"
+                min="0"
+                max="0"
+                value="0"
+                enabled="false"
+                onchange="this.parentNode.seekToSec(this.value)"
                 collapsed="false"
-                xbl:inherits="collapsed=hideprogressmeter"/>
+                xbl:inherits="collapsed=hidescale"/>
             <xul:label class="mpdTimeSeparator" value="/"
-                collapsed="true"/>
+                collapsed="true"
+                xbl:inherits="collapsed=!hidescale"/>
             <xul:label class="mpdTimeTotal" seconds="0" value="0:00"/>
         </content>
         <implementation>
@@ -56,41 +102,47 @@
                 onset=""/>
             <constructor>
                 Components.utils.import("resource://miniondev/mpd.js");
-                var lbl1 = document.getAnonymousNodes(this)[0]
-                var progress = document.getAnonymousNodes(this)[1]
+                var lbl1 = this.lbl1 = document.getAnonymousNodes(this)[0]
+                var progress = this.progress = document.getAnonymousNodes(this)[1]
                 var lblSep = document.getAnonymousNodes(this)[2]
                 var lbl2 = document.getAnonymousNodes(this)[3]
                 lblSep.collapsed = !progress.collapsed
 
+
                 var seekScroll = function (event) {
                     lbl1.parentNode.seekBySec(event.detail * -2);
-                }
-                function prgmtrClick(event) {
-                    var elem = event.target;
-                    var elemX = event.clientX - elem.boxObject.x;
-                    var elemW = elem.boxObject.lastChild.boxObject.width + elem.boxObject.firstChild.boxObject.width;
-                    var val = Math.round(elemX/elemW*100);
-                    elem.parentNode.seekToPercent(val);
                 }
                 var obs1 = {
                     observe: function(subject,topic,data){
                         lbl1.seconds = data;
                         lbl1.value = hmsFromSec(data);
-                        progress.value = Math.round((data / mpd.Time) * 100 )
+                        progress.value = data
+                        progress.enabled = true
                     }
                 };
                 var obs2 = {
                     observe: function(subject,topic,data){
+                        progress.max = data
                         lbl2.seconds = data;
                         lbl2.value = hmsFromSec(data);
+                    }
+                };
+                var obsState = {
+                    observe: function(subject,topic,data){
+                        var enable = (data != 'stop')
+                        progress.enabled = enable
+                        lbl1.enabled = enable
+                        lbl2.enabled = enable
                     }
                 };
 
                 this.obs1 = obs1
                 this.obs2 = obs2
+                this.obsState = obsState
                 this.seekScroll = seekScroll
                 observerService.addObserver(obs1,"time",false)
                 observerService.addObserver(obs2,"Time",false)
+                observerService.addObserver(obsState,"state",false)
                 this.addEventListener("DOMMouseScroll", seekScroll, false)
                 progress.addEventListener("click", prgmtrClick, false)
             </constructor>
@@ -98,6 +150,7 @@
                 Components.utils.import("resource://miniondev/mpd.js");
                 observerService.removeObserver(this.obs1, "time")
                 observerService.removeObserver(this.obs2, "Time")
+                observerService.removeObserver(this.obsState, "state")
                 this.removeEventListener("DOMMouseScroll", this.seekScroll, false)
                 progress.removeEventListener("click", prgmtrClick, false)
             </destructor>
@@ -112,7 +165,20 @@
             <method name="seekToSec">
                 <parameter name="sec"/>
                 <body>
-                    mpd.doCmd("seek " + mpd.song + " " + sec);
+                    <![CDATA[
+                    if (!mpd.time) {
+                        this.progress.enabled = false
+                        return null
+                    }
+                    if (this.progress.enabled) {
+                        if (sec != mpd.time) {
+                            this.progress.enabled = false
+                            mpd.doCmd("seek " + mpd.song + " " + sec);
+                        }
+                    }
+                    this.lbl1.seconds = sec;
+                    this.lbl1.value = hmsFromSec(sec)
+                    ]]>
                 </body>
             </method>
             <method name="seekToPercent">
@@ -269,9 +335,25 @@
 
     <binding id="mpdConnection">
         <content>
-            <xul:toolbarbutton class="mpdButtonConnect"
+            <xul:menulist class="mpdButtonConnect"
                 tooltiptext="Toggle Connection"
-                oncommand="this.parentNode.connected = !this.parentNode.connected"/>
+                onselect="this.parentNode.connectTo(this.selectedItem)"
+                datasources="profile:mpd.sqlite"
+                ref="*"
+                querytype="storage">
+                <xul:template>
+                    <xul:query>
+                        <![CDATA[select * from servers]]>
+                    </xul:query>
+                    <xul:action>
+                        <xul:menupopup>
+                            <xul:menuitem uri="?"
+                                label="?label"
+                                value="?server"/>
+                        </xul:menupopup>
+                    </xul:action>
+                </xul:template>
+            </xul:menulist>
         </content>
         <implementation>
             <field name="showlabel">true</field>
@@ -303,6 +385,31 @@
                 Components.utils.import("resource://miniondev/mpd.js");
                 observerService.removeObserver(this.obs,'greeting')
             </destructor>
+            <method name="addConnection">
+                <body>
+                    <![CDATA[
+                        alert("Add!")
+                    ]]>
+                </body>
+            </method>
+            <method name="connectTo">
+                <parameter name="item"/>
+                <body>
+                    <![CDATA[
+                        try{
+                            debug(item.label+" = "+item.value)
+                            switch (item.label) {
+                                case 'None': this.connected = false; break;
+                                case 'Add New': this.addConnection();break;
+                                default:
+                                    prefBranch.setCharPref("extensions.mpm.server", item.value);
+                                    break;
+                            }
+                        } catch (e) { debug(e) }
+
+                    ]]>
+                </body>
+            </method>
         </implementation>
     </binding>
 

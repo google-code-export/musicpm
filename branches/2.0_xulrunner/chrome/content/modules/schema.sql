@@ -140,6 +140,10 @@ CREATE TABLE IF NOT EXISTS commands (
     syntax   TEXT
 );
 
+CREATE TABLE IF NOT EXISTS servers (
+    label      TEXT UNIQUE PRIMARY KEY,
+    server     TEXT
+);
 
 
 
@@ -269,7 +273,6 @@ CREATE view IF NOT EXISTS album_view AS
     GROUP BY album
     ORDER BY artist,title;
 
-drop view lsinfo;
 CREATE VIEW IF NOT EXISTS lsinfo AS
     SELECT t.URI as URI, t.type as type, t.directory as directory, t.name as name,
         f.disc as disc, f.track as track, ifnull(f.title,t.name) as title, f.album as album,
@@ -280,7 +283,7 @@ CREATE VIEW IF NOT EXISTS lsinfo AS
     FROM FS as t
     LEFT OUTER JOIN file as f on t.ID = f.ID
     LEFT OUTER JOIN playlist as p on t.URI = p.URI
-    ORDER BY type,title;
+    ORDER BY URI;
 
 
 CREATE VIEW IF NOT EXISTS recent AS
@@ -294,7 +297,7 @@ CREATE VIEW IF NOT EXISTS recent AS
     INNER JOIN file as f on t.ID = f.ID
     LEFT OUTER JOIN playlist as p on t.URI = p.URI
     WHERE t.created > strftime('%s',date('now','-1 week'))
-    ORDER BY created DESC,title;
+    ORDER BY created DESC, URI;
 
 CREATE VIEW IF NOT EXISTS plinfo AS
     SELECT f.URI as URI, f.type as type,
@@ -469,3 +472,7 @@ insert or ignore into commands (cmd, syntax) values('rm', 'rm <string name>');
 insert or ignore into commands (cmd, syntax) values('save', 'save <string playlist name>');
 insert or ignore into commands (cmd, syntax) values('seek', 'seek <int song> <int time>');
 insert or ignore into commands (cmd, syntax) values('setvol', 'setvol <int vol>');
+insert or ignore into servers values('None', '');
+insert or ignore into servers values('Add New', '');
+insert or ignore into servers values('media-server', '192.168.1.2:6600:');
+insert or ignore into servers values('localhost', 'localhost:6600:');

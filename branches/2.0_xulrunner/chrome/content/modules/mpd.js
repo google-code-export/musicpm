@@ -17,7 +17,7 @@
 */
 
 Components.utils.import("resource://miniondev/mpmUtils.js");
-EXPORTED_SYMBOLS = ["mpd", "Lz", "Sz", "dbfile", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
+EXPORTED_SYMBOLS = ["mpd", "prefBranch", "Lz", "Sz", "dbfile", "mpd_EXPORTED_SYMBOLS"].concat(mpmUtils_EXPORTED_SYMBOLS)
 var mpd_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 
@@ -150,7 +150,7 @@ function updateDirStructure(data){
         mpd.db.executeSimpleSQL(sql)
         var flds = "URI,type,name,directory,title,container"
         sql = "DELETE FROM directory;" +
-            "REPLACE INTO directory (" + flds + ") select " +
+            "INSERT OR IGNORE INTO directory (" + flds + ") select " +
             flds + " from directory_view"
         mpd.db.executeSimpleSQL(sql)
     } catch (e) {
@@ -374,6 +374,7 @@ function statsCallback(data){
                 updateDirStructure(d)
             }
         )
+        mpd.db_update = db_update
     }
 }
 
@@ -517,11 +518,12 @@ var mpd = {
     Date: null,
     Genre: null,
     Composer: null,
+    currentsong: {}, //All values as object.  Observe this if you need multiple properties.
 
     db_update: null,
 
     // Playlist contents and total playtime
-    plinfo: [],
+    plinfo: 0,
     pltime: 0,
 
     // Connection state information
@@ -626,13 +628,13 @@ var mpd = {
                 obj.time = 0
             }
             else {
-                obj.time = Nz(obj.time,'0').split(":")[0]
+                obj.time = Nz(obj.time,'0:00').split(":")[0]
             }
             if (obj.song != mpd.song) {
                 mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
             }
             if (obj.playlist != mpd.playlist) {
-                mpd.plinfo.length = obj.playlistlength
+                mpd.plinfo = obj.playlist
                 mpd.db.executeSimpleSQL("delete from playlist where pos > " +
                     Nz(obj.playlistlength,1)+"-1")
                 mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
@@ -694,9 +696,90 @@ var mpd = {
         mpd.set('Date', Nz(obj.Date))
         mpd.set('Genre', Nz(obj.Genre))
         mpd.set('Composer', Nz(obj.Composer))
+        mpd.set('currentsong', obj)
     }
 }
+mpd._parsePL = function (data) {
+    data = data.split("\n")
+    var dirty = false
+    var dl = data.length
+    if (dl > 0) {
+        mpd.db.beginTransaction()
+        var n = dl
+        do {
+            var i = dl - n
+            var sep = data[i].indexOf(": ")
+            if (data[i].substr(0, sep) == 'file') {
+                var fname = data[i].slice(sep+2)
+                var d = data[i + 1]
+                while (d && d.substr(0, 6) != "file: ") {
+                    var sep = d.indexOf(": ")
+                    if (sep > 0) {
+                        if(d.substr(0, sep) == "Pos") {
+                            sql = "replace into playlist values(" +
+                                d.slice(sep+2) + "," + Sz("file://"+fname) + ")"
+                            try {
+                                mpd.db.executeSimpleSQL(sql)
+                            } catch (e) {
+                                debug(sql)
+                                debug(mpd.db.lastErrorString)
+                            }
+                        }
+                    }
+                    --n;
+                    var d = data[dl - n + 1]
+                };
+                dirty = true
+            }
+        }
+        while (--n)
+        mpd.db.commitTransaction()
+        if (dirty) {
+            debug("Notify: mpd.plinfo = " + mpd.playlist)
+            observerService.notifyObservers(null, "plinfo", mpd.playlist)
+        }
+    }
+    try {
+        var q = mpd.db.createStatement("select total(secs) from lsinfo where pos not null")
+        var tm = (q.executeStep()) ? q.getInt32(0) : 0
+    }
+    catch (e) {
+        debug(sql)
+        debug(mpd.db.lastErrorString)
+    }
+    finally { q.reset() }
+    mpd.set("pltime", prettyTime(tm))
+}
 
+mpd.getOutputs = function (callBack) {
+    var cb = function (data) {
+        // Parse the incoming data into an array of output objects
+        debug(data)
+        var obj = []
+        data = data.split("\n")
+        var dl = data.length - 2
+        for (var i=0;i<dl;i++) {
+            var sep = data[i].indexOf(": ")
+            if (sep > 0) {
+                var idx = data[i].slice(sep+2)
+                var name = "unknown"
+                var enabled = false
+                sep = data[++i].indexOf(": ")
+                if (sep > 0) {
+                    name = data[i].slice(sep+2)
+                    sep = data[++i].indexOf(": ")
+                    if (sep > 0) {
+                        enabled = (data[i].slice(sep+2) == 1) ? true : false
+                    }
+                }
+                obj[idx] = {id: idx, name: name, enabled: enabled}
+            }
+        }
+        debug(obj)
+        callBack(obj)
+    }
+    mpd.doCmd('outputs', cb)
+}
 
 mpd.fetchOne = function (sql) {
     var q = mDBConn.createStatement(sql)
@@ -759,57 +842,6 @@ mpd.fetchAll = function (sql) {
     catch (e) { debug(e); debug(sql) }
     finally { q.reset() }
     return db
-}
-mpd._parsePL = function (data) {
-    data = data.split("\n")
-    var dirty = false
-    var dl = data.length
-    if (dl > 0) {
-        mpd.db.beginTransaction()
-        var n = dl
-        do {
-            var i = dl - n
-            var sep = data[i].indexOf(": ")
-            if (data[i].substr(0, sep) == 'file') {
-                var fname = data[i].slice(sep+2)
-                var d = data[i + 1]
-                while (d && d.substr(0, 6) != "file: ") {
-                    var sep = d.indexOf(": ")
-                    if (sep > 0) {
-                        if(d.substr(0, sep) == "Pos") {
-                            sql = "replace into playlist values(" +
-                                d.slice(sep+2) + "," + Sz("file://"+fname) + ")"
-                            try {
-                                mpd.db.executeSimpleSQL(sql)
-                            } catch (e) {
-                                debug(sql)
-                                debug(mpd.db.lastErrorString)
-                            }
-                        }
-                    }
-                    --n;
-                    var d = data[dl - n + 1]
-                };
-                dirty = true
-            }
-        }
-        while (--n)
-        mpd.db.commitTransaction()
-        if (dirty) {
-            debug("Notify: mpd.plinfo = " + mpd.playlist)
-            observerService.notifyObservers(null, "plinfo", mpd.playlist)
-        }
-    }
-    try {
-        var q = mpd.db.createStatement("select total(secs) from lsinfo where pos not null")
-        var tm = (q.executeStep()) ? q.getInt32(0) : 0
-    }
-    catch (e) {
-        debug(sql)
-        debug(mpd.db.lastErrorString)
-    }
-    finally { q.reset() }
-    mpd.set("pltime", prettyTime(tm))
 }
 
 mpd.getStats = function () {mpd.doCmd("stats", statsCallback, false)}
