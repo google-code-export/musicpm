@@ -1,19 +1,22 @@
 #summary Things on my "to do" list for MPM.
-
+_Crossed out means it is complete_
 = 2.0 =
 
-  * Clean up and reorganize project/code.  
-    * Ensure only one MPD connection is made and shared globally.
-    * Use sqlite.
-  * Use <scale> for volume control.
-  * Build Xulrunner binaries.  (Run independent of Firefox, standalone version)
+  * ~~Clean up and reorganize project/code.  ~~
+    * ~~Ensure only one MPD connection is made and shared globally.~~
+    * ~~Use sqlite.~~
+  * ~~Use <scale> for volume control.~~
+  * Build Xulrunner binaries.  (Run independent of Firefox, standalone version) _ready to go_
   * Add custom scripts and/or custom web search feature for context menu.
   * Add query builder.
   * Add Details page for songs. (all tags, album art, lyrics, helpful links.)
-  * Add auto-complete address bar option.
+  * ~~Add auto-complete address bar option.~~
   * Add support for server profiles.
-  * Add support for switching outputs.
-  * Add Playlist search.
+  * ~~Add support for switching outputs.~~
+  * ~~Add Playlist search.~~
+  * Integrate with lyricswiki
+  * Integrate LastFM services (for lookups, not reporting usage)
+  * ~~Browse with heirachical tree.~~
 
 
 
