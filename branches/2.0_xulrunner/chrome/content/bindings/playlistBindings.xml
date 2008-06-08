@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <binding id="mpdPlaylist">
+        <content>
+            <xul:tree
+                label="Playlist"
+                flex="1"
+            	flags="dont-build-content">
+                <xul:treecols>
+                    <xul:treecol id="pos"
+                        label="#"
+                        width="40"
+                        ordinal="1"
+						persist="width ordinal hidden"/>
+                    <xul:splitter class="tree-splitter" ordinal="2"/>
+                    <xul:treecol id="title"
+                        label="Title"
+                        ordinal="3"
+                        overflow="true"
+                        flex="1"
+						persist="width ordinal hidden"/>
+                    <xul:splitter class="tree-splitter" ordinal="4"/>
+                    <xul:treecol id="time"
+						label="Time"
+						ordinal="5"
+						width="50"
+						persist="width ordinal hidden"/>
+                </xul:treecols>
+                <xul:treechildren id="children"/>
+            </xul:tree>
+        </content>
+        <handlers>
+            <handler event="keypress" modifiers="accel" key="a"
+                action="this.selectAll()"/>
+            <handler event="keypress" keycode="VK_DELETE"
+                action="this.delete()"/>
+            <handler event="keypress" key=" "
+                action="var a=this.activeItem;if(mpd.song==a.pos)mpd.doCmd('pause');else mpd.doCmd('play '+a.pos)"/>
+        </handlers>
+        <implementation>
+        	<field name="view"/>
+        	<field name="tree">document.getAnonymousNodes(this)[0]</field>
+        	<field name="box"/>
+			<field name="obsPL"/>
+			<field name="obsLn"/>
+			<field name="obsCurSong"/>
+        	<property name="activeItem"
+				onget="return this.view.get(this.tree.currentIndex)"
+				readonly="true"/>
+            <constructor>
+				<![CDATA[
+                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://miniondev/trees.js");
+				var me = this
+                me.view = new sqlView(dbfile,this)
+                me.view.load("select URI, type, pos, title, time from plinfo")
+                me.tree.view = me.view
+                me.box = me.tree.boxObject;
+                me.box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+                this.obsPL = {
+                    observe: function(subject,topic,data){
+                        me.view.requery()
+                    }
+                };
+                this.obsLn = {
+                    observe: function(subject,topic,data){
+						var idx = me.box.getFirstVisibleRow()
+						me.view.requery()
+						if (idx < me.view.rowCount) {
+							me.box.scrollToRow(idx)
+						}
+						else {
+							me.box.ensureRowIsVisible(me.view.rowCount-1)
+						}
+                    }
+                };
+                this.obsCurSong = {
+                    observe: function(subject,topic,data){
+                        me.box.clearStyleAndImageCaches()
+                        me.box.invalidate()
+                    }
+                };
+                observerService.addObserver(this.obsPL,'plinfo',false)
+                observerService.addObserver(this.obsLn,'playlistlength',false)
+                observerService.addObserver(this.obsCurSong,'state',false)
+                observerService.addObserver(this.obsCurSong,'file',false)
+				]]>
+            </constructor>
+            <destructor>
+                Components.utils.import("resource://miniondev/trees.js");
+                observerService.removeObserver(this.obsPL,'plinfo')
+                observerService.removeObserver(this.obsLn,'playlistlength')
+                observerService.removeObserver(this.obsCurSong,'state')
+                observerService.removeObserver(this.obsCurSong,'file')
+            </destructor>
+			<method name="delete">
+				<body>
+					<![CDATA[
+				    var tree = this.tree
+					var view = this.view
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+				    var offset = 0
+					var item
+				    var cmd = "command_list_begin"
+
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+							item = view.get(v)
+							if (item.type == 'file') {
+				                cmd += "\ndelete "+ (parseInt(item.pos)-offset)
+				                offset++
+							}
+			            }
+			        }
+
+				    cmd += "\ncommand_list_end"
+				    mpd.doCmd(cmd, null, false)
+					]]>
+				</body>
+			</method>
+        </implementation>
+    </binding>
+
+</bindings>
