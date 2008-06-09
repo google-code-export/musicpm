@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <binding id="mpdObserver">
+        <content>
+            <xul:label xbl:inherits="value"/>
+        </content>
+        <implementation>
+            <field name="label">document.getAnonymousNodes(this)[0]</field>
+            <field name="observer"/>
+            <field name="observes"/>
+            <property name="value"
+                onget="return this.label.value"
+                onset="this.label.value=val"/>
+            <constructor>
+                Components.utils.import("resource://minion/mpd.js");
+                var label = this.label
+                this.observer = {
+                    observe: function(subject,topic,data){
+                        label.value = data
+                    }
+                };
+                observerService.addObserver(this.observer,this.observes,false)
+            </constructor>
+            <destructor>
+                observerService.removeObserver(this.observer,this.observes)
+            </destructor>
+        </implementation>
+    </binding>
+
+    <binding id="mpdOutputs">
+        <handlers>
+            <handler event="command" phase="capturing">
+              <![CDATA[
+                Components.utils.import("resource://miniondev/mpd.js")
+                var cmd = (this.hasAttribute("checked")) ? "enable" : "disable";
+                debug(cmd)
+                mpd.doCmd(cmd+"output "+this.value);
+              ]]>
+            </handler>
+
+            <handler event="popupshowing">
+              <![CDATA[
+                Components.utils.import("resource://miniondev/mpd.js")
+                debug(this)
+                var popup = this
+                var buildMenu = function (outputs) {
+                    while (popup.hasChildNodes()) { popup.removeChild(popup.firstChild) }
+                    var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+                    var len = outputs.length
+                    for (var i=0;i<len;i++) {
+                        var item = document.createElementNS(NS, "menuitem")
+                        item.setAttribute("type", "checkbox")
+                        item.setAttribute("value", outputs[i].id)
+                        item.setAttribute("label", outputs[i].name)
+                        if (outputs[i].enabled) item.setAttribute("checked", true)
+                        item.onclick = function () {
+                            var cmd = (this.hasAttribute("checked")) ? "enable" : "disable";
+                            debug(cmd)
+                            mpd.doCmd(cmd+"output "+this.value);
+                        }
+                        popup.appendChild(item)
+                    }
+                }
+                mpd.getOutputs(buildMenu)
+              ]]>
+            </handler>
+        </handlers>
+    </binding>
+
+    <binding id="mpdPlayback">
+        <content>
+            <xul:toolbarbutton class="mpdButtonPrevious"
+                tooltiptext="Previous Track"
+                oncommand="mpd.doCmd('previous')"/>
+            <xul:deck>
+                <xul:hbox class="mpdStateStop">
+                    <xul:spacer flex="1"/>
+                    <xul:toolbarbutton class="mpdButtonPlay"
+                        tooltiptext="Play"
+                        oncommand="mpd.doCmd('play')"/>
+                    <xul:spacer flex="1"/>
+                </xul:hbox>
+                <xul:hbox class="mpdStatePlay">
+                    <xul:toolbarbutton class="mpdButtonPause"
+                        tooltiptext="Pause"
+                        oncommand="mpd.doCmd('pause')"/>
+                    <xul:toolbarbutton class="mpdButtonStop"
+                        tooltiptext="Stop"
+                        oncommand="mpd.doCmd('stop')"
+                        xbl:inherits="collapsed=hidestop"/>
+                </xul:hbox>
+                <xul:hbox class="mpdStatePause">
+                    <xul:toolbarbutton class="mpdButtonPlay"
+                        tooltiptext="Play"
+                        oncommand="mpd.doCmd('play')"/>
+                    <xul:toolbarbutton class="mpdButtonStop"
+                        tooltiptext="Stop"
+                        oncommand="mpd.doCmd('stop')"
+                        xbl:inherits="collapsed=hidestop"/>
+                </xul:hbox>
+            </xul:deck>
+            <xul:toolbarbutton class="mpdButtonNext"
+                tooltiptext="Next Track"
+                oncommand="mpd.doCmd('next')"/>
+        </content>
+        <implementation>
+            <property name="state"
+                onget="return mpd.state"
+                onset="if (val=='play' || val=='pause' || val=='stop') mpd.doCmd(val)"/>
+            <constructor>
+                Components.utils.import("resource://miniondev/mpd.js");
+                var prev = document.getAnonymousNodes(this)[0]
+                var deck = document.getAnonymousNodes(this)[1]
+                var next = document.getAnonymousNodes(this)[2]
+                var obs = {
+                    observe: function(subject,topic,data){
+                        switch (data) {
+                            case 'play': deck.selectedIndex = 1; break;
+                            case 'pause': deck.selectedIndex = 2; break;
+                            default: deck.selectedIndex = 0; break;
+                        }
+                    }
+                };
+                this.obs = obs
+                observerService.addObserver(obs,'state',false)
+            </constructor>
+            <destructor>
+                Components.utils.import("resource://miniondev/mpd.js");
+                observerService.removeObserver(this.obs,'state')
+            </destructor>
+            <method name="prev">
+                <body>
+                    mpd.doCmd("prev");
+                </body>
+            </method>
+            <method name="previous">
+                <body>
+                    mpd.doCmd("prev");
+                </body>
+            </method>
+            <method name="play">
+                <body>
+                    mpd.doCmd("play");
+                </body>
+            </method>
+            <method name="pause">
+                <body>
+                    mpd.doCmd("pause");
+                </body>
+            </method>
+            <method name="stop">
+                <body>
+                    mpd.doCmd("stop");
+                </body>
+            </method>
+            <method name="next">
+                <body>
+                    mpd.doCmd("next");
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpdServers">
+        <content>
+            <xul:menu class="mpdButtonConnect"
+                tooltiptext="Toggle Connection"
+                onselect="this.parentNode.connectTo(this.selectedItem)">
+                <xul:menupopup/>
+            </xul:menu>
+        </content>
+        <implementation>
+            <field name="observer"/>
+            <field name="observes">server</field>
+            <field name="popup">document.getAnonymousNodes(this)[0].childNodes[0]</field>
+            <constructor>
+                <![CDATA[
+                Components.utils.import("resource://miniondev/mpd.js");
+                var me = this
+                me.refresh()
+                this.observer = {
+                    observe: function(subject,topic,data){
+                        me.refresh(me)
+                    }
+                };
+                observerService.addObserver(this.observer,this.observes,false)
+                ]]>
+            </constructor>
+            <destructor>
+                observerService.removeObserver(this.observer,this.observes)
+            </destructor>
+            <method name="manageConnections">
+                <body>
+                    <![CDATA[
+                        alert("Add!")
+                    ]]>
+                </body>
+            </method>
+            <method name="refresh">
+                <body>
+                <![CDATA[
+                var me = this
+                while (this.popup.hasChildNodes()) {
+                    this.popup.removeChild(this.popup.firstChild)
+                }
+                var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+                var len = mpd.servers.length
+                for (var i=0;i<len;i++) {
+                    var item = document.createElementNS(NS, "menuitem")
+                    item.setAttribute("label", mpd.servers[i].split(':',4)[3])
+                    item.setAttribute("value", mpd.servers[i])
+                    item.onclick = function(){me.serverSelect(this.value)
+                    this.popup.appendChild(item)
+                }
+                ]]>
+                </body>
+            </method>
+            <method name="serverSelect">
+                <parameter name="serverString"/>
+                <body>
+                    <![CDATA[
+                        try{
+                            switch (serverString) {
+                                case 'None': mpd.disconnect(); break;
+                                case 'Manage': this.manageConnections();break;
+                                default:
+                                    prefBranch.setCharPref("extensions.mpm.server", serverString);
+                                    break;
+                            }
+                        } catch (e) { debug(e) }
+                    ]]>
+                </body>
+            </method>
+        </implementation>
+    </binding>
+    
+    <binding id="mpdTime">
+        <content>
+            <xul:label class="mpdTimeElapsed" seconds="0" value="0:00"/>
+            <xul:scale
+                class="mpdTimeProgressmeter"
+				flex="1"
+                min="0"
+                max="0"
+                value="0"
+                enabled="false"
+                onchange="this.parentNode.seekToSec(this.value)"
+                collapsed="false"
+                xbl:inherits="collapsed=hidescale"/>
+            <xul:label class="mpdTimeSeparator" value="/"
+                collapsed="true"
+                xbl:inherits="collapsed=!hidescale"/>
+            <xul:label class="mpdTimeTotal" seconds="0" value="0:00"/>
+        </content>
+        <implementation>
+            <property name="elapsed"
+                onget="return document.getAnonymousNodes(this)[0].seconds"
+                onset="this.seekToSec(val)"/>
+            <property name="percent"
+                onget="return document.getAnonymousNodes(this)[1].value"
+                onset="this.seekToPercent(val)"/>
+            <property name="total"
+                onget="return document.getAnonymousNodes(this)[3].seconds"
+                onset=""/>
+            <constructor>
+                Components.utils.import("resource://miniondev/mpd.js");
+                var lbl1 = this.lbl1 = document.getAnonymousNodes(this)[0]
+                var progress = this.progress = document.getAnonymousNodes(this)[1]
+                var lblSep = document.getAnonymousNodes(this)[2]
+                var lbl2 = document.getAnonymousNodes(this)[3]
+                lblSep.collapsed = !progress.collapsed
+
+
+                var seekScroll = function (event) {
+                    lbl1.parentNode.seekBySec(event.detail * -2);
+                }
+                var obs1 = {
+                    observe: function(subject,topic,data){
+                        lbl1.seconds = data;
+                        lbl1.value = hmsFromSec(data);
+                        progress.value = data
+                        progress.enabled = true
+                    }
+                };
+                var obs2 = {
+                    observe: function(subject,topic,data){
+                        progress.max = data
+                        lbl2.seconds = data;
+                        lbl2.value = hmsFromSec(data);
+                    }
+                };
+                var obsState = {
+                    observe: function(subject,topic,data){
+                        var enable = (data != 'stop')
+                        progress.enabled = enable
+                        lbl1.enabled = enable
+                        lbl2.enabled = enable
+                    }
+                };
+
+                this.obs1 = obs1
+                this.obs2 = obs2
+                this.obsState = obsState
+                this.seekScroll = seekScroll
+                observerService.addObserver(obs1,"time",false)
+                observerService.addObserver(obs2,"Time",false)
+                observerService.addObserver(obsState,"state",false)
+                this.addEventListener("DOMMouseScroll", seekScroll, false)
+            </constructor>
+            <destructor>
+                Components.utils.import("resource://miniondev/mpd.js");
+                observerService.removeObserver(this.obs1, "time")
+                observerService.removeObserver(this.obs2, "Time")
+                observerService.removeObserver(this.obsState, "state")
+                this.removeEventListener("DOMMouseScroll", this.seekScroll, false)
+            </destructor>
+            <method name="seekBySec">
+                <parameter name="incr"/>
+                <body>
+                    var sec = parseInt(mpd.time) + incr;
+                    mpd.set('time', sec)
+                    mpd.doCmd("seek " + mpd.song + " " + sec);
+                </body>
+            </method>
+            <method name="seekToSec">
+                <parameter name="sec"/>
+                <body>
+                    <![CDATA[
+                    if (!mpd.time) {
+                        this.progress.enabled = false
+                        return null
+                    }
+                    if (this.progress.enabled) {
+                        if (sec != mpd.time) {
+                            this.progress.enabled = false
+                            mpd.doCmd("seek " + mpd.song + " " + sec);
+                        }
+                    }
+                    this.lbl1.seconds = sec;
+                    this.lbl1.value = hmsFromSec(sec)
+                    ]]>
+                </body>
+            </method>
+            <method name="seekToPercent">
+                <parameter name="perc"/>
+                <body>
+                    var sec = Math.round((perc/100)*mpd.Time)
+                    mpd.doCmd("seek " + mpd.song + " " + sec);
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpdVolume">
+        <content>
+            <xul:scale class="mpdVolumeScale"
+                xbl:inherits="value,orient"
+                min="0"
+                max="100"
+                onchange="this.parentNode.setvol(this.value)"/>
+        </content>
+        <implementation>
+            <property name="volume"
+                onget="return mpd.volume"
+                onset="this.setvol(val)"/>
+            <constructor>
+                Components.utils.import("resource://miniondev/mpd.js");
+                var scale = document.getAnonymousNodes(this)[0];
+                scale.value = mpd.volume
+                var volScroll = function (event) {
+                    var vol = parseInt(mpd.volume) + (event.detail * -1);
+                    scale.parentNode.setvol(vol)
+                }
+                var obs = {
+                    observe: function(subject,topic,data){
+                        scale.value = data;
+                    }
+                };
+                this.obs = obs
+                this.volScroll = volScroll
+                observerService.addObserver(obs, "volume", false);
+                this.addEventListener("DOMMouseScroll", volScroll, false)
+            </constructor>
+            <destructor>
+                Components.utils.import("resource://miniondev/mpd.js");
+                observerService.removeObserver(this.obs, "volume");
+                this.removeEventListener("DOMMouseScroll", this.volScroll, false)
+            </destructor>
+            <method name="setvol">
+                <parameter name="vol"/>
+                <body>
+                    if (vol == mpd.volume) return null;
+                    if (vol &lt; 0) vol = 0;
+                    else if (vol &gt; 100) vol = 100;
+                    mpd.set('volume', vol)
+                    mpd.doCmd("setvol " + vol);
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+
+    
+</bindings>
