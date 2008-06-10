@@ -1,0 +1,12 @@
+mpdlabel {
+	-moz-binding: url("resource://minion/mpdControls.xml#mpdLabel")
+}
+mpdtime {
+	-moz-binding: url("resource://minion/mpdControls.xml#mpdTime")
+}
+mpdvolume {
+	-moz-binding: url("resource://minion/mpdControls.xml#mpdVolume")
+}
+mpdcontrols {
+	-moz-binding: url("resource://minion/mpdControls.xml#mpdPlayback")
+}

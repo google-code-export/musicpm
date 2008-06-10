@@ -16,7 +16,7 @@
 *      MA 02110-1301, USA.
 */
 Components.utils.import("resource://minion/mpmUtils.js");
-EXPORTED_SYMBOLS = ["mpd", "prefBranch", "Sz"]
+EXPORTED_SYMBOLS = ["dbQuery", "mpd", "prefBranch", "Sz"]
 debug("mpd loading")
 
 var prefService = Components.classes["@mozilla.org/preferences-service;1"].
@@ -24,12 +24,13 @@ var prefService = Components.classes["@mozilla.org/preferences-service;1"].
 var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefBranch);
 
-function dbQuery (cmd) {
+function dbQuery (cmd, callBack) {
     this.cmd = Nz(cmd)
-    this.type = 'directory'
-    this.filter = null
-    this.where = null
-    this.callBack = null
+    this.returnType = 'directory'
+    this.filterBy = null
+    this.criteria = null
+    this.restrict = null
+    this.callBack = Nz(callBack)
 }
 
 dbQuery.prototype.execute = function (callBack){
@@ -38,7 +39,7 @@ dbQuery.prototype.execute = function (callBack){
         var cmd = this.cmd
     }
     else {
-        switch (this.type) {
+        switch (this.returnType) {
             case 'search': var cmd = "search "; break;
             case 'searchplaylist': var cmd = "searchplaylist "; break;
             case 'directory': var cmd = "lsinfo "; break;
@@ -46,6 +47,7 @@ dbQuery.prototype.execute = function (callBack){
             case 'playlist':
                 if (!this.where) {
                     var cmd = "lsinfo ";
+                    this.restrict = "playlist"
                 }
                 else {
                     var cmd = "listplaylistinfo "
@@ -53,8 +55,8 @@ dbQuery.prototype.execute = function (callBack){
                 break;
             default: var cmd = "list "; break;
         }
-        if (this.filter) cmd += this.filter + " ";
-        cmd += Sz(this.where);
+        if (this.filterBy) cmd += this.filterBy + " ";
+        cmd += Sz(this.criteria);
     }
     if (Nz(mpd.cachedDB[cmd])) {
         callBack(mpd.cachedDB[cmd])
@@ -101,7 +103,9 @@ dbQuery.prototype.execute = function (callBack){
     }
 
     mpd.doCmd(cmd, function(d){
-            var db = mpd._parseDB(d, chkDupes)
+            var db = mpd._parseDB(d)
+            if (this.restrict) db = dbFilter(db, this.restrict)   
+            if (chkDupes) db = dbDistinct(db)                
             mpd.cachedDB[cmd] = db
             callBack(db)
         }, false)
@@ -114,7 +118,18 @@ function Sz (str) {
     return "''"
 }
 
-function dbOR(db) {
+function dbFilter(db, restrict) {
+    var rdb = []
+    var dl = db.length
+    if (dl < 1) {return db}
+    var n = dl
+    do {
+        if (db[dl-n].type == restrict) {rdb.push(db[i])}
+    } while (--n)
+    return rdb
+}
+
+function dbDistinct(db) {
     var rdb = []
     var dl = db.length
     if (dl < 1) {return db}
@@ -235,8 +250,7 @@ mpd._parseCurrentSong = function (data) {
     mpd.set('currentsong', obj)
 }
 
-mpd._parseDB = function(data, checkForDupes){
-    checkForDupes = Nz(checkForDupes, false)
+mpd._parseDB = function(data){
     data = data.split("\n")
     var db = []
     var dl = data.length
@@ -290,7 +304,6 @@ mpd._parseDB = function(data, checkForDupes){
         }
         while (--n)
     }
-    if (checkForDupes) db = dbOR(db)
     return db
 }
 

@@ -4,22 +4,22 @@
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <binding id="mpdObserver">
-        <content>
-            <xul:label xbl:inherits="value"/>
-        </content>
         <implementation>
-            <field name="label">document.getAnonymousNodes(this)[0]</field>
+            <field name="child">document.getAnonymousNodes(this)[0]</field>
             <field name="observer"/>
             <field name="observes"/>
-            <property name="value"
-                onget="return this.label.value"
-                onset="this.label.value=val"/>
+            <field name="observedValue"/>
             <constructor>
+                Components.utils.import("resource://minion/mpmUtils.js");
                 Components.utils.import("resource://minion/mpd.js");
-                var label = this.label
+                this.child.className = "mpdLabel"+this.observes
+                this.child.value = mpd[this.observes]
+                var me = this
                 this.observer = {
                     observe: function(subject,topic,data){
-                        label.value = data
+                        debug(me.observes+"="+data)
+                        me.observedValue = data
+                        me.child.value = data
                     }
                 };
                 observerService.addObserver(this.observer,this.observes,false)
@@ -30,11 +30,17 @@
         </implementation>
     </binding>
 
+    <binding id="mpdLabel" extends="#mpdObserver">
+        <content>
+            <xul:label inherits="value"/>
+        </content>
+    </binding>
+
     <binding id="mpdOutputs">
         <handlers>
             <handler event="command" phase="capturing">
               <![CDATA[
-                Components.utils.import("resource://miniondev/mpd.js")
+                Components.utils.import("resource://minion/mpd.js")
                 var cmd = (this.hasAttribute("checked")) ? "enable" : "disable";
                 debug(cmd)
                 mpd.doCmd(cmd+"output "+this.value);
@@ -43,7 +49,8 @@
 
             <handler event="popupshowing">
               <![CDATA[
-                Components.utils.import("resource://miniondev/mpd.js")
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js")
                 debug(this)
                 var popup = this
                 var buildMenu = function (outputs) {
@@ -111,7 +118,8 @@
                 onget="return mpd.state"
                 onset="if (val=='play' || val=='pause' || val=='stop') mpd.doCmd(val)"/>
             <constructor>
-                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
                 var prev = document.getAnonymousNodes(this)[0]
                 var deck = document.getAnonymousNodes(this)[1]
                 var next = document.getAnonymousNodes(this)[2]
@@ -128,7 +136,7 @@
                 observerService.addObserver(obs,'state',false)
             </constructor>
             <destructor>
-                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://minion/mpd.js");
                 observerService.removeObserver(this.obs,'state')
             </destructor>
             <method name="prev">
@@ -178,7 +186,8 @@
             <field name="popup">document.getAnonymousNodes(this)[0].childNodes[0]</field>
             <constructor>
                 <![CDATA[
-                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
                 var me = this
                 me.refresh()
                 this.observer = {
@@ -266,7 +275,8 @@
                 onget="return document.getAnonymousNodes(this)[3].seconds"
                 onset=""/>
             <constructor>
-                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
                 var lbl1 = this.lbl1 = document.getAnonymousNodes(this)[0]
                 var progress = this.progress = document.getAnonymousNodes(this)[1]
                 var lblSep = document.getAnonymousNodes(this)[2]
@@ -311,7 +321,7 @@
                 this.addEventListener("DOMMouseScroll", seekScroll, false)
             </constructor>
             <destructor>
-                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://minion/mpd.js");
                 observerService.removeObserver(this.obs1, "time")
                 observerService.removeObserver(this.obs2, "Time")
                 observerService.removeObserver(this.obsState, "state")
@@ -367,7 +377,8 @@
                 onget="return mpd.volume"
                 onset="this.setvol(val)"/>
             <constructor>
-                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
                 var scale = document.getAnonymousNodes(this)[0];
                 scale.value = mpd.volume
                 var volScroll = function (event) {
@@ -385,7 +396,7 @@
                 this.addEventListener("DOMMouseScroll", volScroll, false)
             </constructor>
             <destructor>
-                Components.utils.import("resource://miniondev/mpd.js");
+                Components.utils.import("resource://minion/mpd.js");
                 observerService.removeObserver(this.obs, "volume");
                 this.removeEventListener("DOMMouseScroll", this.volScroll, false)
             </destructor>
