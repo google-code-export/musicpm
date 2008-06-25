@@ -10,3 +10,12 @@ mpdvolume {
 mpdcontrols {
 	-moz-binding: url("resource://minion/mpdControls.xml#mpdPlayback")
 }
+mpdplaylist {
+    -moz-binding: url("resource://minion/playlistBindings.xml#mpdPlaylist")
+}
+mpdbrowser {
+    -moz-binding: url("resource://minion/collectionBindings.xml#mpdBrowser")
+}
+mpdservers {
+    -moz-binding: url("resource://minion/mpdControls.xml#mpdServers")
+}

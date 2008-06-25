@@ -176,13 +176,14 @@
         <content>
             <xul:menu class="mpdButtonConnect"
                 tooltiptext="Toggle Connection"
-                onselect="this.parentNode.connectTo(this.selectedItem)">
+                onselect="this.parentNode.connectTo(this.selectedItem)"
+                inherits="label">
                 <xul:menupopup/>
             </xul:menu>
         </content>
         <implementation>
             <field name="observer"/>
-            <field name="observes">server</field>
+            <field name="observes">"server"</field>
             <field name="popup">document.getAnonymousNodes(this)[0].childNodes[0]</field>
             <constructor>
                 <![CDATA[
@@ -219,9 +220,9 @@
                 var len = mpd.servers.length
                 for (var i=0;i<len;i++) {
                     var item = document.createElementNS(NS, "menuitem")
-                    item.setAttribute("label", mpd.servers[i].split(':',4)[3])
-                    item.setAttribute("value", mpd.servers[i])
-                    item.onclick = function(){me.serverSelect(this.value)
+                    item.setAttribute("label", mpd.servers[i][0])
+                    item.setAttribute("value", mpd.servers[i][1])
+                    item.onclick = function(){me.serverSelect(this.value)}
                     this.popup.appendChild(item)
                 }
                 ]]>
@@ -245,7 +246,7 @@
             </method>
         </implementation>
     </binding>
-    
+
     <binding id="mpdTime">
         <content>
             <xul:label class="mpdTimeElapsed" seconds="0" value="0:00"/>
@@ -414,5 +415,5 @@
     </binding>
 
 
-    
+
 </bindings>

@@ -1,0 +1,716 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <binding id="mpmTreeBase">
+        <content>
+            <xul:tree
+                datasources="rdf:null"
+                seltype="multiple"
+                flags="dont-build-content"
+                flex="1">
+                <xul:treecols>
+                    <xul:treecol id="Pos" label="Position" ordinal="1" width="30px"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 tooltiptext="Playlist Position"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="2" />
+                    <xul:treecol id="Title" label="Title" ordinal="3" flex="3"
+                                 persist="width ordinal hidden"
+                                 overflow="true"
+                                 class="sortDirectionIndicator"
+                                 minwidth="120"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:treecol id="Time" label="Time" ordinal="5" width="60px"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="6" />
+                    <xul:treecol id="Album" label="Album" ordinal="7" flex="1"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="8" />
+                    <xul:treecol id="Artist" label="Artist" ordinal="9" flex="1"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="10" />
+                    <xul:treecol id="Performer" label="Performer" ordinal="11" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="12" />
+                    <xul:treecol id="Composer" label="Composer" ordinal="13" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="14" />
+                    <xul:treecol id="Genre" label="Genre" ordinal="15" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="16" />
+                    <xul:treecol id="Date" label="Date" ordinal="17" width="60px"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                </xul:treecols>
+                <xul:treechildren/>
+            </xul:tree>
+        </content>
+        <handlers>
+			<handler event="keypress" modifiers="accel" key="a"
+				action="this.selectAll()"/>
+			<handler event="dblclick"
+				action="this.followItem(this.activeItem)"/>
+			<handler event="keypress" keycode="VK_DELETE"
+				action="this.delete()"/>
+            <handler event="keypress" keycode="VK_RETURN"
+                action="this.followItem(this.activeItem)"/>
+        </handlers>
+        <implementation>
+            <field name="box"/>
+            <field name="db"/>
+            <field name="filter"/>
+            <field name="treeNode">document.getAnonymousNodes(this)[0]</field>
+            <field name="location"/>
+            <property name="activeItem" readonly="true">
+                <getter>
+                    <![CDATA[
+                    return this.view.rs[this.treeNode.currentIndex]
+                    ]]>
+                </getter>
+            </property>
+            <property name="sortDir">
+                <getter>
+                    var c = document.getAnonymousElementByAttribute(this,'id',this.sortOn);
+                    if (!c) return null;
+                    return c.getAttribute('sortDirection')
+                </getter>
+                <setter>
+                    var c = document.getAnonymousElementByAttribute(this,'id',this.sortOn);
+                    if (!c) return null;
+                    if (val) c.setAttribute('sortDirection', val)
+                    else c.removeAttribute('sortDirection')
+                </setter>
+            </property>
+            <property name="sortOn">
+                <getter>return this.treeNode.getAttribute('sortResource')</getter>
+                <setter>this.treeNode.setAttribute('sortResource', val)</setter>
+            </property>
+            <constructor>
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://minion/trees.js");
+                this.treeNode = document.getAnonymousNodes(this)[0]
+                this.box = this.treeNode.boxObject;
+                this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
+            </constructor>
+			<method name="addAll">
+				<body>
+					<![CDATA[
+					mpd.addToPlaylist(this.view.rs)
+					]]>
+				</body>
+			</method>
+			<method name="addSelected">
+				<body>
+					<![CDATA[
+					var view = this.treeNode.view
+				    var start = new Object();
+				    var end = new Object();
+				    var numRanges = view.selection.getRangeCount();
+
+				    var db = []
+			        for (var t=0; t<numRanges; t++){
+			            view.selection.getRangeAt(t,start,end);
+			            for (var v=start.value; v<=end.value; v++){
+                            db.push(this.view.getCellValue(v,null))
+			            }
+			        }
+				    mpd.addToPlaylist(db)
+					]]>
+				</body>
+			</method>
+            <method name="applyFilter">
+                <parameter name="criteria"/>
+                <body>
+                    <![CDATA[
+                    if (Nz(criteria,"")=="") {
+                        this.view = new arrayView(this.db)
+                        this.treeNode.view = this.view
+                        return null
+                    }
+                    criteria = criteria.toLowerCase()
+                    var test = function (element, index, array) {
+                        return (element.Title.toLowerCase().indexOf(criteria) != -1)
+                    }
+                    var filterdb = this.db.filter(test)
+                    this.view = new arrayView(filterdb)
+                    this.treeNode.view = this.view
+                    ]]>
+                </body>
+            </method>
+            <method name="load">
+                <parameter name="db"/>
+                <parameter name="me"/>
+                <body>
+                    <![CDATA[
+                    me = Nz(me,this)
+                    me.sortDir = null
+                    me.sortOn = null
+                    me.filter = null
+                    me.db = db
+                    me.view = new arrayView(db)
+                    me.treeNode.view = me.view
+                    ]]>
+                </body>
+            </method>
+            <method name="selectAll">
+                <body>
+                    this.treeNode.view.selection.selectAll()
+                </body>
+            </method>
+            <method name="sort">
+                <parameter name="column"/>
+                <body>
+                    <![CDATA[
+                    var smartsort = function (a,b) {
+                        if (isNaN(a[column]+b[column])) {
+                            var al = a[column].toLowerCase()
+                            var bl = b[column].toLowerCase()
+                            if (al>bl) return 1
+                            if (al<bl) return -1
+                            return 0
+                        }
+                        else { return a[column]-b[column]}
+                    }
+                    if (this.sortOn == column) {
+                        switch (this.sortDir) {
+                            case "ascending":
+                                this.view.rs.reverse();
+                                this.sortDir = 'descending';
+                                break;
+                            case "descending":
+                                this.view.rs = this.db;
+                                this.sortDir = null;
+                                this.sortOn = null;
+                                break;
+                            default:
+                                this.view.rs = copyArray(this.db).sort(smartsort);
+                                this.sortDir = 'ascending';
+                                break;
+                        }
+                    }
+                    else {
+                        this.view.rs = copyArray(this.db).sort(smartsort)
+                        if (this.sortOn) this.sortDir = null
+                        this.sortOn = column
+                        this.sortDir = "ascending"
+                    }
+                    this.box.invalidate()
+                    ]]>
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpmFoldersPane" extends="#mpmTreeBase">
+        <content>
+            <xul:tree
+                datasources="rdf:null"
+                flex="1"
+                hidecolumnpicker="true"
+                onselect="this.parentNode.followItem(this.parentNode.activeItem)">
+                <xul:treecols height="0px">
+                    <xul:treecol id="Title" hideheader="true" flex="1" primary="true"/>
+                </xul:treecols>
+                <xul:treechildren/>
+            </xul:tree>
+        </content>
+        <implementation>
+            <constructor>
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://minion/trees.js");
+                this.treeNode = document.getAnonymousNodes(this)[0]
+                this.box = this.treeNode.boxObject;
+                this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
+                var me = this
+                this.observer = {
+                    observe: function(subject,topic,data){
+                        if (!data) {
+                            mpd.getAllDirs(function(db){
+                                me.view = new folderView(db);
+                                me.treeNode.view = folders.view;
+                            })
+                        }
+                        else {
+                            me.box.clearStyleAndImageCaches()
+                            me.box.invalidate()
+                        }
+                    }
+                };
+                this.observer2 = {
+                    observe: function(subject,topic,data){
+                        mpd.getAllDirs(function(db){
+                            me.view = new folderView(db);
+                            me.treeNode.view = folders.view;
+                        })
+                    }
+                };
+                observerService.addObserver(this.observer,"updating_db",false)
+                observerService.addObserver(this.observer2,"new_mpd_server",false)
+            </constructor>
+            <destructor>
+                observerService.removeObserver(this.observer,"updating_db")
+                observerService.removeObserver(this.observer2,"new_mpd_server")
+            </destructor>
+            <method name="load">
+                <parameter name="db"/>
+                <parameter name="me"/>
+                <body>
+                    <![CDATA[
+                    me = Nz(me,this)
+                    me.view = new folderView(db)
+                    me.treeNode.view = me.view
+                    ]]>
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpmList" extends="#mpmTreeBase">
+        <content>
+            <xul:tree
+                datasources="rdf:null"
+                flex="1"
+                hidecolumnpicker="true"
+                onselect="this.parentNode.followItem(this.parentNode.activeItem)">
+                <xul:treecols height="0px">
+                    <xul:treecol id="Title" hideheader="true" flex="1" primary="true"/>
+                </xul:treecols>
+                <xul:treechildren/>
+            </xul:tree>
+        </content>
+    </binding>
+
+    <binding id="mpmTagsPane">
+        <content>
+            <xul:vbox flex="1">
+                <xul:menulist id="tagsMainType" onselect="this.parentNode.parentNode.loadMain()">
+                    <xul:menupopup>
+                        <xul:menuitem label="Albums" value="album"/>
+                        <xul:menuitem label="Artists" value="artist" selected="true"/>
+                        <xul:menuitem label="Composers" value="composer"/>
+                        <xul:menuitem label="Dates" value="date"/>
+                        <xul:menuitem label="Genres" value="genre"/>
+                        <xul:menuitem label="Performers" value="performer"/>
+                    </xul:menupopup>
+                </xul:menulist>
+                <xul:textbox
+                    type="timed"
+                    timeout="200"
+                    oncommand="this.parentNode.parentNode.treeMain.applyFilter(this.value)"/>
+                <xul:box
+                    flex="3"
+                    id="tagsMainTree"
+                    style="-moz-binding: url('#mpmList')"
+                    onselect="this.followItem(this.activeItem);this.parentNode.parentNode.loadSub()"/>
+                <xul:splitter collapse="after"/>
+                <xul:vbox flex="1">
+                    <xul:label class="tagsContentLabel" value="Related Items:"/>
+                    <xul:menulist id="tagsSubType" onselect="this.parentNode.parentNode.parentNode.loadSub()">
+                        <xul:menupopup>
+                            <xul:menuitem label="Albums" value="album"/>
+                            <xul:menuitem label="Artists" value="artist"/>
+                            <xul:menuitem label="Composers" value="composer"/>
+                            <xul:menuitem label="Dates" value="date"/>
+                            <xul:menuitem label="Genres" value="genre"/>
+                            <xul:menuitem label="Performers" value="performer"/>
+                        </xul:menupopup>
+                    </xul:menulist>
+                    <xul:box
+                        flex="1"
+                        id="tagsSubTree"
+                        style="-moz-binding: url('#mpmList')"/>
+                </xul:vbox>
+            </xul:vbox>
+        </content>
+        <implementation>
+            <field name="treeMain">document.getAnonymousElementByAttribute(this, 'id', 'tagsMainTree')</field>
+            <field name="treeSub">document.getAnonymousElementByAttribute(this, 'id', 'tagsSubTree')</field>
+            <field name="typeMain">document.getAnonymousElementByAttribute(this, 'id', 'tagsMainType')</field>
+            <field name="typeSub">document.getAnonymousElementByAttribute(this, 'id', 'tagsSubType')</field>
+            <constructor>
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://minion/trees.js");
+                this.treeNode = document.getAnonymousElementByAttribute(this,"id","tagsContentTree")
+                this.box = this.treeNode.boxObject;
+                this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
+                var me = this
+            </constructor>
+            <destructor>
+            </destructor>
+            <method name="loadMain">
+                <body>
+                    <![CDATA[
+                    var tree = this.treeMain
+                    var q = new dbQuery()
+                    q.type = this.typeMain.value
+                    q.query = ""
+                    q.execute(function(db){tree.load(db,tree)})
+                    ]]>
+                </body>
+            </method>
+            <method name="loadSub">
+                <body>
+                    <![CDATA[
+                    var tree = this.treeSub
+                    var q = new dbQuery()
+                    q.type = this.typeSub.value
+                    q.scope = this.typeMain.value
+                    q.query = this.treeMain.activeItem.Title
+                    q.execute(function(db){tree.load(db,tree)})
+                    ]]>
+                </body>
+            </method>
+        </implementation>
+    </binding>
+
+    <binding id="mpdBrowser">
+        <content>
+        	<xul:vbox flex="1">
+                <xul:toolbar>
+                    <xul:toolbarbutton label="Update"
+                        class="mpm_btn_Update"
+                        oncommand="this.parentNode.parentNode.parentNode.doUpdate()"/>
+                    <xul:toolbarbutton label="All"
+                        class="mpm_btn_AddAll"
+                        oncommand="this.parentNode.parentNode.parentNode.browser.addAll()"/>
+                    <xul:toolbarbutton label="Selected"
+                        class="mpm_btn_AddSelected"
+                        oncommand="this.parentNode.parentNode.parentNode.browser.addSelected()"/>
+                    <xul:spacer flex="1"/>
+					<xul:menulist id="searchType"
+						label="Search"
+						sizetopopup="always"
+                        onselect="this.parentNode.parentNode.parentNode.searchTypeSelect()">
+						<xul:menupopup>
+							<xul:menuitem label="Filter"
+								tooltiptext="Filter contents of current location by Title column"/>
+							<xul:menuitem label="Search All"
+								tooltiptext="Search songs on all fields"
+								selected="true"/>
+							<xul:menuitem label="Playlist"
+								tooltiptext="Search in Playlist on all fields"/>
+							<xul:menuitem label="Title"
+								tooltiptext="Search by song's Title only"/>
+							<xul:menuitem label="Artist"
+								tooltiptext="Search Artists"/>
+							<xul:menuitem label="Album"
+								tooltiptext="Search Albums"/>
+							<xul:menuitem label="Genre"
+								tooltiptext="Search Genres"/>
+							<xul:menuitem label="Composer"
+								tooltiptext="Search Composers"/>
+							<xul:menuitem label="Performer"
+								tooltiptext="Search Performers"/>
+							<xul:menuitem label="Date"
+								tooltiptext="Search Release Years"/>
+						</xul:menupopup>
+					</xul:menulist>
+					<xul:textbox id="searchInput"
+						type="timed"
+						timeout="200"
+						oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
+                </xul:toolbar>
+                <xul:hbox flex="1">
+                    <xul:tabbox flex="1">
+                        <xul:tabs>
+                            <xul:tab label="Folders" flex="1"/>
+                            <xul:tab label="Playlists" flex="1"/>
+                            <xul:tab label="Tags" flex="1"/>
+                        </xul:tabs>
+                        <xul:tabpanels flex="1">
+                            <xul:tabpanel flex="1">
+                                <xul:box id="folders"
+                                    flex="1"
+                                    minwidth="100px"
+                                    style="-moz-binding: url('#mpmFoldersPane')"/>
+                            </xul:tabpanel>
+                            <xul:tabpanel flex="1">
+                                <xul:box id="playlists"
+                                    flex="1"
+                                    minwidth="100px"
+                                    style="-moz-binding: url('#mpmList')"/>
+                            </xul:tabpanel>
+                            <xul:tabpanel flex="1">
+                                <xul:box id="tags"
+                                    flex="1"
+                                    minwidth="100px"
+                                    style="-moz-binding: url('#mpmTagsPane')"/>
+                            </xul:tabpanel>
+                        </xul:tabpanels>
+                    </xul:tabbox>
+                    <xul:splitter collapse="before"/>
+                    <xul:vbox flex="4">
+                        <xul:toolbar class="mpm_navbar">
+                            <xul:toolbarbutton class="mpm_btn_Back"
+                                tooltiptext="Back"
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.goBack()"/>
+                            <xul:toolbarbutton class="mpm_btn_Forward"
+                                tooltiptext="Forward"
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.goForward()"/>
+                            <xul:toolbarbutton class="mpm_btn_Home"
+                                tooltiptext="Home"
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.goHome()"/>
+                            <xul:box id="breadcrumbs" align="center"/>
+                        </xul:toolbar>
+                        <xul:box id="browser" flex="1" style="-moz-binding: url('#mpmTreeBase')"/>
+                    </xul:vbox>
+                </xul:hbox>
+        	</xul:vbox>
+        </content>
+        <implementation>
+			<field name="searchType">document.getAnonymousElementByAttribute(this, 'id', 'searchType')</field>
+			<field name="searchInput">document.getAnonymousElementByAttribute(this, 'id', 'searchInput')</field>
+			<field name="history">new Array()</field>
+			<field name="historyIndex">0</field>
+			<field name="obsCurSong"/>
+            <field name="browser">document.getAnonymousElementByAttribute(this, 'id', 'browser')</field>
+            <field name="breadcrumbs">document.getAnonymousElementByAttribute(this, 'id', 'breadcrumbs')</field>
+            <field name="folders">document.getAnonymousElementByAttribute(this, 'id', 'folders')</field>
+            <field name="playlists">document.getAnonymousElementByAttribute(this, 'id', 'playlists')</field>
+            <field name="sidebar">document.getAnonymousElementByAttribute(this, 'id', 'sidebar')</field>
+            <field name="tags">document.getAnonymousElementByAttribute(this, 'id', 'tags')</field>
+        	<property name="activeItem"
+				readonly="true"
+                getter="return this.browser.activeItem"/>
+            <constructor>
+				<![CDATA[
+                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://minion/trees.js");
+                var me = this
+                var browser = this.browser
+                var folders = this.folders
+                var playlists = this.playlists
+                var tags = this.tags
+                browser.goTo = function(q) {me.goTo(q)}
+                browser.followItem = function(i) {me.followItem(i)}
+                folders.goTo = function(q) {me.goTo(q)}
+                folders.followItem = function(i) {me.followItem(i)}
+                mpd.getAllDirs(function(db){
+                    folders.view = new folderView(db);
+                    folders.treeNode.view = folders.view;
+                })
+                playlists.goTo = function(q) {me.goTo(q)}
+                playlists.followItem = function(i) {me.followItem(i)}
+                var q = new dbQuery()
+                q.type = "playlist"
+                q.query = ""
+                q.execute(function(db){playlists.load(db,playlists)})
+
+                tags.treeMain.followItem = function(i){me.followItem(i)}
+                tags.treeSub.followItem = function(i){me.followItem(i)}
+
+				var heirs = {
+					directory: 'directory',
+					genre: 'artist',
+					artist: 'album',
+					performer: 'album',
+					composer: 'album',
+					date: 'album',
+					album: 'file'
+				}
+
+                this.observerUpdate = {
+                    observe: function(subject,topic,data){
+                        if (!data) me.goTo(me.history[me.historyIndex])
+                        else {
+                            browser.box.clearStyleAndImageCaches()
+                            browser.box.invalidate()
+                        }
+                    }
+                };
+                observerService.addObserver(this.observerUpdate,"updating_db",false)
+                this.observerServer = {
+                    observe: function(subject,topic,data){
+                        me.goHome()
+                    }
+                };
+                observerService.addObserver(this.observerServer,"new_mpd_server",false)
+				me.goHome()
+
+				]]>
+            </constructor>
+            <destructor>
+                observerService.removeObserver(this.observerUpdate,"updating_db")
+                observerService.removeObserver(this.observerServer,"new_mpd_server")
+            </destructor>
+            <method name="doUpdate">
+                <body>
+                    <![CDATA[
+                    try {
+                        var cmd = "update"
+                        var cwd = this.history[this.historyIndex]
+                        if (cwd.type=='directory') cmd = "update "+Sz(cwd.query)
+                        mpd.doCmd(cmd)
+                    } catch(e){debug(e)}
+                    ]]>
+                </body>
+            </method>
+            <method name="followItem">
+                <parameter name="item"/>
+                <body>
+                    <![CDATA[
+                    try {
+                    debug(item)
+                    var q = new dbQuery()
+                    q.type = item.type
+                    switch (item.type) {
+                        case 'file':
+                            if (Nz(item.Pos)) mpd.doCmd("play "+item.Pos);
+                            else mpd.addToPlaylist([item]);
+                            return null;
+                            break;
+                        case 'directory': break;
+                        case 'playlist': break;
+                        default:
+                            if (Nz(item.name,"") > "") {
+                                q.type = 'file';
+                                q.scope = item.type;
+                            }
+                            break;
+                    }
+                    q.query = item.name
+                    this.goTo(q)
+                    } catch(e){debug(e)}
+                    ]]>
+                </body>
+            </method>
+			<method name="goBack">
+				<body>
+					if (this.historyIndex >= (this.history.length-1)) return null
+					this.historyIndex++
+					this.goTo(this.history[this.historyIndex])
+				</body>
+			</method>
+			<method name="goForward">
+				<body>
+					if (this.historyIndex == 0) return null
+					this.historyIndex--
+					this.goTo(this.history[this.historyIndex])
+				</body>
+            </method>
+			<method name="goHome">
+				<body>
+					this.goTo(null)
+				</body>
+            </method>
+            <method name="goTo">
+                <parameter name="query"/>
+                <body>
+                    <![CDATA[
+                    query = Nz(query)
+                    var bc = this.breadcrumbs
+                    while (bc.hasChildNodes()) bc.removeChild(bc.firstChild)
+                    if (query) {
+                        var browser = this.browser
+                        var me = this
+                        query.evaluate()
+                        var path = query.path
+                        var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+                        for (var i=0;i<path.length;i++) {
+                            var p = path[i]
+                            var btn = document.createElementNS(NS,"button")
+                            btn.setAttribute('label',p.Title)
+                            btn.mpmtype = p.type
+                            btn.mpmname = p.name
+                            btn.className = "mpm_btn_Location"
+                            btn.onclick = function () {
+                                me.followItem({type:this.mpmtype,name:this.mpmname})
+                            }
+                            bc.appendChild(btn)
+                        }
+                        query.callBack = function (db) {browser.load(db)}
+                        query.execute()
+                    }
+                    else {
+                        var home = [
+                            {
+                                type: 'directory',
+                                Title: 'Folders',
+                                name: ''
+                            },
+                            {
+                                type: 'Artist',
+                                Title: 'Artists',
+                                name: ''
+                            },
+                            {
+                                type: 'Album',
+                                Title: 'Albums',
+                                name: ''
+                            },
+                            {
+                                type: 'playlist',
+                                Title: 'Playlists',
+                                name: ''
+                            }
+                        ]
+                        this.browser.load(home)
+                    }
+                    if (!query) return null
+                    if (query.type.indexOf("search") < 0 ) {
+                        if (this.history[this.historyIndex] != query) {
+                            this.history.splice(this.historyIndex,0,query)
+                        }
+                    }
+                    ]]>
+                </body>
+            </method>
+			<method name="handleSearch">
+				<body>
+					<![CDATA[
+                    var q = new dbQuery()
+                    q.type = "search"
+                    q.scope = this.searchType.selectedItem.label
+                    q.query = this.searchInput.value
+
+					switch (q.scope) {
+						case "Search All": q.scope = "any"; break;
+						case "Playlist": q.type = "playlistsearch"; q.scope = "any";break;
+						case "Filter": this.browser.applyFilter(this.searchInput.value); return null; break;
+					}
+                    this.goTo(q)
+					]]>
+				</body>
+			</method>
+			<method name="searchTypeSelect">
+				<body>
+					<![CDATA[
+					if (this.searchType.selectedItem.label == 'Filter') {
+                        this.searchInput.select()
+					}
+                    else {
+                        if (this.searchInput.value.length > 0) this.handleSearch()
+                    }
+                    this.searchInput.focus()
+					]]>
+				</body>
+			</method>
+        </implementation>
+    </binding>
+
+</bindings>

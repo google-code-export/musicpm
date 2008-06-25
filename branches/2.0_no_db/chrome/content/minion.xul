@@ -2,6 +2,8 @@
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/theme_dark.css" type="text/css"?>
 
 <window
     id="main"
@@ -9,50 +11,63 @@
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
-	onload="if(!mpd._socket)mpd.connect()"
+	onload="init()"
     width="780px"
     height="550px">
     <html:link id="mpm_favicon"
         rel="shortcut icon"
         type="image/x-icon"
         href="chrome://miniondev/content/images/album_blank.png"/>
-    <hbox flex="1">
-        <vbox>
-            <hbox>
-                <mpdcontrols hidestop="false"/>
-                <mpdvolume/>
-            </hbox>
-            <hbox>
-                <mpdlabel id="album"
-                    value="0"
-                    observes="Album"
-                    collapsed="true"/>
-                <mpdlabel
+    <script src="chrome://minion/content/minion.js"/>
+    <menubar>
+        <mpdservers label="Servers"/>
+    </menubar>
+    <hbox class="mpm_topToolbar">
+        <mpdcontrols hidestop="false"/>
+        <mpdvolume/>
+        <vbox flex="1">
+            <spacer flex="1"/>
+            <hbox style="overflow:hidden">
+                <mpdlabel id="curTitle"
                     value="Title"
                     observes="Title"
-                    class="title"/>
+                    class="Title"
+                    ordinal="1"/>
+                <mpdlabel id="curAlbum"
+                    value="Album"
+                    class="Album"
+                    observes="Album"
+                    ordinal="2"/>
+                <mpdlabel id="curArtist"
+                    value="Artist"
+                    class="Artist"
+                    observes="Artist"
+                    ordinal="3"/>
+                <spacer ordinal="4" flex="1"/>
             </hbox>
-            <mpdtime id="mytime"/>
+            <mpdtime flex="1" id="mytime"/>
+        </vbox>
+    </hbox>
+    <hbox flex="1">
+        <mpdbrowser id="browse" flex="1"/>
+        <splitter collapse="after"/>
+        <vbox>
             <toolbar id="playlistToolbar">
                 <toolbarbutton id="clearPlaylist"
-                    label="c"
+                    class="mpm_btn_Clear"
+                    tooltiptext="Clear Playlist"
                     oncommand="mpd.doCmd('clear');document.getElementById('playlistName').value='Untitled'"/>
                 <toolbarbutton id="loadPlaylist"
-                    label="l"
+                    class="mpm_btn_Playlists"
+                    tooltiptext="Show Saved Playlists"
                     oncommand="showPlaylists()"/>
                 <textbox id="playlistName"
-                    style="min-width: 40px !important"
+                    value="Playlist"
                     flex="1"/>
                 <toolbarbutton id="savePlaylist"
-                    label="v"
+                    class="mpm_btn_Save"
+                    tooltiptext="Save Playlist"
                     oncommand="savePlaylist()"/>
-                <toolbarseparator/>
-                <toolbarbutton id="albumView"
-                    label="a"
-                    oncommand="refreshPlaylistAlbums()"/>
-                <toolbarbutton id="songView"
-                    label="s"
-                    oncommand="document.getElementById('playlistdeck').selectedIndex=0"/>
             </toolbar>
             <tree id="savedPlaylists"
                 height="100px"
@@ -62,23 +77,20 @@
                 hidecolumnpicker="true"
                 ondblclick="loadPlaylist(this.view.getCellText(this.currentIndex,this.columns[0]))">
                 <treecols height="0px">
-                    <treecol hideheader="true" id="title" flex="1"/>
+                    <treecol hideheader="true" id="Title" flex="1"/>
                 </treecols>
                 <treechildren id="tchildren"/>
             </tree>
+            <splitter id="playlist_splitter" collapse="before" collapsed="true"/>
+            <mpdplaylist flex="1"/>
         </vbox>
     </hbox>
 	<statusbar pack="center">
-        <vbox flex="1">
-            <spacer flex="1"/>
-            <hbox>
-                <label value="Playlist Time:"/>
-                <mpdlabel observes="pltime"/>
-                <spacer flex="1"/>
-                <mpdlabel value="response" observes="lastResponse"/>
-            </hbox>
-            <spacer flex="1"/>
-        </vbox>
+        <label value="Playlist Time:"/>
+        <mpdlabel observes="pltime"/>
+        <spacer flex="1"/>
+        <mpdlabel value="response" observes="lastResponse" crop="end"/>
+        <mpdlabel value="disconnected" observes="greeting"/>
 	</statusbar>
 
 </window>

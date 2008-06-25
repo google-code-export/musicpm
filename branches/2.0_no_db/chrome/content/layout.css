@@ -1,0 +1,22 @@
+toolbar, statusbar {
+    overflow: hidden;
+}
+
+mpdtime {
+	-moz-box-pack: center;
+	-moz-box-align: center;
+}
+
+textbox {
+	min-width: 50px !important;
+	width: 10em;
+}
+
+treecol {
+	min-width: 0px !important;
+}
+
+.tagsContentLabel {
+	text-align: center;
+	padding-top: 6px;
+}

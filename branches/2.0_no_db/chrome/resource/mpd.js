@@ -26,43 +26,131 @@ var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].
 
 function dbQuery (cmd, callBack) {
     this.cmd = Nz(cmd)
-    this.returnType = 'directory'
-    this.filterBy = null
-    this.criteria = null
+    this.path = []
+    this.type = 'directory'
+    this.scope = null
+    this.query = null
     this.restrict = null
     this.callBack = Nz(callBack)
 }
 
+dbQuery.prototype.evaluate = function () {
+    switch (this.type) {
+        case 'search':
+            this.cmd = "search";
+            this.path = [
+                {
+                    type: "search",
+                    Title: "Search ("+this.scope+"): "+this.query,
+                    name: this.query
+                }
+            ];
+            break;
+        case 'playlistsearch':
+            this.cmd = "playlistsearch";
+            this.path = [
+                {
+                    type: "playlistsearch",
+                    Title: "Search Playlist ("+this.scope+"): "+this.query,
+                    name: this.query
+                }
+            ];
+            break;
+        case 'directory':
+            this.cmd = "lsinfo";
+            this.path = [
+                {
+                    type: 'directory',
+                    Title: "Folders",
+                    name: ""
+                }
+            ];
+            if (Nz(this.query,"")=="") {
+                this.restrict = ["directory", "file"];
+            }
+            var p = this.query.split("/");
+            if (p.length > 0) {
+                for (var i=0;i<p.length;i++) {
+                    if (p[i] > "") {
+                        this.path.push(
+                            {
+                                type: 'directory',
+                                Title: p[i],
+                                name: p.slice(0,i+1).join("/")
+                            }
+                        )
+                    }
+                }
+            }
+            break;
+        case 'file':
+            this.cmd = "find";
+            this.path = [
+                {
+                    type: this.scope,
+                    Title: this.scope+"s",
+                    name: ""
+                },
+                {
+                    type: this.scope,
+                    Title: this.query,
+                    name: this.query
+                }
+            ];
+            break;
+        case 'playlist':
+            this.path = [
+                {
+                    type: "playlist",
+                    Title: "Playlists",
+                    name: ""
+                }
+            ];
+            if (Nz(this.query,"")=="") {
+                this.cmd = "lsinfo";
+                this.restrict = "playlist";
+            }
+            else {
+                this.cmd = "listplaylistinfo";
+                this.path.push(
+                    {
+                        type: "playlist",
+                        Title: this.query,
+                        name: this.query
+                    }
+                );
+            };
+            break;
+        default:
+            this.cmd = "list " + this.type;
+            this.path = [
+                {
+                    type: this.type,
+                    Title: this.type+"s",
+                    name: ""
+                }
+            ];
+            break;
+    }
+    if (this.scope) this.cmd += " " + this.scope;
+    if (this.query) this.cmd += " " + Sz(this.query);
+    debug(this.cmd)
+}
+
 dbQuery.prototype.execute = function (callBack){
     callBack = Nz(callBack, this.callBack)
-    if (this.cmd) {
-        var cmd = this.cmd
-    }
-    else {
-        switch (this.returnType) {
-            case 'search': var cmd = "search "; break;
-            case 'searchplaylist': var cmd = "searchplaylist "; break;
-            case 'directory': var cmd = "lsinfo "; break;
-            case 'file': var cmd = "find "; break;
-            case 'playlist':
-                if (!this.where) {
-                    var cmd = "lsinfo ";
-                    this.restrict = "playlist"
-                }
-                else {
-                    var cmd = "listplaylistinfo "
-                }
-                break;
-            default: var cmd = "list "; break;
-        }
-        if (this.filterBy) cmd += this.filterBy + " ";
-        cmd += Sz(this.criteria);
-    }
+    if (!this.cmd) this.evaluate()
+    var cmd = this.cmd
+    var path = this.path
+    var restrict = this.restrict
+    var useCache = !(this.type == 'playlist' || this.restrict)
+
     if (Nz(mpd.cachedDB[cmd])) {
+        debug("cached: "+cmd)
         callBack(mpd.cachedDB[cmd])
         return null
     }
-    
+
     // Clean up and validate mpd.doCmd lists.
     if (cmd.indexOf('mpd.doCmd_list_begin') > -1) {
         if  (cmd.indexOf('mpd.doCmd_list_end') < 0) {
@@ -80,34 +168,21 @@ dbQuery.prototype.execute = function (callBack){
     // Check if this mpd.doCmd returns database results.
     // If so, check if it will return multiple sets that
     // will need to be combined.
-    var chkDupes = false
-    var dbc = ["search ", "find ", "lsinfo", "plchanges ",
-            "list ", "listall", "listallinfo", "listplaylistinfo ",
-            "playlistsearch ", "playlistinfo", "playlistfind "]
-    var is_dbc = false
-    for (x in dbc) {
-        if (cmd.indexOf(dbc[x]) > -1) {
-            is_dbc = true
-        }
-    }
-    if (is_dbc) {
-        for (x in dbc) {
-            if (cmd.indexOf(dbc[x]) > -1) {
-                chkDupes = true
-            }
-        }
-    }
-    if (!is_dbc) {
+    var re = /^.*search |^.*find |^.*info|^plchanges |^list.* /gm
+    var matches = cmd.match(re)
+    if (!matches) {
         mpd.doCmd(cmd, null, false)
         return null
     }
-
+    else {
+        var chkDupes = (matches.length > 1)
+    }
     mpd.doCmd(cmd, function(d){
             var db = mpd._parseDB(d)
-            if (this.restrict) db = dbFilter(db, this.restrict)   
-            if (chkDupes) db = dbDistinct(db)                
-            mpd.cachedDB[cmd] = db
-            callBack(db)
+            if (restrict) db = dbFilter(db, restrict)
+            if (chkDupes) db = dbDistinct(db)
+            if (useCache) mpd.cachedDB[cmd] = db
+            callBack(db, path)
         }, false)
     return true
 }
@@ -118,17 +193,6 @@ function Sz (str) {
     return "''"
 }
 
-function dbFilter(db, restrict) {
-    var rdb = []
-    var dl = db.length
-    if (dl < 1) {return db}
-    var n = dl
-    do {
-        if (db[dl-n].type == restrict) {rdb.push(db[i])}
-    } while (--n)
-    return rdb
-}
-
 function dbDistinct(db) {
     var rdb = []
     var dl = db.length
@@ -136,8 +200,8 @@ function dbDistinct(db) {
     var n = dl
 
     var srt = function(a,b) {
-        if (a.Name.substr(i,1)<b.Name.substr(i,1)) return -1
-        if (a.Name.substr(i,1)>b.Name.substr(i,1)) return 1
+        if (a.name.substr(i,1)<b.name.substr(i,1)) return -1
+        if (a.name.substr(i,1)>b.name.substr(i,1)) return 1
         return 0
     }
 
@@ -145,8 +209,23 @@ function dbDistinct(db) {
     do {
         var i = dl - n
         if (n==1) {rdb.push(db[i])}
-        else if (db[i].Name != db[i+1].Name) {rdb.push(db[i])}
+        else if (db[i].name != db[i+1].name) {rdb.push(db[i])}
     } while (--n)
+    return rdb
+}
+
+function dbFilter(db, restrict) {
+    var rdb = []
+    var dl = db.length
+    if (dl < 1) {return db}
+    if (typeof(restrict) == 'string') restrict = [restrict]
+    for (var i=0;i<restrict.length;i++) {
+        var n = dl
+        var r = restrict[i]
+        do {
+            if (db[dl-n].type == r) {rdb.push(db[dl-n])}
+        } while (--n)
+    }
     return rdb
 }
 
@@ -159,7 +238,7 @@ var mpd = {
     volume: null,
     repeat: null,
     random: null,
-    playlistlength: null,
+    playlistlength: 0,
     playlist: 0,
     xfade: null,
     state: null,
@@ -283,14 +362,12 @@ mpd._parseDB = function(data){
                 }
                 else {
                     if (fld == 'directory') {
-                        if (type == 'directory') {
-                            var dir = val.split("/")
-                            db.push({
-                                type: 'directory',
-                                name: val,
-                                Title: dir[dir.length - 1],
-                            })
-                        }
+                        var dir = val.split("/")
+                        db.push({
+                            type: 'directory',
+                            name: val,
+                            Title: dir[dir.length - 1],
+                        })
                     }
                     else {
                         db.push({
@@ -308,22 +385,32 @@ mpd._parseDB = function(data){
 }
 
 mpd._parsePL = function (data) {
-    var db = mpd._parseDB(data,false)
-    if (db.length > 0) {
-        var i = db.length - 1
-        do {
-            mpd.plinfo[db[i].Pos] = db[i]            
-        } while (i--)
-        observerService.notifyObservers(null, "plinfo", mpd.playlist)
-    }
-    var l = mpd.plinfo.length
-    var tm = 0
-    if (l > 0) {
-        var n = l
-        do { tm += parseInt(mpd.plinfo[l-n].Time) } while (--n)
-    }
-    observerService.notifyObservers(null, "playlistlength", mpd.playlistlength)
-    observerService.notifyObservers(null, "pltime", prettyTime(tm))
+    try {
+        var db = mpd._parseDB(data,false)
+        if (db.length > 0) {
+            var i = db.length - 1
+            do {
+                mpd.plinfo[db[i].Pos] = db[i]
+            } while (i--)
+        }
+        var l = mpd.plinfo.length
+        var tm = 0
+        if (l > 0) {
+            var n = l
+            do {
+                var item  = Nz(mpd.plinfo[l-n])
+                if (item) tm += parseInt(mpd.plinfo[l-n].Time)
+                else {
+                    debug("Missing playlist item "+(l-n)+" when calculating time.")
+                    mpd.playlist = 0
+                }
+            } while (--n)
+        }
+
+        observerService.notifyObservers(null, "plinfo", db.length)
+        observerService.notifyObservers(null, "playlistlength", mpd.playlistlength)
+        observerService.notifyObservers(null, "pltime", prettyTime(tm))
+    } catch (e) { debug(e); mpd.playlist = 0 }
 }
 
 // Parse output from status mpd.doCmd, internal use only.
@@ -354,7 +441,8 @@ mpd._update = function (data) {
         mpd.playlist = Nz(mpd.playlist,0)
         if (obj.playlist != mpd.playlist) {
             mpd.plinfo.length = Nz(obj.playlistlength,0)
-            mpd.doCmd("plchanges " + mpd.playlist, mpd._parsePL, true)
+            var cmd = (mpd.playlist > 0) ? "plchanges " + mpd.playlist : "playlistinfo"
+            mpd.doCmd(cmd, mpd._parsePL, true)
         }
         mpd.playlist = Nz(obj.playlist)
         if (mpd.updating_db) {
@@ -384,14 +472,57 @@ mpd._update = function (data) {
     }
 }
 
+mpd.addToPlaylist = function (itemArray) {
+    // Input should be an array of db objects or a single db object.
+    if (typeof(itemArray[0]) != 'object') itemArray = [itemArray]
+    var l = itemArray.length
+    var cmd = "command_list_begin"
+    var hasFiles = false
+    for (var i=0;i<l;i++) {
+        var item = itemArray[i]
+        if (item.type == 'file' || item.type == 'directory') {
+            hasFiles = true
+            cmd += '\nadd ' + Sz(item.name)
+        }
+        else {
+            var q = new dbQuery()
+            q.type = 'file'
+            q.scope = item.type
+            q.query = item.name
+            q.callBack = function (db) {
+                var dbl = db.length
+                var c = "command_list_begin"
+                for (var x=0;x<dbl;x++) {
+                    var loc = item.name
+                    c += '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                }
+                mpd.doCmd(c+"\ncommand_list_end")
+            }
+            q.execute()
+        }
+    }
+    if (hasFiles) {
+        hasFiles = false
+        mpd.doCmd(cmd+"\ncommand_list_end")
+        cmd = "command_list_begin"
+    }
+}
 // Connection methods
 mpd.connect = function () {
-    if (mpd._timer) mpd._timer.cancel()
+    if (mpd._timer) {
+        mpd._timer.cancel()
+        mpd._timer = null;
+    }
     if (mpd._socket) {
         mpd._socket.cancel()
     }
-    mpd._socket = socketTalker()
-    mpd._checkStatus()
+    if (mpd._host && mpd._port) {
+        mpd._idle = false;
+        mpd._doStatus = true
+        mpd._socket = socketTalker()
+        mpd._checkStatus()
+    }
+    else mpd.set("lastResponse", "Server Not Selected")
 }
 
 mpd.disconnect = function () {
@@ -400,11 +531,6 @@ mpd.disconnect = function () {
         mpd._timer = null
     }
     mpd._socket.cancel()
-    mpd.plinfo = []
-    mpd.playlist = 0
-    observerService.notifyObservers(null, "plinfo", mpd.playlist)
-    observerService.notifyObservers(null, "playlistlength", mpd.playlistlength)
-    observerService.notifyObservers(null, "pltime", prettyTime(0))
 }
 
 // Talk directlty to MPD, outputData must be properly escaped and quoted.
@@ -438,6 +564,44 @@ mpd.doCmd = function (outputData, callBack, hide, priority){
     else  {mpd.connect()}
 }
 
+mpd.getAllDirs = function (callBack) {
+    var cb = callBack
+    mpd.doCmd("listall",
+        function (d) {
+            d = d.replace(/^file: .*\n/gm,"")
+            d = d.replace(/^directory: /gm,"")
+            dirs = d.split("\n").sort().slice(1)
+            var hd = []
+            var l = dirs.length
+            if (l < 1) return []
+            var n = l
+            do {
+                var name = dirs[l-n]
+                var path = name.split("/")
+                var obj =
+                    {
+                        Title: path.pop(),
+                        level: path.length,
+                        parent: path.join("/"),
+                        name: name,
+                        type: 'directory',
+                        children: 0
+                    }
+                if (obj.level > 0) {
+                    for (var pi=hd.length-1;pi > -1;pi--) {
+                        if (hd[pi].name == obj.parent) {
+                            hd[pi].children += 1
+                            break
+                        }
+                    }
+                }
+                hd.push (obj)
+            } while (--n)
+            cb(hd)
+        }
+    )
+}
+
 mpd.getArt = function (artist, album, callBack) {
     var clean = function (item) {
         if (!Nz(item)) return ''
@@ -456,7 +620,7 @@ mpd.getArt = function (artist, album, callBack) {
         item = encodeURI(item)
         return item
     }
-    
+
     var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist=" +
         clean(artist) + "&title=" + clean(album) + "&limit=1"
 
@@ -596,8 +760,6 @@ function socketTalker() {
             }
             catch (e) {
             }
-            mpd._idle = false;
-            mpd._socket = null
             debug('socketTalker for server '+mpd._host+":"+mpd._port+" destroyed.")
             mpd.set('greeting','Not Connected');
         },
@@ -645,7 +807,7 @@ function socketTalker() {
                 }
                 else
                     if (this.data.substr(0, 6) == "OK MPD") {
-                        mpd.set('greeting', this.data.slice(3))
+                        mpd.set('greeting', this.data.slice(3)+"@"+mpd._host+":"+mpd._port)
                         this.data = ""
                         if (mpd._password.length > 0) {
                             mpd._cmdQueue.unshift({
@@ -742,8 +904,12 @@ var myPrefObserver = {
         // aData is the name of the pref that's been changed (relative to aSubject)
         switch (aData) {
             case "server":
+                if (mpd._socket) mpd.disconnect()
+                mpd.playlist = 0
+                mpd.dbupdate = null
+                mpd.cachedDB = []
                 loadSrvPref()
-                if (mpd._socket && mpd._host && mpd._port) mpd.connect();
+                observerService.notifyObservers(null, "new_mpd_server", null)
                 break;
         }
     }

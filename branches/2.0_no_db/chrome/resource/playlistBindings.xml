@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <binding id="mpdPlaylist">
+        <content>
+            <xul:tree
+                label="Playlist"
+                flex="1"
+                flags="dont-build-content">
+                <xul:treecols>
+                    <xul:treecol id="Pos"
+                        label="#"
+                        width="30"
+                        ordinal="0"
+                        overflow="true"
+                        persist="width ordinal hidden"/>
+                    <xul:splitter class="tree-splitter" ordinal="1"/>
+                    <xul:treecol id="Title"
+                        label="Title"
+                        ordinal="2"
+                        overflow="true"
+                        flex="3"
+                        minwidth="120"
+                        persist="width ordinal hidden"/>
+                    <xul:splitter class="tree-splitter" ordinal="3"/>
+                    <xul:treecol id="Album"
+                        label="Album"
+                        ordinal="4"
+                        hidden="true"
+                        minwidth="0"
+                        flex="1"
+                        persist="width ordinal hidden"/>
+                    <xul:splitter class="tree-splitter" ordinal="4"/>
+                    <xul:treecol id="Artist"
+                        label="Artist"
+                        ordinal="5"
+                        hidden="true"
+                        minwidth="0"
+                        flex="1"
+                        persist="width ordinal hidden"/>
+                    <xul:splitter class="tree-splitter" ordinal="6"/>
+                    <xul:treecol id="Time"
+                        label="Time"
+                        ordinal="7"
+                        width="40"
+                        persist="width ordinal hidden"/>
+                </xul:treecols>
+                <xul:treechildren id="children"/>
+            </xul:tree>
+        </content>
+        <handlers>
+            <handler event="keypress" modifiers="accel" key="a"
+                action="this.tree.view.selection.selectAll()"/>
+            <handler event="keypress" key=" "
+                action="var a=this.activeItem;if(mpd.song==a.Pos)mpd.doCmd('pause');else mpd.doCmd('play '+a.Pos)"/>
+            <handler event="keypress" keycode="VK_DELETE"
+                action="this.delete()"/>
+            <handler event="keypress" keycode="VK_BACK"
+                action="mpd.doCmd('stop', null, false)"/>
+        </handlers>
+        <implementation>
+            <field name="view"/>
+            <field name="tree">document.getAnonymousNodes(this)[0]</field>
+            <field name="box"/>
+            <field name="obsPL"/>
+            <field name="obsLn"/>
+            <field name="obsCurSong"/>
+            <property name="activeItem"
+                onget="return this.view.get(this.tree.currentIndex)"
+                readonly="true"/>
+            <constructor>
+                <![CDATA[
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://minion/trees.js");
+
+                var me = this
+                function applyView() {
+                    me.view = new arrayView(mpd.plinfo)
+                    me.tree.view = me.view
+                    me.box = me.tree.boxObject;
+                    me.box.QueryInterface(Components.interfaces.nsITreeBoxObject);
+                }
+                applyView()
+                this.obsPL = {
+                    observe: function(subject,topic,data){
+                        var idx = me.box.getFirstVisibleRow()
+                        applyView()
+                        if (idx < me.view.rowCount) {
+                            me.box.scrollToRow(idx)
+                        }
+                        else {
+                            me.box.ensureRowIsVisible(me.view.rowCount-1)
+                        }
+                    }
+                };
+                this.obsCurSong = {
+                    observe: function(subject,topic,data){
+                        box.invalidate()
+                    }
+                };
+                observerService.addObserver(this.obsPL,'plinfo',false)
+                observerService.addObserver(this.obsCurSong,'state',false)
+                observerService.addObserver(this.obsCurSong,'file',false)
+                ]]>
+            </constructor>
+            <destructor>
+                observerService.removeObserver(this.obsPL,'plinfo')
+                observerService.removeObserver(this.obsCurSong,'state')
+                observerService.removeObserver(this.obsCurSong,'file')
+            </destructor>
+            <method name="delete">
+                <body>
+                <![CDATA[
+                var tree = this.tree
+                    var view = this.view
+                var start = new Object();
+                var end = new Object();
+                var numRanges = view.selection.getRangeCount();
+                var offset = 0
+                    var item
+                var cmd = "command_list_begin"
+
+                for (var t=0; t<numRanges; t++){
+                    view.selection.getRangeAt(t,start,end);
+                    for (var v=start.value; v<=end.value; v++){
+                        item = view.get(v)
+                        if (item.type == 'file') {
+                            cmd += "\ndelete "+ (parseInt(item.Pos)-offset)
+                            offset++
+                        }
+                    }
+                }
+
+                cmd += "\ncommand_list_end"
+                mpd.doCmd(cmd, null, false)
+                ]]>
+                </body>
+            </method>
+        </implementation>
+    </binding>
+</bindings>
