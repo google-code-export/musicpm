@@ -23,6 +23,8 @@ window, page, toolbar, toolbarbutton, button, scale, textbox, tabbox, tabpanels,
     -moz-appearance: none !important;
     background-color: black;
     color:white;
+	border: none;
+	min-width: 0px;
     }
 toolbarseparator {
     border-left: 2px solid black;
@@ -46,9 +48,11 @@ splitter:hover {
     -moz-border-right-colors:#202020 #151515;
     background-color: #101010;
 }
+
 textbox {
-    background: black;
-    color:white;
+	background-image: none;
+    background-color: black !important;
+	color: white;
     border-bottom: 3px solid black;
     border-top: 3px solid black;
     border-right: 3px solid black;
@@ -58,12 +62,31 @@ textbox {
     -moz-border-top-colors: #1a1a1a #272727 #333333;
     -moz-border-left-colors: #1a1a1a #272727 #333333;
     -moz-border-right-colors: #1a1a1a #272727 #333333;
-
 }
-.scale-slider {
+
+toolbar > textbox {
+	background-image: none;
+    background-color: #4E0005 !important;
+    -moz-border-radius: 3px;
+    -moz-border-top-colors: #1D0001 #2B0002 #390003;
+    -moz-border-bottom-colors: #1D0001 #2B0002 #390003;
+    -moz-border-right-colors: #1D0001 #2B0002 #390003;
+    -moz-border-left-colors: #1D0001 #2B0002 #390003;
+}
+
+.mpdTimeProgressmeter > .scale-slider {
     -moz-appearance: none !important;
     background-image: url("chrome://minion/content/images/progress.png");
     background-repeat: repeat;
+}
+.mpdVolumeScale {
+	min-width: 75px !important;
+}
+.mpdVolumeScale > .scale-slider {
+    -moz-appearance: none !important;
+	min-width: 75px !important;
+	max-width: 75px !important;
+    background-image: url("chrome://minion/content/images/vol_back_waves.png");
 }
 progressmeter {
     -moz-appearance: none !important;
@@ -74,27 +97,18 @@ progressmeter {
     -moz-border-right-colors: #666666 #303030;
     -moz-border-left-colors: #303030 #151515;
 }
-tree  {
+tree, .mpm_browser_image_box  {
     -moz-appearance: none !important;
     background-color: #1C1C1C;
     border: none !important;
     color: white;
-    }
+}
+
 
 .Title {
     font-weight: bold;
     color: #FBFBC7;
     }
-label.Album:before {
-  content: "(";
-  }
-label.Album:after {
-  content: ")";
-  }
-.Artist {
-  font-style: italic;
-  }
-
 
 #cur_album_art {
     margin: 5px;
@@ -104,10 +118,6 @@ label.Album:after {
     height: 70px !important;
     width: 70px !important;
     }
-.toolbarbutton-menu-dropmarker {
-    margin-left: 4px;
-    list-style-image: url("chrome://minion/content/images/drop.png")
-}
 toolbarbutton, scale {
     background-color: transparent !important;
     border: 1px solid transparent !important;
@@ -157,10 +167,12 @@ toolbar > toolbarbutton:active, .mpm_btn_Location:active, toolbar > menulist:act
     -moz-border-right-colors: #1D0001 #390003;
     -moz-border-left-colors: #1D0001 #390003;
 }
-treecol, listheader, treecolpicker{
+treecol, listheader, treecolpicker, .fake_treecol{
     -moz-appearance:none !important;
     background-color:black;
     color:white;
+	margin: 0px;
+	padding-left: 5px;
     border-bottom: 1px solid black;
     border-top:7px solid black;
     border-right:1px solid black;
@@ -218,7 +230,7 @@ toolbar{
     -moz-border-left-colors: #1a1a1a #272727 #333333;
     -moz-border-right-colors: #1a1a1a #272727 #333333;
 }
-.mpm_navbar > toolbarbutton:active, .mpm_btn_Location:active, tab:active{
+.mpm_navbar > toolbarbutton:active, .mpm_btn_Location:active{
     background: #151515;
     color:white;
     border-bottom: 3px solid black;
@@ -238,17 +250,19 @@ tabbox, tabpanels, tabpanel{
 	background-color: black;
 }
 .tagsContentLabel, tab[selected=true] {
-	font-weight: semi-bold;
 	color: white;
 }
+
+.mpm_browser_image {
+	margin: 5px;
+	border: 2px solid #303030;
+}
+
 treechildren::-moz-tree-cell-text() {
     color: #EDEDED;
     }
 treechildren::-moz-tree-cell-text(Title) {
     color: white;
-    }
-treechildren::-moz-tree-cell-text(Artist) {
-    font-style: italic;
     }
 treechildren::-moz-tree-cell-text(Title_file) {
     color: #FAFABE;

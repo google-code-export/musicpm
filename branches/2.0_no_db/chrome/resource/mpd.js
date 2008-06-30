@@ -16,8 +16,8 @@
 *      MA 02110-1301, USA.
 */
 Components.utils.import("resource://minion/mpmUtils.js");
+Components.utils.import("resource://minion/io.js");
 EXPORTED_SYMBOLS = ["dbQuery", "mpd", "prefBranch", "Sz"]
-debug("mpd loading")
 
 var prefService = Components.classes["@mozilla.org/preferences-service;1"].
                 getService(Components.interfaces.nsIPrefService);
@@ -134,7 +134,6 @@ dbQuery.prototype.evaluate = function () {
     }
     if (this.scope) this.cmd += " " + this.scope;
     if (this.query) this.cmd += " " + Sz(this.query);
-    debug(this.cmd)
 }
 
 dbQuery.prototype.execute = function (callBack){
@@ -181,7 +180,7 @@ dbQuery.prototype.execute = function (callBack){
             var db = mpd._parseDB(d)
             if (restrict) db = dbFilter(db, restrict)
             if (chkDupes) db = dbDistinct(db)
-            if (useCache) mpd.cachedDB[cmd] = db
+            if (useCache && db.length > 0) mpd.cachedDB[cmd] = db
             callBack(db, path)
         }, false)
     return true
@@ -260,6 +259,10 @@ var mpd = {
     currentsong: {}, //All values as object.  Observe this if you need multiple properties.
 
     db_update: null,
+    sec_ticks: 0,
+    sec_synced: false,
+    update_interval: 200,
+    adaptive_interval: true,
 
     // Playlist contents and total playtime
     plinfo: [],
@@ -278,15 +281,14 @@ var mpd = {
     cachedArt: [],
     cachedDB: [],
     servers: [ ["media-server","192.168.1.2:6600:"],
-                ["localhost","localhost:6600:"],
-                ["None",""] ]
+                ["localhost","localhost:6600:"] ]
 }
 
 mpd._checkStatus = function () {
     mpd._doStatus = true
     if (!mpd._socket) {mpd._socket = socketTalker()}
-    if (mpd._idle) {mpd._socket.writeOut("\n")}
-    var tm = (mpd.state == "play") ? 200 : 800
+    if (mpd._idle) {mpd.doCmd("ping", null, true)}
+    var tm = (mpd.state != 'play') ? 1500 : mpd.update_interval
     if (mpd._timer) {
         mpd._timer.cancel()
     }
@@ -435,6 +437,25 @@ mpd._update = function (data) {
         else {
             obj.time = Nz(obj.time,'0:0').split(":")[0]
         }
+
+        // Adaptive update intervals.  Run updates at 200 ms until we are
+        // updating in sync with the time, then switch to 1000 ms.
+        if (mpd.state == 'play' && mpd.adaptive_interval) {
+            if (obj.time == mpd.time) {
+                mpd.sec_ticks++
+            }
+            else {
+                if (mpd.update_interval == 1000) {
+                    mpd.sec_synced = (mpd.sec_ticks < 2)
+                }
+                else {
+                    mpd.sec_synced = (mpd.sec_ticks == 4)
+                    mpd.sec_ticks = 0
+                }
+            }
+            mpd.update_interval = (mpd.sec_synced) ? 1000 : 200
+        }
+
         if (obj.song != mpd.song) {
             mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
         }
@@ -463,12 +484,12 @@ mpd._update = function (data) {
         mpd.set('time', Nz(obj.time))
         mpd.set('bitrate', Nz(obj.bitrate))
         mpd.set('updating_db', Nz(obj.updating_db))
+        mpd.set('db_update', Nz(obj.db_update))
 
         mpd._doStatus = false
     }
     catch (e) {
         debug(e)
-        debug(mpd.db.lastErrorString)
     }
 }
 
@@ -509,17 +530,8 @@ mpd.addToPlaylist = function (itemArray) {
 }
 // Connection methods
 mpd.connect = function () {
-    if (mpd._timer) {
-        mpd._timer.cancel()
-        mpd._timer = null;
-    }
-    if (mpd._socket) {
-        mpd._socket.cancel()
-    }
+    mpd.disconnect()
     if (mpd._host && mpd._port) {
-        mpd._idle = false;
-        mpd._doStatus = true
-        mpd._socket = socketTalker()
         mpd._checkStatus()
     }
     else mpd.set("lastResponse", "Server Not Selected")
@@ -530,7 +542,9 @@ mpd.disconnect = function () {
         mpd._timer.cancel()
         mpd._timer = null
     }
-    mpd._socket.cancel()
+    if (mpd._socket) {
+        mpd._socket.cancel()
+    }
 }
 
 // Talk directlty to MPD, outputData must be properly escaped and quoted.
@@ -540,17 +554,20 @@ mpd.doCmd = function (outputData, callBack, hide, priority){
     hide = Nz(hide)
     priority = Nz(priority)
     if (priority) {
+        debug("priority command: "+outputData)
         mpd._cmdQueue.unshift({
             outputData: outputData+"\n",
             callBack: Nz(callBack),
-            hide: hide
+            hide: hide,
+            sent: false
             })
     }
     else {
         mpd._cmdQueue.push({
             outputData: outputData+"\n",
             callBack: Nz(callBack),
-            hide: hide
+            hide: hide,
+            sent: false
             })
     }
     mpd._doStatus = true
@@ -565,39 +582,42 @@ mpd.doCmd = function (outputData, callBack, hide, priority){
 }
 
 mpd.getAllDirs = function (callBack) {
+    if (!mpd._socket) mpd.connect()
     var cb = callBack
     mpd.doCmd("listall",
         function (d) {
-            d = d.replace(/^file: .*\n/gm,"")
-            d = d.replace(/^directory: /gm,"")
-            dirs = d.split("\n").sort().slice(1)
-            var hd = []
-            var l = dirs.length
-            if (l < 1) return []
-            var n = l
-            do {
-                var name = dirs[l-n]
-                var path = name.split("/")
-                var obj =
-                    {
-                        Title: path.pop(),
-                        level: path.length,
-                        parent: path.join("/"),
-                        name: name,
-                        type: 'directory',
-                        children: 0
-                    }
-                if (obj.level > 0) {
-                    for (var pi=hd.length-1;pi > -1;pi--) {
-                        if (hd[pi].name == obj.parent) {
-                            hd[pi].children += 1
-                            break
+            try {
+                d = d.replace(/^file: .*\n/gm,"")
+                d = d.replace(/^directory: /gm,"")
+                dirs = d.split("\n").sort().slice(1)
+                var hd = []
+                var l = dirs.length
+                if (l < 1) {debug("EMPTY getAllDirs() CALLBACK!"); return []}
+                var n = l
+                do {
+                    var name = dirs[l-n]
+                    var path = name.split("/")
+                    var obj =
+                        {
+                            Title: path.pop(),
+                            level: path.length,
+                            parent: path.join("/"),
+                            name: name,
+                            type: 'directory',
+                            children: 0
+                        }
+                    if (obj.level > 0) {
+                        for (var pi=hd.length-1;pi > -1;pi--) {
+                            if (hd[pi].name == obj.parent) {
+                                hd[pi].children += 1
+                                break
+                            }
                         }
                     }
-                }
-                hd.push (obj)
-            } while (--n)
-            cb(hd)
+                    hd.push (obj)
+                } while (--n)
+                cb(hd)
+            } catch (e) { debug(e) }
         }
     )
 }
@@ -631,7 +651,7 @@ mpd.getArt = function (artist, album, callBack) {
         var cb = function(data){
             try {
                 var asin = ""
-                var art = "chrome://miniondev/content/images/album_blank.png"
+                var art = "chrome://minion/content/images/album_blank.png"
                 if (data != "") {
                     var s = data.indexOf("<asin>") + 6
                     if (s > 6) {
@@ -657,7 +677,6 @@ mpd.getArt = function (artist, album, callBack) {
 mpd.getOutputs = function (callBack) {
     var cb = function (data) {
         // Parse the incoming data into an array of output objects
-        debug(data)
         var obj = []
         data = data.split("\n")
         var dl = data.length - 2
@@ -678,10 +697,22 @@ mpd.getOutputs = function (callBack) {
                 obj[idx] = {id: idx, name: name, enabled: enabled}
             }
         }
-        debug(obj)
         callBack(obj)
     }
     mpd.doCmd('outputs', cb)
+}
+
+
+mpd.setServers = function (servers) {
+    mpd.set('servers', servers)
+    var file = DirIO.get("Home")
+    file.append(".mpd_servers.txt")
+    if (!file.exists()) {
+        FileIO.create(file)
+    }
+    var str = mpd.servers.toSource()
+    FileIO.write(file, str)
+    file = null
 }
 
 // Any property that may be observed must be set with this method.
@@ -693,17 +724,37 @@ mpd.set = function (prop, val) {
     }
 }
 
+mpd.toggleRandom = function () {
+    var state = (mpd.random > 0) ? 0 : 1
+    mpd.doCmd("random "+state)
+}
+
+mpd.toggleRepeat = function () {
+    var state = (mpd.repeat > 0) ? 0 : 1
+    mpd.doCmd("repeat "+state)
+}
 function loadSrvPref () {
     if (prefBranch.getPrefType("extensions.mpm.server") == prefBranch.PREF_STRING) {
         var srv = prefBranch.getCharPref("extensions.mpm.server");
+        mpd.disconnect()
         srv = srv.split(":", 3);
-        if (srv.length == 3) {
-            if (mpd._socket) mpd.disconnect()
-            mpd._host = srv[0];
-            mpd._port = parseInt(srv[1]);
-            mpd._password = srv[2];
-            mpd.connect()
+        var cb = function () {
+            mpd._cmdQueue = []
+            if (srv.length == 3) {
+                mpd._host = srv[0];
+                mpd._port = parseInt(srv[1]);
+                mpd._password = srv[2];
+                mpd.connect()
+                observerService.notifyObservers(null, "new_mpd_server", srv[0]+":"+srv[1])
+            }
+            else {
+                mpd._host = null
+                mpd._port = null
+                mpd._password = null
+                observerService.notifyObservers(null, "new_mpd_server", null)}
         }
+        var timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer)
+        timer.initWithCallback(cb, 100, Components.interfaces.nsITimer.TYPE_ONE_SHOT)
     }
     else {
         mpd._host = null;
@@ -719,6 +770,8 @@ function shorten(cmd){
 }
 
 function socketTalker() {
+    var initialized = false
+    var regGreet = /OK MPD [0-9\.]+\n/gm
     try {
         var transportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
                                 .getService(Components.interfaces.nsISocketTransportService);
@@ -742,25 +795,15 @@ function socketTalker() {
         data: "",
         onStartRequest: function(request, context){
             mpd._idle = false
+            mpd.cachedDB = []
+            initialized = false
             debug('socketTalker for server '+mpd._host+":"+mpd._port+" created.")
         },
         onStopRequest: function(request, context, status){
-            try {
-                utf_outstream.close()
-            }
-            catch (e) {
-            }
-            try {
-                utf_instream.close()
-            }
-            catch (e) {
-            }
-            try {
-                transport.close(0)
-            }
-            catch (e) {
-            }
+            this.data = null
             debug('socketTalker for server '+mpd._host+":"+mpd._port+" destroyed.")
+            debug('close status = '+status)
+            mpd._socket = null
             mpd.set('greeting','Not Connected');
         },
         onDataAvailable: function(request, context, inputStream, offset, count){
@@ -775,40 +818,12 @@ function socketTalker() {
                 }
                 this.data += chunks.join("")
                 str = null
-                if (this.data.slice(-3) == "OK\n") {
-                    if (mpd._cmdQueue.length > 0) {
-                        var snd = mpd._cmdQueue[0].outputData
-                        if (!mpd._cmdQueue[0].hide) {
-                            mpd.set('lastResponse', "OK");
-                        }
-                        else if (snd.slice(0,9) == "plchanges") {
-                            mpd.set('lastResponse', "OK");
-                        }
-                        if (mpd._cmdQueue.length > 0 && mpd._cmdQueue[0].callBack) {
-                            mpd._cmdQueue[0].callBack(this.data.slice(0,-3))
-                        }
-                        mpd._cmdQueue.shift()
-                    }
-                    this.data = ""
-                    if (mpd._cmdQueue.length > 0) {
-                        var snd = mpd._cmdQueue[0].outputData
-                        utf_outstream.writeString(snd);
-                        if (!mpd._cmdQueue[0].hide) {
-                            mpd.set('last_command', shorten(snd));
-                            mpd.set('lastResponse', "Working...");
-                        }
-                        else if (snd.slice(0,9) == "plchanges") {
-                            mpd.set('lastResponse', "Working...");
-                        }
-                    }
-                    else {
-                        done = true
-                    }
-                }
-                else
-                    if (this.data.substr(0, 6) == "OK MPD") {
-                        mpd.set('greeting', this.data.slice(3)+"@"+mpd._host+":"+mpd._port)
-                        this.data = ""
+                if (!initialized) {
+                    var greet = this.data.match(regGreet)
+                    if (greet) {
+                        initialized = true
+                        this.data = this.data.replace(regGreet,"")
+                        mpd.set('greeting', greet[0].slice(3)+"@"+mpd._host+":"+mpd._port)
                         if (mpd._password.length > 0) {
                             mpd._cmdQueue.unshift({
                                 outputData: 'password "'+mpd._password+'"\n',
@@ -830,33 +845,57 @@ function socketTalker() {
                         else {
                             done = true
                         }
+                        observerService.notifyObservers(null, "new_connection", null)
                     }
-                    else
-                        if (this.data.indexOf('ACK [') != -1) {
-                            mpd.set('lastResponse', this.data.replace(/\n/g, ""))
-                            if (snd == "status\n") {
-                                var msg = "An error has occured when communicating with MPD,\n" +
-                                "do you want to halt execution?\n\n" +
-                                "Click Cancel to continue sending mpd.doCmds, or\n" +
-                                "Click OK to prevent further attempts.\n\n\n" +
-                                "mpd.doCmd:\n" +
-                                mpd._cmdQueue[0].outputData +
-                                "\n\n" +
-                                "Response:\n" +
-                                this.data
-                                mpd.active = !confirm(msg)
+                }
+                if (this.data.substr(-3)=="OK\n") {
+                    var cdata = this.data.split(/^OK\n/gm)
+                    this.data = ""
+                    while (cdata.length > 1) {
+                        var d = cdata.shift()
+                        if (mpd._cmdQueue.length > 0) {
+                            var snd = mpd._cmdQueue[0].outputData
+                            if (!mpd._cmdQueue[0].hide) {
+                                mpd.set('lastResponse', "OK");
+                            }
+                            else if (snd.slice(0,9) == "plchanges") {
+                                mpd.set('lastResponse', "OK");
+                            }
+                            if (mpd._cmdQueue[0].callBack) {
+                                mpd._cmdQueue[0].callBack(d)
                             }
                             mpd._cmdQueue.shift()
-                            mpd._doStatus = false
-                            done = true
                         }
+                    }
+                    if (mpd._cmdQueue.length > 0) {
+                        var snd = mpd._cmdQueue[0].outputData
+                        utf_outstream.writeString(snd);
+                        if (!mpd._cmdQueue[0].hide) {
+                            mpd.set('last_command', shorten(snd));
+                            mpd.set('lastResponse', "Working...");
+                        }
+                        else if (snd.slice(0,9) == "plchanges") {
+                            mpd.set('lastResponse', "Working...");
+                        }
+                    }
+                    else {
+                        done = true
+                    }
+                }
+                else if (this.data.indexOf('ACK [') != -1) {
+                            mpd.set('lastResponse', this.data.replace(/\n/g, ""))
+                            mpd._cmdQueue.shift()
+                            done = true
+                }
+
                 if (done) {
                     if (mpd._doStatus) {
                         mpd._doStatus = false
                         mpd._cmdQueue.push({
-                            outputData: "status\n",
+                            outputData: "status\nstats\n",
                             callBack: mpd._update,
-                            hide: true
+                            hide: true,
+                            sent: true
                         })
                         utf_outstream.writeString("status\n")
                     }
@@ -877,8 +916,26 @@ function socketTalker() {
     pump.asyncRead(listener,null);
 
     var con = {
-        cancel: function () {listener.onStopRequest()},
-        writeOut: function (str) {utf_outstream.writeString(str)}
+        cancel: function () {
+            try {
+                utf_outstream.close()
+            }
+            catch (e) {
+            }
+            try {
+                utf_instream.close()
+            }
+            catch (e) {
+            }
+            try {
+                transport.close(0)
+            }
+            catch (e) {
+            }
+        },
+        writeOut: function (str) {
+            if (initialized) utf_outstream.writeString(str)
+        }
     }
 
     return con
@@ -904,16 +961,30 @@ var myPrefObserver = {
         // aData is the name of the pref that's been changed (relative to aSubject)
         switch (aData) {
             case "server":
-                if (mpd._socket) mpd.disconnect()
-                mpd.playlist = 0
-                mpd.dbupdate = null
-                mpd.cachedDB = []
+                debug("prefChanged: "+aData)
                 loadSrvPref()
-                observerService.notifyObservers(null, "new_mpd_server", null)
                 break;
         }
     }
 }
+
+
+
+var file = DirIO.get("Home")
+file.append(".mpd_servers.txt")
+debug(file.path)
+if (file.exists()) {
+    var str = FileIO.read(file)
+    mpd.servers = eval(str)
+}
+else {
+    debug("Creating default servers.")
+    mpd.servers = [ ["localhost","localhost:6600:"] ]
+    debug(FileIO.create(file))
+    var str = mpd.servers.toSource()
+    FileIO.write(file, str)
+}
+file = null
 
 loadSrvPref()
 myPrefObserver.register();

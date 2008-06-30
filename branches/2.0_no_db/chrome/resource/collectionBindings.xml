@@ -4,69 +4,6 @@
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <binding id="mpmTreeBase">
-        <content>
-            <xul:tree
-                datasources="rdf:null"
-                seltype="multiple"
-                flags="dont-build-content"
-                flex="1">
-                <xul:treecols>
-                    <xul:treecol id="Pos" label="Position" ordinal="1" width="30px"
-                                 persist="width ordinal hidden"
-                                 class="sortDirectionIndicator"
-                                 tooltiptext="Playlist Position"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="2" />
-                    <xul:treecol id="Title" label="Title" ordinal="3" flex="3"
-                                 persist="width ordinal hidden"
-                                 overflow="true"
-                                 class="sortDirectionIndicator"
-                                 minwidth="120"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="4" />
-                    <xul:treecol id="Time" label="Time" ordinal="5" width="60px"
-                                 hidden="true"
-                                 persist="width ordinal hidden"
-                                 class="sortDirectionIndicator"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="6" />
-                    <xul:treecol id="Album" label="Album" ordinal="7" flex="1"
-                                 persist="width ordinal hidden"
-                                 class="sortDirectionIndicator"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="8" />
-                    <xul:treecol id="Artist" label="Artist" ordinal="9" flex="1"
-                                 persist="width ordinal hidden"
-                                 class="sortDirectionIndicator"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="10" />
-                    <xul:treecol id="Performer" label="Performer" ordinal="11" flex="1"
-                                 hidden="true"
-                                 persist="width ordinal hidden"
-                                 class="sortDirectionIndicator"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="12" />
-                    <xul:treecol id="Composer" label="Composer" ordinal="13" flex="1"
-                                 hidden="true"
-                                 persist="width ordinal hidden"
-                                 class="sortDirectionIndicator"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="14" />
-                    <xul:treecol id="Genre" label="Genre" ordinal="15" flex="1"
-                                 hidden="true"
-                                 persist="width ordinal hidden"
-                                 class="sortDirectionIndicator"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="16" />
-                    <xul:treecol id="Date" label="Date" ordinal="17" width="60px"
-                                 hidden="true"
-                                 persist="width ordinal hidden"
-                                 class="sortDirectionIndicator"
-                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                </xul:treecols>
-                <xul:treechildren/>
-            </xul:tree>
-        </content>
         <handlers>
 			<handler event="keypress" modifiers="accel" key="a"
 				action="this.selectAll()"/>
@@ -82,11 +19,14 @@
             <field name="db"/>
             <field name="filter"/>
             <field name="treeNode">document.getAnonymousNodes(this)[0]</field>
+            <field name="albumCol">document.getAnonymousElementByAttribute(this,'id','Album')</field>
             <field name="location"/>
             <property name="activeItem" readonly="true">
                 <getter>
                     <![CDATA[
-                    return this.view.rs[this.treeNode.currentIndex]
+                    var v = Nz(this.view)
+                    if (!v) return null
+                    return v.rs[this.treeNode.currentIndex]
                     ]]>
                 </getter>
             </property>
@@ -160,6 +100,35 @@
                     ]]>
                 </body>
             </method>
+            <method name="collapseOne">
+                <parameter name="id"/>
+                <body>
+                    <![CDATA[
+                    id = Nz(id)
+                    var cols = this.treeNode.columns
+                    if (id == 'Album') {
+                        for (var i=0;i<cols.length;i++) {
+                            var col = this.getCol(cols[i].id)
+                            col.collapsed = (col.id == 'Album')
+                        }
+                    }
+                    else {
+                        for (var i=0;i<cols.length;i++) {
+                            var col = this.getCol(cols[i].id)
+                            col.collapsed = (col.id == id || col.id == 'Track')
+                        }
+                    }
+                    ]]>
+                </body>
+            </method>
+            <method name="getCol">
+                <parameter name="id"/>
+                <body>
+                    <![CDATA[
+                    return document.getAnonymousElementByAttribute(this.treeNode,'id', id)
+                    ]]>
+                </body>
+            </method>
             <method name="load">
                 <parameter name="db"/>
                 <parameter name="me"/>
@@ -224,6 +193,78 @@
         </implementation>
     </binding>
 
+    <binding id="mpmBrowser" extends="#mpmTreeBase">
+        <content>
+            <xul:tree
+                datasources="rdf:null"
+                seltype="multiple"
+                flags="dont-build-content"
+                flex="1">
+                <xul:treecols>
+                    <xul:treecol id="Pos" label="Position" ordinal="1" width="30px"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 tooltiptext="Playlist Position"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="2" />
+                    <xul:treecol id="Track" label="Track" ordinal="3" width="60px"
+                                 persist="width ordinal hidden"
+                                 collapsed="true"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:treecol id="Title" label="Title" ordinal="5" flex="2"
+                                 persist="width ordinal hidden"
+                                 overflow="true"
+                                 class="sortDirectionIndicator"
+                                 minwidth="120"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="6" />
+                    <xul:treecol id="Time" label="Time" ordinal="7" width="60px"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="8" />
+                    <xul:treecol id="Album" label="Album" ordinal="9" flex="1"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="10" />
+                    <xul:treecol id="Artist" label="Artist" ordinal="11" flex="1"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="12" />
+                    <xul:treecol id="Performer" label="Performer" ordinal="13" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="14" />
+                    <xul:treecol id="Composer" label="Composer" ordinal="15" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="16" />
+                    <xul:treecol id="Genre" label="Genre" ordinal="17" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="18" />
+                    <xul:treecol id="Date" label="Date" ordinal="19" width="60px"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                </xul:treecols>
+                <xul:treechildren/>
+            </xul:tree>
+        </content>
+    </binding>
+
     <binding id="mpmFoldersPane" extends="#mpmTreeBase">
         <content>
             <xul:tree
@@ -249,10 +290,7 @@
                 this.observer = {
                     observe: function(subject,topic,data){
                         if (!data) {
-                            mpd.getAllDirs(function(db){
-                                me.view = new folderView(db);
-                                me.treeNode.view = folders.view;
-                            })
+                            mpd.getAllDirs(function(db){me.load(db,me)})
                         }
                         else {
                             me.box.clearStyleAndImageCaches()
@@ -262,10 +300,9 @@
                 };
                 this.observer2 = {
                     observe: function(subject,topic,data){
-                        mpd.getAllDirs(function(db){
-                            me.view = new folderView(db);
-                            me.treeNode.view = folders.view;
-                        })
+                        if (data) {
+                            mpd.getAllDirs(function(db){me.load(db,me)})
+                        }
                     }
                 };
                 observerService.addObserver(this.observer,"updating_db",false)
@@ -307,7 +344,9 @@
     <binding id="mpmTagsPane">
         <content>
             <xul:vbox flex="1">
-                <xul:menulist id="tagsMainType" onselect="this.parentNode.parentNode.loadMain()">
+                <xul:menulist id="tagsMainType"
+                    onselect="this.parentNode.parentNode.loadMain()"
+                    persist="selectedItem value">
                     <xul:menupopup>
                         <xul:menuitem label="Albums" value="album"/>
                         <xul:menuitem label="Artists" value="artist" selected="true"/>
@@ -318,6 +357,7 @@
                     </xul:menupopup>
                 </xul:menulist>
                 <xul:textbox
+                    id="filterText"
                     type="timed"
                     timeout="200"
                     oncommand="this.parentNode.parentNode.treeMain.applyFilter(this.value)"/>
@@ -329,7 +369,9 @@
                 <xul:splitter collapse="after"/>
                 <xul:vbox flex="1">
                     <xul:label class="tagsContentLabel" value="Related Items:"/>
-                    <xul:menulist id="tagsSubType" onselect="this.parentNode.parentNode.parentNode.loadSub()">
+                    <xul:menulist id="tagsSubType"
+                        onselect="this.parentNode.parentNode.parentNode.loadSub()"
+                        persist="selectedItem value">
                         <xul:menupopup>
                             <xul:menuitem label="Albums" value="album"/>
                             <xul:menuitem label="Artists" value="artist"/>
@@ -347,6 +389,7 @@
             </xul:vbox>
         </content>
         <implementation>
+            <field name="filterText">document.getAnonymousElementByAttribute(this, 'id', 'filterText')</field>
             <field name="treeMain">document.getAnonymousElementByAttribute(this, 'id', 'tagsMainTree')</field>
             <field name="treeSub">document.getAnonymousElementByAttribute(this, 'id', 'tagsSubTree')</field>
             <field name="typeMain">document.getAnonymousElementByAttribute(this, 'id', 'tagsMainType')</field>
@@ -355,10 +398,24 @@
                 Components.utils.import("resource://minion/mpmUtils.js");
                 Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
-                this.treeNode = document.getAnonymousElementByAttribute(this,"id","tagsContentTree")
-                this.box = this.treeNode.boxObject;
-                this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
                 var me = this
+                this.observerServer = {
+                    observe: function(subject,topic,data){
+                        try {
+                            var tree = me.treeMain
+                            var filter = me.filterText.value
+                            var q = new dbQuery()
+                            q.type = me.typeMain.value
+                            q.query = ""
+                            q.execute(function(db){
+                                tree.load(db,tree)
+                                if (filter > "") tree.applyFilter(filter)
+                            })
+                            me.treeSub.load([],me.treeSub)
+                        } catch (e) { debug(e) }
+                    }
+                };
+                observerService.addObserver(this.observerServer,"new_connection",false)
             </constructor>
             <destructor>
             </destructor>
@@ -376,6 +433,7 @@
             <method name="loadSub">
                 <body>
                     <![CDATA[
+                    if (!this.treeMain.activeItem) return null
                     var tree = this.treeSub
                     var q = new dbQuery()
                     q.type = this.typeSub.value
@@ -405,7 +463,8 @@
 					<xul:menulist id="searchType"
 						label="Search"
 						sizetopopup="always"
-                        onselect="this.parentNode.parentNode.parentNode.searchTypeSelect()">
+                        onselect="this.parentNode.parentNode.parentNode.searchTypeSelect()"
+                        persist="selectedItem">
 						<xul:menupopup>
 							<xul:menuitem label="Filter"
 								tooltiptext="Filter contents of current location by Title column"/>
@@ -436,11 +495,13 @@
 						oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
                 </xul:toolbar>
                 <xul:hbox flex="1">
-                    <xul:tabbox flex="1">
+                    <xul:tabbox width="200px"
+                        id="mpmTagsTabbox"
+                        persist="selectedTab selectedItem selectedPanel">
                         <xul:tabs>
                             <xul:tab label="Folders" flex="1"/>
-                            <xul:tab label="Playlists" flex="1"/>
-                            <xul:tab label="Tags" flex="1"/>
+                            <xul:tab label="Playlists" id="playlist_tab" flex="1"/>
+                            <xul:tab label="Tags" id="tags_tab" flex="1"/>
                         </xul:tabs>
                         <xul:tabpanels flex="1">
                             <xul:tabpanel flex="1">
@@ -464,8 +525,8 @@
                         </xul:tabpanels>
                     </xul:tabbox>
                     <xul:splitter collapse="before"/>
-                    <xul:vbox flex="4">
-                        <xul:toolbar class="mpm_navbar">
+                    <xul:vbox flex="1">
+                        <xul:toolbar class="mpm_navbar" align="center">
                             <xul:toolbarbutton class="mpm_btn_Back"
                                 tooltiptext="Back"
                                 oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.goBack()"/>
@@ -475,9 +536,18 @@
                             <xul:toolbarbutton class="mpm_btn_Home"
                                 tooltiptext="Home"
                                 oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.goHome()"/>
-                            <xul:box id="breadcrumbs" align="center"/>
+                            <xul:toolbarseparator/>
+                            <xul:image id="cwd_icon"/>
+                            <xul:label id="cwd" class="cwd" crop="start" flex="1"/>
                         </xul:toolbar>
-                        <xul:box id="browser" flex="1" style="-moz-binding: url('#mpmTreeBase')"/>
+                        <xul:hbox flex="1">
+                            <xul:vbox class="mpm_browser_image_box" collapsed="true">
+                                <xul:label class="fake_treecol" value="Album Cover"/>
+                                <xul:image id="image" class="mpm_browser_image"/>
+                                <xul:spacer flex="1"/>
+                            </xul:vbox>
+                            <xul:box id="browser" class="mpm_browser" flex="1" style="-moz-binding: url('#mpmBrowser')"/>
+                        </xul:hbox>
                     </xul:vbox>
                 </xul:hbox>
         	</xul:vbox>
@@ -489,9 +559,13 @@
 			<field name="historyIndex">0</field>
 			<field name="obsCurSong"/>
             <field name="browser">document.getAnonymousElementByAttribute(this, 'id', 'browser')</field>
-            <field name="breadcrumbs">document.getAnonymousElementByAttribute(this, 'id', 'breadcrumbs')</field>
+            <field name="image">document.getAnonymousElementByAttribute(this, 'id', 'image')</field>
+            <field name="cwd">document.getAnonymousElementByAttribute(this, 'id', 'cwd')</field>
+            <field name="cwd_icon">document.getAnonymousElementByAttribute(this, 'id', 'cwd_icon')</field>
             <field name="folders">document.getAnonymousElementByAttribute(this, 'id', 'folders')</field>
             <field name="playlists">document.getAnonymousElementByAttribute(this, 'id', 'playlists')</field>
+            <field name="playlist_tab">document.getAnonymousElementByAttribute(this, 'id', 'playlist_tab')</field>
+            <field name="tags_tab">document.getAnonymousElementByAttribute(this, 'id', 'tags_tab')</field>
             <field name="sidebar">document.getAnonymousElementByAttribute(this, 'id', 'sidebar')</field>
             <field name="tags">document.getAnonymousElementByAttribute(this, 'id', 'tags')</field>
         	<property name="activeItem"
@@ -516,10 +590,15 @@
                 })
                 playlists.goTo = function(q) {me.goTo(q)}
                 playlists.followItem = function(i) {me.followItem(i)}
-                var q = new dbQuery()
-                q.type = "playlist"
-                q.query = ""
-                q.execute(function(db){playlists.load(db,playlists)})
+                this.playlist_tab.onclick = function () {
+                    var q = new dbQuery()
+                    q.type = "playlist"
+                    q.query = ""
+                    q.execute(function(db){playlists.load(db,playlists)})
+                }
+                this.tags_tab.onclick = function () {
+                    if (!Nz(tags.db)) tags.loadMain()
+                }
 
                 tags.treeMain.followItem = function(i){me.followItem(i)}
                 tags.treeSub.followItem = function(i){me.followItem(i)}
@@ -575,7 +654,6 @@
                 <body>
                     <![CDATA[
                     try {
-                    debug(item)
                     var q = new dbQuery()
                     q.type = item.type
                     switch (item.type) {
@@ -623,27 +701,31 @@
                 <body>
                     <![CDATA[
                     query = Nz(query)
-                    var bc = this.breadcrumbs
-                    while (bc.hasChildNodes()) bc.removeChild(bc.firstChild)
                     if (query) {
                         var browser = this.browser
+                        var albumCol = browser.getCol('Album')
                         var me = this
-                        query.evaluate()
-                        var path = query.path
-                        var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-                        for (var i=0;i<path.length;i++) {
-                            var p = path[i]
-                            var btn = document.createElementNS(NS,"button")
-                            btn.setAttribute('label',p.Title)
-                            btn.mpmtype = p.type
-                            btn.mpmname = p.name
-                            btn.className = "mpm_btn_Location"
-                            btn.onclick = function () {
-                                me.followItem({type:this.mpmtype,name:this.mpmname})
+                        query.callBack = function (db) {
+                            browser.load(db);
+                            me.cwd.value = query.query.split("/").slice(-1)
+                            me.cwd_icon.className = "mpm_icon_"
+                            browser.collapseOne(query.scope)
+                            if (query.type == 'file') {
+                                me.cwd_icon.className += query.scope
+                                if (query.scope.toLowerCase()=='album') {
+                                    var cb = function(art){
+                                        me.image.src = art
+                                        me.image.parentNode.collapsed = false
+                                    }
+                                    mpd.getArt(db[0].Artist, db[0].Album, cb)
+                                }
+                                else me.image.parentNode.collapsed = true
                             }
-                            bc.appendChild(btn)
+                            else {
+                                me.cwd_icon.className += query.type
+                                me.image.parentNode.collapsed = true
+                            }
                         }
-                        query.callBack = function (db) {browser.load(db)}
                         query.execute()
                     }
                     else {

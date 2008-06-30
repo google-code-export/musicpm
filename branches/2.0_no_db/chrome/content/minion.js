@@ -35,7 +35,8 @@ function showPlaylists () {
                 if (data[x].length > 0) {
                     db.push({
                         type: 'playlist',
-                        Title: data[x]
+                        Title: data[x],
+                        name: data[x]
                     })
                 }
             }

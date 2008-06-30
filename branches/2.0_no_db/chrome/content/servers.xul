@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+
+<dialog id="mpmServers" title="Music Player Minion Servers"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="getPrefs();window.sizeToContent()"
+        buttons="accept,cancel"
+        buttonaccesskeyaccept="S"
+        ondialogaccept="return doSave();"
+        buttonlabelcancel="Cancel"
+        buttonaccesskeycancel="n"
+        ondialogcancel="return doCancel();">
+    <script>
+    <![CDATA[
+        Components.utils.import("resource://minion/mpd.js");
+        Components.utils.import("resource://minion/mpmUtils.js");
+        var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+
+        function addServerRow (index) {
+            var rows = document.getElementById("server_rows")
+            var row = document.createElementNS(xul,'row')
+            var t1 = document.createElementNS(xul,'textbox')
+            var t2 = document.createElementNS(xul,'textbox')
+            var t3 = document.createElementNS(xul,'textbox')
+            t3.setAttribute('width', '75')
+            t3.setAttribute('type', 'number')
+            t3.setAttribute('value', 6600)
+            var t4 = document.createElementNS(xul,'textbox')
+            t4.setAttribute('type', 'password')
+            var btn = document.createElementNS(xul,'button')
+            btn.setAttribute('oncommand', 'this.parentNode.parentNode.removeChild(this.parentNode)')
+            btn.setAttribute('label', "Remove")
+            if (Nz(index,null) != null) {
+                var desc = mpd.servers[index][0]
+                var srv = mpd.servers[index][1].split(":",3)
+                t1.setAttribute('value', desc)
+                t2.setAttribute('value', srv[0])
+                t3.setAttribute('value', srv[1])
+                t4.setAttribute('value', srv[2])
+            }
+            row.appendChild(t1)
+            row.appendChild(t2)
+            row.appendChild(t3)
+            row.appendChild(t4)
+            row.appendChild(btn)
+            rows.appendChild(row)
+            window.sizeToContent()
+        }
+
+        function getPrefs(){
+            var rows = document.getElementById("server_rows")
+            for (var i=0;i<mpd.servers.length;i++) {
+                addServerRow(i)
+            }
+        }
+        function doSave(){
+            var rows = document.getElementById("server_rows").childNodes
+            var servers = []
+            for (i=1;i<rows.length;i++) {
+                var item = []
+                var c = rows[i].childNodes
+                item.push(c[0].value)
+                item.push([c[1].value,c[2].value,c[3].value].join(":"))
+                servers.push(item)
+            }
+            debug(servers.toSource())
+            mpd.setServers(servers)
+            return true;
+        }
+        function doCancel(){
+          return true;
+        }
+    ]]>
+    </script>
+
+    <dialogheader title="Music Player Minion" description="Servers"/>
+    <grid id="server_grid">
+    <columns>
+      <column flex="5"/>
+      <column flex="3"/>
+      <column flex="1"/>
+      <column flex="1"/>
+      <column/>
+    </columns>
+    <rows id="server_rows">
+        <row>
+            <label value="Server Description"/>
+            <label value="Host"/>
+            <label value="Port"/>
+            <label value="Password"/>
+            <spacer/>
+        </row>
+    </rows>
+    </grid>
+    <hbox>
+        <spacer flex="1"/>
+        <button label="Add Server" oncommand="addServerRow()"/>
+    </hbox>
+</dialog>

@@ -56,7 +56,18 @@
 .mpm_btn_Update {
     list-style-image: url('chrome://minion/content/images/rescan.png')
     }
-
+.mpdObserver_repeat {
+    list-style-image: url('chrome://minion/content/images/repeat.png')
+}
+.mpdObserver_repeat[value="1"] {
+    list-style-image: url('chrome://minion/content/images/repeat-on.png')
+}
+.mpdObserver_random {
+    list-style-image: url('chrome://minion/content/images/random.png')
+}
+.mpdObserver_random[value="1"] {
+    list-style-image: url('chrome://minion/content/images/random-on.png')
+}
 treechildren::-moz-tree-image {
     margin: 0px 5px 0px 1px;
     }
@@ -78,29 +89,29 @@ treechildren::-moz-tree-image(Title_Date) {
 treechildren::-moz-tree-image(Title_file) {
     list-style-image: url("chrome://minion/content/images/song.png");
     }
-treechildren::-moz-tree-image(Title_Artist) {
+treechildren::-moz-tree-image(Title_Artist), .mpm_icon_Artist {
     list-style-image: url("chrome://minion/content/images/artist.png");
     margin: 0px 3px 0px 1px;
     }
-treechildren::-moz-tree-image(Title_Composer) {
+treechildren::-moz-tree-image(Title_Composer), .mpm_icon_Composer {
     list-style-image: url("chrome://minion/content/images/artist.png");
     margin: 0px 3px 0px 1px;
     }
-treechildren::-moz-tree-image(Title_Album) {
+treechildren::-moz-tree-image(Title_Album), .mpm_icon_Album {
     list-style-image: url("chrome://minion/content/images/album.png");
     }
-treechildren::-moz-tree-image(Title_directory) {
+treechildren::-moz-tree-image(Title_directory), .mpm_icon_directory {
     list-style-image: url("chrome://minion/content/images/folder.png");
     }
 treechildren::-moz-tree-image(open) {
     list-style-image: url("chrome://minion/content/images/folder_open.png");
     }
-treechildren::-moz-tree-image(Title_playlist) {
+treechildren::-moz-tree-image(Title_playlist), .mpm_icon_playlist {
     list-style-image: url("chrome://minion/content/images/playlist.png");
     }
-treechildren::-moz-tree-image(Title_custom) {
+treechildren::-moz-tree-image(Title_custom), .mpm_icon_ {
     list-style-image: url("chrome://minion/content/images/custom.png");
     }
-mpdplaylist treechildren::-moz-tree-image(Title_file) {
+mpdplaylist treechildren::-moz-tree-image(Title_file) mpm_icon_file{
     list-style-image: none !important;
     }

@@ -17,8 +17,8 @@
 */
 
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
-                    "observerService", "getFileContents", "fetch",
-                    "openReuseByURL", "openReuseByAttribute",
+                    "observerService", "getFileContents", "fetch", "winw",
+                    "openReuseByURL", "openReuseByAttribute", "openDialog",
                     "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
@@ -27,6 +27,8 @@ var observerService = Components.classes["@mozilla.org/observer-service;1"]
                         .getService(Components.interfaces.nsIObserverService);
 var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
                         .getService(Components.interfaces.nsIConsoleService);
+var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                   .getService(Components.interfaces.nsIWindowWatcher);
 
 
 function debug(s) {
@@ -67,6 +69,21 @@ function getFileContents (aURL){
   return str;
 }
 
+function writeFileContents (aURL){
+  var ioService=Components.classes["@mozilla.org/network/io-service;1"]
+    .getService(Components.interfaces.nsIIOService);
+  var scriptableStream=Components
+    .classes["@mozilla.org/scriptableinputstream;1"]
+    .getService(Components.interfaces.nsIScriptableInputStream);
+
+  var channel=ioService.newChannel(aURL,null,null);
+  var input=channel.open();
+  scriptableStream.init(input);
+  var str=scriptableStream.read(input.available());
+  scriptableStream.close();
+  input.close();
+  return str;
+}
 
 function hmsFromSec (sec){
     var hms = "0:00"
@@ -193,6 +210,12 @@ function fetch (url, callBack, arg){
     catch (e) {debug(e)}
 }
 
+function openDialog(url, id) {
+    id = Nz(id, url)
+    var win = winw.openWindow(winw.activeWindow, url, id, "chrome,centerscreen,dependant,dialog", null);
+
+}
+
 function openReuseByURL(url) {
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                      .getService(Components.interfaces.nsIWindowMediator);
@@ -238,7 +261,7 @@ function openReuseByAttribute(url,attrName) {
   }
   if (!found) {
     var browserEnumerator = wm.getEnumerator("navigator:browser");
-    var browserInstance = browserEnumerator.getNext().getBrowser(); 
+    var browserInstance = browserEnumerator.getNext().getBrowser();
     var newTab = browserInstance.addTab(url);
     newTab.setAttribute(attrName, "xyz");
     browserInstance.selectedTab = newTab;

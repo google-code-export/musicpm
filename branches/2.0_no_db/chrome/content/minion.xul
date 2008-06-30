@@ -4,6 +4,7 @@
 <?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/theme_dark.css" type="text/css"?>
+<?xul-overlay href="chrome://minion/content/menus.xul"?>
 
 <window
     id="main"
@@ -19,12 +20,17 @@
         type="image/x-icon"
         href="chrome://miniondev/content/images/album_blank.png"/>
     <script src="chrome://minion/content/minion.js"/>
-    <menubar>
-        <mpdservers label="Servers"/>
-    </menubar>
     <hbox class="mpm_topToolbar">
         <mpdcontrols hidestop="false"/>
-        <mpdvolume/>
+        <vbox>
+            <hbox pack="center" align="center">
+                <mpdtoggle observes="repeat" oncommand="mpd.toggleRepeat()"/>
+                <mpdtoggle observes="random" oncommand="mpd.toggleRandom()"/>
+                <mpdservers id="mpdserversButton">
+                </mpdservers>
+            </hbox>
+            <mpdvolume/>
+        </vbox>
         <vbox flex="1">
             <spacer flex="1"/>
             <hbox style="overflow:hidden">
@@ -32,18 +38,21 @@
                     value="Title"
                     observes="Title"
                     class="Title"
-                    ordinal="1"/>
+                    ordinal="1"
+                    flex="1"/>
                 <mpdlabel id="curAlbum"
                     value="Album"
                     class="Album"
                     observes="Album"
-                    ordinal="2"/>
+                    ordinal="2"
+                    flex="1"/>
                 <mpdlabel id="curArtist"
                     value="Artist"
                     class="Artist"
                     observes="Artist"
-                    ordinal="3"/>
-                <spacer ordinal="4" flex="1"/>
+                    ordinal="3"
+                    flex="1"/>
+                <spacer ordinal="4" flex="100"/>
             </hbox>
             <mpdtime flex="1" id="mytime"/>
         </vbox>
@@ -51,7 +60,7 @@
     <hbox flex="1">
         <mpdbrowser id="browse" flex="1"/>
         <splitter collapse="after"/>
-        <vbox>
+        <vbox minwidth="150">
             <toolbar id="playlistToolbar">
                 <toolbarbutton id="clearPlaylist"
                     class="mpm_btn_Clear"
@@ -89,6 +98,7 @@
         <label value="Playlist Time:"/>
         <mpdlabel observes="pltime"/>
         <spacer flex="1"/>
+        <mpdlabel value="response" observes="last_command" crop="end"/>
         <mpdlabel value="response" observes="lastResponse" crop="end"/>
         <mpdlabel value="disconnected" observes="greeting"/>
 	</statusbar>

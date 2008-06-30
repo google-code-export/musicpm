@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<overlay id="mpm_overlay"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <menupopup id="mpd_serversPopup" onpopupshowing="servers_contextShowing(event)">
+    </menupopup>
+
+    <menupopup id="mpd_outputsPopup" onpopupshowing="outputs_contextShowing(event)">
+    </menupopup>
+
+</overlay>

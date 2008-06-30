@@ -8,7 +8,8 @@
             <xul:tree
                 label="Playlist"
                 flex="1"
-                flags="dont-build-content">
+                flags="dont-build-content"
+                ondblclick="var a=this.parentNode.activeItem;if(a)mpd.doCmd('play '+a.Pos)">
                 <xul:treecols>
                     <xul:treecol id="Pos"
                         label="#"

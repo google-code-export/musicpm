@@ -19,3 +19,6 @@ mpdbrowser {
 mpdservers {
     -moz-binding: url("resource://minion/mpdControls.xml#mpdServers")
 }
+mpdtoggle {
+    -moz-binding: url("resource://minion/mpdControls.xml#mpdToolbarButton")
+}
