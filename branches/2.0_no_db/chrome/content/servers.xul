@@ -10,7 +10,8 @@
         ondialogaccept="return doSave();"
         buttonlabelcancel="Cancel"
         buttonaccesskeycancel="n"
-        ondialogcancel="return doCancel();">
+        ondialogcancel="return doCancel();"
+        maxheight="400">
     <script>
     <![CDATA[
         Components.utils.import("resource://minion/mpd.js");
@@ -23,6 +24,18 @@
             var t1 = document.createElementNS(xul,'textbox')
             var t2 = document.createElementNS(xul,'textbox')
             var t3 = document.createElementNS(xul,'textbox')
+            var autoFill = function (e) {
+                var desc = e.target.parentNode.childNodes[0]
+                var host = e.target.parentNode.childNodes[1]
+                var port = e.target.parentNode.childNodes[2]
+                if (desc.autofillme) {
+                    desc.value = host.value + ":" + port.value
+                }
+            }
+            t1.autofillme = true
+            t1.addEventListener('input',function(e){e.target.autofillme=(e.target.value=="")},false)
+            t2.addEventListener('input',autoFill,false)
+            t3.addEventListener('input',autoFill,false)
             t3.setAttribute('width', '75')
             t3.setAttribute('type', 'number')
             t3.setAttribute('value', 6600)
@@ -35,6 +48,7 @@
                 var desc = mpd.servers[index][0]
                 var srv = mpd.servers[index][1].split(":",3)
                 t1.setAttribute('value', desc)
+                t1.autofillme = (desc == "")
                 t2.setAttribute('value', srv[0])
                 t3.setAttribute('value', srv[1])
                 t4.setAttribute('value', srv[2])

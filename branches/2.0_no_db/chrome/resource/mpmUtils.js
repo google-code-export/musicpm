@@ -19,7 +19,7 @@
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
                     "observerService", "getFileContents", "fetch", "winw",
                     "openReuseByURL", "openReuseByAttribute", "openDialog",
-                    "mpmUtils_EXPORTED_SYMBOLS"]
+                    "prefs", "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 
@@ -27,6 +27,10 @@ var observerService = Components.classes["@mozilla.org/observer-service;1"]
                         .getService(Components.interfaces.nsIObserverService);
 var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
                         .getService(Components.interfaces.nsIConsoleService);
+var prefService = Components.classes["@mozilla.org/preferences-service;1"].
+                    getService(Components.interfaces.nsIPrefService);
+var branch = prefService.getBranch("extensions.mpm.");
+
 var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                    .getService(Components.interfaces.nsIWindowWatcher);
 
@@ -45,7 +49,7 @@ function debug(s) {
     dump(str+"\n\n")
     consoleService.logStringMessage(str)
 }
-debug("mpmUtils loading")
+
 function Nz (obj, def){
     if (typeof(obj) == 'undefined') {
         return (typeof(def) == 'undefined') ? null : def
@@ -54,22 +58,6 @@ function Nz (obj, def){
 }
 
 function getFileContents (aURL){
-  var ioService=Components.classes["@mozilla.org/network/io-service;1"]
-    .getService(Components.interfaces.nsIIOService);
-  var scriptableStream=Components
-    .classes["@mozilla.org/scriptableinputstream;1"]
-    .getService(Components.interfaces.nsIScriptableInputStream);
-
-  var channel=ioService.newChannel(aURL,null,null);
-  var input=channel.open();
-  scriptableStream.init(input);
-  var str=scriptableStream.read(input.available());
-  scriptableStream.close();
-  input.close();
-  return str;
-}
-
-function writeFileContents (aURL){
   var ioService=Components.classes["@mozilla.org/network/io-service;1"]
     .getService(Components.interfaces.nsIIOService);
   var scriptableStream=Components
@@ -211,9 +199,13 @@ function fetch (url, callBack, arg){
 }
 
 function openDialog(url, id) {
-    id = Nz(id, url)
-    var win = winw.openWindow(winw.activeWindow, url, id, "chrome,centerscreen,dependant,dialog", null);
-
+    var win = winw.openWindow(
+        winw.activeWindow,
+        url,
+        Nz(id, url),
+        "chrome,centerscreen,dialog",
+        null
+    );
 }
 
 function openReuseByURL(url) {
@@ -269,4 +261,53 @@ function openReuseByAttribute(url,attrName) {
   }
 }
 
-debug("mpmUtils loaded.")
+debug("mpmUtils loading")
+
+var prefs = {
+    get: function (strPref, def) {
+	    switch (branch.getPrefType(strPref)) {
+	        case branch.PREF_STRING:
+                return branch.getCharPref(strPref);
+            case branch.PREF_INT:
+                return branch.getIntPref(strPref);
+            case branch.PREF_BOOL:
+                return branch.getBoolPref(strPref);
+            default:
+                def = Nz(def)
+                prefs.set(strPref, def);
+                return def;
+	    }
+    },
+    
+    set: function (strPref, val) {
+        switch (branch.getPrefType(strPref)) {
+            case branch.PREF_STRING:
+                branch.setCharPref(strPref, val);
+                break;
+            case branch.PREF_INT:
+                branch.setIntPref(strPref, val);
+                break;
+            case branch.PREF_BOOL:
+                branch.setBoolPref(strPref, val);
+                break;
+            default: 
+                if (Nz(val)) {
+		            switch (typeof(val)) {
+			            case 'string':
+			                branch.setCharPref(strPref, val);
+		                    break;
+			            case 'number':
+			                branch.setIntPref(strPref, val);
+		                    break;
+			            case 'boolean':
+			                branch.setBoolPref(strPref, val);
+		                    break;
+		                default:
+		                    branch.setCharPref(strPref, val.toSource());
+		                    break;
+		            }
+                }
+        }
+    }
+    
+}

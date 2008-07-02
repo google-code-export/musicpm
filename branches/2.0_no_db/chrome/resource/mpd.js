@@ -261,8 +261,8 @@ var mpd = {
     db_update: null,
     sec_ticks: 0,
     sec_synced: false,
-    update_interval: 200,
-    adaptive_interval: true,
+    update_interval: prefs.get("update_interval", 200),
+    adaptive_interval: prefs.get("adaptive_interval", true),
 
     // Playlist contents and total playtime
     plinfo: [],
@@ -574,7 +574,7 @@ mpd.doCmd = function (outputData, callBack, hide, priority){
     if (mpd._socket) {
         if (mpd._idle) {
             mpd._socket.writeOut(mpd._cmdQueue[0].outputData)
-            if (!hide) mpd.set('last_command', shorten(outputData+"\n"));
+            if (!hide) mpd.set('last_command', outputData);
             mpd._idle = false
         }
     }
@@ -763,12 +763,6 @@ function loadSrvPref () {
     }
 }
 
-function shorten(cmd){
-    // Convert mpd.doCmd_list to single line
-    cmd = cmd.replace(/mpd.doCmd_list.+?\n/g,"").replace(/\n/g,"; ")
-    return cmd.substr(0, cmd.length-2)
-}
-
 function socketTalker() {
     var initialized = false
     var regGreet = /OK MPD [0-9\.]+\n/gm
@@ -835,7 +829,7 @@ function socketTalker() {
                             var snd = mpd._cmdQueue[0].outputData
                             utf_outstream.writeString(snd);
                             if (!mpd._cmdQueue[0].hide) {
-                                mpd.set('last_command', shorten(snd));
+                                mpd.set('last_command', snd);
                                 mpd.set('lastResponse', "Working...");
                             }
                             else if (snd.slice(0,9) == "plchanges") {
@@ -871,7 +865,7 @@ function socketTalker() {
                         var snd = mpd._cmdQueue[0].outputData
                         utf_outstream.writeString(snd);
                         if (!mpd._cmdQueue[0].hide) {
-                            mpd.set('last_command', shorten(snd));
+                            mpd.set('last_command', snd);
                             mpd.set('lastResponse', "Working...");
                         }
                         else if (snd.slice(0,9) == "plchanges") {
@@ -961,7 +955,6 @@ var myPrefObserver = {
         // aData is the name of the pref that's been changed (relative to aSubject)
         switch (aData) {
             case "server":
-                debug("prefChanged: "+aData)
                 loadSrvPref()
                 break;
         }
@@ -972,7 +965,6 @@ var myPrefObserver = {
 
 var file = DirIO.get("Home")
 file.append(".mpd_servers.txt")
-debug(file.path)
 if (file.exists()) {
     var str = FileIO.read(file)
     mpd.servers = eval(str)
@@ -980,7 +972,7 @@ if (file.exists()) {
 else {
     debug("Creating default servers.")
     mpd.servers = [ ["localhost","localhost:6600:"] ]
-    debug(FileIO.create(file))
+    FileIO.create(file)
     var str = mpd.servers.toSource()
     FileIO.write(file, str)
 }
