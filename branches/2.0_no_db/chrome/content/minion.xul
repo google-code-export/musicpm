@@ -20,42 +20,48 @@
         type="image/x-icon"
         href="chrome://miniondev/content/images/album_blank.png"/>
     <script src="chrome://minion/content/minion.js"/>
-    <hbox class="mpm_topToolbar">
-        <mpdcontrols hidestop="false"/>
-        <vbox>
+    <hbox class="mpm_topToolbar" pack="center" align="center">
+        <vbox pack="center" align="center">
+            <mpdcontrols hidestop="false"/>
             <hbox pack="center" align="center">
                 <mpdtoggle observes="repeat" oncommand="mpd.toggleRepeat()"/>
                 <mpdtoggle observes="random" oncommand="mpd.toggleRandom()"/>
-                <mpdservers id="mpdserversButton">
-                </mpdservers>
+                <mpdservers id="mpdserversButton"/>
+                <mpdvolume/>
             </hbox>
-            <mpdvolume/>
         </vbox>
-        <vbox flex="1">
-            <spacer flex="1"/>
-            <hbox style="overflow:hidden">
+        <hbox flex="1">
+            <mpdalbumcover/>
+	        <vbox flex="1">
+                <spacer flex="1" ordinal="1"/>
                 <mpdlabel id="curTitle"
                     value="Title"
                     observes="Title"
                     class="Title"
-                    ordinal="1"
-                    flex="1"/>
-                <mpdlabel id="curAlbum"
-                    value="Album"
-                    class="Album"
-                    observes="Album"
-                    ordinal="2"
-                    flex="1"/>
-                <mpdlabel id="curArtist"
-                    value="Artist"
-                    class="Artist"
-                    observes="Artist"
-                    ordinal="3"
-                    flex="1"/>
-                <spacer ordinal="4" flex="100"/>
-            </hbox>
-            <mpdtime flex="1" id="mytime"/>
-        </vbox>
+                    flex="1"
+                    ordinal="2"/>
+                <hbox style="overflow:hidden" flex="1" ordinal="3">
+                    <label id="preAlbum"
+                        value="from"
+                        ordinal="1"/>
+	                <mpdlabel id="curAlbum"
+	                    value="Album"
+	                    class="Album"
+	                    observes="Album"
+                        ordinal="2"/>
+                    <label id="preArtist"
+                        value="by"
+                        ordinal="3"/>
+	                <mpdlabel id="curArtist"
+	                    value="Artist"
+	                    class="Artist"
+	                    observes="Artist"
+                        ordinal="4"/>
+	                <spacer flex="1" ordinal="5"/>
+	            </hbox>
+	            <mpdtime flex="1" id="mytime" ordinal="4"/>
+	        </vbox>
+        </hbox>
     </hbox>
     <hbox flex="1">
         <mpdbrowser id="browse" flex="1"/>

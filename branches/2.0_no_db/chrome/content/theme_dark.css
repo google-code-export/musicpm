@@ -249,6 +249,11 @@ tabbox, tabpanels, tabpanel{
 	border: 0px !important;
 	background-color: black;
 }
+
+tabpanel > box > tree{
+    padding-top: 5px !important;
+}
+
 .tagsContentLabel, tab[selected=true] {
 	color: white;
 }
@@ -276,35 +281,47 @@ treechildren::-moz-tree-cell-text(currentsong) {
 
 
 treechildren::-moz-tree-row {
-  border-bottom: 1px solid #151515;
   min-height: 20px;
   height: 1.4em;
 }
+
 treechildren::-moz-tree-row(selected) {
-  background-color: black;
-}
-treechildren::-moz-tree-row(even) {
-  background-color: #303030;
-}
-treechildren::-moz-tree-row(odd) {
-  background-color: #232323;
+  background-color: #210001;
 }
 
-treechildren::-moz-tree-row(selected, focus, even) {
+treechildren::-moz-tree-row(selected, focus) {
   background-color: #450004;
-}
-
-treechildren::-moz-tree-row(selected, focus, odd) {
-  background-color: #330003;
 }
 
 treechildren::-moz-tree-row(current, focus) {
   border: 1px dotted #6D0505;
 }
 
-treechildren::-moz-tree-cell {
-  border-right: 1px dotted #444444;
-}
 .tree-columnpicker-icon {
     list-style-image: url("chrome://minion/content/images/columnpicker.png");
+}
+
+
+.mpm_browser treechildren::-moz-tree-row {
+  border-bottom: 1px solid #151515;
+  min-height: 20px;
+  height: 1.4em;
+}
+.mpm_browser treechildren::-moz-tree-cell {
+  border-right: 1px dotted #444444;
+}
+.mpm_browser treechildren::-moz-tree-row(even) {
+  background-color: #303030;
+}
+.mpm_browser treechildren::-moz-tree-row(odd) {
+  background-color: #232323;
+}
+.mpm_browser treechildren::-moz-tree-row(selected) {
+  background-color: #210001;
+}
+.mpm_browser treechildren::-moz-tree-row(selected, focus, even) {
+  background-color: #450004;
+}
+.mpm_browser treechildren::-moz-tree-row(selected, focus, odd) {
+  background-color: #330003;
 }

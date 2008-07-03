@@ -8,17 +8,18 @@
             <field name="child">document.getAnonymousNodes(this)[0]</field>
             <field name="observer"/>
             <field name="observes"/>
+            <field name="observedAttribute">"value"</field>
             <field name="observedValue"/>
             <constructor>
                 Components.utils.import("resource://minion/mpmUtils.js");
                 Components.utils.import("resource://minion/mpd.js");
                 this.child.className = "mpdObserver_"+this.observes
-                this.child.value = mpd[this.observes]
+                this.child.setAttribute(this.observedAttribute, mpd[this.observes])
                 var me = this
                 this.observer = {
                     observe: function(subject,topic,data){
                         me.observedValue = data
-                        me.child.setAttribute("value", data)
+                        me.child.setAttribute(me.observedAttribute, data)
                     }
                 };
                 observerService.addObserver(this.observer,this.observes,false)
@@ -39,6 +40,34 @@
         <content>
             <xul:toolbarbutton inherits="value"/>
         </content>
+    </binding>
+
+    <binding id="mpdAlbumCover" extends="#mpdObserver">
+        <content>
+            <xul:image inherits="src"/>
+        </content>
+        <implementation>
+            <field name="child">document.getAnonymousNodes(this)[0]</field>
+            <field name="observer"/>
+            <field name="observes">"currentsong"</field>
+            <constructor>
+                Components.utils.import("resource://minion/mpmUtils.js");
+                Components.utils.import("resource://minion/mpd.js");
+                this.child.className = "mpdAlbumCover"
+                var me = this
+                this.observer = {
+                    observe: function(subject,topic,data){
+                        data = mpd.currentsong
+                        mpd.getArt(data.Artist, data.Album, function(art){debug(art);me.child.setAttribute("src",art)})
+                    }
+                };
+                this.observer.observe()
+                observerService.addObserver(this.observer,this.observes,false)
+            </constructor>
+            <destructor>
+                observerService.removeObserver(this.observer,this.observes)
+            </destructor>
+        </implementation>
     </binding>
 
     <binding id="mpdPlayback">

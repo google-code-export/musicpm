@@ -2,6 +2,23 @@ toolbar, statusbar, label {
     overflow: hidden;
 }
 
+.mpm_topToolbar {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+mpdalbumcover > image{
+    margin: 5px 10px 3px 10px;
+    padding: 0px;
+    border: 1px solid Gray;
+    height: 70px !important;
+    width: 70px !important;
+}
+
+.Title {
+    font-size: 20px;
+}
+
 mpdtime {
 	-moz-box-pack: center;
 	-moz-box-align: center;

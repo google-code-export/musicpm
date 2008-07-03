@@ -1,5 +1,5 @@
 .mpdButtonPrevious {
-	list-style-image: url("chrome://minion/content/images/prev_large.png");
+	list-style-image: url("chrome://minion/content/images/prev.png");
 }
 .mpdButtonPlay {
 	list-style-image: url("chrome://minion/content/images/play.png");
@@ -14,7 +14,7 @@
 	list-style-image: url("chrome://minion/content/images/stop_large.png");
 }
 .mpdButtonNext {
-	list-style-image: url("chrome://minion/content/images/next_large.png");
+	list-style-image: url("chrome://minion/content/images/next.png");
 }
 
 .mpm_btn_AddAll {
@@ -86,7 +86,7 @@ treechildren::-moz-tree-image(Title_Genre) {
 treechildren::-moz-tree-image(Title_Date) {
     list-style-image: url("chrome://minion/content/images/unknown.png");
     }
-treechildren::-moz-tree-image(Title_file) {
+treechildren::-moz-tree-image(Title_file), .mpm_icon_file {
     list-style-image: url("chrome://minion/content/images/song.png");
     }
 treechildren::-moz-tree-image(Title_Artist), .mpm_icon_Artist {
@@ -112,6 +112,6 @@ treechildren::-moz-tree-image(Title_playlist), .mpm_icon_playlist {
 treechildren::-moz-tree-image(Title_custom), .mpm_icon_ {
     list-style-image: url("chrome://minion/content/images/custom.png");
     }
-mpdplaylist treechildren::-moz-tree-image(Title_file) mpm_icon_file{
+mpdplaylist > tree > treechildren::-moz-tree-image(Title_file){
     list-style-image: none !important;
     }

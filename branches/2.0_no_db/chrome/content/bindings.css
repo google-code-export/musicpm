@@ -22,3 +22,6 @@ mpdservers {
 mpdtoggle {
     -moz-binding: url("resource://minion/mpdControls.xml#mpdToolbarButton")
 }
+mpdalbumcover {
+    -moz-binding: url("resource://minion/mpdControls.xml#mpdAlbumCover")
+}
