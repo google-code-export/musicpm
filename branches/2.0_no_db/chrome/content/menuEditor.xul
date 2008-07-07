@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+
+<dialog id="mpmMenus" title="Music Player Minion Menu Editor"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    onload="getMenus();window.sizeToContent()"
+    buttons="accept,cancel"
+    buttonaccesskeyaccept="S"
+    ondialogaccept="return doSave();"
+    buttonlabelcancel="Cancel"
+    buttonaccesskeycancel="n"
+    ondialogcancel="return doCancel();">
+    <script>
+    <![CDATA[
+        Components.utils.import("resource://minion/mpd.js");
+        Components.utils.import("resource://minion/mpmUtils.js");
+        Components.utils.import("resource://minion/mpmMenu.js");
+        
+        function addMenuItem (index, sep) {
+	        var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	        var list = document.getElementById("menuList")
+            var e = document.createElementNS(xul,'listitem')
+            if (index < 0) {
+                index = list.selectedIndex + 1
+                if (Nz(sep)) mpmMenu.items.splice(index, 0, 'separator')
+                else mpmMenu.items.splice(index, 0, new mpmMenuItem)
+            }
+            if (mpmMenu.items[index] == 'separator') {
+                var label = '<separator>'               
+            }
+            else {
+                var label = mpmMenu.items[index].label
+            }
+            list.insertItemAt(index, label, index)
+        }
+
+        function getMenus(select){
+            var list = document.getElementById("menuList")
+            list.changing = true
+            while (list.hasChildNodes()) list.removeChild(list.lastChild)
+            var len = mpmMenu.items.length
+            for (var i=0;i<len;i++) {
+                addMenuItem(i)
+            }
+            list.selectedIndex = Nz(select, 0)
+            list.changing = false
+        }
+        
+        function saveItem (e) {
+            var list = document.getElementById("menuList")
+            if (list.changing) return null
+            var item = mpmMenu.items[e.value]
+            if (typeof(item) == 'object') {
+	            rows = ["label","targets","locations","URL","queryType",
+	                "queryScope", "mpdCommand", "script"]
+	            for each (val in rows) {
+	                var row = document.getElementById('menuItem_'+val)
+	                if (row) {
+	                    item[val] = (row.childNodes[1].value > "") ? row.childNodes[1].value : null
+	                }
+	            }
+                e.label = item.label
+            }
+        }
+        
+        function loadItem (e) {
+            if (!e) return null
+            var list = document.getElementById("menuList")
+            if (Nz(list.lastIndex,-1) > -1) {
+                saveItem(list.childNodes[list.lastIndex])
+            }
+            var item = mpmMenu.items[e.value]
+            rows = ["label","targets","locations","URL","queryType",
+                "queryScope", "mpdCommand", "script"]
+            for each (val in rows) {
+                var row = document.getElementById('menuItem_'+val)
+                if (row) {
+                    row.childNodes[1].value = (Nz(item[val])) ? item[val] : ""
+                }
+            }
+            list.lastIndex = e.value
+        }
+        
+        function moveItem (dir) {
+            var list = document.getElementById("menuList")
+            list.changing = true
+            var idx = list.selectedIndex
+            if ((idx+dir) > -1 && (idx+dir)<list.itemCount) {
+	            var mitem = mpmMenu.items.splice(idx,1)[0]
+	            mpmMenu.items.splice(idx+(dir),0, mitem)
+	            getMenus(idx+dir)
+            }
+            list.changing = false
+        }
+        
+        function removeItem () {
+            var list = document.getElementById("menuList")
+            list.changing = true
+            var idx = list.selectedIndex
+            if (idx > -1) {
+                var mitem = mpmMenu.items.splice(idx,1)[0]
+                if (idx >= list.itemCount-1) idx--
+                getMenus(idx)
+            }
+            list.changing = false
+        }
+        
+        function doSave(){
+            var list = document.getElementById("menuList")
+            if (Nz(list.lastIndex,-1) > -1) {
+                saveItem(list.childNodes[list.lastIndex])
+            }
+            mpmMenu.save()
+            return true;
+        }
+        
+        function doCancel(){
+            mpmMenu.load()
+            return true;
+        }
+    ]]>
+    </script>
+
+    <dialogheader title="Music Player Minion" description="Edit Menu"/>
+    <toolbar>
+        <toolbarbutton label="Add Menu Item" 
+                       class="mpm_btn_Add"
+                       oncommand="addMenuItem(-1, false)"/>
+        <toolbarbutton label="Add Separator" 
+                       class="mpm_btn_Add"
+                       oncommand="addMenuItem(-1, true)"/>
+        <toolbarbutton label="Remove Item" 
+                       class="mpm_btn_Remove"
+                       oncommand="removeItem()"/>
+    </toolbar>
+    <hbox flex="1">
+        <vbox>
+            <listbox id="menuList"
+                flex="1"     
+                onselect="loadItem(this.selectedItem)"/>
+            <hbox pack="center" align="center">
+                <button label="Move Up" flex="1" oncommand="moveItem(-1)"/>
+                <button label="Move Down" flex="1" oncommand="moveItem(+1)"/>
+            </hbox>
+        </vbox>
+        <grid id="menuItem" flex="1">
+            <columns>
+                <column/>
+                <column minwidth="300" flex="1"/>
+            </columns>
+            <rows id="menuItemRows">
+                <row id="menuItem_label">
+                    <label value="Menu Item Label:" class="gridlabel"/>
+                    <textbox/>
+                </row>
+                <row id="menuItem_targets">
+                    <label value="Retrict Item Types:" class="gridlabel"/>
+                    <textbox/>
+                </row>
+                <row id="menuItem_locations">
+                    <label value="Restrict Locations:" class="gridlabel"/>
+                    <textbox/>
+                </row>
+                <row id="menuItem_URL">
+                    <label value="URL to load:" class="gridlabel"/>
+                    <textbox/>
+                </row>
+                <row id="menuItem_queryType">
+                    <label value="(Query) Find all:" class="gridlabel"/>
+                    <menulist>
+	                    <menupopup>
+                            <menuitem label=""/>
+                            <menuitem label="Songs" value="file"/>
+	                        <menuitem label="Albums" value="Album"/>
+	                        <menuitem label="Artists" value="Artist"/>
+	                        <menuitem label="Composers" value="Composer"/>
+	                        <menuitem label="Dates" value="Date"/>
+	                        <menuitem label="Genres" value="Genre"/>
+	                        <menuitem label="Performers" value="Performer"/>
+	                    </menupopup>
+                    </menulist>
+                </row>
+                <row id="menuItem_queryScope">
+                    <label value="(Query) With the same:" class="gridlabel"/>
+                    <menulist>
+                        <menupopup>
+                            <menuitem label=""/>
+                            <menuitem label="Album" value="Album"/>
+                            <menuitem label="Artist" value="Artist"/>
+                            <menuitem label="Composer" value="Composer"/>
+                            <menuitem label="Date" value="Date"/>
+                            <menuitem label="Genre" value="Genre"/>
+                            <menuitem label="Performer" value="Performer"/>
+                        </menupopup>
+                    </menulist>
+                </row>
+                <row id="menuItem_mpdCommand">
+                    <label value="MPD Command:" class="gridlabel"/>
+                    <textbox/>
+                </row>
+                <row id="menuItem_script">
+                    <label value="Custom Script:" class="gridlabel"/>
+	                <textbox multiline="true" rows="4"/>
+                </row>
+            </rows>
+        </grid>
+    </hbox>
+</dialog>
+

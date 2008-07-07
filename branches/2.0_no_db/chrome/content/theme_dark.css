@@ -99,11 +99,10 @@ progressmeter {
 }
 tree, .mpm_browser_image_box  {
     -moz-appearance: none !important;
-    background-color: #1C1C1C;
+    background: #232323;
     border: none !important;
     color: white;
 }
-
 
 .Title {
     font-weight: bold;
@@ -301,6 +300,11 @@ treechildren::-moz-tree-row(current, focus) {
     list-style-image: url("chrome://minion/content/images/columnpicker.png");
 }
 
+
+
+.mpm_browser tree {
+    background-color: #1C1C1C;
+}
 
 .mpm_browser treechildren::-moz-tree-row {
   border-bottom: 1px solid #151515;

@@ -13,6 +13,7 @@
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
 	onload="init()"
+    onunload="unload()"
     width="780px"
     height="550px">
     <html:link id="mpm_favicon"
@@ -20,6 +21,8 @@
         type="image/x-icon"
         href="chrome://miniondev/content/images/album_blank.png"/>
     <script src="chrome://minion/content/minion.js"/>
+    
+    <menupopup id="mpmMenu"/>
     <hbox class="mpm_topToolbar" pack="center" align="center">
         <vbox pack="center" align="center">
             <mpdcontrols hidestop="false"/>
@@ -30,7 +33,9 @@
                 <mpdvolume/>
             </hbox>
         </vbox>
-        <hbox flex="1">
+        <hbox flex="1"
+            context="mpmMenu"
+            oncontextmenu="mpmMenu_contextShowing(event, 'currentsong', mpd.currentsong)">
             <mpdalbumcover/>
 	        <vbox flex="1">
                 <spacer flex="1" ordinal="1"/>
@@ -64,7 +69,9 @@
         </hbox>
     </hbox>
     <hbox flex="1">
-        <mpdbrowser id="browse" flex="1"/>
+        <mpdbrowser id="browse" flex="1" 
+            context="mpmMenu"
+            oncontextmenu="mpmMenu_contextShowing(event)"/>
         <splitter collapse="after"/>
         <vbox minwidth="150">
             <toolbar id="playlistToolbar">
@@ -90,14 +97,19 @@
                 flags="dont-build-content"
                 collapsed="true"
                 hidecolumnpicker="true"
-                ondblclick="loadPlaylist(this.view.getCellText(this.currentIndex,this.columns[0]))">
+                ondblclick="loadPlaylist(this.view.getCellText(this.currentIndex,this.columns[0]))"
+	            context="mpmMenu"
+	            oncontextmenu="mpmMenu_contextShowing(event, 'mpdbrowser', 
+                {type:'playlist',Title:this.view.getCellText(this.currentIndex,this.columns[0])})">
                 <treecols height="0px">
                     <treecol hideheader="true" id="Title" flex="1"/>
                 </treecols>
                 <treechildren id="tchildren"/>
             </tree>
             <splitter id="playlist_splitter" collapse="before" collapsed="true"/>
-            <mpdplaylist flex="1"/>
+            <mpdplaylist flex="1"
+	            context="mpmMenu"
+	            oncontextmenu="mpmMenu_contextShowing(event)"/>
         </vbox>
     </hbox>
 	<statusbar pack="center">

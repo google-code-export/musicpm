@@ -3,10 +3,12 @@
 <overlay id="mpm_overlay"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-    <menupopup id="mpd_serversPopup" onpopupshowing="servers_contextShowing(event)">
-    </menupopup>
-
-    <menupopup id="mpd_outputsPopup" onpopupshowing="outputs_contextShowing(event)">
+    <script src="chrome://minion/content/menus.js"/>
+    <menupopup id="mpmMenu">
+        <vbox id="mpmDynamicMenu"/>
+        <menuseparator/>
+        <menuitem label="Edit Menu" 
+            oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
     </menupopup>
 
 </overlay>

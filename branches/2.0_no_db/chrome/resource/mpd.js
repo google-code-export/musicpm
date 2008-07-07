@@ -151,15 +151,15 @@ dbQuery.prototype.execute = function (callBack){
     }
 
     // Clean up and validate mpd.doCmd lists.
-    if (cmd.indexOf('mpd.doCmd_list_begin') > -1) {
-        if  (cmd.indexOf('mpd.doCmd_list_end') < 0) {
-            cmd += "\nmpd.doCmd_list_end"
+    if (cmd.indexOf('command_list_begin') > -1) {
+        if  (cmd.indexOf('command_list_end') < 0) {
+            cmd += "\ncommand_list_end"
         }
     }
     else if (cmd.indexOf(';') > -1) {
-        cmd = "mpd.doCmd_list_begin;"+cmd
-        if  (cmd.indexOf('mpd.doCmd_list_end') < 0) {
-            cmd += ";mpd.doCmd_list_end"
+        cmd = "command_list_begin;"+cmd
+        if  (cmd.indexOf('command_list_end') < 0) {
+            cmd += ";command_list_end"
         }
         cmd = cmd.replace(/;/g,"\n")
     }
@@ -317,7 +317,8 @@ mpd._parseCurrentSong = function (data) {
     if (!Nz(obj.Title) && Nz(obj.file)) {
         obj.Title = obj.file.split("/").slice(-1)
     }
-
+    obj.type = 'file'
+    
     //set currentsong values
     mpd.set('file', Nz(obj.file))
     mpd.set('Time', Nz(obj.Time))
@@ -346,6 +347,7 @@ mpd._parseDB = function(data){
                 if (fld == 'file') {
                     var song = {
                         type: 'file',
+                        file: val,
                         name: val,
                         Track: '0',
                         Title: val,
@@ -514,8 +516,7 @@ mpd.addToPlaylist = function (itemArray) {
                 var dbl = db.length
                 var c = "command_list_begin"
                 for (var x=0;x<dbl;x++) {
-                    var loc = item.name
-                    c += '\nadd "'+ loc.replace(/"/g, '\\"') + '"'
+                    c += '\nadd ' + Sz(db[x].name)
                 }
                 mpd.doCmd(c+"\ncommand_list_end")
             }
@@ -553,6 +554,15 @@ mpd.disconnect = function () {
 mpd.doCmd = function (outputData, callBack, hide, priority){
     hide = Nz(hide)
     priority = Nz(priority)
+    if (/^rename\ |^rm\ |^save\ /m.test(outputData)) {
+        callBack = function(d){observerService.notifyObservers(null,'playlists',null)}
+    }
+    if (/^\s*load\s/m.test(outputData)) {
+        var name = /^\s*load\s+\"(.+)\"\s*$/m.exec(outputData)
+        debug(outputData)
+        debug(name)
+        callBack = function(d){observerService.notifyObservers(null,'load_playlist',name[1])}
+    }
     if (priority) {
         debug("priority command: "+outputData)
         mpd._cmdQueue.unshift({

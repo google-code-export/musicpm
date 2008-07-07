@@ -70,3 +70,7 @@ treechildren::-moz-tree-cell-text(Artist) {
 	padding-left: 0px !important;
 	border-left: none;
 }
+.gridlabel {
+    margin-top: 10px;
+    text-align: right;
+}

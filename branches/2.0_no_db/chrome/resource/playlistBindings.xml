@@ -140,6 +140,13 @@
                 ]]>
                 </body>
             </method>
+            <method name="getActiveItem">
+                <body>
+                    <![CDATA[
+                    return Nz(this.activeItem)
+                    ]]>
+                </body>
+            </method>
         </implementation>
     </binding>
 </bindings>

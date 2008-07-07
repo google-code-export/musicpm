@@ -17,7 +17,7 @@
 	list-style-image: url("chrome://minion/content/images/next.png");
 }
 
-.mpm_btn_AddAll {
+.mpm_btn_AddAll, .mpm_btn_Add {
     list-style-image: url('chrome://minion/content/images/add.png')
     }
 .mpm_btn_AddSelected {
@@ -41,6 +41,9 @@
 .mpm_btn_Playlists {
     list-style-image: url("chrome://minion/content/images/playlists.png");
 }
+.mpm_btn_Remove {
+    list-style-image: url('chrome://minion/content/images/remove.png')
+    }
 .mpm_btn_Rescan {
     list-style-image: url('chrome://minion/content/images/rescan.png')
     }

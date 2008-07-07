@@ -1,8 +1,26 @@
 Components.utils.import("resource://minion/mpd.js");
 Components.utils.import("resource://minion/trees.js");
 
+var observerPlaylists = {
+    observe: function(subject,topic,data){
+        refreshPlaylists()
+    }
+};
+var observerPlaylistName = {
+    observe: function(subject,topic,data){
+        document.getElementById("playlistName").value = data
+    }
+};
+
 function init () {
-    if(!mpd._socket) mpd.connect()
+    observerService.addObserver(observerPlaylists,"playlists",false)
+    observerService.addObserver(observerPlaylistName,"load_playlist",false)
+    if(!mpd._socket) mpd.connect()    
+}
+
+function unload () {
+    observerService.removeObserver(observerPlaylists,"playlists")
+    observerService.removeObserver(observerPlaylistName,"load_playlist")    
 }
 
 function setFavicon (url) {
@@ -18,15 +36,8 @@ function setFavicon (url) {
     el = null
 }
 
-function showPlaylists () {
+function refreshPlaylists () {
     var list = document.getElementById("savedPlaylists")
-    if (list.collapsed == false) {
-        list.collapsed = true
-        document.getElementById("playlist_splitter").collapsed = true
-        return null
-    }
-    list.collapsed = false
-    document.getElementById("playlist_splitter").collapsed = false
     mpd.doCmd('lsinfo', function(data){
         try {
             data = data.replace(/(directory:.+\n|file:.+\n)|(playlist: )/g, "").split("\n")
@@ -46,7 +57,18 @@ function showPlaylists () {
             debug(e)
         }
     }, false)
+}
 
+function showPlaylists () {
+    var list = document.getElementById("savedPlaylists")
+    if (list.collapsed == false) {
+        list.collapsed = true
+        document.getElementById("playlist_splitter").collapsed = true
+        return null
+    }
+    list.collapsed = false
+    document.getElementById("playlist_splitter").collapsed = false
+    refreshPlaylists()
 }
 
 function loadPlaylist(name) {
@@ -55,7 +77,6 @@ function loadPlaylist(name) {
             'load  "' + name.replace(/"/g, '\\"') + '"\n' +
             "command_list_end"
     mpd.doCmd(c)
-    document.getElementById("playlistName").value = name
     document.getElementById("savedPlaylists").collapsed = true
     document.getElementById("playlist_splitter").collapsed = true
 }
@@ -67,25 +88,12 @@ function savePlaylist () {
 
 }
 
-function prepareOutputs () {
-    var popup = document.getElementById("outputsPopup")
-    var buildMenu = function (outputs) {
-        while (popup.hasChildNodes()) { popup.removeChild(popup.firstChild) }
-        var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        var len = outputs.length
-        for (var i=0;i<len;i++) {
-            var item = document.createElementNS(NS, "menuitem")
-            item.setAttribute("type", "checkbox")
-            item.setAttribute("value", outputs[i].id)
-            item.setAttribute("label", outputs[i].name)
-            if (outputs[i].enabled) item.setAttribute("checked", true)
-            item.onclick = function () {
-                var cmd = (this.hasAttribute("checked")) ? "enable" : "disable";
-                debug(cmd)
-                mpd.doCmd(cmd+"output "+this.value);
-            }
-            popup.appendChild(item)
-        }
+function savedPlaylists_context () {
+    var lists = document.getElementById("savedPlaylists") 
+    var item = {
+        type: 'playlist',
+        name: lists.view.getCellText(lists.currentIndex, lists.columns[0])
     }
-    mpd.getOutputs(buildMenu)
+    item.Title = item.name
+    mpmMenu_contextShowing(event, 'mpdbrowser', item)
 }

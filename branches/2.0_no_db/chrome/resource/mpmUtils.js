@@ -241,27 +241,30 @@ function openReuseByAttribute(url,attrName) {
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
   attrName = Nz(attrName, 'mpm-unknown-tab')
-  for (var found = false, index = 0, browserInstance = wm.getEnumerator('navigator:browser').getNext().getBrowser();
-       index < browserInstance.mTabContainer.childNodes.length && !found;
-       index++) {
-    var currentTab = browserInstance.mTabContainer.childNodes[index];
-    if (currentTab.hasAttribute(attrName)) {
-      browserInstance.selectedTab = currentTab;
-      browserInstance.focus();
-      found = true;
-    }
-  }
-  if (!found) {
-    var browserEnumerator = wm.getEnumerator("navigator:browser");
-    var browserInstance = browserEnumerator.getNext().getBrowser();
-    var newTab = browserInstance.addTab(url);
-    newTab.setAttribute(attrName, "xyz");
-    browserInstance.selectedTab = newTab;
-    browserInstance.focus();
+  try {
+	  for (var found = false, index = 0, browserInstance = wm.getEnumerator('navigator:browser').getNext().getBrowser();
+	       index < browserInstance.mTabContainer.childNodes.length && !found;
+	       index++) {
+	    var currentTab = browserInstance.mTabContainer.childNodes[index];
+	    if (currentTab.hasAttribute(attrName)) {
+	      browserInstance.selectedTab = currentTab;
+	      browserInstance.focus();
+	      found = true;
+	    }
+	  }
+	  if (!found) {
+	    var browserEnumerator = wm.getEnumerator("navigator:browser");
+	    var browserInstance = browserEnumerator.getNext().getBrowser();
+	    var newTab = browserInstance.addTab(url);
+	    newTab.setAttribute(attrName, "xyz");
+	    browserInstance.selectedTab = newTab;
+	    browserInstance.focus();
+	  }
+  } catch (e) {
+      winw.openWindow(null,url,attrName,null,null)
   }
 }
 
-debug("mpmUtils loading")
 
 var prefs = {
     get: function (strPref, def) {
@@ -309,5 +312,4 @@ var prefs = {
                 }
         }
     }
-    
 }

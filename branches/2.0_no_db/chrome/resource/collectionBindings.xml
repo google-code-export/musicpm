@@ -450,9 +450,16 @@
         <content>
         	<xul:vbox flex="1">
                 <xul:toolbar>
-                    <xul:toolbarbutton label="Update"
+                    <xul:toolbarbutton tooltiptext="Update Database"
                         class="mpm_btn_Update"
-                        oncommand="this.parentNode.parentNode.parentNode.doUpdate()"/>
+                        type="menu">
+                        <xul:menupopup>
+                            <xul:menuitem label="Update All"
+                                oncommand="mpd.doCmd('update')"/>
+                            <xul:menuitem label="Update this Folder" 
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.doUpdate()"/>
+                        </xul:menupopup>
+                    </xul:toolbarbutton>
                     <xul:toolbarbutton label="All"
                         class="mpm_btn_AddAll"
                         oncommand="this.parentNode.parentNode.parentNode.browser.addAll()"/>
@@ -568,9 +575,6 @@
             <field name="tags_tab">document.getAnonymousElementByAttribute(this, 'id', 'tags_tab')</field>
             <field name="sidebar">document.getAnonymousElementByAttribute(this, 'id', 'sidebar')</field>
             <field name="tags">document.getAnonymousElementByAttribute(this, 'id', 'tags')</field>
-        	<property name="activeItem"
-				readonly="true"
-                getter="return this.browser.activeItem"/>
             <constructor>
 				<![CDATA[
                 Components.utils.import("resource://minion/mpd.js");
@@ -629,6 +633,15 @@
                     }
                 };
                 observerService.addObserver(this.observerServer,"new_mpd_server",false)
+                this.observerPlaylists = {
+                    observe: function(subject,topic,data){
+	                    var q = new dbQuery()
+	                    q.type = "playlist"
+	                    q.query = ""
+	                    q.execute(function(db){playlists.load(db,playlists)})
+                    }
+                };
+                observerService.addObserver(this.observerPlaylists,"playlists",false)
 				me.goHome()
 
 				]]>
@@ -636,7 +649,14 @@
             <destructor>
                 observerService.removeObserver(this.observerUpdate,"updating_db")
                 observerService.removeObserver(this.observerServer,"new_mpd_server")
+                observerService.removeObserver(this.observerPlaylists,"playlists")
             </destructor>
+            <method name="addSelected">
+                <body>
+                    var e = document.commandDispatcher.focusedElement.parentNode
+                    e.addSelected()
+                </body>
+            </method>
             <method name="doUpdate">
                 <body>
                     <![CDATA[
@@ -644,6 +664,7 @@
                         var cmd = "update"
                         var cwd = this.history[this.historyIndex]
                         if (cwd.type=='directory') cmd = "update "+Sz(cwd.query)
+                        debug("doUpdate(): "+cmd)
                         mpd.doCmd(cmd)
                     } catch(e){debug(e)}
                     ]]>
@@ -674,6 +695,14 @@
                     q.query = item.name
                     this.goTo(q)
                     } catch(e){debug(e)}
+                    ]]>
+                </body>
+            </method>
+            <method name="getActiveItem">
+                <body>
+                    <![CDATA[
+                    var e = document.commandDispatcher.focusedElement.parentNode
+                    return Nz(e.activeItem)
                     ]]>
                 </body>
             </method>
