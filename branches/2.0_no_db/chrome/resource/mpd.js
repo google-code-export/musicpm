@@ -32,9 +32,35 @@ function dbQuery (cmd, callBack) {
     this.query = null
     this.restrict = null
     this.callBack = Nz(callBack)
+    this.dbMatches = null
 }
 
 dbQuery.prototype.evaluate = function () {
+    if (this.cmd) {
+        var cmd = this.cmd
+	    // Clean up and validate mpd.doCmd lists.
+	    if (cmd.indexOf('command_list_begin') > -1) {
+	        if  (cmd.indexOf('command_list_end') < 0) {
+	            cmd += "\ncommand_list_end"
+	        }
+	    }
+	    else if (cmd.indexOf(';') > -1) {
+	        cmd = "command_list_begin;"+cmd
+	        if  (cmd.indexOf('command_list_end') < 0) {
+	            cmd += ";command_list_end"
+	        }
+	        cmd = cmd.replace(/;/g,"\n")
+	    }
+        
+	    // Check if this mpd.doCmd returns database results.
+	    // If so, check if it will return multiple sets that
+	    // will need to be combined.
+	    var re = /^.*search |^.*find |^.*info|^plchanges |^list.* /gm
+	    this.dbMatches = cmd.match(re)
+        this.cmd = cmd
+        return cmd
+    }
+    
     switch (this.type) {
         case 'search':
             this.cmd = "search";
@@ -134,6 +160,7 @@ dbQuery.prototype.evaluate = function () {
     }
     if (this.scope) this.cmd += " " + this.scope;
     if (this.query) this.cmd += " " + Sz(this.query);
+    this.dbMatches = 1
 }
 
 dbQuery.prototype.execute = function (callBack){
@@ -150,31 +177,12 @@ dbQuery.prototype.execute = function (callBack){
         return null
     }
 
-    // Clean up and validate mpd.doCmd lists.
-    if (cmd.indexOf('command_list_begin') > -1) {
-        if  (cmd.indexOf('command_list_end') < 0) {
-            cmd += "\ncommand_list_end"
-        }
-    }
-    else if (cmd.indexOf(';') > -1) {
-        cmd = "command_list_begin;"+cmd
-        if  (cmd.indexOf('command_list_end') < 0) {
-            cmd += ";command_list_end"
-        }
-        cmd = cmd.replace(/;/g,"\n")
-    }
-
-    // Check if this mpd.doCmd returns database results.
-    // If so, check if it will return multiple sets that
-    // will need to be combined.
-    var re = /^.*search |^.*find |^.*info|^plchanges |^list.* /gm
-    var matches = cmd.match(re)
-    if (!matches) {
+    if (!this.dbMatches) {
         mpd.doCmd(cmd, null, false)
         return null
     }
     else {
-        var chkDupes = (matches.length > 1)
+        var chkDupes = (this.dbMatches.length > 1)
     }
     mpd.doCmd(cmd, function(d){
             var db = mpd._parseDB(d)
@@ -633,26 +641,8 @@ mpd.getAllDirs = function (callBack) {
 }
 
 mpd.getArt = function (artist, album, callBack) {
-    var clean = function (item) {
-        if (!Nz(item)) return ''
-        var s = item.indexOf("(",0)
-        if (s > 0) {
-            e = item.indexOf(")", s)
-            if (e < 0) {
-                e = s
-            }
-            item = item.slice(0, s-1) + item.slice(e+1)
-        }
-        item = item.replace(/&/g,"and").replace(/!/g,"").replace(/\?/g,"")
-        item = item.replace(/\./g,"").replace(/:/g,"").replace(/;/g,"").replace(/'/g,"")
-        item = item.replace(/"/g,"").replace(/,/g," ").replace(/ - /g," ")
-        item = item.replace(/-/g," ")
-        item = encodeURI(item)
-        return item
-    }
-
     var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist=" +
-        clean(artist) + "&title=" + clean(album) + "&limit=1"
+        encodeURI(artist) + "&title=" + encodeURI(album) + "&limit=1"
 
     if (typeof(mpd.cachedArt[search_url]) == 'string') {
         callBack(mpd.cachedArt[search_url])
@@ -716,7 +706,7 @@ mpd.getOutputs = function (callBack) {
 mpd.setServers = function (servers) {
     mpd.set('servers', servers)
     var file = DirIO.get("Home")
-    file.append(".mpd_servers.txt")
+    file.append(".mpm_servers.js")
     if (!file.exists()) {
         FileIO.create(file)
     }
@@ -743,6 +733,55 @@ mpd.toggleRepeat = function () {
     var state = (mpd.repeat > 0) ? 0 : 1
     mpd.doCmd("repeat "+state)
 }
+
+mpd.load_pls_stream = function (data, action) {
+    if (typeof(action) == 'undefined') action = "add"
+    var urls = data.match(/(?:File\d+=)(.+)(?:[\n|\r])/ig)
+    var cmd = 'command_list_begin'
+    if (action == "play") cmd += "\nclear"
+    for (x in urls) {
+        var u = urls[x].replace("\n","").replace(/File\d+=/gi,"")
+        if (u.length > 0) cmd += '\nadd ' + u
+    }
+    if (action == "play") cmd += "\nplay"
+    cmd += '\ncommand_list_end'
+    mpd.doCmd(cmd)
+}
+
+mpd.load_m3u_stream = function (data, action) {
+    if (typeof(action) == 'undefined') action = "add"
+    urls = data.replace(/#.+\n/g,"").split("\n")
+    var cmd = 'command_list_begin'
+    if (action == "play") cmd += "\nclear"
+    for (x in urls) {
+        var u = urls[x].replace("\n","").replace(/File\d+=/gi,"")
+        if (u.length > 0) cmd += '\nadd ' + u
+    }
+    if (action == "play") cmd += "\nplay"
+    cmd += '\ncommand_list_end'
+    mpd.doCmd(cmd)
+}
+
+mpd.handleURL = function (url, action) {
+    if (typeof(url) != 'string') return null
+    if (typeof(action) == 'undefined') action = "add"
+    if (url.length < 4) return null 
+    if (url.indexOf("http://somafm.com/play/") == 0) {
+        url = url.replace("/play", "") + ".pls"
+    }
+    switch (url.substr(-4).toLocaleLowerCase()) {
+        case ".pls": fetch(url, mpd.load_pls_stream, action); break;
+        case ".m3u": fetch(url, mpd.load_m3u_stream, action); break;
+        case ".mp3": mpd.doCmd('add "'+url+'"'); break;
+        case ".ogg": mpd.doCmd('add "'+url+'"'); break;
+        case ".wav": mpd.doCmd('add "'+url+'"'); break;
+        case "flac": mpd.doCmd('add "'+url+'"'); break;
+        case ".acc": mpd.doCmd('add "'+url+'"'); break;
+        case ".mod": mpd.doCmd('add "'+url+'"'); break;
+    }
+}
+
+
 function loadSrvPref () {
     if (prefBranch.getPrefType("extensions.mpm.server") == prefBranch.PREF_STRING) {
         var srv = prefBranch.getCharPref("extensions.mpm.server");
@@ -974,7 +1013,7 @@ var myPrefObserver = {
 
 
 var file = DirIO.get("Home")
-file.append(".mpd_servers.txt")
+file.append(".mpm_servers.js")
 if (file.exists()) {
     var str = FileIO.read(file)
     mpd.servers = eval(str)

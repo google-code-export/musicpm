@@ -107,6 +107,17 @@
             list.changing = false
         }
         
+        function restore () {
+            var conf = confirm("Are you sure you want to restore the " +
+                "default menus?  All changes made to the menu will be lost, " +
+                "this action can not be undone.")
+            if (conf) {
+                mpmMenu.restore()
+                var list = document.getElementById("menuList")
+                getMenus(list.selectedIndex)
+            }
+        }
+        
         function doSave(){
             var list = document.getElementById("menuList")
             if (Nz(list.lastIndex,-1) > -1) {
@@ -134,6 +145,10 @@
         <toolbarbutton label="Remove Item" 
                        class="mpm_btn_Remove"
                        oncommand="removeItem()"/>
+        <spacer flex="1"/>
+        <toolbarbutton label="Restore Defaults" 
+                       class="mpm_btn_Update"
+                       oncommand="restore()"/>
     </toolbar>
     <hbox flex="1">
         <vbox>

@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+
+<overlay id="minion-overlay"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <script type="text/javascript">
+        <![CDATA[
+        Components.utils.import("resource://minion/mpmUtils.js");
+        Components.utils.import("resource://minion/mpd.js");
+        var mpm = {
+            onLoad: function (e) {
+                var cm = document.getElementById("contentAreaContextMenu")
+                if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, true)
+            },
+            open: function(url, event) {
+                openUILink(url, event, false, true);
+            },
+            doConfig: function() {
+                var cb = function (w){try{w.close}catch(e){}}
+                window.openDialog("chrome://minion/content/settings.xul",
+                                    "showmore", "chrome", cb)
+            },
+            linkHandler: function(event) {
+                var ma = document.getElementById('mpm_linkHandlerAdd')
+                var mp = document.getElementById('mpm_linkHandlerPlay')
+                if (!gContextMenu.onLink) {
+                    ma.hidden = mp.hidden = true
+                }
+                else {
+                    var url = gContextMenu.linkURL
+                    if (typeof(url) != 'string') url = "none"
+                    if (url.length < 4) url = "none"
+					if (url.indexOf("http://somafm.com/play/")==0){
+						url = ".pls"
+					}
+                    switch (url.substr(-4).toLocaleLowerCase()) {
+                        case "none": ma.hidden = mp.hidden = true; break;
+                        case ".pls": ma.hidden = mp.hidden = false; break;
+                        case ".m3u": ma.hidden = mp.hidden = false; break;
+                        case ".mp3": ma.hidden = mp.hidden = false; break;
+                        case ".ogg": ma.hidden = mp.hidden = false; break;
+                        case ".wav": ma.hidden = mp.hidden = false; break;
+                        case "flac": ma.hidden = mp.hidden = false; break;
+                        case ".acc": ma.hidden = mp.hidden = false; break;
+                        case ".mod": ma.hidden = mp.hidden = false; break;
+                        default: ma.hidden = mp.hidden = true; break;
+                    }
+                }
+				return true
+            }
+        }
+        function mpm_linkHandlerAction(action) {
+            if (gContextMenu.onLink) {
+                var t = gContextMenu.target
+                // Handles images wrapped in hyperlinks.
+                var val = (t.hasAttribute('href')) ? t.href : t.parentNode.href
+                if (val != null) {
+                    var v = new RegExp();
+                    v.compile(/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/);
+                    if (v.test(val)) {
+                        mpd.handleURL(val, action)
+                    }
+                }
+            }
+        }
+        window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
+        ]]>
+    </script>
+
+    <script src="chrome://minion/content/menus.js"/>
+    
+    <popup id="contentAreaContextMenu">
+      <menuitem id="mpm_linkHandlerAdd"
+            label="Add Link to MPD Playlist"
+            oncommand="mpm_linkHandlerAction('add');"
+            insertafter="context-openlinkintab" />
+      <menuitem id="mpm_linkHandlerPlay"
+            label="Play Link with MPD"
+            oncommand="mpm_linkHandlerAction('play');"
+            insertafter="context-openlinkintab" />
+    </popup>
+
+    <statusbar id="status-bar">
+        <statusbarpanel id="mpm_status-bar_controls"
+                    context="_child"
+                    oncontextmenu="mpmMenu_contextShowing(event, 'statusbar', mpd.currentsong)">
+            <menupopup id="mpmMenu">
+                <vbox id="mpmDynamicMenu"/>
+                <menuseparator/>
+                <menuitem label="Edit Menu" 
+                    oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
+            </menupopup>
+            <menupopup id="mpm_playlist_popup" 
+                       sizetocontent="true"
+                       position="before_end">
+                <mpdplaylist flex="1"
+                    context="mpmMenu"
+                    oncontextmenu="mpmMenu_contextShowing(event)"
+                    width="300"
+                    height="200"/>
+            </menupopup>
+            <toolbarbutton id="mpm_sb_launch" class="mpm_btn_Launch"
+                oncommand="openReuseByURL('chrome://minion/content/minion.xul')"/>
+            <mpdcontrols id="mpm_sb_controls" hidden="true"/>
+            <toolbarbutton id="mpm_sb_volume" hidden="true" type="menu" class="mpm_btn_Volume">
+                <menupopup>
+                    <mpdvolume orient="vertical"/>
+                </menupopup>
+            </toolbarbutton>
+            <toolbarbutton id="mpm_sb_playlist" hidden="true"
+                type="menu"
+                class="mpm_btn_Playlist"
+                popup="mpm_playlist_popup"/>
+            <toolbarbutton id="mpm_sb_currentsong" hidden="true"
+                type="menu"
+                popup="mpm_playlist_popup">
+                <mpdlabel id="mpm_sb_Title" 
+                          observes="Title" 
+                          crop="end">
+                </mpdlabel>
+                <mpdtime hidescale="true"/>
+            </toolbarbutton>
+            <mpdservers/>
+            <script>
+                var obs = {
+                    observe: function(sub,topic,data){
+                        var hide = (mpd._socket==null);
+                        document.getElementById('mpm_sb_controls').hidden = hide;
+                        document.getElementById('mpm_sb_volume').hidden = hide;
+                        document.getElementById('mpm_sb_playlist').hidden = hide;
+                        document.getElementById('mpm_sb_currentsong').hidden = hide;
+                    }
+                };
+                observerService.addObserver(obs, 'greeting', false);
+                var csPrefObserver = {
+                    register: function(){
+                        this._branch = prefs.branch;
+                        this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
+                        this._branch.addObserver("", this, false);
+                    },
+                
+                    unregister: function(){
+                        if (!this._branch)
+                            return;
+                        this._branch.removeObserver("", this);
+                    },
+                
+                    observe: function(aSubject, aTopic, aData){
+                        if (aTopic != "nsPref:changed")
+                            return;
+                        // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
+                        // aData is the name of the pref that's been changed (relative to aSubject)
+                        switch (aData) {
+                            case "sb_currentsong_hide":
+                                var hide = prefs.get('sb_currentsong_hide', false)
+                                document.getElementById('mpm_sb_currentsong').collapsed = hide;
+                                document.getElementById('mpm_sb_playlist').collapsed = !hide;
+                                break;
+                        }
+                    }
+                };
+                csPrefObserver.register();
+                window.addEventListener(
+                  "load",
+                  function (event) {
+                        obs.observe(null,null,null);
+                        var hide = prefs.get('sb_currentsong_hide', false)
+                        document.getElementById('mpm_sb_currentsong').collapsed = hide;
+                        document.getElementById('mpm_sb_playlist').collapsed = !hide;
+                    },
+                  false
+                );
+            </script>
+        </statusbarpanel>
+    </statusbar>
+
+</overlay>

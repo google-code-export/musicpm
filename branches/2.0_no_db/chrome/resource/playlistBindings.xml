@@ -10,6 +10,7 @@
                 flex="1"
                 flags="dont-build-content"
                 ondblclick="var a=this.parentNode.activeItem;if(a)mpd.doCmd('play '+a.Pos)">
+                <children/>
                 <xul:treecols>
                     <xul:treecol id="Pos"
                         label="#"

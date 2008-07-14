@@ -19,7 +19,7 @@
     <html:link id="mpm_favicon"
         rel="shortcut icon"
         type="image/x-icon"
-        href="chrome://miniondev/content/images/album_blank.png"/>
+        href="chrome://minion/content/images/album_blank.png"/>
     <script src="chrome://minion/content/minion.js"/>
     
     <menupopup id="mpmMenu"/>
@@ -116,7 +116,6 @@
         <label value="Playlist Time:"/>
         <mpdlabel observes="pltime"/>
         <spacer flex="1"/>
-        <mpdlabel value="response" observes="last_command" crop="end"/>
         <mpdlabel value="response" observes="lastResponse" crop="end"/>
         <mpdlabel value="disconnected" observes="greeting"/>
 	</statusbar>

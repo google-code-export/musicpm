@@ -15,7 +15,11 @@ var observerPlaylistName = {
 function init () {
     observerService.addObserver(observerPlaylists,"playlists",false)
     observerService.addObserver(observerPlaylistName,"load_playlist",false)
-    if(!mpd._socket) mpd.connect()    
+    if(!mpd._socket) mpd.connect()
+    if (Nz(window.doQuery)) {
+        document.getElementById("browse").goTo(window.doQuery)
+    }
+    window.name = "chrome://minion/content/minion.xul"
 }
 
 function unload () {

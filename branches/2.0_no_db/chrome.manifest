@@ -1,0 +1,4 @@
+content minion chrome/content/
+resource minion chrome/resource/
+
+overlay chrome://browser/content/browser.xul chrome://minion/content/browser_overlay.xul

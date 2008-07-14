@@ -6,103 +6,150 @@ EXPORTED_SYMBOLS = ["mpmMenu", "mpmMenuItem"]
 
 function loadDefaults () {
 	mpmMenu.items = [
-	    {
-	        id:"mpm_menu_playNow",
-	        label:"Play Now",
-	        locations:"mpdbrowser",
-	        targets:"file",
-	        URL:null,
-	        queryType:null,
-	        queryScope:null,
-	        mpdCommand:"add {file};play {playlistlength}",
-	        script:null
-	    },
-	    {
-	        id:"mpm_menu_add",
-	        label:"Add to Playlist",
-	        locations:"mpdbrowser",
-	        targets:"file directory",
-	        URL:null,
-	        queryType:null,
-	        queryScope:null,
-	        mpdCommand:"add {name}",
-	        script:null
-	    },
-	    {
-	        id:"mpm_menu_replace",
-	        label:"Replace Playlist",
-	        locations:"mpdbrowser",
-	        targets:"file directory",
-	        URL:null,
-	        queryType:null,
-	        queryScope:null,
-	        mpdCommand:"clear;add {name}",
-	        script:null
-	    },
-	    "separator",
-	    {
-	        id:"mpm_menu_loadPlaylist",
-	        label:"Load Playlist",
-	        locations:"mpdbrowser",
-	        targets:"playlist",
-	        URL:null,
-	        queryType:null,
-	        queryScope:null,
-	        mpdCommand:"clear;load {Title}",
-	        script:null
-	    },
-	    {
-	        id:"mpm_menu_rmPlaylist",
-	        label:"Delete Playlist",
-	        locations:"mpdbrowser",
-	        targets:"playlist",
-	        URL:null,
-	        queryType:null,
-	        queryScope:null,
-	        mpdCommand:"rm {Title}",
-	        script:null
-	    },
-	    {
-	        id:"mpm_menu_renPlaylist",
-	        label:"Rename Playlist",
-	        locations:"mpdbrowser",
-	        targets:"playlist",
-	        URL:null,
-	        queryType:null,
-	        queryScope:null,
-	        mpdCommand:null,
-	        script:'var name = prompt("Please enter a new name:", item.Title)\n'+
-	            'if (name) mpd.doCmd("rename "+Sz(item.Title)+" "+Sz(name))'
-	    },
-	    "separator",
-	    {
-	        id:"mpm_menu_google",
-	        label:"Google It!",
-	        locations:null,
-	        targets:"file Artist Album",
-	        URL:"http://www.google.com/search?q={Artist}+{Title}",
-	        queryType:null,
-	        queryScope:null,
-	        mpdCommand:null,
-	        script:null
-	    },
-	    {
-	        id:"mpm_menu_artistalbum",
-	        label:"Albums by this artist",
-	        locations:null,
-	        targets:"file Artist",
-	        URL:null,
-	        queryType:"Album",
-	        queryScope:"Artist",
-	        mpdCommand:null,
-	        script:null
-	    }
-	]
+        {
+		    id : "mpm_menu_playNow",
+		    label : "Play Now",
+		    locations : "mpdbrowser",
+		    targets : "file",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : null,
+		    script : "var len = mpd.playlistlength;\nmpdbrowser.addSelected();\nmpd.doCmd(\"play \" + len);"
+		}, {
+		    id : "mpm_menu_add",
+		    label : "Add to Playlist",
+		    locations : "mpdbrowser",
+		    targets : "file directory Artist Album Date Genre Performer Composer",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : null,
+		    script : "mpdbrowser.addSelected()"
+		}, {
+		    id : "mpm_menu_replace",
+		    label : "Replace Playlist",
+		    locations : "mpdbrowser",
+		    targets : "file directory Artist Album Date Genre Performer Composer",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : "clear",
+		    script : "mpdbrowser.addSelected()"
+		}, {
+		    id : "mpm_menu_update",
+		    label : "Update this Folder",
+		    locations : null,
+		    targets : "directory",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : null,
+		    script : "mpdbrowser.doUpdate()"
+		}, "separator", {
+		    id : "mpm_menu_loadPlaylist",
+		    label : "Load Playlist",
+		    locations : "mpdbrowser",
+		    targets : "playlist",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : "clear; load {Title}",
+		    script : null
+		}, {
+		    id : "mpm_custom_playlistAppend",
+		    label : "Append Playlist",
+		    locations : "mpdbrowser",
+		    targets : "playlist",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : "load {Title}",
+		    script : null
+		}, {
+		    id : "mpm_menu_rmPlaylist",
+		    label : "Delete Playlist",
+		    locations : "mpdbrowser",
+		    targets : "playlist",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : "rm {Title}",
+		    script : null
+		}, {
+		    id : "mpm_menu_renPlaylist",
+		    label : "Rename Playlist",
+		    locations : "mpdbrowser",
+		    targets : "playlist",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : null,
+		    script : "var name = prompt(\"Please enter a new name:\", item.Title);\nif (name) mpd.doCmd(\"rename \"+Sz(item.Title)+\" \"+Sz(name))"
+		}, "separator", {
+		    id : "mpm_menu_playlistRemove",
+		    label : "Remove from Playlist",
+		    locations : "mpdplaylist",
+		    targets : "file",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : null,
+		    script : "mpdplaylist.delete()"
+		}, {
+            id : "mpm_menu_addURL",
+            label : "Add URL to Playlist",
+            locations : "mpdplaylist",
+            targets : null,
+            URL : null,
+            queryType : null,
+            queryScope : null,
+            mpdCommand : null,
+            script : 'var val = prompt("Please enter a URL to add to the playlist.", "http://")\n'+
+			    'if (val != null) {\n'+
+			    '    var v = new RegExp();\n'+
+			    '    v.compile(/(ftp|http|https):\\/\\/(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(\\/|\\/([\\w#!:.?+=&%@!\\-\\/]))?/);\n'+
+			    '    if (v.test(val)) {\n'+
+			    '        mpd.handleURL(val)\n'+
+			    '    }\n'+
+			    '    else alert("`"+val+"` is not a valid URL.")\n}'
+        }, "separator", {
+		    id : "mpm_menu_google",
+		    label : "Google It!",
+		    locations : null,
+		    targets : "file Artist Album",
+		    URL : "http://www.google.com/search?q={Artist}+{Title}",
+		    queryType : null,
+		    queryScope : null,
+		    mpdCommand : null,
+		    script : null
+		}, {
+		    id : "mpm_menu_viewAlbum",
+		    label : "View this Album",
+		    locations : null,
+		    targets : "file",
+		    URL : null,
+		    queryType : "file",
+		    queryScope : "Album",
+		    mpdCommand : null,
+		    script : null
+		}, {
+		    id : "mpm_menu_viewArtistAlbum",
+		    label : "View Albums by this Artist",
+		    locations : null,
+		    targets : "file Artist",
+		    URL : null,
+		    queryType : "Album",
+		    queryScope : "Artist",
+		    mpdCommand : null,
+		    script : null
+		}
+    ]
 }
 
 function loadMenuItems () {
     var file = DirIO.get("Home")
-    file.append(".mpm_menus.txt")
+    file.append(".mpm_menus.js")
     if (file.exists()) {
         var str = FileIO.read(file)
         mpmMenu.items = eval(str)
@@ -150,7 +197,7 @@ function mpmMenuItem (label, id) {
 
 function saveMenuItems () {
     var file = DirIO.get("Home")
-    file.append(".mpm_menus.txt")
+    file.append(".mpm_menus.js")
     if (!file.exists()) {
         FileIO.create(file)
     }

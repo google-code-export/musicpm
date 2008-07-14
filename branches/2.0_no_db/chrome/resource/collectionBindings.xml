@@ -664,7 +664,6 @@
                         var cmd = "update"
                         var cwd = this.history[this.historyIndex]
                         if (cwd.type=='directory') cmd = "update "+Sz(cwd.query)
-                        debug("doUpdate(): "+cmd)
                         mpd.doCmd(cmd)
                     } catch(e){debug(e)}
                     ]]>
