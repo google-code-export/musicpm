@@ -7,15 +7,15 @@ EXPORTED_SYMBOLS = ["mpmMenu", "mpmMenuItem"]
 function loadDefaults () {
 	mpmMenu.items = [
         {
-		    id : "mpm_menu_playNow",
-		    label : "Play Now",
-		    locations : "mpdbrowser",
-		    targets : "file",
+		    id : "mpm_menu_toggle_cs",
+		    label : "Toggle Current Song Display",
+		    locations : "statusbar",
+		    targets : null,
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
 		    mpdCommand : null,
-		    script : "var len = mpd.playlistlength;\nmpdbrowser.addSelected();\nmpd.doCmd(\"play \" + len);"
+		    script : "prefs.set (\n    'sb_currentsong_hide',\n    !prefs.get('sb_currentsong_hide')\n);"
 		}, {
 		    id : "mpm_menu_add",
 		    label : "Add to Playlist",
