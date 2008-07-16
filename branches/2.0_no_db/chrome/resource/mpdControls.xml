@@ -182,7 +182,7 @@
                     <xul:menuitem label="Disconnect"
                         oncommand="this.parentNode.parentNode.parentNode.serverSelect('None')"/>
                     <xul:menuitem label="Manage Servers"
-                        oncommand="openDialog('chrome://minion/content/servers.xul', 'servers')"/>
+                        oncommand="mpm_openDialog('chrome://minion/content/servers.xul', 'servers')"/>
                     <xul:menuseparator/>
                     <xul:menu label="Outputs">
                         <xul:menupopup id="outputs_box"

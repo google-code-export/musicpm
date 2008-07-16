@@ -18,7 +18,7 @@
 
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
 		"observerService", "getFileContents", "fetch", "winw",
-		"openReuseByURL", "openReuseByAttribute", "openDialog", "prefs",
+		"openReuseByURL", "openReuseByAttribute", "mpm_openDialog", "prefs",
 		"mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
@@ -207,7 +207,7 @@ function fetch(url, callBack, arg) {
 	}
 }
 
-function openDialog(url, id) {
+function mpm_openDialog(url, id) {
 	var win = winw.openWindow(winw.activeWindow, url, Nz(id, url),
 			"chrome,centerscreen,dialog", null);
 }

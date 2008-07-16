@@ -12,8 +12,23 @@
         Components.utils.import("resource://minion/mpd.js");
         var mpm = {
             onLoad: function (e) {
+                debug("load")
                 var cm = document.getElementById("contentAreaContextMenu")
                 if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, true)
+                observerService.addObserver(obs, 'greeting', false);
+                csPrefObserver.register();
+                try {
+                    var hide = prefs.get('sb_currentsong_hide', false)
+                    document.getElementById('mpm_sb_currentsong').collapsed = hide;
+                    document.getElementById('mpm_sb_playlist').collapsed = !hide;
+                } catch (e) {debug(e)}
+                try {
+                    var hide = (mpd._socket==null);
+                    document.getElementById('mpm_sb_controls').hidden = hide;
+                    document.getElementById('mpm_sb_volume').hidden = hide;
+                    document.getElementById('mpm_sb_playlist').hidden = hide;
+                    document.getElementById('mpm_sb_currentsong').hidden = hide;
+                } catch (e) {debug(e)}
             },
             open: function(url, event) {
                 openUILink(url, event, false, true);
@@ -66,7 +81,43 @@
                 }
             }
         }
-        window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
+        var obs = {
+            observe: function(sub,topic,data){
+                var hide = (mpd._socket==null);
+                document.getElementById('mpm_sb_controls').hidden = hide;
+                document.getElementById('mpm_sb_volume').hidden = hide;
+                document.getElementById('mpm_sb_playlist').hidden = hide;
+                document.getElementById('mpm_sb_currentsong').hidden = hide;
+            }
+        };
+        var csPrefObserver = {
+            register: function(){
+                this._branch = prefs.branch;
+                this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
+                this._branch.addObserver("", this, false);
+            },
+        
+            unregister: function(){
+                if (!this._branch)
+                    return;
+                this._branch.removeObserver("", this);
+            },
+        
+            observe: function(aSubject, aTopic, aData){
+                if (aTopic != "nsPref:changed")
+                    return;
+                // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
+                // aData is the name of the pref that's been changed (relative to aSubject)
+                switch (aData) {
+                    case "sb_currentsong_hide":
+                        var hide = prefs.get('sb_currentsong_hide', false)
+                        document.getElementById('mpm_sb_currentsong').collapsed = hide;
+                        document.getElementById('mpm_sb_playlist').collapsed = !hide;
+                        break;
+                }
+            }
+        };
+        //window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
         ]]>
     </script>
 
@@ -124,56 +175,6 @@
                 <mpdtime hidescale="true"/>
             </toolbarbutton>
             <mpdservers/>
-            <script>
-                var obs = {
-                    observe: function(sub,topic,data){
-                        var hide = (mpd._socket==null);
-                        document.getElementById('mpm_sb_controls').hidden = hide;
-                        document.getElementById('mpm_sb_volume').hidden = hide;
-                        document.getElementById('mpm_sb_playlist').hidden = hide;
-                        document.getElementById('mpm_sb_currentsong').hidden = hide;
-                    }
-                };
-                observerService.addObserver(obs, 'greeting', false);
-                var csPrefObserver = {
-                    register: function(){
-                        this._branch = prefs.branch;
-                        this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
-                        this._branch.addObserver("", this, false);
-                    },
-                
-                    unregister: function(){
-                        if (!this._branch)
-                            return;
-                        this._branch.removeObserver("", this);
-                    },
-                
-                    observe: function(aSubject, aTopic, aData){
-                        if (aTopic != "nsPref:changed")
-                            return;
-                        // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
-                        // aData is the name of the pref that's been changed (relative to aSubject)
-                        switch (aData) {
-                            case "sb_currentsong_hide":
-                                var hide = prefs.get('sb_currentsong_hide', false)
-                                document.getElementById('mpm_sb_currentsong').collapsed = hide;
-                                document.getElementById('mpm_sb_playlist').collapsed = !hide;
-                                break;
-                        }
-                    }
-                };
-                csPrefObserver.register();
-                window.addEventListener(
-                  "load",
-                  function (event) {
-                        obs.observe(null,null,null);
-                        var hide = prefs.get('sb_currentsong_hide', false)
-                        document.getElementById('mpm_sb_currentsong').collapsed = hide;
-                        document.getElementById('mpm_sb_playlist').collapsed = !hide;
-                    },
-                  false
-                );
-            </script>
         </statusbarpanel>
     </statusbar>
 

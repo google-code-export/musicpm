@@ -17,8 +17,7 @@
 //      MA 02110-1301, USA.
 */
 /* Style settings common to all minion pages/windows */
-window, page, toolbar, toolbarbutton, button, scale, textbox, tabbox, tabpanels, tabpanel, tabs, tab {
-    font-family: Sans, Tahoma;
+window, page, toolbar, toolbarbutton, button, scale, textbox, tabbox, tabpanels, tabpanel, tabs, tab, statusbar {
     font-size: 12px;
     -moz-appearance: none !important;
     background-color: black;
