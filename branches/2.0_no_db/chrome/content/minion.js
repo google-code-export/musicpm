@@ -40,6 +40,13 @@ function setFavicon (url) {
     el = null
 }
 
+function loadCurrentAlbum() {
+    var q = new dbQuery()
+    q.type = "file"
+    q.scope = "Album"
+    q.query = mpd.Album
+    document.getElementById("browse").goTo(q)
+}
 function refreshPlaylists () {
     var list = document.getElementById("savedPlaylists")
     mpd.doCmd('lsinfo', function(data){

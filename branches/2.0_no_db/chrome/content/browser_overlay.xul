@@ -15,8 +15,6 @@
                 debug("load")
                 var cm = document.getElementById("contentAreaContextMenu")
                 if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, true)
-                observerService.addObserver(obs, 'greeting', false);
-                csPrefObserver.register();
                 try {
                     var hide = prefs.get('sb_currentsong_hide', false)
                     document.getElementById('mpm_sb_currentsong').collapsed = hide;
@@ -29,6 +27,9 @@
                     document.getElementById('mpm_sb_playlist').hidden = hide;
                     document.getElementById('mpm_sb_currentsong').hidden = hide;
                 } catch (e) {debug(e)}
+                var volbtn = document.getElementById('mpm_sb_volume')
+                var volscl = document.getElementById('mpm_sb_volume_scale')
+                volbtn.addEventListener("DOMMouseScroll", volscl.volScroll, false)
             },
             open: function(url, event) {
                 openUILink(url, event, false, true);
@@ -117,7 +118,9 @@
                 }
             }
         };
-        //window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
+        observerService.addObserver(obs, 'greeting', false);
+        csPrefObserver.register();
+        window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
         ]]>
     </script>
 
@@ -134,31 +137,52 @@
             insertafter="context-openlinkintab" />
     </popup>
 
+    <popupset>
+        <menupopup id="mpmMenu">
+            <vbox id="mpmDynamicMenu"/>
+            <menuseparator/>
+            <menuitem label="Edit Menu" 
+                oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
+        </menupopup>
+        <menupopup id="mpm_playlist_popup" 
+                   sizetocontent="true"
+                   position="before_end">
+            <mpdplaylist flex="1"
+                context="mpmMenu"
+                oncontextmenu="mpmMenu_contextShowing(event)"
+                width="300"
+                height="200"/>
+        </menupopup>
+        <tooltip id="mpm_sb_currentsong_tooltip"
+                   position="before_end">
+            <hbox>
+                <mpdalbumcover/>
+                <vbox>
+                    <spacer flex="1"/>
+                    <mpdlabel observes="Title" style="font-weight:bold"/>
+                    <mpdlabel observes="Album"/>
+                    <mpdlabel observes="Artist" style="font-style:italic"/>
+                    <spacer flex="1"/>                         
+                </vbox>
+              </hbox>
+        </tooltip>
+    </popupset>
+    
     <statusbar id="status-bar">
         <statusbarpanel id="mpm_status-bar_controls"
-                    context="_child"
-                    oncontextmenu="mpmMenu_contextShowing(event, 'statusbar', mpd.currentsong)">
-            <menupopup id="mpmMenu">
-                <vbox id="mpmDynamicMenu"/>
-                <menuseparator/>
-                <menuitem label="Edit Menu" 
-                    oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
-            </menupopup>
-            <menupopup id="mpm_playlist_popup" 
-                       sizetocontent="true"
-                       position="before_end">
-                <mpdplaylist flex="1"
+                    tooltip="mpm_sb_currentsong_tooltip"    
                     context="mpmMenu"
-                    oncontextmenu="mpmMenu_contextShowing(event)"
-                    width="300"
-                    height="200"/>
-            </menupopup>
+                    oncontextmenu="mpmMenu_contextShowing(event, 'statusbar', mpd.currentsong)">
             <toolbarbutton id="mpm_sb_launch" class="mpm_btn_Launch"
-                oncommand="openReuseByURL('chrome://minion/content/minion.xul')"/>
+                           tooltiptext="Launch Music Player Minion"
+                           oncommand="openReuseByURL('chrome://minion/content/minion.xul')"/>
             <mpdcontrols id="mpm_sb_controls" hidden="true"/>
-            <toolbarbutton id="mpm_sb_volume" hidden="true" type="menu" class="mpm_btn_Volume">
+            <toolbarbutton id="mpm_sb_volume"
+                           hidden="true" 
+                           type="menu" 
+                           class="mpm_btn_Volume">
                 <menupopup>
-                    <mpdvolume orient="vertical"/>
+                    <mpdvolume id="mpm_sb_volume_scale" orient="vertical"/>
                 </menupopup>
             </toolbarbutton>
             <toolbarbutton id="mpm_sb_playlist" hidden="true"

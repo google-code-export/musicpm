@@ -22,7 +22,14 @@
         href="chrome://minion/content/images/album_blank.png"/>
     <script src="chrome://minion/content/minion.js"/>
     
-    <menupopup id="mpmMenu"/>
+    <popupset>
+        <menupopup id="mpmMenu"/>
+        <tooltip id="mpm_last_command">
+            <label value="Last MPD Command:"/>
+            <mpdlabel observes="last_command"/>
+        </tooltip>
+    </popupset>
+    
     <hbox class="mpm_topToolbar" pack="center" align="center">
         <vbox pack="center" align="center">
             <mpdcontrols hidestop="false"/>
@@ -36,7 +43,7 @@
         <hbox flex="1"
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event, 'currentsong', mpd.currentsong)">
-            <mpdalbumcover/>
+            <mpdalbumcover onclick="loadCurrentAlbum()"/>
 	        <vbox flex="1">
                 <spacer flex="1" ordinal="1"/>
                 <mpdlabel id="curTitle"
@@ -116,7 +123,7 @@
         <label value="Playlist Time:"/>
         <mpdlabel observes="pltime"/>
         <spacer flex="1"/>
-        <mpdlabel value="response" observes="lastResponse" crop="end"/>
+        <mpdlabel value="response" observes="lastResponse" crop="end" tooltip="mpm_last_command"/>
         <mpdlabel value="disconnected" observes="greeting"/>
 	</statusbar>
 

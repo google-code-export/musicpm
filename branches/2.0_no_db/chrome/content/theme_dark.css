@@ -18,13 +18,17 @@
 */
 /* Style settings common to all minion pages/windows */
 window, page, toolbar, toolbarbutton, button, scale, textbox, tabbox, tabpanels, tabpanel, tabs, tab, statusbar {
-    font-size: 12px;
+    font-size: 10pt;
+    font-family: Verdana, sans-serif;
     -moz-appearance: none !important;
     background-color: black;
     color:white;
 	border: none;
 	min-width: 0px;
     }
+tree {
+    margin: 0px !important;
+}
 toolbarseparator {
     border-left: 2px solid black;
     border-right: 2px solid black;
@@ -33,19 +37,29 @@ toolbarseparator {
     background-color: #370003;
 }
 
-splitter {
-    border-left: 2px solid black;
-    border-right: 2px solid black;
-    -moz-border-left-colors:#171717 #0A0A0A;
-    -moz-border-right-colors:#171717 #0A0A0A;
-    background-color:#040404;
+splitter{
+    -moz-appearance: none !important;
+    width: 6px;
+    border: 2px solid black;
+    -moz-border-radius: 3px;
+    -moz-border-top-colors: #141414 #262626;
+    -moz-border-bottom-colors: #141414 #262626;
+    -moz-border-left-colors: #141414 #262626;
+    -moz-border-right-colors: #141414 #262626;
+    background-color:#2E2E2E;
+}
+hbox > splitter{
+    width: 6px;
+}
+vbox > splitter{
+    height: 6px;
 }
 splitter:hover {
-    border-left: 2px solid black;
-    border-right: 2px solid black;
-    -moz-border-left-colors:#202020 #151515;
-    -moz-border-right-colors:#202020 #151515;
-    background-color: #101010;
+    background-color: #2E0000;
+    -moz-border-top-colors: #0D0000 #200000;
+    -moz-border-bottom-colors: #0D0000 #200000;
+    -moz-border-left-colors: #0D0000 #200000;
+    -moz-border-right-colors: #0D0000 #200000;
 }
 
 textbox {
@@ -73,6 +87,16 @@ toolbar > textbox {
     -moz-border-left-colors: #1D0001 #2B0002 #390003;
 }
 
+.scale-thumb {
+    -moz-appearance: none !important;
+    background-image: url("chrome://minion/content/images/thumb.png");
+    background-color: transparent !important;
+    border: none !important;
+    min-height: 17px !important;
+    max-height: 17px !important;
+    min-width: 11px !important;
+    max-width: 11px !important;
+}
 .mpdTimeProgressmeter > .scale-slider {
     -moz-appearance: none !important;
     background-image: url("chrome://minion/content/images/progress.png");

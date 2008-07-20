@@ -449,7 +449,7 @@
     <binding id="mpdBrowser">
         <content>
         	<xul:vbox flex="1">
-                <xul:toolbar>
+                <xul:toolbar align="center">
                     <xul:toolbarbutton tooltiptext="Update Database"
                         class="mpm_btn_Update"
                         type="menu">

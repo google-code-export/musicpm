@@ -7,6 +7,16 @@ EXPORTED_SYMBOLS = ["mpmMenu", "mpmMenuItem"]
 function loadDefaults () {
 	mpmMenu.items = [
         {
+            id : "mpm_menu_launch",
+            label : "Launch in New Window",
+            locations : "statusbar",
+            targets : null,
+            URL : null,
+            queryType : null,
+            queryScope : null,
+            mpdCommand : null,
+            script : 'var w=window.open("chrome://minion/content/minion.xul","chrome://minion/content/minion.xul","chrome");w.focus()'
+        }, {
 		    id : "mpm_menu_toggle_cs",
 		    label : "Toggle Current Song Display",
 		    locations : "statusbar",

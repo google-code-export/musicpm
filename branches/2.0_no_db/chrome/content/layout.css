@@ -63,7 +63,7 @@ treechildren::-moz-tree-cell-text(Artist) {
 	margin-top: 0px !important;
 	padding-top: 0px !important;
 }
-.mpm_browser_image_box + .mpm_browser > tree {
+.mpm_browser_image_box + .mpm_browser > tree, tree {
 	margin-left: 0px !important;
 	padding-left: 0px !important;
 	border-left: none;
@@ -114,9 +114,10 @@ treechildren::-moz-tree-cell-text(Artist) {
     display: none;
 }
 #mpm_playlist_popup {
+    -moz-appearance: none !important;
     padding: 0px !important;
 }
-#mpm_playlist_popup > mpdplaylist > tree {
+mpdplaylist > tree,  {
     margin: 0px !important;
 }
 #mpm_playlist_popup mpdplaylist {

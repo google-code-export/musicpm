@@ -39,8 +39,9 @@ function debug(s) {
 		var str = ""
 		for (x in s) {
 			try {
-				//str += (typeof(s[x]) == 'object') ? s[x].toSource() : x + ": " + s[x]
-				str += x+": "+s[x]+"\n"
+				// str += (typeof(s[x]) == 'object') ? s[x].toSource() : x + ":
+				// " + s[x]
+				str += x + ": " + s[x] + "\n"
 			} catch (e) {
 				str += x + ": ERROR\n"
 			}
@@ -222,7 +223,7 @@ function openReuseByURL(url) {
 	try {
 		while (!found && browserEnumerator.hasMoreElements()) {
 			var browser = browserEnumerator.getNext()
-            var browserInstance = browser.getBrowser() 
+			var browserInstance = browser.getBrowser()
 
 			// Check each tab of this browser instance
 			var numTabs = browserInstance.tabContainer.childNodes.length;
@@ -234,32 +235,33 @@ function openReuseByURL(url) {
 					browserInstance.selectedTab = browserInstance.tabContainer.childNodes[index];
 
 					// Focus *this* browser
-                    browser.focus()
+					browser.focus()
 					browserInstance.focus();
-                    debug("in tab")
-                    var win = currentBrowser.contentWindow.wrappedJSObject
+					debug("in tab")
+					var win = currentBrowser.contentWindow.wrappedJSObject
 					found = true;
 					break;
 				}
 			}
 		}
 		if (!found) {
-            var recent = wm.getMostRecentWindow("navigator:browser")
-            if (recent) {
-                    recent.focus()
-                    browserInstance = recent.getBrowser();
-                    browserInstance.selectedTab = browserInstance.addTab(url)
-                    browserInstance.focus();
-                    var currentBrowser = browserInstance.getBrowserForTab(browserInstance.selectedTab)
-                    var win = currentBrowser.contentWindow.wrappedJSObject
-            }
-            else {
-                var win = winw.getWindowByName(url, null)
-                if (!win) win = winw.openWindow(null, url, url, null, null)
-                win.focus()
-            }
+			var recent = wm.getMostRecentWindow("navigator:browser")
+			if (recent) {
+				recent.focus()
+				browserInstance = recent.getBrowser();
+				browserInstance.selectedTab = browserInstance.addTab(url)
+				browserInstance.focus();
+				var currentBrowser = browserInstance
+						.getBrowserForTab(browserInstance.selectedTab)
+				var win = currentBrowser.contentWindow.wrappedJSObject
+			} else {
+				var win = winw.getWindowByName(url, null)
+				if (!win)
+					win = winw.openWindow(null, url, url, null, null)
+				win.focus()
+			}
 		}
-        return win
+		return win
 
 	} catch (e) {
 		debug(e)
@@ -295,8 +297,8 @@ function openReuseByAttribute(url, attrName) {
 }
 
 var prefs = {
-    branch : branch,
-    service: prefService,
+	branch : branch,
+	service : prefService,
 	get : function(strPref, def) {
 		switch (branch.getPrefType(strPref)) {
 			case branch.PREF_STRING :
