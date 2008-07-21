@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+
+<prefwindow id="mpmPreferences"
+            xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="pane1" label="General">
+    <preferences>
+      <preference id="adapt_interval" name="extensions.mpm.adaptive_interval" type="bool"/>
+      <preference id="interval" name="extensions.mpm.update_interval" type="int"/>
+      <preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
+      <preference id="art" name="extensions.mpm.coverart_override" type="string"/>
+    </preferences>
+     
+    <checkbox id="check1" preference="adapt_interval"
+              label="Use adaptive update interval"/>
+    <textbox id="update" type="number" preference="interval"
+              label="Base update interval (in milliseconds)"/>
+    <checkbox id="check2" preference="sb_cs_hide"
+              label="Hide current song display in statusbar"/>
+    <textbox id="art_override" preference="art" multiline="true" rows="6"
+              label="Cover Art override"/>
+  </prefpane>
+
+  <prefpane id="pane2" label="Menus" src="chrome://minion/content/menus.xul"/>
+  <prefpane id="pane3" label="Servers" src="chrome://minion/content/servers.xul"/>
+</prefwindow>

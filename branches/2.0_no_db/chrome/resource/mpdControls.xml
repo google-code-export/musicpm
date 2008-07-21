@@ -203,13 +203,24 @@
                                     if (s) mpd.doCmd('crossfade '+s)"/>
                         </xul:menupopup>
                     </xul:menu>
+                    <xul:menuitem label="Random" type="checkbox" id="random"
+                                  autocheck="false"
+                                  oncommand="mpd.toggleRandom()"/>
+                    <xul:menuitem label="Repeat" type="checkbox" id="repeat"
+                                  autocheck="false"
+                                  oncommand="mpd.toggleRepeat()"/>
                     <children/>
+                    <xul:menuseparator/>
+                    <xul:menuitem label="Settings"
+                        oncommand="mpm_openDialog('chrome://minion/content/settings.xul', 'settings')"/>
                 </xul:menupopup>
             </xul:toolbarbutton>
         </content>
         <implementation>
             <field name="observer"/>
             <field name="observes">"servers"</field>
+            <field name="random">document.getAnonymousElementByAttribute(this, 'id', 'random')</field>
+            <field name="repeat">document.getAnonymousElementByAttribute(this, 'id', 'repeat')</field>
             <field name="servers_box">document.getAnonymousElementByAttribute(this, 'id', 'servers_box')</field>
             <field name="outputs_box">document.getAnonymousElementByAttribute(this, 'id', 'outputs_box')</field>
             <constructor>
@@ -219,6 +230,22 @@
                 this.toolbarbutton = document.getAnonymousNodes(this)[0]
                 var me = this
                 me.refreshServers()
+                me.random.setAttribute("checked", (mpd.random > 0))
+                me.repeat.setAttribute("checked", (mpd.repeat > 0))
+                this.observerRandom = {
+                    observe: function(subject,topic,data){
+                        me.random.setAttribute("checked", (data > 0))
+                    }
+                };
+                observerService.addObserver(this.observerRandom, "random", false)
+                
+                this.observerRepeat = {
+                    observe: function(subject,topic,data){
+                        me.repeat.setAttribute("checked", (data > 0))
+                    }
+                };
+                observerService.addObserver(this.observerRepeat, "repeat", false)
+                
                 this.observer = {
                     observe: function(subject,topic,data){
                         me.refreshServers(me)
@@ -231,6 +258,8 @@
             <destructor>
                 observerService.removeObserver(this.observer,this.observes)
                 observerService.removeObserver(this.observer,"greeting")
+                observerService.removeObserver(this.observerRandom,"random")
+                observerService.removeObserver(this.observerRepeat,"repeat")
             </destructor>
             <method name="refreshOutputs">
                 <body>

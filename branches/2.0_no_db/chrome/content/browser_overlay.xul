@@ -30,6 +30,7 @@
                 var volbtn = document.getElementById('mpm_sb_volume')
                 var volscl = document.getElementById('mpm_sb_volume_scale')
                 volbtn.addEventListener("DOMMouseScroll", volscl.volScroll, false)
+                volbtn.setAttribute("tooltiptext", "Volume: "+data+"%")
             },
             open: function(url, event) {
                 openUILink(url, event, false, true);
@@ -91,6 +92,12 @@
                 document.getElementById('mpm_sb_currentsong').hidden = hide;
             }
         };
+        var obsVol = {
+            observe: function(sub,topic,data){
+                var vol = document.getElementById('mpm_sb_volume')
+                vol.setAttribute("tooltiptext", "Volume: "+data+"%")
+            }
+        };
         var csPrefObserver = {
             register: function(){
                 this._branch = prefs.branch;
@@ -119,6 +126,7 @@
             }
         };
         observerService.addObserver(obs, 'greeting', false);
+        observerService.addObserver(obsVol, 'volume', false);
         csPrefObserver.register();
         window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
         ]]>
@@ -180,7 +188,8 @@
             <toolbarbutton id="mpm_sb_volume"
                            hidden="true" 
                            type="menu" 
-                           class="mpm_btn_Volume">
+                           class="mpm_btn_Volume"
+                           tooltiptext="Volume">
                 <menupopup>
                     <mpdvolume id="mpm_sb_volume_scale" orient="vertical"/>
                 </menupopup>

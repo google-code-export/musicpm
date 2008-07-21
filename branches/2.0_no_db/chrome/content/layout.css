@@ -38,8 +38,6 @@ treecol {
 .cwd {
 	font-weight: bold;
 	height: 1.5em;
-	padding-top: auto;
-	padding-bottom: auto;
 	overflow: hidden;
 }
 
@@ -92,7 +90,6 @@ treechildren::-moz-tree-cell-text(Artist) {
     -moz-appearance: none;
     -moz-border-radius: 4px;
     border: 1px solid transparent;
-    padding: auto !important;
     margin: 0px;
 }
 #mpm_sb_currentsong {
