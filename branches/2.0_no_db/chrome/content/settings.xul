@@ -1,27 +1,37 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
 
 <prefwindow id="mpmPreferences"
+            title="Music Player Minion Settings"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    
   <prefpane id="pane1" label="General">
     <preferences>
+      <preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
       <preference id="adapt_interval" name="extensions.mpm.adaptive_interval" type="bool"/>
       <preference id="interval" name="extensions.mpm.update_interval" type="int"/>
       <preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
-      <preference id="art" name="extensions.mpm.coverart_override" type="string"/>
+      <preference id="use_custom" name="extensions.mpm.use_custom_art" type="bool"/>
+      <preference id="art_url" name="extensions.mpm.custom_art_url" type="string"/>
+      <preference id="use_amazon" name="extensions.mpm.use_amazon_art" type="bool"/>
     </preferences>
      
-    <checkbox id="check1" preference="adapt_interval"
-              label="Use adaptive update interval"/>
-    <textbox id="update" type="number" preference="interval"
-              label="Base update interval (in milliseconds)"/>
-    <checkbox id="check2" preference="sb_cs_hide"
-              label="Hide current song display in statusbar"/>
-    <textbox id="art_override" preference="art" multiline="true" rows="6"
-              label="Cover Art override"/>
+    <checkbox id="check_theme" preference="theme"
+          label="Use default Firefox theme."/>
+    <checkbox id="check_cs" preference="sb_cs_hide"
+          label="Hide current song display in statusbar"/>
+    <checkbox id="check_adapt" preference="adapt_interval"
+          label="Use adaptive update interval"
+          tooltiptext="This option will cause Minion to update once per second, after the timer has been synchronized with the current song."/>
+    <hbox align="center">
+        <label value="Static update interval (milliseconds)"/>
+        <textbox id="update" type="number" preference="interval" 
+                 maxlength="5" style="max-width: 5em !important"/>
+    </hbox>
+    <checkbox label="Use custom album cover URL:" preference="use_custom"/>
+    <textbox id="art"  preference="art_url" flex="1"/>
+    <checkbox id="amazon" preference="use_amazon"
+          label="Fetch album covers from Amazon.com"/>
   </prefpane>
-
-  <prefpane id="pane2" label="Menus" src="chrome://minion/content/menus.xul"/>
-  <prefpane id="pane3" label="Servers" src="chrome://minion/content/servers.xul"/>
+    
 </prefwindow>

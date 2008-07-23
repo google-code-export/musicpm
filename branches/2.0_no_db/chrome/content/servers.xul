@@ -4,14 +4,14 @@
 
 <dialog id="mpmServers" title="Music Player Minion Servers"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        onload="getPrefs();window.sizeToContent()"
+        onload="getPrefs()"
         buttons="accept,cancel"
         buttonaccesskeyaccept="S"
         ondialogaccept="return doSave();"
         buttonlabelcancel="Cancel"
         buttonaccesskeycancel="n"
         ondialogcancel="return doCancel();"
-        maxheight="400">
+        style="overflow: auto">
     <script>
     <![CDATA[
         Components.utils.import("resource://minion/mpd.js");
@@ -59,7 +59,6 @@
             row.appendChild(t4)
             row.appendChild(btn)
             rows.appendChild(row)
-            window.sizeToContent()
         }
 
         function getPrefs(){
@@ -67,6 +66,7 @@
             for (var i=0;i<mpd.servers.length;i++) {
                 addServerRow(i)
             }
+             window.sizeToContent()
         }
         function doSave(){
             var rows = document.getElementById("server_rows").childNodes
@@ -109,6 +109,6 @@
     </grid>
     <hbox>
         <spacer flex="1"/>
-        <button label="Add Server" oncommand="addServerRow()"/>
+        <button label="Add Server" oncommand="addServerRow(); window.sizeToContent()"/>
     </hbox>
 </dialog>

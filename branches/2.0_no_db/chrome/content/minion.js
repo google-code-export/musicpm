@@ -13,6 +13,33 @@ var observerPlaylistName = {
 };
 
 function init () {
+    document.getElementById("main").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
+    var prefObserver = {
+        register: function(){
+            this._branch = prefs.branch;
+            this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
+            this._branch.addObserver("", this, false);
+        },
+    
+        unregister: function(){
+            if (!this._branch)
+                return;
+            this._branch.removeObserver("", this);
+        },
+    
+        observe: function(aSubject, aTopic, aData){
+            if (aTopic != "nsPref:changed")
+                return;
+            // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
+            // aData is the name of the pref that's been changed (relative to aSubject)
+            switch (aData) {
+                case "use_theme":
+                    document.getElementById("main").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
+                    break;
+            }
+        }
+    };
+    prefObserver.register();
     observerService.addObserver(observerPlaylists,"playlists",false)
     observerService.addObserver(observerPlaylistName,"load_playlist",false)
     if(!mpd._socket) mpd.connect()

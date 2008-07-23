@@ -17,7 +17,19 @@
 //      MA 02110-1301, USA.
 */
 /* Style settings common to all minion pages/windows */
-window, page, toolbar, toolbarbutton, button, scale, textbox, tabbox, tabpanels, tabpanel, tabs, tab, statusbar {
+.mpm_themed window,
+.mpm_themed page,
+.mpm_themed toolbar,
+.mpm_themed toolbarbutton,
+.mpm_themed button,
+.mpm_themed scale,
+.mpm_themed textbox,
+.mpm_themed tabbox,
+.mpm_themed tabpanels,
+.mpm_themed tabpanel,
+.mpm_themed tabs,
+.mpm_themed tab,
+.mpm_themed statusbar {
     font-size: 10pt;
     font-family: Verdana, sans-serif;
     -moz-appearance: none !important;
@@ -26,10 +38,24 @@ window, page, toolbar, toolbarbutton, button, scale, textbox, tabbox, tabpanels,
 	border: none;
 	min-width: 0px;
     }
-tree {
+.mpm_themed #main_content {
+    background-color: black !important;
+}
+.mpm_themed .mpm_browser_image_box {
+	margin-right: 0px !important;
+	padding-right: 0px !important;
+	margin-top: 0px !important;
+	padding-top: 0px !important;
+}
+.mpm_browser_image_box + .mpm_browser > tree, tree {
+	margin-left: 0px !important;
+	padding-left: 0px !important;
+	border-left: none;
+}
+.mpm_themed tree {
     margin: 0px !important;
 }
-toolbarseparator {
+.mpm_themed toolbarseparator {
     border-left: 2px solid black;
     border-right: 2px solid black;
     -moz-border-left-colors: #250205 #510004;
@@ -37,7 +63,7 @@ toolbarseparator {
     background-color: #370003;
 }
 
-splitter{
+.mpm_themed splitter{
     -moz-appearance: none !important;
     width: 6px;
     border: 2px solid black;
@@ -48,13 +74,13 @@ splitter{
     -moz-border-right-colors: #141414 #262626;
     background-color:#2E2E2E;
 }
-hbox > splitter{
+.mpm_themed hbox > splitter{
     width: 6px;
 }
-vbox > splitter{
+.mpm_themed vbox > splitter{
     height: 6px;
 }
-splitter:hover {
+.mpm_themed splitter:hover {
     background-color: #2E0000;
     -moz-border-top-colors: #0D0000 #200000;
     -moz-border-bottom-colors: #0D0000 #200000;
@@ -62,7 +88,7 @@ splitter:hover {
     -moz-border-right-colors: #0D0000 #200000;
 }
 
-textbox {
+.mpm_themed textbox {
 	background-image: none;
     background-color: black !important;
 	color: white;
@@ -77,7 +103,7 @@ textbox {
     -moz-border-right-colors: #1a1a1a #272727 #333333;
 }
 
-toolbar > textbox {
+.mpm_themed toolbar > textbox {
 	background-image: none;
     background-color: #4E0005 !important;
     -moz-border-radius: 3px;
@@ -87,7 +113,7 @@ toolbar > textbox {
     -moz-border-left-colors: #1D0001 #2B0002 #390003;
 }
 
-.scale-thumb {
+.mpm_themed .scale-thumb {
     -moz-appearance: none !important;
     background-image: url("chrome://minion/content/images/thumb.png");
     background-color: transparent !important;
@@ -97,21 +123,21 @@ toolbar > textbox {
     min-width: 11px !important;
     max-width: 11px !important;
 }
-.mpdTimeProgressmeter > .scale-slider {
+.mpm_themed .mpdTimeProgressmeter > .scale-slider {
     -moz-appearance: none !important;
     background-image: url("chrome://minion/content/images/progress.png");
     background-repeat: repeat;
 }
-.mpdVolumeScale {
+.mpm_themed .mpdVolumeScale {
 	min-width: 75px !important;
 }
-.mpdVolumeScale > .scale-slider {
+.mpm_themed .mpdVolumeScale > .scale-slider {
     -moz-appearance: none !important;
 	min-width: 75px !important;
 	max-width: 75px !important;
     background-image: url("chrome://minion/content/images/vol_back_waves.png");
 }
-progressmeter {
+.mpm_themed progressmeter {
     -moz-appearance: none !important;
     background-color: black;
     border: 2px solid transparent;
@@ -120,19 +146,19 @@ progressmeter {
     -moz-border-right-colors: #666666 #303030;
     -moz-border-left-colors: #303030 #151515;
 }
-tree, .mpm_browser_image_box  {
+.mpm_themed tree, .mpm_themed .mpm_browser_image_box  {
     -moz-appearance: none !important;
     background: #232323;
     border: none !important;
     color: white;
 }
 
-.Title {
+.mpm_themed .Title {
     font-weight: bold;
     color: #FBFBC7;
     }
 
-#cur_album_art {
+.mpm_themed #cur_album_art {
     margin: 5px;
     margin-left: 12px;
     padding: 0px;
@@ -140,26 +166,29 @@ tree, .mpm_browser_image_box  {
     height: 70px !important;
     width: 70px !important;
     }
-toolbarbutton, scale {
+.mpm_themed toolbarbutton, .mpm_themed scale {
     background-color: transparent !important;
     border: 1px solid transparent !important;
 }
-toolbarbutton:hover {
+.mpm_themed toolbarbutton:hover {
     background-image: url("chrome://minion/content/images/toolbar-high.png");
     background-repeat: repeat;
     border: 1px solid #BBBBBB;
 }
-toolbarbutton:active {
+.mpm_themed toolbarbutton:active {
     background-image: url("chrome://minion/content/images/toolbar-active.png");
     background-repeat: repeat;
     border: 1px solid black;
 }
-toolbar > toolbarbutton, toolbar > menulist, toolbar > scale {
+.mpm_themed toolbar > toolbarbutton,
+.mpm_themed toolbar > menulist,
+.mpm_themed toolbar > scale {
     background-image: none !important;
     background-color: transparent !important;
     border: 2px solid transparent !important;
 }
-.mpm_btn_Location, tab {
+.mpm_themed .mpm_btn_Location,
+.mpm_themed tab {
     background: #303030;
     color:white;
 	padding: 4px;
@@ -173,7 +202,9 @@ toolbar > toolbarbutton, toolbar > menulist, toolbar > scale {
     -moz-border-left-colors: #1a1a1a #272727 #333333;
     -moz-border-right-colors: #1a1a1a #272727 #333333;
 }
-toolbar > toolbarbutton:hover, .mpm_btn_Location:hover, toolbar > menulist:hover {
+.mpm_themed toolbar > toolbarbutton:hover,
+.mpm_themed .mpm_btn_Location:hover,
+.mpm_themed toolbar > menulist:hover {
     background-image: none;
     background-color: #760008;
     -moz-border-top-colors: #2B0002 #99000A;
@@ -181,7 +212,9 @@ toolbar > toolbarbutton:hover, .mpm_btn_Location:hover, toolbar > menulist:hover
     -moz-border-right-colors: #2B0002 #99000A;
     -moz-border-left-colors: #2B0002 #99000A;
 }
-toolbar > toolbarbutton:active, .mpm_btn_Location:active, toolbar > menulist:active {
+.mpm_themed toolbar > toolbarbutton:active,
+.mpm_themed .mpm_btn_Location:active,
+.mpm_themed toolbar > menulist:active {
     background-image: none;
     background-color: #4E0005;
     -moz-border-top-colors: #1D0001 #390003;
@@ -189,7 +222,10 @@ toolbar > toolbarbutton:active, .mpm_btn_Location:active, toolbar > menulist:act
     -moz-border-right-colors: #1D0001 #390003;
     -moz-border-left-colors: #1D0001 #390003;
 }
-treecol, listheader, treecolpicker, .fake_treecol{
+.mpm_themed treecol,
+.mpm_themed listheader,
+.mpm_themed treecolpicker,
+.mpm_themed .fake_treecol{
     -moz-appearance:none !important;
     background-color:black;
     color:white;
@@ -203,7 +239,7 @@ treecol, listheader, treecolpicker, .fake_treecol{
     -moz-border-top-colors: #333333 #444444 #666666 #555555 #444444 #333333 #151515;
     -moz-border-right-colors:#444444;
 }
-toolbar{
+.mpm_themed toolbar{
     background-image: url("chrome://minion/content/images/toolbar.png");
     background-repeat: repeat-x;
     height: 35px;
@@ -214,7 +250,7 @@ toolbar{
 	margin-bottom: 0px;
 }
 
-.mpm_topToolbar {
+.mpm_themed .mpm_topToolbar {
     background-image: url("chrome://minion/content/images/playback.png");
     background-repeat: repeat-x;
     color:white;
@@ -222,7 +258,7 @@ toolbar{
     border-top: none;
     -moz-border-bottom-colors: #000000 #303030 #555555 #2a2a2a #1a1a1a;
 }
-.mpm_navbar {
+.mpm_themed .mpm_navbar {
     background: #232323;
     color:white;
     border-bottom: 3px solid black;
@@ -232,14 +268,17 @@ toolbar{
     -moz-border-bottom-colors: #000000 #555555 #000000;
     -moz-border-top-colors: #555555 #000000;
 }
-.mpm_navbar > toolbarbutton {
+.mpm_themed .mpm_navbar > toolbarbutton {
     background: #232323;
     border: 3px solid #232323;
     padding: 0px;
     margin: 0px;
 }
 
-.mpm_navbar > toolbarbutton:hover, .mpm_btn_Location:hover, tab:hover, tab[selected=true]{
+.mpm_themed .mpm_navbar > toolbarbutton:hover,
+.mpm_themed .mpm_btn_Location:hover,
+.mpm_themed tab:hover,
+.mpm_themed tab[selected=true]{
     background: #404040;
     color:white;
     border-bottom: 3px solid black;
@@ -252,7 +291,8 @@ toolbar{
     -moz-border-left-colors: #1a1a1a #272727 #333333;
     -moz-border-right-colors: #1a1a1a #272727 #333333;
 }
-.mpm_navbar > toolbarbutton:active, .mpm_btn_Location:active{
+.mpm_themed .mpm_navbar > toolbarbutton:active,
+.mpm_themed .mpm_btn_Location:active{
     background: #151515;
     color:white;
     border-bottom: 3px solid black;
@@ -265,57 +305,57 @@ toolbar{
     -moz-border-left-colors: #303030 #272727 #1a1a1a;
     -moz-border-right-colors: #303030 #272727 #1a1a1a;
 }
-tabbox, tabpanels, tabpanel{
+.mpm_themed tabbox,
+.mpm_themed  tabpanels,
+.mpm_themed tabpanel{
 	padding: 0px !important;
 	margin: 0px !important;
 	border: 0px !important;
 	background-color: black;
 }
 
-tabpanel > box > tree{
+.mpm_themed tabpanel > box > tree{
     padding-top: 5px !important;
 }
 
-.tagsContentLabel, tab[selected=true] {
+.mpm_themed .tagsContentLabel,
+.mpm_themed tab[selected=true] {
 	color: white;
 }
 
-.mpm_browser_image {
+.mpm_themed .mpm_browser_image {
 	margin: 5px;
 	border: 2px solid #303030;
 }
 
-treechildren::-moz-tree-cell-text() {
+.mpm_themed treechildren::-moz-tree-cell-text() {
     color: #EDEDED;
     }
-treechildren::-moz-tree-cell-text(Title) {
+.mpm_themed treechildren::-moz-tree-cell-text(Title) {
     color: white;
     }
-treechildren::-moz-tree-cell-text(Title_file) {
+.mpm_themed treechildren::-moz-tree-cell-text(Title_file) {
     color: #FAFABE;
     }
-treechildren::-moz-tree-cell-text(Title_song) {
+.mpm_themed treechildren::-moz-tree-cell-text(Title_song) {
     color: #FAFABE;
-    }
-treechildren::-moz-tree-cell-text(currentsong) {
-    font-weight: bold;
     }
 
 
-treechildren::-moz-tree-row {
+.mpm_themed treechildren::-moz-tree-row {
   min-height: 20px;
   height: 1.4em;
 }
 
-treechildren::-moz-tree-row(selected) {
+.mpm_themed treechildren::-moz-tree-row(selected) {
   background-color: #210001;
 }
 
-treechildren::-moz-tree-row(selected, focus) {
+.mpm_themed treechildren::-moz-tree-row(selected, focus) {
   background-color: #450004;
 }
 
-treechildren::-moz-tree-row(current, focus) {
+.mpm_themed treechildren::-moz-tree-row(current, focus) {
   border: 1px dotted #6D0505;
 }
 
@@ -325,30 +365,31 @@ treechildren::-moz-tree-row(current, focus) {
 
 
 
-.mpm_browser tree {
+.mpm_themed .mpm_browser tree,
+.mpm_themed .mpm_browser_image_box {
     background-color: #1C1C1C;
 }
 
-.mpm_browser treechildren::-moz-tree-row {
+.mpm_themed .mpm_browser treechildren::-moz-tree-row {
   border-bottom: 1px solid #151515;
   min-height: 20px;
   height: 1.4em;
 }
-.mpm_browser treechildren::-moz-tree-cell {
+.mpm_themed .mpm_browser treechildren::-moz-tree-cell {
   border-right: 1px dotted #444444;
 }
-.mpm_browser treechildren::-moz-tree-row(even) {
+.mpm_themed .mpm_browser treechildren::-moz-tree-row(even) {
   background-color: #303030;
 }
-.mpm_browser treechildren::-moz-tree-row(odd) {
+.mpm_themed .mpm_browser treechildren::-moz-tree-row(odd) {
   background-color: #232323;
 }
-.mpm_browser treechildren::-moz-tree-row(selected) {
+.mpm_themed .mpm_browser treechildren::-moz-tree-row(selected) {
   background-color: #210001;
 }
-.mpm_browser treechildren::-moz-tree-row(selected, focus, even) {
+.mpm_themed .mpm_browser treechildren::-moz-tree-row(selected, focus, even) {
   background-color: #450004;
 }
-.mpm_browser treechildren::-moz-tree-row(selected, focus, odd) {
+.mpm_themed .mpm_browser treechildren::-moz-tree-row(selected, focus, odd) {
   background-color: #330003;
 }

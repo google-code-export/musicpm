@@ -550,7 +550,9 @@
                         <xul:hbox flex="1">
                             <xul:vbox class="mpm_browser_image_box" collapsed="true">
                                 <xul:label class="fake_treecol" value="Album Cover"/>
-                                <xul:image id="image" class="mpm_browser_image"/>
+                                <xul:image id="image" class="mpm_browser_image"
+                                           validat="never"
+                                           ondblclick="openReuseByAttribute(this.src,'mpmCoverArt')"/>
                                 <xul:spacer flex="1"/>
                             </xul:vbox>
                             <xul:box id="browser" class="mpm_browser" flex="1" style="-moz-binding: url('#mpmBrowser')"/>
@@ -642,6 +644,11 @@
                     }
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)
+                
+                me.image.addEventListener("error", function(e){
+                        this.src='chrome://minion/content/images/album_blank.png';
+                        e.preventDefault();
+                    },false)
 				me.goHome()
 
 				]]>
@@ -745,7 +752,7 @@
                                         me.image.src = art
                                         me.image.parentNode.collapsed = false
                                     }
-                                    mpd.getArt(db[0].Artist, db[0].Album, cb)
+                                    mpd.getArt(db[0], cb)
                                 }
                                 else me.image.parentNode.collapsed = true
                             }

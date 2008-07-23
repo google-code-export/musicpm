@@ -292,7 +292,7 @@ function openReuseByAttribute(url, attrName) {
 			browserInstance.focus();
 		}
 	} catch (e) {
-		winw.openWindow(null, url, null, null, null)
+		winw.openWindow(null, url, attrName, null, null)
 	}
 }
 

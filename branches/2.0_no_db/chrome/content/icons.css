@@ -136,15 +136,6 @@ statusbar .mpm_btn_Volume {
 treechildren::-moz-tree-image {
     margin: 0px 5px 0px 1px;
     }
-treechildren::-moz-tree-image(play_currentsong) {
-    list-style-image: url("chrome://minion/content/images/play_small.png");
-    }
-treechildren::-moz-tree-image(pause_currentsong) {
-    list-style-image: url("chrome://minion/content/images/pause_small.png");
-    }
-treechildren::-moz-tree-image(Title_updating) {
-    list-style-image: url("chrome://minion/content/images/rescan_small.png");
-    }
 treechildren::-moz-tree-image(Title_Genre) {
     list-style-image: url("chrome://minion/content/images/unknown.png");
     }
@@ -153,6 +144,9 @@ treechildren::-moz-tree-image(Title_Date) {
     }
 treechildren::-moz-tree-image(Title_file), .mpm_icon_file {
     list-style-image: url("chrome://minion/content/images/song.png");
+    }
+mpdplaylist > tree > treechildren::-moz-tree-image(Title_file){
+    list-style-image: none;
     }
 treechildren::-moz-tree-image(Title_Artist), .mpm_icon_Artist {
     list-style-image: url("chrome://minion/content/images/artist.png");
@@ -177,6 +171,13 @@ treechildren::-moz-tree-image(Title_playlist), .mpm_icon_playlist {
 treechildren::-moz-tree-image(Title_custom), .mpm_icon_ {
     list-style-image: url("chrome://minion/content/images/custom.png");
     }
-mpdplaylist > tree > treechildren::-moz-tree-image(Title_file){
-    list-style-image: none !important;
+
+treechildren::-moz-tree-image(play_currentsong) {
+    list-style-image: url("chrome://minion/content/images/play_small.png") !important;
+    }
+treechildren::-moz-tree-image(pause_currentsong) {
+    list-style-image: url("chrome://minion/content/images/pause_small.png") !important;
+    }
+treechildren::-moz-tree-image(Title_updating) {
+    list-style-image: url("chrome://minion/content/images/rescan_small.png") !important;
     }

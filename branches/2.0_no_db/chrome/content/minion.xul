@@ -15,7 +15,8 @@
 	onload="init()"
     onunload="unload()"
     width="780px"
-    height="550px">
+    height="550px"
+    class="mpm_themed">
     <html:link id="mpm_favicon"
         rel="shortcut icon"
         type="image/x-icon"
@@ -75,7 +76,7 @@
 	        </vbox>
         </hbox>
     </hbox>
-    <hbox flex="1">
+    <hbox id="main_content" flex="1">
         <mpdbrowser id="browse" flex="1" 
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event)"/>
