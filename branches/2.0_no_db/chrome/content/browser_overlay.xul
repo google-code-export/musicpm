@@ -30,7 +30,10 @@
                 var volbtn = document.getElementById('mpm_sb_volume')
                 var volscl = document.getElementById('mpm_sb_volume_scale')
                 volbtn.addEventListener("DOMMouseScroll", volscl.volScroll, false)
-                volbtn.setAttribute("tooltiptext", "Volume: "+data+"%")
+                volbtn.setAttribute("tooltiptext", "Volume: "+mpd.volume+"%")
+                observerService.addObserver(obs, 'greeting', false);
+                observerService.addObserver(obsVol, 'volume', false);
+                csPrefObserver.register();
             },
             open: function(url, event) {
                 openUILink(url, event, false, true);
@@ -125,9 +128,6 @@
                 }
             }
         };
-        observerService.addObserver(obs, 'greeting', false);
-        observerService.addObserver(obsVol, 'volume', false);
-        csPrefObserver.register();
         window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
         ]]>
     </script>

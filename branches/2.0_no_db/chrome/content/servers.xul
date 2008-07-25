@@ -11,6 +11,7 @@
         buttonlabelcancel="Cancel"
         buttonaccesskeycancel="n"
         ondialogcancel="return doCancel();"
+        resizable="true"
         style="overflow: auto">
     <script>
     <![CDATA[

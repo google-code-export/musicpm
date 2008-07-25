@@ -365,7 +365,7 @@
                     flex="3"
                     id="tagsMainTree"
                     style="-moz-binding: url('#mpmList')"
-                    onselect="this.followItem(this.activeItem);this.parentNode.parentNode.loadSub()"/>
+                    onselect="this.parentNode.parentNode.loadSub()"/>
                 <xul:splitter collapse="after"/>
                 <xul:vbox flex="1">
                     <xul:label class="tagsContentLabel" value="Related Items:"/>
@@ -606,8 +606,11 @@
                     if (!Nz(tags.db)) tags.loadMain()
                 }
 
-                tags.treeMain.followItem = function(i){me.followItem(i)}
-                tags.treeSub.followItem = function(i){me.followItem(i)}
+                tags.treeMain.followItem = function(i){debug("treeMain.followItem()");me.followItem(i)}
+                tags.treeSub.followItem = function(i){
+                    var f = tags.treeMain.activeItem
+                    me.followItem(i, f.type, f.name)
+                }
 
 				var heirs = {
 					directory: 'directory',
@@ -645,11 +648,7 @@
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)
                 
-                me.image.addEventListener("error", function(e){
-                        this.src='chrome://minion/content/images/album_blank.png';
-                        e.preventDefault();
-                    },false)
-				me.goHome()
+                me.goHome()
 
 				]]>
             </constructor>
@@ -678,6 +677,8 @@
             </method>
             <method name="followItem">
                 <parameter name="item"/>
+                <parameter name="filterField"/>
+                <parameter name="filterQuery"/>
                 <body>
                     <![CDATA[
                     try {
@@ -695,6 +696,8 @@
                             if (Nz(item.name,"") > "") {
                                 q.type = 'file';
                                 q.scope = item.type;
+                                q.filterField = Nz(filterField)
+                                q.filterQuery = Nz(filterQuery)
                             }
                             break;
                     }
@@ -737,22 +740,22 @@
                     <![CDATA[
                     query = Nz(query)
                     if (query) {
+                        debug(query.type +"\n" + query.query)
                         var browser = this.browser
                         var albumCol = browser.getCol('Album')
                         var me = this
                         query.callBack = function (db) {
                             browser.load(db);
                             me.cwd.value = query.query.split("/").slice(-1)
+                            if (Nz(query.filterField)) me.cwd.value += " ("+query.filterField + ": " + query.filterQuery + ")"
                             me.cwd_icon.className = "mpm_icon_"
                             browser.collapseOne(query.scope)
                             if (query.type == 'file') {
                                 me.cwd_icon.className += query.scope
                                 if (query.scope.toLowerCase()=='album') {
-                                    var cb = function(art){
-                                        me.image.src = art
-                                        me.image.parentNode.collapsed = false
-                                    }
-                                    mpd.getArt(db[0], cb)
+                                    me.image.src = "chrome://minion/content/images/album_loading.png"
+                                    me.image.parentNode.collapsed = false
+                                    mpd.getArt(db[0], me.image)
                                 }
                                 else me.image.parentNode.collapsed = true
                             }

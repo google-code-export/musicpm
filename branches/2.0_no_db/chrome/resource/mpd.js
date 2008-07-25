@@ -31,6 +31,8 @@ function dbQuery(cmd, callBack) {
 	this.scope = null
 	this.query = null
 	this.restrict = null
+    this.filterField = null
+    this.filterQuery = null
 	this.callBack = Nz(callBack)
 	this.dbMatches = null
 }
@@ -168,6 +170,11 @@ dbQuery.prototype.execute = function(callBack) {
 	} else {
 		var chkDupes = (this.dbMatches.length > 1)
 	}
+    
+    if (this.filterField) useCache = false
+    var filterField = this.filterField
+    var filterQuery = this.filterQuery
+    
 	mpd.doCmd(cmd, function(d) {
 		var db = mpd._parseDB(d)
 		if (restrict)
@@ -176,6 +183,9 @@ dbQuery.prototype.execute = function(callBack) {
 			db = dbDistinct(db)
 		if (useCache && db.length > 0)
 			mpd.cachedDB[cmd] = db
+        if (filterField) {
+            db = [x for each  (x in db) if (x[filterField]==filterQuery)]
+        }
 		callBack(db, path)
 	}, false)
 	return true
@@ -370,8 +380,8 @@ mpd._parseDB = function(data) {
 						name : val,
 						Track : '0',
 						Title : val,
-						Artist : 'unknown',
-						Album : 'unknown',
+						Artist : '',
+						Album : '',
 						Time : 0
 					};
 					var d = data[i + 1]
@@ -661,20 +671,20 @@ mpd.getAllDirs = function(callBack) {
 	})
 }
 
-function searchAmazonArt (item, callBack) {
+function getAmazonArt (item, img) {
         var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
                 + encodeURI(item.Artist)
                 + "&title="
                 + encodeURI(item.Album)
                 + "&limit=1"
-
+        var art =  "chrome://minion/content/images/album_blank.png"
+        debug("searching Metabrainz...")
         if (typeof(mpd.cachedArt[search_url]) == 'string') {
-            callBack(mpd.cachedArt[search_url])
+            img.src = mpd.cachedArt[search_url]
         } else {
             var cb = function(data) {
                 try {
                     var asin = ""
-                    var art = "chrome://minion/content/images/album_blank.png"
                     if (data != "") {
                         var s = data.indexOf("<asin>") + 6
                         if (s > 6) {
@@ -690,7 +700,7 @@ function searchAmazonArt (item, callBack) {
                         }
                     }
                     mpd.cachedArt[search_url] = art
-                    callBack(art)
+                    img.src = art
                 } catch (e) {
                     debug(e)
                 }
@@ -699,36 +709,36 @@ function searchAmazonArt (item, callBack) {
         }
 }
 
-mpd.getArt = function(item, callBack) {
+mpd.getArt = function(item, img) {
+    var fallback = function () {
+        debug("fallback")
+        if (prefs.get("use_amazon_art", true)) getAmazonArt(item, img)
+        else img.src = "chrome://minion/content/images/album_blank.png"
+    }
+    img.src = "chrome://minion/content/images/album_loading.png"
+    
 	if (prefs.get("use_custom_art", false)) {
-        callBack("chrome://minion/content/images/album_blank.png")
-        
 		var url = prefs.get("custom_art_url")
 		url = url.replace("{Artist}", encodeURI(Nz(item.Artist, "")))
 		url = url.replace("{Album}", encodeURI(Nz(item.Album, "")))
 		url = url.replace("{Path}", encodeURI(Nz(item.file, "").split("/")[-1]))
-        
+                
         var req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
                     .createInstance(Components.interfaces.nsIXMLHttpRequest);
         req.QueryInterface(Components.interfaces.nsIDOMEventTarget);
         req.onprogress = function (e) {
             req.abort()
-            if (Nz(e.totalSize,0) > 1000) callBack(url)
-            else {
-                if (prefs.get("use_amazon_art", true)) searchAmazonArt(item, callBack)
-                else callBack("chrome://minion/content/images/album_blank.png")
-            }
+            debug("downloading image")
+            img.src = url
         }
-        req.onerror = function (e) {
-            debug("File not found: "+url)
-            if (prefs.get("use_amazon_art", true)) searchAmazonArt(item, callBack)
-            else callBack("chrome://minion/content/images/album_blank.png")
-        }
+        req.onerror = fallback
         req.overrideMimeType('text/plain; charset=x-user-defined');
+        debug(url)
         req.open("GET", url, true);
-        req.send("");
+        debug("requset sent")
+        try { req.send(""); } catch (e) { debug("image load error");fallback() }
 	} else {
-        if (prefs.get("use_amazon_art", true)) searchAmazonArt(item, callBack)
+        fallback()
 	}
 }
 

@@ -210,7 +210,7 @@ function fetch(url, callBack, arg) {
 
 function mpm_openDialog(url, id) {
 	var win = winw.openWindow(winw.activeWindow, url, Nz(id, url),
-			"chrome,centerscreen,dialog", null);
+			"chrome,dialog=yes,resizable=yes", null);
 }
 
 function openReuseByURL(url) {

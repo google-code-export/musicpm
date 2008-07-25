@@ -8,8 +8,11 @@ toolbar, statusbar, label {
 }
 
 .mpm_browser_image {
+    min-width: 132px;
+    min-height: 132px;
     max-width: 132px;
     max-height: 132px;
+    padding: auto;
 }
 mpdalbumcover > image{
     margin: 5px 10px 3px 10px;

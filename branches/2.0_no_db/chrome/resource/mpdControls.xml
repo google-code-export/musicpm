@@ -58,7 +58,7 @@
                 this.observer = {
                     observe: function(subject,topic,data){
                         data = mpd.currentsong
-                        mpd.getArt(mpd.currentsong, function(art){debug(art);me.child.setAttribute("src",art)})
+                        mpd.getArt(mpd.currentsong, me.child)
                     }
                 };
                 this.observer.observe()
