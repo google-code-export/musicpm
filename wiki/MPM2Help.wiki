@@ -8,7 +8,7 @@ This page  is to provide an explanation of the configuration options in Music Pl
 
 = Album Cover Art =
 
-In the Settings window, you may enter a custom location for album cover art if you enter a properly formatted URI and check of the "Use custom album cover URL" option.  If you do not uncheck the "Fetch album covers from Amazon.com option, it will use this method if the custom URL fails.  
+In the Settings window, you may enter a custom location for album cover art if you enter a properly formatted URI and check off the "Use custom album cover URL" option.  If the "Fetch album covers from Amazon.com" option is checked also, it will use that method if the custom URL fails.  
 
 You are provide with three variables you may use in the URL:
 
