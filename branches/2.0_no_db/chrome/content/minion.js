@@ -72,6 +72,8 @@ function loadCurrentAlbum() {
     q.type = "file"
     q.scope = "Album"
     q.query = mpd.Album
+    q.filterField = "Artist"
+    q.filterQuery = mpd.Artist
     document.getElementById("browse").goTo(q)
 }
 function refreshPlaylists () {

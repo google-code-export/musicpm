@@ -55,6 +55,10 @@ function handleMenuCommand(self, item, location) {
 		if (!criteria && item.type == self.queryScope)
 			criteria = item.Title
 		q.query = criteria
+        if (self.filterField) {
+            q.filterField = self.filterField
+            q.filterQuery = item[self.filterField]
+        }
 		ensureQuery(q)
 	}
 	if (self.mpdCommand) {

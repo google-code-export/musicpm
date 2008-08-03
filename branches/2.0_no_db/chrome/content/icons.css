@@ -121,6 +121,9 @@ statusbar .mpm_btn_Volume {
 .mpm_btn_Update {
     list-style-image: url('chrome://minion/content/images/rescan.png')
     }
+.mpm_icon_Search  {
+    list-style-image: url('chrome://minion/content/images/search.png')
+    }
 .mpdObserver_repeat {
     list-style-image: url('chrome://minion/content/images/repeat.png')
 }

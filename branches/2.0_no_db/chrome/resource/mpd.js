@@ -379,7 +379,7 @@ mpd._parseDB = function(data) {
 						file : val,
 						name : val,
 						Track : '0',
-						Title : val,
+						Title : null,
 						Artist : '',
 						Album : '',
 						Time : 0
@@ -391,6 +391,7 @@ mpd._parseDB = function(data) {
 						--n;
 						var d = data[dl - n + 1]
 					};
+                    if (!song.Title) song.Title = val.split("/").pop()
 					db.push(song);
 				} else {
 					if (fld == 'directory') {
@@ -681,6 +682,7 @@ function getAmazonArt (item, img) {
         debug("searching Metabrainz...")
         if (typeof(mpd.cachedArt[search_url]) == 'string') {
             img.src = mpd.cachedArt[search_url]
+            img.setAttribute("tooltiptext",mpd.cachedArt[search_url])
         } else {
             var cb = function(data) {
                 try {
@@ -701,6 +703,7 @@ function getAmazonArt (item, img) {
                     }
                     mpd.cachedArt[search_url] = art
                     img.src = art
+                    img.setAttribute("tooltiptext",art)
                 } catch (e) {
                     debug(e)
                 }
@@ -710,12 +713,21 @@ function getAmazonArt (item, img) {
 }
 
 mpd.getArt = function(item, img) {
+    if (!(Nz(item.Artist) && Nz(item.Album)))  {
+        img.src = "chrome://minion/content/images/album_blank.png"
+        img.removeAttribute("tooltiptext")
+        return null
+    }
     var fallback = function () {
         debug("fallback")
         if (prefs.get("use_amazon_art", true)) getAmazonArt(item, img)
-        else img.src = "chrome://minion/content/images/album_blank.png"
+        else {
+            img.src = "chrome://minion/content/images/album_blank.png"
+            img.removeAttribute("tooltiptext")
+        }
     }
     img.src = "chrome://minion/content/images/album_loading.png"
+    img.setAttribute("tooltiptext","loading")
     
 	if (prefs.get("use_custom_art", false)) {
 		var url = prefs.get("custom_art_url")
@@ -728,18 +740,50 @@ mpd.getArt = function(item, img) {
         req.QueryInterface(Components.interfaces.nsIDOMEventTarget);
         req.onprogress = function (e) {
             req.abort()
-            debug("downloading image")
             img.src = url
+            img.setAttribute("tooltiptext",url)
         }
         req.onerror = fallback
         req.overrideMimeType('text/plain; charset=x-user-defined');
         debug(url)
         req.open("GET", url, true);
-        debug("requset sent")
         try { req.send(""); } catch (e) { debug("image load error");fallback() }
 	} else {
         fallback()
 	}
+}
+
+mpd.getLyrics = function (item, txtLyrics, btnEdit) {
+    if (!Nz(item.Artist)) {
+        txtLyrics.value = "No Lyrics Found."
+        btnEdit.edit_link = "http://lyricsfly.com/submit/"
+        return null
+    }
+    var cb = function(data) {
+        var lyrics = "No Lyrics Found."
+        try {
+            var tx = data.getElementsByTagName("tx")
+            if (Nz(tx[0])) {
+                var lyrics = tx[0].textContent.replace(/\[br\]/g,"")
+                var cs = data.getElementsByTagName("cs")
+                var id = data.getElementsByTagName("id")
+                if (Nz(cs[0]) && Nz(id[0]) && Nz(btnEdit)) {
+                    var ed = "http://lyricsfly.com/search/correction.php?[CHECKSUM]&id=[SONG ID]"
+                    ed = ed.replace("[CHECKSUM]", cs[0].textContent)
+                    ed = ed.replace("[SONG ID]", id[0].textContent)
+                    btnEdit.edit_link = ed
+                }
+            }
+        }
+        catch (e) {debug(e)}
+        finally { txtLyrics.value = lyrics }
+    }
+    var url = "http://lyricsfly.com/api/api.php?i=e6e1348b4418226e5-temporary.API.access&a={Artist}&t={Title}"
+    url = url.replace("{Artist}", encodeURI(Nz(item.Artist)))
+    url = url.replace("{Title}", encodeURI(Nz(item.Title)))
+    txtLyrics.value = "Searching for lyrics on LyricsFly.com..."
+    btnEdit.edit_link = "http://lyricsfly.com/submit/"
+    fetch(url, cb, null, true)
 }
 
 mpd.getOutputs = function(callBack) {

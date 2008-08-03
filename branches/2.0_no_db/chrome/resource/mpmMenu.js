@@ -14,6 +14,7 @@ function loadDefaults () {
             URL : null,
             queryType : null,
             queryScope : null,
+            filterField: null,
             mpdCommand : null,
             script : 'var w=window.open("chrome://minion/content/minion.xul","chrome://minion/content/minion.xul","chrome");w.focus()'
         }, {
@@ -24,6 +25,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : null,
 		    script : "prefs.set (\n    'sb_currentsong_hide',\n    !prefs.get('sb_currentsong_hide')\n);"
 		}, {
@@ -34,6 +36,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : null,
 		    script : "mpdbrowser.addSelected()"
 		}, {
@@ -44,6 +47,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : "clear",
 		    script : "mpdbrowser.addSelected()"
 		}, {
@@ -54,6 +58,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : null,
 		    script : "mpdbrowser.doUpdate()"
 		}, "separator", {
@@ -64,6 +69,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : "clear; load {Title}",
 		    script : null
 		}, {
@@ -74,6 +80,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : "load {Title}",
 		    script : null
 		}, {
@@ -84,6 +91,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : "rm {Title}",
 		    script : null
 		}, {
@@ -94,6 +102,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : null,
 		    script : "var name = prompt(\"Please enter a new name:\", item.Title);\nif (name) mpd.doCmd(\"rename \"+Sz(item.Title)+\" \"+Sz(name))"
 		}, "separator", {
@@ -104,6 +113,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : null,
 		    script : "mpdplaylist.delete()"
 		}, {
@@ -114,6 +124,7 @@ function loadDefaults () {
             URL : null,
             queryType : null,
             queryScope : null,
+            filterField: null,
             mpdCommand : null,
             script : 'var val = prompt("Please enter a URL to add to the playlist.", "http://")\n'+
 			    'if (val != null) {\n'+
@@ -131,6 +142,7 @@ function loadDefaults () {
 		    URL : "http://www.google.com/search?q={Artist}+{Title}",
 		    queryType : null,
 		    queryScope : null,
+            filterField: null,
 		    mpdCommand : null,
 		    script : null
 		}, {
@@ -141,6 +153,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : "file",
 		    queryScope : "Album",
+            filterField: null,
 		    mpdCommand : null,
 		    script : null
 		}, {
@@ -151,6 +164,7 @@ function loadDefaults () {
 		    URL : null,
 		    queryType : "Album",
 		    queryScope : "Artist",
+            filterField: null,
 		    mpdCommand : null,
 		    script : null
 		}
@@ -163,6 +177,21 @@ function loadMenuItems () {
     if (file.exists()) {
         var str = FileIO.read(file)
         mpmMenu.items = eval(str)
+        
+        // Handles conversion for < 1.99.4 alpha clients
+        var needsUpdate = false
+        for (var i=0;i<mpmMenu.items.length;i++) {
+            var item = mpmMenu.items[i]
+            if (typeof(item.filterField == 'undefined')) {
+                item.filterField = null
+                if (item.id == "mpm_menu_viewAlbum") item.filterField = 'Artist'
+                needsUpdate = true
+            }
+        }
+        if (needsUpdate) {
+            var str = mpmMenu.items.toSource()
+            FileIO.write(file, str)            
+        }
     }
     else {
         debug("Creating default menus.")
@@ -201,6 +230,7 @@ function mpmMenuItem (label, id) {
     this.URL = null
     this.queryType = null
     this.queryScope = null
+    this.filterField = null
     this.mpdCommand = null
     this.script = null
 }

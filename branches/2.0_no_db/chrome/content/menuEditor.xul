@@ -73,7 +73,7 @@
             }
             var item = mpmMenu.items[e.value]
             rows = ["label","targets","locations","URL","queryType",
-                "queryScope", "mpdCommand", "script"]
+                "queryScope", "filterField", "mpdCommand", "script"]
             for each (val in rows) {
                 var row = document.getElementById('menuItem_'+val)
                 if (row) {
@@ -171,7 +171,7 @@
                     <textbox/>
                 </row>
                 <row id="menuItem_targets">
-                    <label value="Retrict Item Types:" class="gridlabel"/>
+                    <label value="Restrict Item Types:" class="gridlabel"/>
                     <textbox/>
                 </row>
                 <row id="menuItem_locations">
@@ -199,6 +199,20 @@
                 </row>
                 <row id="menuItem_queryScope">
                     <label value="(Query) With the same:" class="gridlabel"/>
+                    <menulist>
+                        <menupopup>
+                            <menuitem label=""/>
+                            <menuitem label="Album" value="Album"/>
+                            <menuitem label="Artist" value="Artist"/>
+                            <menuitem label="Composer" value="Composer"/>
+                            <menuitem label="Date" value="Date"/>
+                            <menuitem label="Genre" value="Genre"/>
+                            <menuitem label="Performer" value="Performer"/>
+                        </menupopup>
+                    </menulist>
+                </row>
+                <row id="menuItem_filterField">
+                    <label value="(Query) And with the same:" class="gridlabel"/>
                     <menulist>
                         <menupopup>
                             <menuitem label=""/>

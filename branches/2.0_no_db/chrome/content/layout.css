@@ -1,7 +1,3 @@
-toolbar, statusbar, label {
-    overflow: hidden;
-}
-
 .mpm_topToolbar {
     padding-left: 5px;
     padding-right: 5px;
@@ -28,14 +24,6 @@ mpdtime {
 	-moz-box-align: center;
 }
 
-textbox {
-	min-width: 50px !important;
-	width: 10em;
-}
-
-treecol {
-	min-width: 0px !important;
-}
 
 .tagsContentLabel {
 	text-align: center;

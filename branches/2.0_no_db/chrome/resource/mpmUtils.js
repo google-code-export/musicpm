@@ -182,7 +182,7 @@ function copyArray(oldArray) {
 		return oldArray
 }
 
-function fetch(url, callBack, arg) {
+function fetch(url, callBack, arg, getXML) {
 	try {
 		var request = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
 				.createInstance();
@@ -193,7 +193,11 @@ function fetch(url, callBack, arg) {
 		request.onreadystatechange = function() {
 			if (request.readyState == 4) {
 				if (request.status == 200) {
-					callBack(request.responseText, arg)
+					if (Nz(getXML)) {
+                        callBack(request.responseXML, arg)
+                    } else {   
+                        callBack(request.responseText, arg)
+                    }
 					request.onreadystatechange = null
 					request = null
 				} else {

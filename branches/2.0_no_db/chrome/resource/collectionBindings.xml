@@ -452,14 +452,7 @@
                 <xul:toolbar align="center">
                     <xul:toolbarbutton tooltiptext="Update Database"
                         class="mpm_btn_Update"
-                        type="menu">
-                        <xul:menupopup>
-                            <xul:menuitem label="Update All"
-                                oncommand="mpd.doCmd('update')"/>
-                            <xul:menuitem label="Update this Folder" 
-                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.doUpdate()"/>
-                        </xul:menupopup>
-                    </xul:toolbarbutton>
+                        oncommand="mpd.doCmd('update')"/>
                     <xul:toolbarbutton label="All"
                         class="mpm_btn_AddAll"
                         oncommand="this.parentNode.parentNode.parentNode.browser.addAll()"/>
@@ -501,64 +494,78 @@
 						timeout="200"
 						oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
                 </xul:toolbar>
-                <xul:hbox flex="1">
-                    <xul:tabbox width="200px"
-                        id="mpmTagsTabbox"
-                        persist="selectedTab selectedItem selectedPanel">
-                        <xul:tabs>
-                            <xul:tab label="Folders" flex="1"/>
-                            <xul:tab label="Playlists" id="playlist_tab" flex="1"/>
-                            <xul:tab label="Tags" id="tags_tab" flex="1"/>
-                        </xul:tabs>
-                        <xul:tabpanels flex="1">
-                            <xul:tabpanel flex="1">
-                                <xul:box id="folders"
-                                    flex="1"
-                                    minwidth="100px"
-                                    style="-moz-binding: url('#mpmFoldersPane')"/>
-                            </xul:tabpanel>
-                            <xul:tabpanel flex="1">
-                                <xul:box id="playlists"
-                                    flex="1"
-                                    minwidth="100px"
-                                    style="-moz-binding: url('#mpmList')"/>
-                            </xul:tabpanel>
-                            <xul:tabpanel flex="1">
-                                <xul:box id="tags"
-                                    flex="1"
-                                    minwidth="100px"
-                                    style="-moz-binding: url('#mpmTagsPane')"/>
-                            </xul:tabpanel>
-                        </xul:tabpanels>
-                    </xul:tabbox>
-                    <xul:splitter collapse="before"/>
-                    <xul:vbox flex="1">
+                <xul:deck id="mpm_browser_deck" flex="1">
+                    <xul:hbox flex="1">
+                        <xul:tabbox width="200px"
+                            id="mpmTagsTabbox"
+                            persist="selectedTab selectedItem selectedPanel">
+                            <xul:tabs>
+                                <xul:tab label="Folders" flex="1"/>
+                                <xul:tab label="Playlists" id="playlist_tab" flex="1"/>
+                                <xul:tab label="Tags" id="tags_tab" flex="1"/>
+                            </xul:tabs>
+                            <xul:tabpanels flex="1">
+                                <xul:tabpanel flex="1">
+                                    <xul:box id="folders"
+                                        flex="1"
+                                        minwidth="100px"
+                                        style="-moz-binding: url('#mpmFoldersPane')"/>
+                                </xul:tabpanel>
+                                <xul:tabpanel flex="1">
+                                    <xul:box id="playlists"
+                                        flex="1"
+                                        minwidth="100px"
+                                        style="-moz-binding: url('#mpmList')"/>
+                                </xul:tabpanel>
+                                <xul:tabpanel flex="1">
+                                    <xul:box id="tags"
+                                        flex="1"
+                                        minwidth="100px"
+                                        style="-moz-binding: url('#mpmTagsPane')"/>
+                                </xul:tabpanel>
+                            </xul:tabpanels>
+                        </xul:tabbox>
+                        <xul:splitter collapse="before"/>
+                        <xul:vbox flex="1" style="overflow:hidden">
+                            <xul:toolbar class="mpm_navbar" align="center">
+                                <xul:toolbarbutton class="mpm_btn_Back"
+                                    tooltiptext="Back"
+                                    oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.goBack()"/>
+                                <xul:toolbarbutton class="mpm_btn_Forward"
+                                    tooltiptext="Forward"
+                                    oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.goForward()"/>
+                                <xul:toolbarbutton class="mpm_btn_Home"
+                                    tooltiptext="Home"
+                                    oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.goHome()"/>
+                                <xul:toolbarseparator/>
+                                <xul:image id="cwd_icon"/>
+                                <xul:label id="cwd" class="cwd" crop="start" flex="1"/>
+                            </xul:toolbar>
+                            <xul:hbox flex="1" id="mpm_browser_browser" style="overflow:auto">
+                                <xul:vbox class="mpm_browser_image_box" collapsed="true">
+                                    <xul:label class="fake_treecol" value="Album Cover"/>
+                                    <xul:image id="image" class="mpm_browser_image"
+                                               validat="never"
+                                               ondblclick="this.className=(this.className=='mpm_browser_image') ? '' : 'mpm_browser_image'"/>
+                                    <xul:spacer flex="1"/>
+                                </xul:vbox>
+                                <xul:box id="browser" class="mpm_browser" flex="1" 
+                                         style="-moz-binding: url('#mpmBrowser')"/>
+                            </xul:hbox>
+                        </xul:vbox>
+                    </xul:hbox>
+                    <xul:vbox>
                         <xul:toolbar class="mpm_navbar" align="center">
                             <xul:toolbarbutton class="mpm_btn_Back"
-                                tooltiptext="Back"
-                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.goBack()"/>
-                            <xul:toolbarbutton class="mpm_btn_Forward"
-                                tooltiptext="Forward"
-                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.goForward()"/>
-                            <xul:toolbarbutton class="mpm_btn_Home"
-                                tooltiptext="Home"
-                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.goHome()"/>
+                                tooltiptext="Back to Music Collection"
+                                oncommand="this.parentNode.parentNode.parentNode.selectedIndex=0"/>
                             <xul:toolbarseparator/>
-                            <xul:image id="cwd_icon"/>
-                            <xul:label id="cwd" class="cwd" crop="start" flex="1"/>
+                            <xul:image class="mpm_icon_file"/>
+                            <xul:label id="file_details" class="cwd" crop="start" flex="1"/>
                         </xul:toolbar>
-                        <xul:hbox flex="1">
-                            <xul:vbox class="mpm_browser_image_box" collapsed="true">
-                                <xul:label class="fake_treecol" value="Album Cover"/>
-                                <xul:image id="image" class="mpm_browser_image"
-                                           validat="never"
-                                           ondblclick="openReuseByAttribute(this.src,'mpmCoverArt')"/>
-                                <xul:spacer flex="1"/>
-                            </xul:vbox>
-                            <xul:box id="browser" class="mpm_browser" flex="1" style="-moz-binding: url('#mpmBrowser')"/>
-                        </xul:hbox>
+                        <xul:browser id="mpm_browser_content" style="overflow:auto" flex="1"/>
                     </xul:vbox>
-                </xul:hbox>
+                </xul:deck>
         	</xul:vbox>
         </content>
         <implementation>
@@ -568,8 +575,11 @@
 			<field name="historyIndex">0</field>
 			<field name="obsCurSong"/>
             <field name="browser">document.getAnonymousElementByAttribute(this, 'id', 'browser')</field>
+            <field name="deck">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_deck')</field>
+            <field name="content">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_content')</field>
             <field name="image">document.getAnonymousElementByAttribute(this, 'id', 'image')</field>
             <field name="cwd">document.getAnonymousElementByAttribute(this, 'id', 'cwd')</field>
+            <field name="fileDetails">document.getAnonymousElementByAttribute(this, 'id', 'file_details')</field>
             <field name="cwd_icon">document.getAnonymousElementByAttribute(this, 'id', 'cwd_icon')</field>
             <field name="folders">document.getAnonymousElementByAttribute(this, 'id', 'folders')</field>
             <field name="playlists">document.getAnonymousElementByAttribute(this, 'id', 'playlists')</field>
@@ -581,7 +591,10 @@
 				<![CDATA[
                 Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
-                var me = this
+                Components.utils.import("resource://minion/trees.js");
+                var url = prefs.get("song_template", "chrome://minion/content/default_song_template.xul")
+                this.content.setAttribute("src", url);
+                var me = this 
                 var browser = this.browser
                 var folders = this.folders
                 var playlists = this.playlists
@@ -686,8 +699,9 @@
                     q.type = item.type
                     switch (item.type) {
                         case 'file':
-                            if (Nz(item.Pos)) mpd.doCmd("play "+item.Pos);
-                            else mpd.addToPlaylist([item]);
+                            this.content.contentWindow.load(item);
+                            this.fileDetails.value = item.file;
+                            this.deck.selectedIndex =1;
                             return null;
                             break;
                         case 'directory': break;
@@ -740,6 +754,7 @@
                     <![CDATA[
                     query = Nz(query)
                     if (query) {
+                        this.deck.selectedIndex = 0
                         debug(query.type +"\n" + query.query)
                         var browser = this.browser
                         var albumCol = browser.getCol('Album')

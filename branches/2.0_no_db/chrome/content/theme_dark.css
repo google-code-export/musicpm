@@ -17,7 +17,19 @@
 //      MA 02110-1301, USA.
 */
 /* Style settings common to all minion pages/windows */
-.mpm_themed window,
+
+textbox {
+	min-width: 50px !important;
+	width: 10em;
+}
+treecol {
+	min-width: 0px !important;
+}
+toolbar, statusbar, label {
+    overflow: hidden;
+}
+    
+.mpm_themed,
 .mpm_themed page,
 .mpm_themed toolbar,
 .mpm_themed toolbarbutton,
@@ -366,7 +378,8 @@
 
 
 .mpm_themed .mpm_browser tree,
-.mpm_themed .mpm_browser_image_box {
+.mpm_themed .mpm_browser_image_box,
+.mpm_themed .styledbox{
     background-color: #1C1C1C;
 }
 
