@@ -4,6 +4,8 @@
 == Introduction ==
 Welcome to the Music Player Minion help page.  This page is a work in progress.  If you don't see what you are looking for yet, please feel free to post your question in the comments section at the bottom of this page in at [http://groups.google.com/group/music-player-minion]
 
+If you are not already familiar with Music Player Daemon, please read this page: MusicPlayerDaemon
+
 *This page will always refer to the most recent version available.*
 
 ----
