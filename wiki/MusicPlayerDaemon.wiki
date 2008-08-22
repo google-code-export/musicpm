@@ -41,7 +41,7 @@ To configure mpd, you'll need to edit a text file.  This file will be in differe
 
 Any line that starts with a # is a comment and is ignored by mpd.  Reading the lines starting with # should provide you with all you need to know to configure mpd.
 
-The most important line to change is {{{music_directory}}}.  You may want to change it a location in your home directory, which is /home/_YourUsername_
+The most important line to change is {{{music_directory}}}.  You may want to change it a location in your home directory, which is /home/_Username_
 
 To connect to the mpd server from another computer, you'll also need to change the bind_to_address option to "any".
 
