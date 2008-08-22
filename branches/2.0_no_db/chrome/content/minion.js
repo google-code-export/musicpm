@@ -20,13 +20,13 @@ function init () {
             this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
             this._branch.addObserver("", this, false);
         },
-    
+
         unregister: function(){
             if (!this._branch)
                 return;
             this._branch.removeObserver("", this);
         },
-    
+
         observe: function(aSubject, aTopic, aData){
             if (aTopic != "nsPref:changed")
                 return;
@@ -51,7 +51,7 @@ function init () {
 
 function unload () {
     observerService.removeObserver(observerPlaylists,"playlists")
-    observerService.removeObserver(observerPlaylistName,"load_playlist")    
+    observerService.removeObserver(observerPlaylistName,"load_playlist")
 }
 
 function setFavicon (url) {
@@ -129,7 +129,7 @@ function savePlaylist () {
 }
 
 function savedPlaylists_context () {
-    var lists = document.getElementById("savedPlaylists") 
+    var lists = document.getElementById("savedPlaylists")
     var item = {
         type: 'playlist',
         name: lists.view.getCellText(lists.currentIndex, lists.columns[0])

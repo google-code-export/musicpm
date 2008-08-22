@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/theme_dark.css" type="text/css"?>
+<?xul-overlay href="chrome://minion/content/menus.xul"?>
+
+<window
+    id="song"
+    title="Song Detail"
+    orient="vertical"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    flex="1"
+    style="overflow: auto">
+
+    <script>
+    <![CDATA[
+        Components.utils.import("resource://minion/mpmUtils.js");
+        Components.utils.import("resource://minion/mpd.js");
+        var item = null
+        var win = null
+        var cycles = 0
+
+        function load (objItem) {
+            document.getElementById("song").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
+            var tags = ['Title', 'Artist', 'Album', 'Date', 'Genre',
+                'Composer', 'Performer', 'directory', 'length']
+            item = objItem
+            item.directory = item.name.replace(/\/[^\/]+$/,"")
+            item.length = prettyTime(item.Time)
+            for (var i=0;i<tags.length;i++) {
+                var tag = tags[i]
+                var val = Nz(item[tag], "")
+                if (val > "") {
+                    document.getElementById(tag+"_label").value = val
+                    document.getElementById(tag+"_row").collapsed = false
+                } else {
+                    document.getElementById(tag+"_row").collapsed = true
+                }
+            }
+            var ib = document.getElementById("image-box")
+            ib.setAttribute("width",ib.boxObject.height)
+            mpd.getArt(item, document.getElementById("cover"))
+            mpd.getLyrics(item,
+                document.getElementById("lyrics"),
+                document.getElementById("lyricsButton")
+            )
+        }
+
+        function browseTo (type) {
+            var thing = {type: type, name: item[type], Title: item[type]}
+            if (type == 'Album') {
+                followItem(thing, "Artist", item.Artist)
+            } else {
+                followItem(thing, null, null)
+            }
+        }
+
+        function playItem () {
+            if (Nz(item.Pos, -1) < 0) {
+                item.Pos = Nz(mpd.playlistlength, 0)
+                mpd.addToPlaylist(item)
+            }
+            mpd.doCmd("play "+item.Pos)
+        }
+
+        function loadLFTags () {
+            try {
+                var doc = win.document.wrappedJSObject
+                doc.getElementById("title").value = item.Title
+                doc.getElementById("artist").value = item.Artist
+                doc.getElementById("album").value = item.Album
+            }
+            catch (e) {
+                cycles++
+                if (cycles < 100) {
+                    window.setTimeout("loadLFTags()",100)
+                }
+                else debug(e)
+            }
+        }
+
+        function editLyrics (link) {
+            win = window.open(link)
+            if (link == "http://lyricsfly.com/submit/") {
+                cycles = 0
+                window.setTimeout("loadLFTags()",100)
+            }
+        }
+    ]]>
+    </script>
+    <hbox>
+        <hbox id="image-box" align="center" pack="center">
+            <spacer flex="1"/>
+            <vbox>
+                <spacer flex="1"/>
+                <image id="cover" class="mpm_browser_image"
+                    validate="never"
+                    ondblclick="this.className=(this.className=='mpm_browser_image') ? '' : 'mpm_browser_image'"/>
+                <spacer flex="1"/>
+            </vbox>
+            <spacer flex="1"/>
+        </hbox>
+        <grid id="props">
+            <columns>
+                <column style="font-wieght:bold"/>
+                <column flex="1"/>
+                <column/>
+            </columns>
+            <rows>
+                <row id="Title_row">
+                    <label style="font-wieght:bold" value="Title:"/>
+                    <label id="Title_label"/>
+                    <toolbarbutton class="mpm_icon_play" oncommand="playItem()"/>
+                </row>
+                <row id="length_row">
+                    <label style="font-wieght:bold" value="Length:"/>
+                    <label id="length_label"/>
+                    <toolbarbutton class="mpm_icon_play" oncommand="playItem()"/>
+                </row>
+                <row id="Album_row">
+                    <label style="font-wieght:bold" value="Album:"/>
+                    <label id="Album_label"/>
+                    <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Album')"/>
+                </row>
+                <row id="Artist_row">
+                    <label style="font-wieght:bold" value="Artist:"/>
+                    <label id="Artist_label"/>
+                    <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Artist')"/>
+                </row>
+                <row id="Composer_row">
+                    <label style="font-wieght:bold" value="Composer:"/>
+                    <label id="Composer_label"/>
+                    <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Composer')"/>
+                </row>
+                <row id="Performer_row">
+                    <label style="font-wieght:bold" value="Performer:"/>
+                    <label id="Performer_label"/>
+                    <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Performer')"/>
+                </row>
+                <row id="Date_row">
+                    <label style="font-wieght:bold" value="Date:"/>
+                    <label id="Date_label"/>
+                    <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Date')"/>
+                </row>
+                <row id="Genre_row">
+                    <label style="font-wieght:bold" value="Genre:"/>
+                    <label id="Genre_label"/>
+                    <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Genre')"/>
+                </row>
+                <row id="directory_row">
+                    <label style="font-wieght:bold" value="In Folder:"/>
+                    <label id="directory_label"/>
+                    <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('directory')"/>
+                </row>
+            </rows>
+        </grid>
+    </hbox>
+    <hbox>
+        <label value="Lyrics from Lyricsfly.com" style="font-weight: bold"/>
+        <spacer flex="1"/>
+        <toolbarbutton id="lyricsButton" label="Edit"
+            oncommand="editLyrics(this.edit_link)"/>
+    </hbox>
+    <textbox id="lyrics" flex="1" multiline="true" readonly="true"/>
+
+</window>

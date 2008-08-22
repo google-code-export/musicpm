@@ -8,21 +8,20 @@
 
 <window
     id="main"
-    title="Music Player Minion"
+    title="Music Player Minion 1.99.6"
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
-	onload="init()"
+    onload="init()"
     onunload="unload()"
     width="780px"
-    height="550px"
-    class="mpm_themed">
+    height="550px">
     <html:link id="mpm_favicon"
         rel="shortcut icon"
         type="image/x-icon"
         href="chrome://minion/content/images/album_blank.png"/>
     <script src="chrome://minion/content/minion.js"/>
-    
+
     <popupset>
         <menupopup id="mpmMenu"/>
         <tooltip id="mpm_last_command">
@@ -30,7 +29,7 @@
             <mpdlabel observes="last_command"/>
         </tooltip>
     </popupset>
-    
+
     <hbox class="mpm_topToolbar" pack="center" align="center">
         <vbox pack="center" align="center">
             <mpdcontrols hidestop="false"/>
@@ -45,7 +44,7 @@
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event, 'currentsong', mpd.currentsong)">
             <mpdalbumcover onclick="loadCurrentAlbum()"/>
-	        <vbox flex="1">
+            <vbox flex="1">
                 <spacer flex="1" ordinal="1"/>
                 <mpdlabel id="curTitle"
                     value="Title"
@@ -57,27 +56,27 @@
                     <label id="preAlbum"
                         value="from"
                         ordinal="1"/>
-	                <mpdlabel id="curAlbum"
-	                    value="Album"
-	                    class="Album"
-	                    observes="Album"
+                    <mpdlabel id="curAlbum"
+                        value="Album"
+                        class="Album"
+                        observes="Album"
                         ordinal="2"/>
                     <label id="preArtist"
                         value="by"
                         ordinal="3"/>
-	                <mpdlabel id="curArtist"
-	                    value="Artist"
-	                    class="Artist"
-	                    observes="Artist"
+                    <mpdlabel id="curArtist"
+                        value="Artist"
+                        class="Artist"
+                        observes="Artist"
                         ordinal="4"/>
-	                <spacer flex="1" ordinal="5"/>
-	            </hbox>
-	            <mpdtime flex="1" id="mytime" ordinal="4"/>
-	        </vbox>
+                    <spacer flex="1" ordinal="5"/>
+                </hbox>
+                <mpdtime flex="1" id="mytime" ordinal="4"/>
+            </vbox>
         </hbox>
     </hbox>
     <hbox id="main_content" flex="1">
-        <mpdbrowser id="browse" flex="1" 
+        <mpdbrowser id="browse" flex="1"
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event)"/>
         <splitter collapse="after"/>
@@ -106,8 +105,8 @@
                 collapsed="true"
                 hidecolumnpicker="true"
                 ondblclick="loadPlaylist(this.view.getCellText(this.currentIndex,this.columns[0]))"
-	            context="mpmMenu"
-	            oncontextmenu="mpmMenu_contextShowing(event, 'mpdbrowser', 
+                context="mpmMenu"
+                oncontextmenu="mpmMenu_contextShowing(event, 'mpdbrowser',
                 {type:'playlist',Title:this.view.getCellText(this.currentIndex,this.columns[0])})">
                 <treecols height="0px">
                     <treecol hideheader="true" id="Title" flex="1"/>
@@ -116,16 +115,16 @@
             </tree>
             <splitter id="playlist_splitter" collapse="before" collapsed="true"/>
             <mpdplaylist flex="1"
-	            context="mpmMenu"
-	            oncontextmenu="mpmMenu_contextShowing(event)"/>
+                context="mpmMenu"
+                oncontextmenu="mpmMenu_contextShowing(event)"/>
         </vbox>
     </hbox>
-	<statusbar pack="center">
+    <statusbar pack="center">
         <label value="Playlist Time:"/>
         <mpdlabel observes="pltime"/>
         <spacer flex="1"/>
         <mpdlabel value="response" observes="lastResponse" crop="end" tooltip="mpm_last_command"/>
         <mpdlabel value="disconnected" observes="greeting"/>
-	</statusbar>
+    </statusbar>
 
 </window>

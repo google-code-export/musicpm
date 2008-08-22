@@ -5,12 +5,12 @@
 
     <binding id="mpmTreeBase">
         <handlers>
-			<handler event="keypress" modifiers="accel" key="a"
-				action="this.selectAll()"/>
-			<handler event="dblclick"
-				action="this.followItem(this.activeItem)"/>
-			<handler event="keypress" keycode="VK_DELETE"
-				action="this.delete()"/>
+            <handler event="keypress" modifiers="accel" key="a"
+                action="this.selectAll()"/>
+            <handler event="dblclick"
+                action="this.followItem(this.activeItem)"/>
+            <handler event="keypress" keycode="VK_DELETE"
+                action="this.delete()"/>
             <handler event="keypress" keycode="VK_RETURN"
                 action="this.followItem(this.activeItem)"/>
         </handlers>
@@ -55,32 +55,32 @@
                 this.box = this.treeNode.boxObject;
                 this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
             </constructor>
-			<method name="addAll">
-				<body>
-					<![CDATA[
-					mpd.addToPlaylist(this.view.rs)
-					]]>
-				</body>
-			</method>
-			<method name="addSelected">
-				<body>
-					<![CDATA[
-					var view = this.treeNode.view
-				    var start = new Object();
-				    var end = new Object();
-				    var numRanges = view.selection.getRangeCount();
+            <method name="addAll">
+                <body>
+                    <![CDATA[
+                    mpd.addToPlaylist(this.view.rs)
+                    ]]>
+                </body>
+            </method>
+            <method name="addSelected">
+                <body>
+                    <![CDATA[
+                    var view = this.treeNode.view
+                    var start = new Object();
+                    var end = new Object();
+                    var numRanges = view.selection.getRangeCount();
 
-				    var db = []
-			        for (var t=0; t<numRanges; t++){
-			            view.selection.getRangeAt(t,start,end);
-			            for (var v=start.value; v<=end.value; v++){
+                    var db = []
+                    for (var t=0; t<numRanges; t++){
+                        view.selection.getRangeAt(t,start,end);
+                        for (var v=start.value; v<=end.value; v++){
                             db.push(this.view.getCellValue(v,null))
-			            }
-			        }
-				    mpd.addToPlaylist(db)
-					]]>
-				</body>
-			</method>
+                        }
+                    }
+                    mpd.addToPlaylist(db)
+                    ]]>
+                </body>
+            </method>
             <method name="applyFilter">
                 <parameter name="criteria"/>
                 <body>
@@ -254,7 +254,7 @@
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter class="tree-splitter" ordinal="18" />
-                    <xul:treecol id="Date" label="Date" ordinal="19" width="60px"
+                    <xul:treecol id="Date" label="Date" ordinal="19" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
@@ -448,7 +448,7 @@
 
     <binding id="mpdBrowser">
         <content>
-        	<xul:vbox flex="1">
+            <xul:vbox flex="1">
                 <xul:toolbar align="center">
                     <xul:toolbarbutton tooltiptext="Update Database"
                         class="mpm_btn_Update"
@@ -460,39 +460,39 @@
                         class="mpm_btn_AddSelected"
                         oncommand="this.parentNode.parentNode.parentNode.browser.addSelected()"/>
                     <xul:spacer flex="1"/>
-					<xul:menulist id="searchType"
-						label="Search"
-						sizetopopup="always"
+                    <xul:menulist id="searchType"
+                        label="Search"
+                        sizetopopup="always"
                         onselect="this.parentNode.parentNode.parentNode.searchTypeSelect()"
                         persist="selectedItem">
-						<xul:menupopup>
-							<xul:menuitem label="Filter"
-								tooltiptext="Filter contents of current location by Title column"/>
-							<xul:menuitem label="Search All"
-								tooltiptext="Search songs on all fields"
-								selected="true"/>
-							<xul:menuitem label="Playlist"
-								tooltiptext="Search in Playlist on all fields"/>
-							<xul:menuitem label="Title"
-								tooltiptext="Search by song's Title only"/>
-							<xul:menuitem label="Artist"
-								tooltiptext="Search Artists"/>
-							<xul:menuitem label="Album"
-								tooltiptext="Search Albums"/>
-							<xul:menuitem label="Genre"
-								tooltiptext="Search Genres"/>
-							<xul:menuitem label="Composer"
-								tooltiptext="Search Composers"/>
-							<xul:menuitem label="Performer"
-								tooltiptext="Search Performers"/>
-							<xul:menuitem label="Date"
-								tooltiptext="Search Release Years"/>
-						</xul:menupopup>
-					</xul:menulist>
-					<xul:textbox id="searchInput"
-						type="timed"
-						timeout="200"
-						oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
+                        <xul:menupopup>
+                            <xul:menuitem label="Filter"
+                                tooltiptext="Filter contents of current location by Title column"/>
+                            <xul:menuitem label="Search All"
+                                tooltiptext="Search songs on all fields"
+                                selected="true"/>
+                            <xul:menuitem label="Playlist"
+                                tooltiptext="Search in Playlist on all fields"/>
+                            <xul:menuitem label="Title"
+                                tooltiptext="Search by song's Title only"/>
+                            <xul:menuitem label="Artist"
+                                tooltiptext="Search Artists"/>
+                            <xul:menuitem label="Album"
+                                tooltiptext="Search Albums"/>
+                            <xul:menuitem label="Genre"
+                                tooltiptext="Search Genres"/>
+                            <xul:menuitem label="Composer"
+                                tooltiptext="Search Composers"/>
+                            <xul:menuitem label="Performer"
+                                tooltiptext="Search Performers"/>
+                            <xul:menuitem label="Date"
+                                tooltiptext="Search Release Years"/>
+                        </xul:menupopup>
+                    </xul:menulist>
+                    <xul:textbox id="searchInput"
+                        type="timed"
+                        timeout="200"
+                        oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
                 </xul:toolbar>
                 <xul:deck id="mpm_browser_deck" flex="1">
                     <xul:hbox flex="1">
@@ -545,11 +545,11 @@
                                 <xul:vbox class="mpm_browser_image_box" collapsed="true">
                                     <xul:label class="fake_treecol" value="Album Cover"/>
                                     <xul:image id="image" class="mpm_browser_image"
-                                               validat="never"
+                                               validate="never"
                                                ondblclick="this.className=(this.className=='mpm_browser_image') ? '' : 'mpm_browser_image'"/>
                                     <xul:spacer flex="1"/>
                                 </xul:vbox>
-                                <xul:box id="browser" class="mpm_browser" flex="1" 
+                                <xul:box id="browser" class="mpm_browser" flex="1"
                                          style="-moz-binding: url('#mpmBrowser')"/>
                             </xul:hbox>
                         </xul:vbox>
@@ -566,14 +566,14 @@
                         <xul:browser id="mpm_browser_content" style="overflow:auto" flex="1"/>
                     </xul:vbox>
                 </xul:deck>
-        	</xul:vbox>
+            </xul:vbox>
         </content>
         <implementation>
-			<field name="searchType">document.getAnonymousElementByAttribute(this, 'id', 'searchType')</field>
-			<field name="searchInput">document.getAnonymousElementByAttribute(this, 'id', 'searchInput')</field>
-			<field name="history">new Array()</field>
-			<field name="historyIndex">0</field>
-			<field name="obsCurSong"/>
+            <field name="searchType">document.getAnonymousElementByAttribute(this, 'id', 'searchType')</field>
+            <field name="searchInput">document.getAnonymousElementByAttribute(this, 'id', 'searchInput')</field>
+            <field name="history">new Array()</field>
+            <field name="historyIndex">0</field>
+            <field name="obsCurSong"/>
             <field name="browser">document.getAnonymousElementByAttribute(this, 'id', 'browser')</field>
             <field name="deck">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_deck')</field>
             <field name="content">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_content')</field>
@@ -588,27 +588,28 @@
             <field name="sidebar">document.getAnonymousElementByAttribute(this, 'id', 'sidebar')</field>
             <field name="tags">document.getAnonymousElementByAttribute(this, 'id', 'tags')</field>
             <constructor>
-				<![CDATA[
+                <![CDATA[
                 Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
                 Components.utils.import("resource://minion/trees.js");
                 var url = prefs.get("song_template", "chrome://minion/content/default_song_template.xul")
                 this.content.setAttribute("src", url);
-                var me = this 
+                this.content.contentWindow.followItem = function(i, f, q) {me.followItem(i, f, q)}
+                var me = this
                 var browser = this.browser
                 var folders = this.folders
                 var playlists = this.playlists
                 var tags = this.tags
                 browser.goTo = function(q) {me.goTo(q)}
-                browser.followItem = function(i) {me.followItem(i)}
+                browser.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 folders.goTo = function(q) {me.goTo(q)}
-                folders.followItem = function(i) {me.followItem(i)}
+                folders.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 mpd.getAllDirs(function(db){
                     folders.view = new folderView(db);
                     folders.treeNode.view = folders.view;
                 })
                 playlists.goTo = function(q) {me.goTo(q)}
-                playlists.followItem = function(i) {me.followItem(i)}
+                playlists.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 this.playlist_tab.onclick = function () {
                     var q = new dbQuery()
                     q.type = "playlist"
@@ -625,15 +626,15 @@
                     me.followItem(i, f.type, f.name)
                 }
 
-				var heirs = {
-					directory: 'directory',
-					genre: 'artist',
-					artist: 'album',
-					performer: 'album',
-					composer: 'album',
-					date: 'album',
-					album: 'file'
-				}
+                var heirs = {
+                    directory: 'directory',
+                    genre: 'artist',
+                    artist: 'album',
+                    performer: 'album',
+                    composer: 'album',
+                    date: 'album',
+                    album: 'file'
+                }
 
                 this.observerUpdate = {
                     observe: function(subject,topic,data){
@@ -653,17 +654,17 @@
                 observerService.addObserver(this.observerServer,"new_mpd_server",false)
                 this.observerPlaylists = {
                     observe: function(subject,topic,data){
-	                    var q = new dbQuery()
-	                    q.type = "playlist"
-	                    q.query = ""
-	                    q.execute(function(db){playlists.load(db,playlists)})
+                        var q = new dbQuery()
+                        q.type = "playlist"
+                        q.query = ""
+                        q.execute(function(db){playlists.load(db,playlists)})
                     }
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)
-                
+
                 me.goHome()
 
-				]]>
+                ]]>
             </constructor>
             <destructor>
                 observerService.removeObserver(this.observerUpdate,"updating_db")
@@ -729,24 +730,24 @@
                     ]]>
                 </body>
             </method>
-			<method name="goBack">
-				<body>
-					if (this.historyIndex >= (this.history.length-1)) return null
-					this.historyIndex++
-					this.goTo(this.history[this.historyIndex])
-				</body>
-			</method>
-			<method name="goForward">
-				<body>
-					if (this.historyIndex == 0) return null
-					this.historyIndex--
-					this.goTo(this.history[this.historyIndex])
-				</body>
+            <method name="goBack">
+                <body>
+                    if (this.historyIndex >= (this.history.length-1)) return null
+                    this.historyIndex++
+                    this.goTo(this.history[this.historyIndex])
+                </body>
             </method>
-			<method name="goHome">
-				<body>
-					this.goTo(null)
-				</body>
+            <method name="goForward">
+                <body>
+                    if (this.historyIndex == 0) return null
+                    this.historyIndex--
+                    this.goTo(this.history[this.historyIndex])
+                </body>
+            </method>
+            <method name="goHome">
+                <body>
+                    this.goTo(null)
+                </body>
             </method>
             <method name="goTo">
                 <parameter name="query"/>
@@ -755,7 +756,6 @@
                     query = Nz(query)
                     if (query) {
                         this.deck.selectedIndex = 0
-                        debug(query.type +"\n" + query.query)
                         var browser = this.browser
                         var albumCol = browser.getCol('Album')
                         var me = this
@@ -764,7 +764,8 @@
                             me.cwd.value = query.query.split("/").slice(-1)
                             if (Nz(query.filterField)) me.cwd.value += " ("+query.filterField + ": " + query.filterQuery + ")"
                             me.cwd_icon.className = "mpm_icon_"
-                            browser.collapseOne(query.scope)
+                            if (query.type != "search") browser.collapseOne(query.scope)
+                            else browser.collapseOne(null)
                             if (query.type == 'file') {
                                 me.cwd_icon.className += query.scope
                                 if (query.scope.toLowerCase()=='album') {
@@ -815,36 +816,36 @@
                     ]]>
                 </body>
             </method>
-			<method name="handleSearch">
-				<body>
-					<![CDATA[
+            <method name="handleSearch">
+                <body>
+                    <![CDATA[
                     var q = new dbQuery()
                     q.type = "search"
                     q.scope = this.searchType.selectedItem.label
                     q.query = this.searchInput.value
 
-					switch (q.scope) {
-						case "Search All": q.scope = "any"; break;
-						case "Playlist": q.type = "playlistsearch"; q.scope = "any";break;
-						case "Filter": this.browser.applyFilter(this.searchInput.value); return null; break;
-					}
+                    switch (q.scope) {
+                        case "Search All": q.scope = "any"; break;
+                        case "Playlist": q.type = "playlistsearch"; q.scope = "any";break;
+                        case "Filter": this.browser.applyFilter(this.searchInput.value); return null; break;
+                    }
                     this.goTo(q)
-					]]>
-				</body>
-			</method>
-			<method name="searchTypeSelect">
-				<body>
-					<![CDATA[
-					if (this.searchType.selectedItem.label == 'Filter') {
+                    ]]>
+                </body>
+            </method>
+            <method name="searchTypeSelect">
+                <body>
+                    <![CDATA[
+                    if (this.searchType.selectedItem.label == 'Filter') {
                         this.searchInput.select()
-					}
+                    }
                     else {
                         if (this.searchInput.value.length > 0) this.handleSearch()
                     }
                     this.searchInput.focus()
-					]]>
-				</body>
-			</method>
+                    ]]>
+                </body>
+            </method>
         </implementation>
     </binding>
 
