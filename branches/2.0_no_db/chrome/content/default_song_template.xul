@@ -159,7 +159,8 @@
         </grid>
     </hbox>
     <hbox>
-        <label value="Lyrics from Lyricsfly.com" style="font-weight: bold"/>
+        <toolbarbutton label="Lyrics from Lyricsfly.com" style="font-weight: bold"
+            oncommand="openReuseByURL('http://lyricsfly.com')"/>
         <spacer flex="1"/>
         <toolbarbutton id="lyricsButton" label="Edit"
             oncommand="editLyrics(this.edit_link)"/>
