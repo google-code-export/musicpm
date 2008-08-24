@@ -24,6 +24,8 @@ var prefService = Components.classes["@mozilla.org/preferences-service;1"]
 var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
         .getService(Components.interfaces.nsIPrefBranch);
 
+var lfId = prefs.get("lyricsfly_id","8890a06f973057f4b")
+
 function dbQuery(cmd, callBack) {
     this.cmd = Nz(cmd)
     this.path = []
@@ -151,8 +153,7 @@ dbQuery.prototype.evaluate = function() {
 
 dbQuery.prototype.execute = function(callBack) {
     callBack = Nz(callBack, this.callBack)
-    if (!this.cmd)
-        this.evaluate()
+    this.evaluate()
     var cmd = this.cmd
     var path = this.path
     var restrict = this.restrict
@@ -636,6 +637,7 @@ mpd.getAllDirs = function(callBack) {
         try {
             d = d.replace(/^file: .*\n/gm, "")
             d = d.replace(/^directory: /gm, "")
+            d = d.replace(/^\//gm, "")
             dirs = d.split("\n").sort().slice(1)
             var hd = []
             var l = dirs.length
@@ -778,7 +780,11 @@ mpd.getLyrics = function (item, txtLyrics, btnEdit) {
         catch (e) {debug(e)}
         finally { txtLyrics.value = lyrics }
     }
-    var url = "http://lyricsfly.com/api/api.php?i=b20d16925e52e9999-temporary.API.access&a={Artist}&t={Title}"
+    var url = "http://lyricsfly.com/api/api.php?i={id}-{amo}&a={Artist}&t={Title}"
+    // Please do not attempt to use this user id for api access.
+    // It is easy to obtain your own id, please see http://lyricsfly.com/api/
+    url = url.replace("{id}", prefs.get("lyricsfly_id",""))
+    url = url.replace("{amo}", "addons.mozilla.org/en-US/firefox/addon/6324")
     url = url.replace("{Artist}", encodeURI(Nz(item.Artist)))
     url = url.replace("{Title}", encodeURI(Nz(item.Title)))
     txtLyrics.value = "Searching for lyrics on LyricsFly.com..."

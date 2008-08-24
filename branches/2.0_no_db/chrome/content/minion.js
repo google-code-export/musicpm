@@ -54,6 +54,13 @@ function unload () {
     observerService.removeObserver(observerPlaylistName,"load_playlist")
 }
 
+function mpdExecute () {
+    var q = new dbQuery()
+    q.cmd = prompt('Enter MPD Command:')
+    q.query = q.cmd
+    document.getElementById("browse").goTo(q)
+}
+
 function setFavicon (url) {
     var link = document.createElementNS("http://www.w3.org/1999/xhtml","link");
     link.id = "mpm_favicon"

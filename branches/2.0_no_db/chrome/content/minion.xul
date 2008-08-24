@@ -22,6 +22,11 @@
         href="chrome://minion/content/images/album_blank.png"/>
     <script src="chrome://minion/content/minion.js"/>
 
+    <keyset>
+      <key id="kbExecute" modifiers="alt" key="x"
+        oncommand="mpdExecute()"/>
+    </keyset>
+
     <popupset>
         <menupopup id="mpmMenu"/>
         <tooltip id="mpm_last_command">

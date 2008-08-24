@@ -12,42 +12,72 @@
                 ondblclick="var a=this.parentNode.activeItem;if(a)mpd.doCmd('play '+a.Pos)">
                 <children/>
                 <xul:treecols>
-                    <xul:treecol id="Pos"
-                        label="#"
-                        width="30"
-                        ordinal="0"
-                        overflow="true"
-                        persist="width ordinal hidden"/>
-                    <xul:splitter class="tree-splitter" ordinal="1"/>
-                    <xul:treecol id="Title"
-                        label="Title"
-                        ordinal="2"
-                        overflow="true"
-                        flex="3"
-                        minwidth="120"
-                        persist="width ordinal hidden"/>
-                    <xul:splitter class="tree-splitter" ordinal="3"/>
-                    <xul:treecol id="Album"
-                        label="Album"
-                        ordinal="4"
-                        hidden="true"
-                        minwidth="0"
-                        flex="1"
-                        persist="width ordinal hidden"/>
-                    <xul:splitter class="tree-splitter" ordinal="4"/>
-                    <xul:treecol id="Artist"
-                        label="Artist"
-                        ordinal="5"
-                        hidden="true"
-                        minwidth="0"
-                        flex="1"
-                        persist="width ordinal hidden"/>
-                    <xul:splitter class="tree-splitter" ordinal="6"/>
-                    <xul:treecol id="Time"
-                        label="Time"
-                        ordinal="7"
-                        width="40"
-                        persist="width ordinal hidden"/>
+                    <xul:treecol id="Pos" label="Position" ordinal="1" width="30"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 tooltiptext="Playlist Position"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="2" />
+                    <xul:treecol id="Track" label="Track" ordinal="3" width="30"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 collapsed="true"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:treecol id="Title" label="Title" ordinal="5" flex="2"
+                                 persist="width ordinal hidden"
+                                 overflow="true"
+                                 class="sortDirectionIndicator"
+                                 minwidth="120"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="6" />
+                    <xul:treecol id="Time" label="Time" ordinal="7" width="40"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="8" />
+                    <xul:treecol id="Album" label="Album" ordinal="9" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="10" />
+                    <xul:treecol id="Artist" label="Artist" ordinal="11" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="12" />
+                    <xul:treecol id="Performer" label="Performer" ordinal="13" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="14" />
+                    <xul:treecol id="Composer" label="Composer" ordinal="15" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="16" />
+                    <xul:treecol id="Genre" label="Genre" ordinal="17" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="18" />
+                    <xul:treecol id="Date" label="Date" ordinal="19" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter class="tree-splitter" ordinal="20" />
+                    <xul:treecol id="name" label="[File]Name" ordinal="21" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                 </xul:treecols>
                 <xul:treechildren id="children"/>
             </xul:tree>
