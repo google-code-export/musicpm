@@ -173,7 +173,7 @@
     <binding id="mpdServers">
         <content>
             <xul:toolbarbutton class="mpm_btn_Settings"
-                tooltiptext="Manage MPD Servers and Outputs"
+                tooltiptext="Manage MPM Settings"
                 xbl:inherits="label"
                 type="menu">
                 <xul:menupopup
@@ -238,14 +238,14 @@
                     }
                 };
                 observerService.addObserver(this.observerRandom, "random", false)
-                
+
                 this.observerRepeat = {
                     observe: function(subject,topic,data){
                         me.repeat.setAttribute("checked", (data > 0))
                     }
                 };
                 observerService.addObserver(this.observerRepeat, "repeat", false)
-                
+
                 this.observer = {
                     observe: function(subject,topic,data){
                         me.refreshServers(me)
@@ -312,8 +312,7 @@
                     item.onclick = function(){me.serverSelect(this.value)}
                     this.servers_box.appendChild(item)
                 }
-                debug(class)
-                this.toolbarbutton.className = class 
+                this.toolbarbutton.className = class
                 ]]>
                 </body>
             </method>
@@ -335,7 +334,7 @@
             <xul:label class="mpdTime mpdTimeElapsed" seconds="0" value="0:00"/>
             <xul:scale
                 class="mpdTimeProgressmeter"
-				flex="1"
+                flex="1"
                 min="0"
                 max="0"
                 value="0"
@@ -521,5 +520,5 @@
             </method>
         </implementation>
     </binding>
-    
+
 </bindings>
