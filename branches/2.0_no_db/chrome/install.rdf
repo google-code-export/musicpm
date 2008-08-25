@@ -5,7 +5,7 @@
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:id="Music_Player_Minion2@code.google.com"
                    em:name="Music Player Minion 2"
-                   em:version="1.99"
+                   em:version="1.99.7"
                    em:creator="Chris Seickel"
                    em:description="Music Player Daemon client"
                    em:homepageURL="http://code.google.com/p/musicpm"

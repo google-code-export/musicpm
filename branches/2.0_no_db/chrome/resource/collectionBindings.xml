@@ -533,7 +533,7 @@
                         </xul:tabbox>
                         <xul:splitter collapse="before"/>
                         <xul:vbox flex="1" style="overflow:hidden">
-                            <xul:toolbar class="mpm_navbar" align="center">
+                            <xul:hbox class="mpm_navbar" align="center">
                                 <xul:toolbarbutton class="mpm_btn_Back"
                                     tooltiptext="Back"
                                     oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.goBack()"/>
@@ -546,7 +546,7 @@
                                 <xul:toolbarseparator/>
                                 <xul:image id="cwd_icon"/>
                                 <xul:label id="cwd" class="cwd" crop="start" flex="1"/>
-                            </xul:toolbar>
+                            </xul:hbox>
                             <xul:hbox flex="1" id="mpm_browser_browser" style="overflow:auto">
                                 <xul:vbox class="mpm_browser_image_box" collapsed="true">
                                     <xul:label class="fake_treecol" value="Album Cover"/>

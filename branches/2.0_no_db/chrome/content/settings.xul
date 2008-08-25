@@ -4,7 +4,7 @@
 <prefwindow id="mpmPreferences"
             title="Music Player Minion Settings"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    
+
   <prefpane id="pane1" label="General">
     <preferences>
       <preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
@@ -14,18 +14,21 @@
       <preference id="use_custom" name="extensions.mpm.use_custom_art" type="bool"/>
       <preference id="art_url" name="extensions.mpm.custom_art_url" type="string"/>
       <preference id="use_amazon" name="extensions.mpm.use_amazon_art" type="bool"/>
+      <preference id="playlist_bottom" name="extensions.mpm.playlist_bottom" type="bool"/>
     </preferences>
-     
+
+    <checkbox id="check_cs" preference="sb_cs_hide"
+          label="Hide current song display in statusbar."/>
     <checkbox id="check_theme" preference="theme"
           label="Use default Firefox theme."/>
-    <checkbox id="check_cs" preference="sb_cs_hide"
-          label="Hide current song display in statusbar"/>
+    <checkbox id="check_playlist_bottom" preference="playlist_bottom"
+          label="Show Playlist on bottom."/>
     <checkbox id="check_adapt" preference="adapt_interval"
           label="Use adaptive update interval"
           tooltiptext="This option will cause Minion to update once per second, after the timer has been synchronized with the current song."/>
     <hbox align="center">
         <label value="Static update interval (milliseconds)"/>
-        <textbox id="update" type="number" preference="interval" 
+        <textbox id="update" type="number" preference="interval"
                  maxlength="5" style="max-width: 5em !important"/>
     </hbox>
     <checkbox label="Use custom album cover URL:" preference="use_custom"/>
@@ -33,5 +36,5 @@
     <checkbox id="amazon" preference="use_amazon"
           label="Fetch album covers from Amazon.com"/>
   </prefpane>
-    
+
 </prefwindow>

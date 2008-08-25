@@ -48,7 +48,7 @@
         <hbox flex="1"
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event, 'currentsong', mpd.currentsong)">
-            <mpdalbumcover onclick="loadCurrentAlbum()"/>
+            <mpdalbumcover id="album_cover" onclick="loadCurrentAlbum()"/>
             <vbox flex="1">
                 <spacer flex="1" ordinal="1"/>
                 <mpdlabel id="curTitle"
@@ -80,7 +80,7 @@
             </vbox>
         </hbox>
     </hbox>
-    <hbox id="main_content" flex="1">
+    <box id="main_content" flex="1" orient="horizontal">
         <mpdbrowser id="browse" flex="1"
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event)"/>
@@ -95,9 +95,9 @@
                     class="mpm_btn_Playlists"
                     tooltiptext="Show Saved Playlists"
                     oncommand="showPlaylists()"/>
+                <spacer flex="1"/>
                 <textbox id="playlistName"
-                    value="Playlist"
-                    flex="1"/>
+                    value="Playlist"/>
                 <toolbarbutton id="savePlaylist"
                     class="mpm_btn_Save"
                     tooltiptext="Save Playlist"
@@ -123,7 +123,7 @@
                 context="mpmMenu"
                 oncontextmenu="mpmMenu_contextShowing(event)"/>
         </vbox>
-    </hbox>
+    </box>
     <statusbar pack="center">
         <label value="Playlist Time:"/>
         <mpdlabel observes="pltime"/>

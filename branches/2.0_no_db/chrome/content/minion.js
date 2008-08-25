@@ -14,6 +14,8 @@ var observerPlaylistName = {
 
 function init () {
     document.getElementById("main").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
+    var orient = (prefs.get("playlist_bottom", false)) ? "vertical" : "horizontal"
+    document.getElementById("main_content").setAttribute("orient", orient)
     var prefObserver = {
         register: function(){
             this._branch = prefs.branch;
@@ -62,16 +64,18 @@ function mpdExecute () {
 }
 
 function setFavicon (url) {
+    try {
+    var el = document.getElementById("mpm_favicon")
+    var win = document.getElementById("main")
+    win.removeChild(el)
+    el = null
     var link = document.createElementNS("http://www.w3.org/1999/xhtml","link");
     link.id = "mpm_favicon"
     link.type = "image/x-icon";
     link.rel = "shortcut icon";
     link.href = url;
-    var el = document.getElementById("mpm_favicon")
-    var win = document.getElementById("main")
-    win.removeChild(el)
     win.appendChild(link)
-    el = null
+    } catch (e) {debug(e)}
 }
 
 function loadCurrentAlbum() {
