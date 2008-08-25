@@ -1,6 +1,0 @@
-content miniondev file:content/
-resource miniondev file:content/modules/
-content extensiondev jar:extdev/chrome/extensiondev.jar!/content/ xpcnativewrappers=no
-locale extensiondev en-US jar:extdev/chrome/extensiondev.jar!/locale/en-US/
-skin extensiondev classic/1.0 jar:extdev/chrome/extensiondev.jar!/skin/
-overlay	chrome://miniondev/content/minion.xul	chrome://extensiondev/content/firefoxOverlay.xul
