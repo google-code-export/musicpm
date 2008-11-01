@@ -1,4 +1,4 @@
-#summary A history of changes made for each release.
+#summary A history of changes made for each release.  Alphas not included.
 #labels Featured
 
 = 1.4.4 =
