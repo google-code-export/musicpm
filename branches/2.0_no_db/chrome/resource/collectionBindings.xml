@@ -716,10 +716,41 @@
                     q.type = item.type
                     switch (item.type) {
                         case 'file':
-                            this.content.contentWindow.load(item);
-                            this.fileDetails.value = item.file;
-                            this.deck.selectedIndex =1;
-                            return null;
+                            var act = parseInt(prefs.get("default_file_action", 0))
+                            
+                            if (act==0) {
+                                // Prompt
+                                mpm_openDialog('chrome://minion/content/fileActions.xul', 'mpm_file_actions')
+                                var act = parseInt(prefs.get("default_file_action", 0))
+                            }
+
+                            switch (act) {
+                                case 1:
+                                    // Add to Playlist
+                                    mpd.addToPlaylist(item)    
+                                    return null;                                
+                                    break;
+                                case 2:
+                                    //Add to Playlist and Play Now
+                                    var l = mpd.playlistlength
+                                    mpd.addToPlaylist(item)
+                                    mpd.doCmd("play " + l)
+                                    return null;
+                                    break;
+                                case 3:
+                                    //Add to Playlist and Play if stopped
+                                    var l = mpd.playlistlength
+                                    mpd.addToPlaylist(item)
+                                    if (mpd.state == 'stop') mpd.doCmd("play " + l)
+                                    return null;
+                                    break;
+                                case 4:
+                                    //View Song Details
+                                    this.content.contentWindow.load(item);
+                                    this.fileDetails.value = item.file;
+                                    this.deck.selectedIndex =1;
+                                    return null;
+                            }
                             break;
                         case 'directory': break;
                         case 'playlist': break;
@@ -859,6 +890,17 @@
                         if (this.searchInput.value.length > 0) this.handleSearch()
                     }
                     this.searchInput.focus()
+                    ]]>
+                </body>
+            </method>
+            <method name="showDetails">
+                <parameter name="item"/>
+                <body>
+                    <![CDATA[
+                    
+                        this.content.contentWindow.load(item);
+                        this.fileDetails.value = item.file;
+                        this.deck.selectedIndex =1;
                     ]]>
                 </body>
             </method>

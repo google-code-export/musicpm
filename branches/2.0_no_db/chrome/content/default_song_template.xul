@@ -105,53 +105,53 @@
         </hbox>
         <grid id="props">
             <columns>
-                <column style="font-wieght:bold"/>
+                <column style="font-weight:bold"/>
                 <column flex="1"/>
                 <column/>
             </columns>
             <rows>
                 <row id="Title_row">
-                    <label style="font-wieght:bold" value="Title:"/>
+                    <label style="font-weight:bold" value="Title:"/>
                     <label id="Title_label"/>
                     <toolbarbutton class="mpm_icon_play" oncommand="playItem()"/>
                 </row>
                 <row id="length_row">
-                    <label style="font-wieght:bold" value="Length:"/>
+                    <label style="font-weight:bold" value="Length:"/>
                     <label id="length_label"/>
                     <toolbarbutton class="mpm_icon_play" oncommand="playItem()"/>
                 </row>
                 <row id="Album_row">
-                    <label style="font-wieght:bold" value="Album:"/>
+                    <label style="font-weight:bold" value="Album:"/>
                     <label id="Album_label"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Album')"/>
                 </row>
                 <row id="Artist_row">
-                    <label style="font-wieght:bold" value="Artist:"/>
+                    <label style="font-weight:bold" value="Artist:"/>
                     <label id="Artist_label"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Artist')"/>
                 </row>
                 <row id="Composer_row">
-                    <label style="font-wieght:bold" value="Composer:"/>
+                    <label style="font-weight:bold" value="Composer:"/>
                     <label id="Composer_label"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Composer')"/>
                 </row>
                 <row id="Performer_row">
-                    <label style="font-wieght:bold" value="Performer:"/>
+                    <label style="font-weight:bold" value="Performer:"/>
                     <label id="Performer_label"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Performer')"/>
                 </row>
                 <row id="Date_row">
-                    <label style="font-wieght:bold" value="Date:"/>
+                    <label style="font-weight:bold" value="Date:"/>
                     <label id="Date_label"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Date')"/>
                 </row>
                 <row id="Genre_row">
-                    <label style="font-wieght:bold" value="Genre:"/>
+                    <label style="font-weight:bold" value="Genre:"/>
                     <label id="Genre_label"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Genre')"/>
                 </row>
                 <row id="directory_row">
-                    <label style="font-wieght:bold" value="In Folder:"/>
+                    <label style="font-weight:bold" value="In Folder:"/>
                     <label id="directory_label"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('directory')"/>
                 </row>

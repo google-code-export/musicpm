@@ -51,6 +51,28 @@ function loadDefaults () {
 		    mpdCommand : "clear",
 		    script : "mpdbrowser.addSelected()"
 		}, {
+		    id : "mpm_menu_viewDetails",
+		    label : "View Song Details",
+		    locations : null,
+		    targets : "file",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		filterField: null,
+		    mpdCommand : null,
+		    script : "mpdbrowser.showDetails(item)"
+		}, {
+		    id : "mpm_menu_setFileAction",
+		    label : "Set Default Action",
+		    locations : null,
+		    targets : "file",
+		    URL : null,
+		    queryType : null,
+		    queryScope : null,
+		filterField: null,
+		    mpdCommand : null,
+		    script : "mpm_openDialog('chrome://minion/content/fileActions.xul', 'mpm_file_actions')"
+		}, {
 		    id : "mpm_menu_update",
 		    label : "Update this Folder",
 		    locations : null,
