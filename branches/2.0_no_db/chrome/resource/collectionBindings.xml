@@ -498,6 +498,7 @@
                     <xul:textbox id="searchInput"
                         type="timed"
                         timeout="200"
+                        onenter="this.oncommand()"
                         oncommand="this.parentNode.parentNode.parentNode.handleSearch()"/>
                 </xul:toolbar>
                 <xul:deck id="mpm_browser_deck" flex="1">
@@ -597,7 +598,16 @@
                 <![CDATA[
                 Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
-                Components.utils.import("resource://minion/trees.js");
+                
+                var searchInput = this.searchInput
+                function searchInputSet () {
+                    var t = prefs.get("search_timeout",200)
+                    if (t == 0) t = null
+                    searchInput.setAttribute("timeout", t)
+                }
+                searchInputSet()
+                var obsSearchInput = prefs.getObserver("search_timeout", searchInputSet)
+                
                 var url = prefs.get("song_template", "chrome://minion/content/default_song_template.xul")
                 this.content.setAttribute("src", url);
                 this.content.contentWindow.followItem = function(i, f, q) {me.followItem(i, f, q)}

@@ -248,7 +248,8 @@ function openReuseByURL(url) {
             }
         }
         if (!found) {
-            var recent = wm.getMostRecentWindow("navigator:browser")
+            var openInTab = prefs.get("launch_in_browser", false)
+            var recent = (openInTab) ? wm.getMostRecentWindow("navigator:browser") : false
             if (recent) {
                 recent.focus()
                 browserInstance = recent.getBrowser();
@@ -299,6 +300,28 @@ function openReuseByAttribute(url, attrName) {
     }
 }
 
+function prefObserver (prefName, changeAction) {
+    this.action = changeAction
+    this.register = function(){
+        this._branch = branch;
+        this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
+        this._branch.addObserver("", this, false);
+    },
+
+    this.unregister = function(){
+        if (!this._branch)
+            return;
+        this._branch.removeObserver("", this);
+    },
+
+    this.observe = function(aSubject, aTopic, aData){
+        if (aTopic != "nsPref:changed")
+            return;
+        // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
+        // aData is the name of the pref that's been changed (relative to aSubject)
+        if (aData == prefName) this.action()
+    }
+};
 var prefs = {
     branch : branch,
     service : prefService,
@@ -316,7 +339,11 @@ var prefs = {
                 return def;
         }
     },
-
+    getObserver : function (prefName, prefAction) {
+        var po = new prefObserver(prefName, prefAction)
+        po.register()
+        return po
+    },
     set : function(strPref, val) {
         switch (branch.getPrefType(strPref)) {
             case branch.PREF_STRING :

@@ -378,8 +378,11 @@ function folderView(dbArray) {
         toggleOpenState : function (index ) {
             var leaf = this.rs[index]
             if (this.isContainerOpen(index)) {
-                this.rs.splice(index+1, leaf.children)
-                this.treeBox.rowCountChanged(index + 1, -leaf.children)
+		var i = 1
+		while (this.rs[index + i].level > leaf.level) {i++}
+		--i
+                this.rs.splice(index+1, i)
+                this.treeBox.rowCountChanged(index + 1, -i)
             }
             else {
                 var children = [x for each (x in this.db) if (x.parent == leaf.name)]

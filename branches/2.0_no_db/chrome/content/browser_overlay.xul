@@ -10,6 +10,9 @@
         <![CDATA[
         Components.utils.import("resource://minion/mpmUtils.js");
         Components.utils.import("resource://minion/mpd.js");
+	function launchMinion () {
+	    openReuseByURL('chrome://minion/content/minion.xul')
+	}
         var mpm = {
             onLoad: function (e) {
                 debug("load")
@@ -183,7 +186,7 @@
                     oncontextmenu="mpmMenu_contextShowing(event, 'statusbar', mpd.currentsong)">
             <toolbarbutton id="mpm_sb_launch" class="mpm_btn_Launch"
                            tooltiptext="Launch Music Player Minion"
-                           oncommand="openReuseByURL('chrome://minion/content/minion.xul')"/>
+                           oncommand="launchMinion()"/>
             <mpdcontrols id="mpm_sb_controls" hidden="true"/>
             <toolbarbutton id="mpm_sb_volume"
                            hidden="true" 

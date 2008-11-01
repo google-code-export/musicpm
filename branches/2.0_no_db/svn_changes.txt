@@ -1,0 +1,4 @@
+Fixed folder collapsing bug.  If collapsing a folder with subfolders open the wrong amount of folders were removed from the list.
+Added timer setting for Search As You Type feature, 0 for disable.
+Added setting to luanch Minion in new window or tab.
+Remove Artist and Album tag requirements from getArt() (album cover fetching)

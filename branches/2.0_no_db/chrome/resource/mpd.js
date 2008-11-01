@@ -715,11 +715,6 @@ function getAmazonArt (item, img) {
 }
 
 mpd.getArt = function(item, img) {
-    if (!(Nz(item.Artist) && Nz(item.Album)))  {
-        img.src = "chrome://minion/content/images/album_blank.png"
-        img.removeAttribute("tooltiptext")
-        return null
-    }
     var fallback = function () {
         debug("fallback")
         if (prefs.get("use_amazon_art", true)) getAmazonArt(item, img)
