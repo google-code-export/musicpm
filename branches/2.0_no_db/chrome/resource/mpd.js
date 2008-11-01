@@ -730,8 +730,9 @@ mpd.getArt = function(item, img) {
         var url = prefs.get("custom_art_url")
         url = url.replace("{Artist}", encodeURI(Nz(item.Artist, "")))
         url = url.replace("{Album}", encodeURI(Nz(item.Album, "")))
-        url = url.replace("{Path}", encodeURI(Nz(item.file, "").split("/")[-1]))
-
+        url = url.replace("{Path}", encodeURI(item.file.split("/").slice(0,-1)))
+        debug("Attempting to fetch cover at " + url)
+        
         var req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
                     .createInstance(Components.interfaces.nsIXMLHttpRequest);
         req.QueryInterface(Components.interfaces.nsIDOMEventTarget);
