@@ -178,6 +178,63 @@
                     ]]>
                 </body>
             </method>
+            <method name="moveTo">
+                <parameter name="moveToPos"/>
+                <body>
+                <![CDATA[
+                var tree = this.tree
+                var view = this.view
+                var start = new Object();
+                var end = new Object();
+                var numRanges = view.selection.getRangeCount();
+                var offset = 0
+                var item
+                var cmd = "command_list_begin"
+
+                for (var t=0; t<numRanges; t++){
+                    view.selection.getRangeAt(t,start,end);
+                    for (var v=start.value; v<=end.value; v++){
+                        item = view.get(v)
+                        if (item.type == 'file') {
+                            if (v < moveToPos) {
+                                cmd += "\nmove "+ (v-offset) + " " + (moveToPos)
+                                offset++
+                            }
+                            else {
+                                cmd += "\nmove "+ v + " " + (moveToPos + 1 + offset)
+                                offset++
+                            }
+                        }
+                    }
+                }
+
+                cmd += "\ncommand_list_end"
+                mpd.doCmd(cmd, null, false)
+                ]]>
+                </body>
+            </method>
+            <method name="moveFirst">
+                <body>
+                <![CDATA[
+                this.moveTo(0)
+                ]]>
+                </body>
+            </method>
+            <method name="moveLast">
+                <body>
+                <![CDATA[
+                this.moveTo(mpd.playlistlength-2)
+                ]]>
+                </body>
+            </method>
+            <method name="moveNext">
+                <body>
+                <![CDATA[
+                var moveToPos = parseInt(mpd.song)
+                this.moveTo(moveToPos)
+                ]]>
+                </body>
+            </method>
         </implementation>
     </binding>
 </bindings>

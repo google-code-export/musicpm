@@ -348,6 +348,7 @@ mpd._parseCurrentSong = function(data) {
         obj.Title = obj.file.split("/").slice(-1)
     }
     obj.type = 'file'
+    obj.name = obj.file
 
     // set currentsong values
     mpd.set('file', Nz(obj.file))
@@ -727,10 +728,7 @@ mpd.getArt = function(item, img) {
     img.setAttribute("tooltiptext","loading")
 
     if (prefs.get("use_custom_art", false)) {
-        var url = prefs.get("custom_art_url")
-        url = url.replace("{Artist}", encodeURI(Nz(item.Artist, "")))
-        url = url.replace("{Album}", encodeURI(Nz(item.Album, "")))
-        url = url.replace("{Path}", encodeURI(item.file.split("/").slice(0,-1).join("/")))
+        var url = urlReplace(prefs.get("custom_art_url"), item)
         debug("Attempting to fetch cover at " + url)
         
         var req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
@@ -1014,7 +1012,7 @@ function socketTalker() {
                     if (greet) {
                         initialized = true
                         this.data = this.data.replace(regGreet, "")
-                        mpd.set('greeting', greet[0].slice(3) + "@" + mpd._host
+                        mpd.set('greeting', "OK MPD@" + mpd._host
                                 + ":" + mpd._port)
                         if (mpd._password.length > 0) {
                             mpd._cmdQueue.unshift({

@@ -81,11 +81,11 @@
         </hbox>
     </hbox>
     <box id="main_content" flex="1" orient="horizontal">
-        <mpdbrowser id="browse" flex="1"
+        <mpdbrowser id="browse" flex="3"
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event)"/>
-        <splitter collapse="after"/>
-        <vbox minwidth="150">
+        <splitter id="main_content_splitter" collapse="both"/>
+        <vbox minwidth="150" minheight="150" flex="1">
             <toolbar id="playlistToolbar">
                 <toolbarbutton id="clearPlaylist"
                     class="mpm_btn_Clear"
@@ -95,13 +95,15 @@
                     class="mpm_btn_Playlists"
                     tooltiptext="Show Saved Playlists"
                     oncommand="showPlaylists()"/>
-                <spacer flex="1"/>
                 <textbox id="playlistName"
-                    value="Playlist"/>
+                    value="Playlist"
+                    flex="1"
+                    maxwidth="200"/>
                 <toolbarbutton id="savePlaylist"
                     class="mpm_btn_Save"
                     tooltiptext="Save Playlist"
                     oncommand="savePlaylist()"/>
+                <spacer flex="1"/>
             </toolbar>
             <tree id="savedPlaylists"
                 height="100px"

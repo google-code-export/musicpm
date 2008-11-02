@@ -17,7 +17,7 @@
  */
 
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
-        "observerService", "getFileContents", "fetch", "winw",
+        "observerService", "getFileContents", "fetch", "winw", "urlReplace",
         "openReuseByURL", "openReuseByAttribute", "mpm_openDialog", "prefs",
         "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
@@ -58,6 +58,17 @@ function Nz(obj, def) {
         return (typeof(def) == 'undefined') ? null : def
     }
     return obj
+}
+
+function urlReplace (s, item) {   
+    if (Nz(item.file)) item.Path = item.file.split("/").slice(0,-1).join("/")
+    debug(item)
+    for (x in item) {
+        var re = new RegExp("{"+x+"}","ig")
+        s = s.replace(re, encodeURI(item[x]))
+    }
+    s = s.replace(/{[^}]+}/g,"")
+    return s
 }
 
 function getFileContents(aURL) {

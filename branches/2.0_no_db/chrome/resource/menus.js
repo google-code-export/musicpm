@@ -50,11 +50,7 @@ function isValid (self, item, location) {
 
 function handleMenuCommand (self, item, location) {
     if (self.URL) {
-        var s = self.URL
-        for (x in item) {
-            s = s.replace("{"+x+"}", encodeURI(item[x]))
-        }
-        s = s.replace(/{[^}]+}/g,"")
+        var s = urlReplace(self.URL, item)
         openReuseByAttribute(s,"mpm_web_query")
     } 
     else if (self.queryType) {

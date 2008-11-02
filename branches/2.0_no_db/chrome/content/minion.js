@@ -16,6 +16,7 @@ function init () {
     document.getElementById("main").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
     var orient = (prefs.get("playlist_bottom", false)) ? "vertical" : "horizontal"
     document.getElementById("main_content").setAttribute("orient", orient)
+    document.getElementById("main_content_splitter").setAttribute("orient", orient);
     var prefObserver = {
         register: function(){
             this._branch = prefs.branch;
@@ -38,6 +39,12 @@ function init () {
                 case "use_theme":
                     document.getElementById("main").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
                     break;
+                case "playlist_bottom":
+                    var orient = (prefs.get("playlist_bottom", false)) ? "vertical" : "horizontal";
+                    document.getElementById("main_content").setAttribute("orient", orient);
+                    document.getElementById("main_content_splitter").setAttribute("orient", orient);
+                    break;
+                    
             }
         }
     };

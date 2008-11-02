@@ -22,6 +22,11 @@
         var item = null
         var win = null
         var cycles = 0
+        var observerCurSong = {
+            observe: function(subject,topic,data){
+                load(mpd.currentsong)
+            }
+        };
 
         function load (objItem) {
             document.getElementById("song").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
@@ -72,6 +77,8 @@
                 doc.getElementById("title").value = item.Title
                 doc.getElementById("artist").value = item.Artist
                 doc.getElementById("album").value = item.Album
+                doc.getElementById("comments").value = "Submitted via Music Player Minion."
+                doc.getElementById("checker1").value = doc.getElementById("checker2").value
             }
             catch (e) {
                 cycles++
@@ -87,6 +94,14 @@
             if (link == "http://lyricsfly.com/submit/") {
                 cycles = 0
                 window.setTimeout("loadLFTags()",100)
+            }
+        }
+        
+        function toggleFollowCurrent (val) {
+            if (val) {
+                observerService.addObserver(observerCurSong,"currentsong",false)
+            } else {
+                observerService.removeObserver(observerCurSong,"currentsong")
             }
         }
     ]]>
@@ -166,5 +181,7 @@
             oncommand="editLyrics(this.edit_link)"/>
     </hbox>
     <textbox id="lyrics" flex="1" multiline="true" readonly="true"/>
+    <checkbox checked="false" label="Follow Currently Playing Song"
+              oncommand="toggleFollowCurrent(this.checked)"/>
 
 </window>
