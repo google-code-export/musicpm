@@ -15,7 +15,8 @@
     onload="init()"
     onunload="unload()"
     width="780px"
-    height="550px">
+    height="550px"
+    persist="width height screenX screenY sizemode">
     <html:link id="mpm_favicon"
         rel="shortcut icon"
         type="image/x-icon"
@@ -81,10 +82,10 @@
         </hbox>
     </hbox>
     <box id="main_content" flex="1" orient="horizontal">
-        <mpdbrowser id="browse" flex="3"
+        <mpdbrowser id="browse" flex="4"
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event)"/>
-        <splitter id="main_content_splitter" collapse="both"/>
+        <splitter id="main_content_splitter" collapse="both" persist="state substate"/>
         <vbox minwidth="150" minheight="150" flex="1">
             <toolbar id="playlistToolbar">
                 <toolbarbutton id="clearPlaylist"

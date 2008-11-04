@@ -63,8 +63,13 @@
             }
         }
 
+        function addItem () {
+            item.Pos = Nz(mpd.playlistlength, 0)
+            mpd.addToPlaylist(item)
+        }
+
         function playItem () {
-            if (Nz(item.Pos, -1) < 0) {
+            if (!Nz(item.Pos)) {
                 item.Pos = Nz(mpd.playlistlength, 0)
                 mpd.addToPlaylist(item)
             }
@@ -128,7 +133,7 @@
                 <row id="Title_row">
                     <label style="font-weight:bold" value="Title:"/>
                     <label id="Title_label"/>
-                    <toolbarbutton class="mpm_icon_play" oncommand="playItem()"/>
+                    <toolbarbutton class="mpm_icon_add" oncommand="addItem()"/>
                 </row>
                 <row id="length_row">
                     <label style="font-weight:bold" value="Length:"/>

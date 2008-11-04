@@ -25,7 +25,9 @@
                 observerService.addObserver(this.observer,this.observes,false)
             </constructor>
             <destructor>
-                observerService.removeObserver(this.observer,this.observes)
+                try {
+                    observerService.removeObserver(this.observer,this.observes)
+                } catch (e) {}
             </destructor>
         </implementation>
     </binding>

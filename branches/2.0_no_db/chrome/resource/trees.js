@@ -27,7 +27,7 @@ function customTreeView () {
 	this.db = []
 	this.treeBox = null
 	this.rowCount = 0
-    this.get = function (row) {return this.rs[row]}
+        this.get = function (row) {return this.rs[row]}
 	this.canDrop = function (index, orientation ) {return false}
 	this.cycleCell = function (row, col ) {}
 	this.cycleHeader = function (col ) {}
@@ -45,7 +45,7 @@ function customTreeView () {
                 }
                 else {
                     props.AppendElement(aserv.getAtom(col.id + "_" + t))
-                    if (item.name == mpd.file) {
+                    if (mpd.song && Nz(item.Pos, -1) == mpd.song) {
                         if (col.id == 'Title' && mpd.state != 'stop') {
                             props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
                         }
@@ -338,10 +338,12 @@ function playlistView(){
 playlistView.prototype = new customTreeView
 
 
-function folderView(dbArray) {
+function folderView(dbArray, rsArray) {
+    var rs = (Nz(rsArray))
+    if (!rs) rs = [x for each (x in dbArray) if (x.level == 0)].sort()
     var view = {
         db: dbArray,
-        rs: [x for each (x in dbArray) if (x.level == 0)].sort(),
+        rs: rs,
         treeBox: null,
         selection: null,
         get rowCount () {return this.rs.length},

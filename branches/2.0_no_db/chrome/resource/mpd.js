@@ -161,6 +161,10 @@ dbQuery.prototype.execute = function(callBack) {
 
     if (Nz(mpd.cachedDB[cmd])) {
         debug("cached: " + cmd)
+        cDB = mpd.cachedDB[cmd]
+        for each(item in cDB) {
+            item.Pos = Nz(mpd.pl_lookup[item.file])
+        }
         callBack(mpd.cachedDB[cmd])
         return null
     }
@@ -287,6 +291,7 @@ var mpd = {
     // Playlist contents and total playtime
     plinfo : [],
     pltime : 0,
+    pl_lookup : {},
 
     // Connection state information
     greeting : 'Not Connected',
@@ -384,7 +389,8 @@ mpd._parseDB = function(data) {
                         Title : null,
                         Artist : '',
                         Album : '',
-                        Time : 0
+                        Time : 0,
+                        Pos : Nz(mpd.pl_lookup[val])
                     };
                     var d = data[i + 1]
                     while (d && d.substr(0, 6) != "file: ") {
@@ -402,7 +408,6 @@ mpd._parseDB = function(data) {
                             type : 'directory',
                             name : val,
                             Title : dir[dir.length - 1]
-                            ,
                         })
                     } else {
                         db.push({
@@ -425,6 +430,7 @@ mpd._parsePL = function(data) {
             var i = db.length - 1
             do {
                 mpd.plinfo[db[i].Pos] = db[i]
+                mpd.pl_lookup[db[i].file] = db[i].Pos
             } while (i--)
         }
         var l = mpd.plinfo.length
@@ -496,7 +502,15 @@ mpd._update = function(data) {
         }
         mpd.playlist = Nz(mpd.playlist, 0)
         if (obj.playlist != mpd.playlist) {
-            mpd.plinfo.length = Nz(obj.playlistlength, 0)
+            var l = parseInt(Nz(obj.playlistlength, 0))
+            if (l < mpd.plinfo.length && Nz(mpd.pl_lookup)) {
+                var new_lookup = {}
+                for (x in mpd.pl_lookup) {
+                    if (mpd.pl_lookup[x] < l) new_lookup[x] = mpd.pl_lookup[x]
+                }
+                mpd.pl_lookup = new_lookup
+            }
+            mpd.plinfo.length = l
             var cmd = (mpd.playlist > 0)
                     ? "plchanges " + mpd.playlist
                     : "playlistinfo"
@@ -630,7 +644,7 @@ mpd.doCmd = function(outputData, callBack, hide, priority) {
     }
 }
 
-mpd.getAllDirs = function(callBack) {
+mpd.getAllDirs = function(callBack) {    
     if (!mpd._socket)
         mpd.connect()
     var cb = callBack
@@ -833,7 +847,7 @@ mpd.setServers = function(servers) {
 // Any property that may be observed must be set with this method.
 mpd.set = function(prop, val) {
     if (val != mpd[prop]) {
-        // debug("Notify: mpd."+prop+" = "+val)
+        //debug("Notify: mpd."+prop+" = "+val)
         mpd[prop] = val
         observerService.notifyObservers(null, prop, val)
     }
@@ -1078,12 +1092,12 @@ function socketTalker() {
                     if (mpd._doStatus) {
                         mpd._doStatus = false
                         mpd._cmdQueue.push({
-                            outputData : "status\nstats\n",
+                            outputData : "command_list_begin\nstatus\nstats\ncommand_list_end\n",
                             callBack : mpd._update,
                             hide : true,
                             sent : true
                         })
-                        utf_outstream.writeString("status\n")
+                        utf_outstream.writeString("command_list_begin\nstatus\nstats\ncommand_list_end\n")
                     } else {
                         mpd._idle = true
                     }

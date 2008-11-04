@@ -321,10 +321,13 @@
             <method name="load">
                 <parameter name="db"/>
                 <parameter name="me"/>
+                <parameter name="rs">null</parameter>
                 <body>
                     <![CDATA[
+                    isRS = (rs != null) ? "true" : "false"
+                    debug("folders.load(); cache=" + isRS)
                     me = Nz(me,this)
-                    me.view = new folderView(db)
+                    me.view = new folderView(db, rs)
                     me.treeNode.view = me.view
                     ]]>
                 </body>
@@ -504,10 +507,10 @@
                 <xul:deck id="mpm_browser_deck" flex="1">
                     <xul:hbox flex="1">
                         <xul:tabbox width="200px"
-                            id="mpmTagsTabbox"
+                            id="browserTabbox"
                             persist="selectedTab selectedItem selectedPanel">
                             <xul:tabs>
-                                <xul:tab label="Folders" flex="1"/>
+                                <xul:tab label="Folders" id="folders_tab" flex="1"/>
                                 <xul:tab label="Playlists" id="playlist_tab" flex="1"/>
                                 <xul:tab label="Tags" id="tags_tab" flex="1"/>
                             </xul:tabs>
@@ -589,15 +592,18 @@
             <field name="fileDetails">document.getAnonymousElementByAttribute(this, 'id', 'file_details')</field>
             <field name="cwd_icon">document.getAnonymousElementByAttribute(this, 'id', 'cwd_icon')</field>
             <field name="folders">document.getAnonymousElementByAttribute(this, 'id', 'folders')</field>
+            <field name="folders_tab">document.getAnonymousElementByAttribute(this, 'id', 'folders_tab')</field>
             <field name="playlists">document.getAnonymousElementByAttribute(this, 'id', 'playlists')</field>
             <field name="playlist_tab">document.getAnonymousElementByAttribute(this, 'id', 'playlist_tab')</field>
             <field name="tags_tab">document.getAnonymousElementByAttribute(this, 'id', 'tags_tab')</field>
             <field name="sidebar">document.getAnonymousElementByAttribute(this, 'id', 'sidebar')</field>
+            <field name="tabbox">document.getAnonymousElementByAttribute(this, 'id', 'browserTabbox')</field>
             <field name="tags">document.getAnonymousElementByAttribute(this, 'id', 'tags')</field>
             <constructor>
                 <![CDATA[
                 Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
+                Components.utils.import("resource://minion/io.js");
                 
                 var searchInput = this.searchInput
                 function searchInputSet () {
@@ -620,10 +626,15 @@
                 browser.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 folders.goTo = function(q) {me.goTo(q)}
                 folders.followItem = function(i, f, q) {me.followItem(i, f, q)}
-                mpd.getAllDirs(function(db){
-                    folders.view = new folderView(db);
-                    folders.treeNode.view = folders.view;
-                })
+                this.folders_tab.onclick = function () {
+                    if (!Nz(folders.db)) {
+                        mpd.getAllDirs(function(db){
+                            folders.db = db
+                            folders.view = new folderView(db);
+                            folders.treeNode.view = folders.view;
+                        })
+                    }
+                }
                 playlists.goTo = function(q) {me.goTo(q)}
                 playlists.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 this.playlist_tab.onclick = function () {
@@ -654,7 +665,7 @@
 
                 this.observerUpdate = {
                     observe: function(subject,topic,data){
-                        if (!data) me.goTo(me.history[me.historyIndex])
+                        if (!data) me.reload()
                         else {
                             browser.box.clearStyleAndImageCaches()
                             browser.box.invalidate()
@@ -662,6 +673,8 @@
                     }
                 };
                 observerService.addObserver(this.observerUpdate,"updating_db",false)
+                observerService.addObserver(this.observerUpdate,"song",false)
+                observerService.addObserver(this.observerUpdate,"state",false)
                 this.observerServer = {
                     observe: function(subject,topic,data){
                         me.goHome()
@@ -677,15 +690,59 @@
                     }
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)
-
+                this.observerPL = {
+                    observe: function(subject,topic,data){
+                        me.reload()
+                    }
+                };
+                observerService.addObserver(this.observerPL,"plinfo",false)
                 me.goHome()
+                
+                try {
+                    var file = DirIO.get("Home")
+                    file.append(".mpm_browser_state.js")
+                    if (file.exists()) {
+                        var cache_browser = eval(FileIO.read(file))
+                        tabbox.selectedIndex = cache_browser.activeTab
+                        if (cache_browser.db_update == mpd.db_update) {
+                            folders.db = cache_browser.foldersDB
+                            folders.view = new folderView(cache_browser.foldersDB, cache_browser.foldersRS);
+                            folders.treeNode.view = folders.view;
+                            folders.treeNode.currentIndex = cache_browser.foldersIndex
+                            if (cache_browser.activeTab == 0)
+                                folders.treeNode.view.selection.select(cache_browser.foldersIndex)
+                        }
+                        tabbox.selectedTab.onclick()
+                        file = null
+                    }
+                } catch (e) {
+                    tabbox.selectedIndex = 0
+                    tabbox.selectedTab.onclick()
+                }
 
                 ]]>
             </constructor>
             <destructor>
+                var file = DirIO.get("Home")
+                file.append(".mpm_browser_state.js")
+                if (!file.exists()) FileIO.create(file)
+                var tree = folders.treeObject
+                var obj = {
+                    activeTab: tabbox.selectedIndex,
+                    db_update: mpd.db_update,
+                    foldersDB: folders.view.db,
+                    foldersRS: folders.view.rs,
+                    foldersIndex: folders.treeNode.currentIndex
+                }
+                var str = obj.toSource()
+                FileIO.write(file, str)
+                file = null
                 observerService.removeObserver(this.observerUpdate,"updating_db")
+                observerService.removeObserver(this.observerUpdate,"song")
+                observerService.removeObserver(this.observerUpdate,"state")
                 observerService.removeObserver(this.observerServer,"new_mpd_server")
                 observerService.removeObserver(this.observerPlaylists,"playlists")
+                observerService.removeObserver(this.observerPL,"plinfo")
             </destructor>
             <method name="addSelected">
                 <body>
@@ -891,6 +948,18 @@
                     }
                     this.searchInput.focus()
                     ]]>
+                </body>
+            </method>
+            <method name="reload">
+                <body>
+                    var query = this.history[this.historyIndex]
+                    if (query) {
+                        var browser = this.browser
+                        query.callBack = function (db) {
+                            browser.load(db);
+                        }
+                        query.execute()
+                    }
                 </body>
             </method>
             <method name="showDetails">
