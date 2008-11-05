@@ -65,7 +65,10 @@ function customTreeView () {
         if (!Nz(item)) return "";
         switch (C.id) {
             case "Pos":
-                return (item.Pos) ? (parseInt(item.Pos) + 1) + "." : "";
+                if (item.type != 'file') return ""
+                var p = item.Pos
+                if (!p) p = Nz(mpd.pl_lookup[item.file])
+                return (p) ? (parseInt(p) + 1) + "." : "";
                 break;
             case "Time":
                 return (item.Time) ? hmsFromSec(item.Time) : "";

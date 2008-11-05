@@ -139,8 +139,9 @@
                     me.sortOn = null
                     me.filter = null
                     me.db = db
-                    me.view = new arrayView(db)
+                    me.view = new arrayView(me.db)
                     me.treeNode.view = me.view
+                    if (prefs.get("linguistic_sort", false)) me.sort("name")
                     ]]>
                 </body>
             </method>
@@ -186,7 +187,7 @@
                         this.sortOn = column
                         this.sortDir = "ascending"
                     }
-                    this.box.invalidate()
+                    if (Nz(this.box)) this.box.invalidate()
                     ]]>
                 </body>
             </method>
@@ -199,6 +200,7 @@
                 datasources="rdf:null"
                 seltype="multiple"
                 flags="dont-build-content"
+                enableColumnDrag="true"
                 flex="1">
                 <xul:treecols>
                     <xul:treecol id="Pos" label="Position" ordinal="1" width="30px"
@@ -327,6 +329,23 @@
                     isRS = (rs != null) ? "true" : "false"
                     debug("folders.load(); cache=" + isRS)
                     me = Nz(me,this)
+                    if (prefs.get("linguistic_sort", false)) {
+                        var column = "Title"
+                        var smartsort = function (a,b) {
+                            if (isNaN(a[column]+b[column])) {
+                                var al = a[column].toLowerCase()
+                                var bl = b[column].toLowerCase()
+                                if (al>bl) return 1
+                                if (al<bl) return -1
+                                return 0
+                            }
+                            else { return a[column]-b[column]}
+                        }
+                        if (!rs) {
+                            debug("sort");
+                            db.sort(smartsort)
+                        }
+                    }
                     me.view = new folderView(db, rs)
                     me.treeNode.view = me.view
                     ]]>
@@ -629,9 +648,7 @@
                 this.folders_tab.onclick = function () {
                     if (!Nz(folders.db)) {
                         mpd.getAllDirs(function(db){
-                            folders.db = db
-                            folders.view = new folderView(db);
-                            folders.treeNode.view = folders.view;
+                            folders.load(db, folders)
                         })
                     }
                 }
@@ -675,6 +692,7 @@
                 observerService.addObserver(this.observerUpdate,"updating_db",false)
                 observerService.addObserver(this.observerUpdate,"song",false)
                 observerService.addObserver(this.observerUpdate,"state",false)
+                observerService.addObserver(this.observerUpdate,"plinfo",false)
                 this.observerServer = {
                     observe: function(subject,topic,data){
                         me.goHome()
@@ -690,32 +708,31 @@
                     }
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)
-                this.observerPL = {
-                    observe: function(subject,topic,data){
-                        me.reload()
-                    }
-                };
-                observerService.addObserver(this.observerPL,"plinfo",false)
-                me.goHome()
                 
-                try {
-                    var file = DirIO.get("Home")
-                    file.append(".mpm_browser_state.js")
-                    if (file.exists()) {
-                        var cache_browser = eval(FileIO.read(file))
-                        tabbox.selectedIndex = cache_browser.activeTab
-                        if (cache_browser.db_update == mpd.db_update) {
-                            folders.db = cache_browser.foldersDB
-                            folders.view = new folderView(cache_browser.foldersDB, cache_browser.foldersRS);
-                            folders.treeNode.view = folders.view;
-                            folders.treeNode.currentIndex = cache_browser.foldersIndex
-                            if (cache_browser.activeTab == 0)
-                                folders.treeNode.view.selection.select(cache_browser.foldersIndex)
+                me.goHome()
+                if (prefs.get("persistant_state", true)) {
+                    try {
+                        var file = DirIO.get("Home")
+                        file.append(".mpm_browser_state.js")
+                        if (file.exists()) {
+                            var cache_browser = eval(FileIO.read(file))
+                            tabbox.selectedIndex = cache_browser.activeTab
+                            if (cache_browser.db_update == mpd.db_update) {
+                                folders.db = cache_browser.foldersDB
+                                folders.view = new folderView(cache_browser.foldersDB, cache_browser.foldersRS);
+                                folders.treeNode.view = folders.view;
+                                folders.treeNode.currentIndex = cache_browser.foldersIndex
+                                if (cache_browser.activeTab == 0)
+                                    folders.treeNode.view.selection.select(cache_browser.foldersIndex)
+                            }
+                            tabbox.selectedTab.onclick()
+                            file = null
                         }
+                    } catch (e) {
+                        tabbox.selectedIndex = 0
                         tabbox.selectedTab.onclick()
-                        file = null
                     }
-                } catch (e) {
+                } else {
                     tabbox.selectedIndex = 0
                     tabbox.selectedTab.onclick()
                 }
@@ -723,26 +740,28 @@
                 ]]>
             </constructor>
             <destructor>
-                var file = DirIO.get("Home")
-                file.append(".mpm_browser_state.js")
-                if (!file.exists()) FileIO.create(file)
-                var tree = folders.treeObject
-                var obj = {
-                    activeTab: tabbox.selectedIndex,
-                    db_update: mpd.db_update,
-                    foldersDB: folders.view.db,
-                    foldersRS: folders.view.rs,
-                    foldersIndex: folders.treeNode.currentIndex
+                if (prefs.get("persistant_state", true)) {
+                    var file = DirIO.get("Home")
+                    file.append(".mpm_browser_state.js")
+                    if (!file.exists()) FileIO.create(file)
+                    var tree = folders.treeObject
+                    var obj = {
+                        activeTab: tabbox.selectedIndex,
+                        db_update: mpd.db_update,
+                        foldersDB: folders.view.db,
+                        foldersRS: folders.view.rs,
+                        foldersIndex: folders.treeNode.currentIndex
+                    }
+                    var str = obj.toSource()
+                    FileIO.write(file, str)
+                    file = null
                 }
-                var str = obj.toSource()
-                FileIO.write(file, str)
-                file = null
                 observerService.removeObserver(this.observerUpdate,"updating_db")
                 observerService.removeObserver(this.observerUpdate,"song")
                 observerService.removeObserver(this.observerUpdate,"state")
+                observerService.removeObserver(this.observerUpdate,"plinfo")
                 observerService.removeObserver(this.observerServer,"new_mpd_server")
                 observerService.removeObserver(this.observerPlaylists,"playlists")
-                observerService.removeObserver(this.observerPL,"plinfo")
             </destructor>
             <method name="addSelected">
                 <body>

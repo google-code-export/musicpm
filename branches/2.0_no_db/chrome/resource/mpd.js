@@ -161,10 +161,6 @@ dbQuery.prototype.execute = function(callBack) {
 
     if (Nz(mpd.cachedDB[cmd])) {
         debug("cached: " + cmd)
-        cDB = mpd.cachedDB[cmd]
-        for each(item in cDB) {
-            item.Pos = Nz(mpd.pl_lookup[item.file])
-        }
         callBack(mpd.cachedDB[cmd])
         return null
     }
@@ -390,7 +386,7 @@ mpd._parseDB = function(data) {
                         Artist : '',
                         Album : '',
                         Time : 0,
-                        Pos : Nz(mpd.pl_lookup[val])
+                        Pos : null
                     };
                     var d = data[i + 1]
                     while (d && d.substr(0, 6) != "file: ") {

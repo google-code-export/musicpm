@@ -9,6 +9,7 @@
                 label="Playlist"
                 flex="1"
                 flags="dont-build-content"
+                enableColumnDrag="true"
                 ondblclick="var a=this.parentNode.activeItem;if(a)mpd.doCmd('play '+a.Pos)">
                 <children/>
                 <xul:treecols>

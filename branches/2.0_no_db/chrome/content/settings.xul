@@ -17,12 +17,18 @@
       <preference id="use_amazon" name="extensions.mpm.use_amazon_art" type="bool"/>
       <preference id="playlist_bottom" name="extensions.mpm.playlist_bottom" type="bool"/>
       <preference id="launch_in_browser" name="extensions.mpm.launch_in_browser" type="bool"/>
+      <preference id="peristant_state" name="extensions.mpm.persistant_state" type="bool"/>
+      <preference id="linguistic_sort" name="extensions.mpm.linguistic_sort" type="bool"/>
     </preferences>
 
+    <checkbox id="check_peristant_state" preference="peristant_state"
+          label="Save browser state between sessions."/>
     <checkbox id="check_cs" preference="sb_cs_hide"
           label="Hide current song display in statusbar"/>
     <checkbox id="check_theme" preference="theme"
           label="Use default Firefox theme"/>
+    <checkbox id="check_linguistic_sort" preference="linguistic_sort"
+          label="Always load with linguistic sort (case insensitive)"/>
     <checkbox id="check_playlist_bottom" preference="playlist_bottom"
           label="Show Playlist on bottom"/>
     <checkbox id="check_launch_in_browser" preference="launch_in_browser"
