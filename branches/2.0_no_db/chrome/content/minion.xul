@@ -8,7 +8,7 @@
 
 <window
     id="main"
-    title="Music Player Minion 1.99.9"
+    title="Music Player Minion __mpm_version__"
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
