@@ -54,14 +54,14 @@ treechildren::-moz-tree-cell-text(Artist) {
     text-align: right;
 }
 
-#mpm_sb_Title > label {
+.mpm_sb_Title > label {
     overflow: hidden;
     width: 130px;
     max-width: 130px;
     margin: 0px !important;
     padding: 0px !important;
 }
-#mpm_sb_currentsong .mpdTime {
+.mpm_sb_currentsong .mpdTime {
     padding-top: 0px !important;
     padding-bottom: 0px !important;
     margin: 0px 2px 0px 2px !important;
@@ -75,7 +75,11 @@ treechildren::-moz-tree-cell-text(Artist) {
     border: 1px solid transparent;
     margin: 0px;
 }
-#mpm_sb_currentsong {
+.mpm_sb_currentsong {
+    -moz-appearance: none;
+    -moz-border-radius: 4px;
+    border: 1px solid transparent;
+    margin: 0px;
     border: 1px solid #CFCFCF !important;
     padding-top: 0px !important;
     padding-bottom: 0px !important;

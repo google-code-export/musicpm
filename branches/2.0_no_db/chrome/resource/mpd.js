@@ -996,6 +996,7 @@ function socketTalker() {
             initialized = false
             debug('socketTalker for server ' + mpd._host + ":" + mpd._port
                     + " created.")
+            mpd.set('greeting', 'Connecting');
         },
         onStopRequest : function(request, context, status) {
             this.data = null
@@ -1022,7 +1023,7 @@ function socketTalker() {
                     if (greet) {
                         initialized = true
                         this.data = this.data.replace(regGreet, "")
-                        mpd.set('greeting', "OK MPD@" + mpd._host
+                        mpd.set('greeting', "MPD@" + mpd._host
                                 + ":" + mpd._port)
                         if (mpd._password.length > 0) {
                             mpd._cmdQueue.unshift({

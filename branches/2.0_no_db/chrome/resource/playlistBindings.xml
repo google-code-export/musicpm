@@ -82,6 +82,9 @@
                 </xul:treecols>
                 <xul:treechildren id="children"/>
             </xul:tree>
+            <xul:box collapsed="true"
+                xbl:inherits="persist=persist_columns"
+                persist="Pos Title Time"/>
         </content>
         <handlers>
             <handler event="keypress" modifiers="accel" key="a"
@@ -96,6 +99,7 @@
         <implementation>
             <field name="view"/>
             <field name="tree">document.getAnonymousNodes(this)[0]</field>
+            <field name="state">document.getAnonymousNodes(this)[1]</field>
             <field name="box"/>
             <field name="obsPL"/>
             <field name="obsLn"/>
@@ -110,6 +114,14 @@
                 Components.utils.import("resource://minion/trees.js");
 
                 var me = this
+                debug("load playlist")
+                debug(me.state.persist)
+                var cols=me.state.persist.split(" ")
+                for (i=0;i<cols.length;i++) {
+                    var c = document.getAnonymousElementByAttribute(me, 'id', cols[i])
+                    c.setAttribute("ordinal", i)
+                    c.setAttribute("hidden", false)
+                }
                 function applyView() {
                     me.view = new arrayView(mpd.plinfo)
                     me.tree.view = me.view

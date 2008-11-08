@@ -224,8 +224,10 @@ function fetch(url, callBack, arg, getXML) {
 }
 
 function mpm_openDialog(url, id) {
+    var features = "chrome,dialog=yes,resizable=yes"
+    if (id=="settings") features += ",titlebar,toolbar"
     var win = winw.openWindow(winw.activeWindow, url, Nz(id, url),
-            "chrome,dialog=yes,resizable=yes", null);
+            features, null);
 }
 
 function openReuseByURL(url) {

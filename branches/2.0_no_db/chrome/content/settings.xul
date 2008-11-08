@@ -7,15 +7,12 @@
 
   <prefpane id="pane1" label="General">
     <preferences>
-      <preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
       <preference id="adapt_interval" name="extensions.mpm.adaptive_interval" type="bool"/>
       <preference id="interval" name="extensions.mpm.update_interval" type="int"/>
       <preference id="search_timeout" name="extensions.mpm.search_timeout" type="int"/>
-      <preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
       <preference id="use_custom" name="extensions.mpm.use_custom_art" type="bool"/>
       <preference id="art_url" name="extensions.mpm.custom_art_url" type="string"/>
       <preference id="use_amazon" name="extensions.mpm.use_amazon_art" type="bool"/>
-      <preference id="playlist_bottom" name="extensions.mpm.playlist_bottom" type="bool"/>
       <preference id="launch_in_browser" name="extensions.mpm.launch_in_browser" type="bool"/>
       <preference id="peristant_state" name="extensions.mpm.persistant_state" type="bool"/>
       <preference id="linguistic_sort" name="extensions.mpm.linguistic_sort" type="bool"/>
@@ -23,14 +20,8 @@
 
     <checkbox id="check_peristant_state" preference="peristant_state"
           label="Save browser state between sessions."/>
-    <checkbox id="check_cs" preference="sb_cs_hide"
-          label="Hide current song display in statusbar"/>
-    <checkbox id="check_theme" preference="theme"
-          label="Use default Firefox theme"/>
     <checkbox id="check_linguistic_sort" preference="linguistic_sort"
           label="Always load with linguistic sort (case insensitive)"/>
-    <checkbox id="check_playlist_bottom" preference="playlist_bottom"
-          label="Show Playlist on bottom"/>
     <checkbox id="check_launch_in_browser" preference="launch_in_browser"
           label="Launch Minion in tab (as opposed to new window)"/>
     <checkbox id="check_adapt" preference="adapt_interval"
@@ -50,6 +41,25 @@
     <textbox id="art"  preference="art_url" flex="1"/>
     <checkbox id="amazon" preference="use_amazon"
           label="Fetch album covers from Amazon.com"/>
+  </prefpane>
+  
+  
+  <prefpane id="pane2" label="Apperance">
+    <preferences>
+      <preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
+      <preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
+      <preference id="playlist_bottom" name="extensions.mpm.playlist_bottom" type="bool"/>
+      <preference id="sb_playlist_menu" name="extensions.mpm.sb_playlist_menu" type="bool"/>
+    </preferences>
+
+    <checkbox id="check_cs" preference="sb_cs_hide"
+          label="Hide current song display in statusbar"/>
+    <checkbox id="check_theme" preference="theme"
+          label="Use default Firefox theme"/>
+    <checkbox id="check_playlist_bottom" preference="playlist_bottom"
+          label="Show Playlist on bottom"/>
+    <checkbox id="check_playlist_menu" preference="sb_playlist_menu"
+          label="Display playlist as menu in statusbar"/>
   </prefpane>
 
 </prefwindow>
