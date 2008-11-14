@@ -28,9 +28,11 @@
         }
         function togglePlaylistBar () {
             var b = document.getElementById("mpm_playlist_sb")
+            var pl = document.getElementById("mpm_mw_playlist_box")
             var s = document.getElementById("mpm_playlist_splitter")
             s.collapsed = !s.collapsed
             b.collapsed = !b.collapsed
+            pl.showCurrent()
             //if (parseInt(b.height) < 1) slidePlaylist(10,200)
             //else slidePlaylist(-10,0)
         }
@@ -39,24 +41,7 @@
                 debug("load")
                 var cm = document.getElementById("contentAreaContextMenu")
                 if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, true)
-                try {
-                    var hide = prefs.get('sb_currentsong_hide', false)
-                    document.getElementById('mpm_sb_currentsong').collapsed = hide;
-                    document.getElementById('mpm_sb_playlist').collapsed = !hide;
-                    document.getElementById('mpm_sb_currentsongb').collapsed = hide;
-                    document.getElementById('mpm_sb_playlistb').collapsed = !hide;
-                    
-                    var menu = prefs.get('sb_playlist_menu', false)
-                    document.getElementById('sb_playlist_menu').collapsed = !menu
-                    document.getElementById('sb_playlist_box').collapsed = menu  
-                } catch (e) {debug(e)}
-                try {
-                    var hide = (mpd.greeting=="Not Connected");
-                    document.getElementById('mpm_sb_controls').hidden = hide;
-                    document.getElementById('mpm_sb_volume').hidden = hide;
-                    document.getElementById('mpm_sb_playlist').hidden = hide;
-                    document.getElementById('mpm_sb_currentsong').hidden = hide;
-                } catch (e) {debug(e)}
+                obs.observe(null, null, null)
                 var volbtn = document.getElementById('mpm_sb_volume')
                 var volscl = document.getElementById('mpm_sb_volume_scale')
                 volbtn.addEventListener("DOMMouseScroll", volscl.volScroll, false)
@@ -118,12 +103,22 @@
         }
         var obs = {
             observe: function(sub,topic,data){
-                debug("browser greeting observer; data="+data)
-                var hide = (data=="Not Connected");
+                var hide = (mpd._socket == null);
                 document.getElementById('mpm_sb_controls').hidden = hide;
                 document.getElementById('mpm_sb_volume').hidden = hide;
                 document.getElementById('mpm_sb_playlist').hidden = hide;
                 document.getElementById('mpm_sb_currentsong').hidden = hide;
+                if (!hide) {
+                    csPrefObserver.observe(null,"nsPref:changed","sb_currentsong_hide")
+                    csPrefObserver.observe(null,"nsPref:changed","sb_playlist_menu")
+                } else {
+                    document.getElementById('mpm_sb_currentsong').collapsed = true
+                    document.getElementById('mpm_sb_playlist').collapsed = true
+                    document.getElementById('mpm_sb_currentsongb').collapsed = true
+                    document.getElementById('mpm_sb_playlistb').collapsed = true
+                    document.getElementById('sb_playlist_menu').collapsed = true
+                    document.getElementById('sb_playlist_box').collapsed = true
+                }
             }
         };
         var obsVol = {
@@ -192,8 +187,10 @@
         </menupopup>
         <menupopup id="mpm_playlist_popup" 
                    sizetocontent="true"
-                   position="before_end">
+                   position="before_end"
+                   onpopupshowing="this.childNodes[0].showCurrent()">
             <mpdplaylist flex="1"
+                mpm_name="popup_playlist"
                 context="mpmMenu"
                 oncontextmenu="mpmMenu_contextShowing(event)"
                 width="300"
@@ -227,6 +224,7 @@
             </vbox>
             <mpdplaylist id="mpm_mw_playlist_box"
                 flex="1"
+                mpm_name="bottombox_playlist"
                 context="mpmMenu"
                 height="100"
                 persist="persist_columns height"

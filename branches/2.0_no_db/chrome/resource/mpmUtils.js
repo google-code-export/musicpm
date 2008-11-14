@@ -35,6 +35,7 @@ var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
 
 function debug(s) {
     // return null
+    if (!s) s = "null passed to debug"
     if (typeof(s) == 'object') {
         var str = ""
         for (x in s) {
@@ -49,8 +50,10 @@ function debug(s) {
     } else {
         var str = s
     }
-    dump(str + "\n\n")
-    consoleService.logStringMessage(str)
+    if (typeof(str) == 'string') {
+        dump(str + "\n\n")
+        consoleService.logStringMessage(str)
+    }
 }
 
 function Nz(obj, def) {

@@ -400,6 +400,7 @@
                         progress.enabled = enable
                         lbl1.enabled = enable
                         lbl2.enabled = enable
+                        //obs2.observe(null,null,mpd.Time)
                     }
                 };
 
@@ -407,6 +408,8 @@
                 this.obs2 = obs2
                 this.obsState = obsState
                 this.seekScroll = seekScroll
+                obs1.observe(null,null,mpd.time)
+                obs2.observe(null,null,mpd.Time)
                 observerService.addObserver(obs1,"time",false)
                 observerService.addObserver(obs2,"Time",false)
                 observerService.addObserver(obsState,"state",false)

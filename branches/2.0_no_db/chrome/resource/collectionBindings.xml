@@ -208,60 +208,60 @@
                                  class="sortDirectionIndicator"
                                  tooltiptext="Playlist Position"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="2" />
+                    <xul:splitter id="splitPos" class="tree-splitter" ordinal="2" />
                     <xul:treecol id="Track" label="Track" ordinal="3" width="60px"
                                  persist="width ordinal hidden"
                                  collapsed="true"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:splitter id="splitTrack" class="tree-splitter" ordinal="4" />
                     <xul:treecol id="Title" label="Title" ordinal="5" flex="2"
                                  persist="width ordinal hidden"
                                  overflow="true"
                                  class="sortDirectionIndicator"
                                  minwidth="120"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="6" />
+                    <xul:splitter id="splitTitle" class="tree-splitter" ordinal="6" />
                     <xul:treecol id="Time" label="Time" ordinal="7" width="60px"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="8" />
+                    <xul:splitter id="splitTime" class="tree-splitter" ordinal="8" />
                     <xul:treecol id="Album" label="Album" ordinal="9" flex="1"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="10" />
+                    <xul:splitter id="splitAlbum" class="tree-splitter" ordinal="10" />
                     <xul:treecol id="Artist" label="Artist" ordinal="11" flex="1"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="12" />
+                    <xul:splitter id="splitArtist" class="tree-splitter" ordinal="12" />
                     <xul:treecol id="Performer" label="Performer" ordinal="13" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="14" />
+                    <xul:splitter id="splitPerf" class="tree-splitter" ordinal="14" />
                     <xul:treecol id="Composer" label="Composer" ordinal="15" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="16" />
+                    <xul:splitter id="splitComp" class="tree-splitter" ordinal="16" />
                     <xul:treecol id="Genre" label="Genre" ordinal="17" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="18" />
+                    <xul:splitter id="splitGenre" class="tree-splitter" ordinal="18" />
                     <xul:treecol id="Date" label="Date" ordinal="19" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="20" />
+                    <xul:splitter id="splitDate" class="tree-splitter" ordinal="20" />
                     <xul:treecol id="name" label="[File]Name" ordinal="21" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
@@ -450,6 +450,7 @@
             <method name="loadMain">
                 <body>
                     <![CDATA[
+                    if (!mpd._socket) mpd.connect()
                     var tree = this.treeMain
                     var q = new dbQuery()
                     q.type = this.typeMain.value
@@ -578,8 +579,11 @@
                                                ondblclick="this.className=(this.className=='mpm_browser_image') ? '' : 'mpm_browser_image'"/>
                                     <xul:spacer flex="1"/>
                                 </xul:vbox>
-                                <xul:box id="browser" class="mpm_browser" flex="1"
-                                         style="-moz-binding: url('#mpmBrowser')"/>
+                                <xul:deck id="browser-playlist_deck" flex="1">
+                                    <xul:box id="browser" class="mpm_browser" flex="1"
+                                             style="-moz-binding: url('#mpmBrowser')"/>
+                                    <xbl:children/>
+                                </xul:deck>
                             </xul:hbox>
                         </xul:vbox>
                     </xul:hbox>
@@ -604,6 +608,7 @@
             <field name="historyIndex">0</field>
             <field name="obsCurSong"/>
             <field name="browser">document.getAnonymousElementByAttribute(this, 'id', 'browser')</field>
+            <field name="bp_deck">document.getAnonymousElementByAttribute(this, 'id', 'browser-playlist_deck')</field>
             <field name="deck">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_deck')</field>
             <field name="content">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_content')</field>
             <field name="image">document.getAnonymousElementByAttribute(this, 'id', 'image')</field>
@@ -641,6 +646,7 @@
                 var folders = this.folders
                 var playlists = this.playlists
                 var tags = this.tags
+                
                 browser.goTo = function(q) {me.goTo(q)}
                 browser.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 folders.goTo = function(q) {me.goTo(q)}
@@ -658,10 +664,18 @@
                     var q = new dbQuery()
                     q.type = "playlist"
                     q.query = ""
-                    q.execute(function(db){playlists.load(db,playlists)})
+                    q.execute(function(db){
+                        var cur = {
+                            type: "playlist",
+                            name: "Current Playlist",
+                            Title: "Current Playlist"
+                        }
+                        db.unshift(cur)
+                        playlists.load(db,playlists)
+                    })
                 }
                 this.tags_tab.onclick = function () {
-                    if (!Nz(tags.db)) tags.loadMain()
+                    //if (!Nz(tags.db)) tags.loadMain()
                 }
 
                 tags.treeMain.followItem = function(i){debug("treeMain.followItem()");me.followItem(i)}
@@ -709,6 +723,23 @@
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)
                 
+                
+                var bcols = browser.treeNode.childNodes[0].childNodes
+                var colprops = prefs.get("browser_columns", "")
+                function setCol(val, index, arr) {
+                    props = val.split(":")
+                    if (props[0] > "") {
+                        var c = document.getAnonymousElementByAttribute(browser.treeNode, 'id', props[0])
+                        c.hidden = (props[1]=="true")
+                        c.setAttribute("width", props[2])
+                        c.setAttribute("ordinal", props[3])
+                    }
+                }
+                if (colprops > "") {
+                    var cols = colprops.split(";")
+                    cols.forEach(setCol, cols)
+                }
+                
                 me.goHome()
                 if (prefs.get("persistant_state", true)) {
                     try {
@@ -736,10 +767,21 @@
                     tabbox.selectedIndex = 0
                     tabbox.selectedTab.onclick()
                 }
-
+                
                 ]]>
             </constructor>
             <destructor>
+                <![CDATA[
+                var bcols = browser.treeNode.childNodes[0].childNodes
+                var colCount = bcols.length
+                var colprops = ""
+                for (i=0;i<colCount;i++) {
+                    var col = bcols[i]
+                    if (colprops != "") colprops += ";"
+                    colprops += [col.id, col.hidden, col.boxObject.width, col.ordinal].join(":")
+                }
+                prefs.set("browser_columns", colprops)
+                
                 if (prefs.get("persistant_state", true)) {
                     var file = DirIO.get("Home")
                     file.append(".mpm_browser_state.js")
@@ -762,6 +804,7 @@
                 observerService.removeObserver(this.observerUpdate,"plinfo")
                 observerService.removeObserver(this.observerServer,"new_mpd_server")
                 observerService.removeObserver(this.observerPlaylists,"playlists")
+                ]]>
             </destructor>
             <method name="addSelected">
                 <body>
@@ -877,8 +920,9 @@
                 <body>
                     <![CDATA[
                     query = Nz(query)
-                    if (query) {
+                    if (query && query.query != 'Current Playlist') {
                         this.deck.selectedIndex = 0
+                        this.bp_deck.selectedIndex = 0
                         var browser = this.browser
                         var albumCol = browser.getCol('Album')
                         var me = this
@@ -904,6 +948,10 @@
                             }
                         }
                         query.execute()
+                    }
+                    else if (query && query.query == 'Current Playlist') {
+                        this.deck.selectedIndex = 0
+                        this.bp_deck.selectedIndex = 1                        
                     }
                     else {
                         var home = [

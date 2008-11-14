@@ -7,73 +7,75 @@
         <content>
             <xul:tree
                 label="Playlist"
+                xbl:inherits="mpm_name"
+                mpm_name="unknown"
                 flex="1"
                 flags="dont-build-content"
                 enableColumnDrag="true"
                 ondblclick="var a=this.parentNode.activeItem;if(a)mpd.doCmd('play '+a.Pos)">
                 <children/>
                 <xul:treecols>
-                    <xul:treecol id="Pos" label="Position" ordinal="1" width="30"
+                    <xul:treecol id="Pos" label="Position" ordinal="1" width="30px"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  tooltiptext="Playlist Position"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="2" />
-                    <xul:treecol id="Track" label="Track" ordinal="3" width="30"
-                                 hidden="true"
+                    <xul:splitter id="splitPos" class="tree-splitter" ordinal="2" />
+                    <xul:treecol id="Track" label="Track" ordinal="3" width="60px"
                                  persist="width ordinal hidden"
                                  collapsed="true"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="4" />
+                    <xul:splitter id="splitTrack" class="tree-splitter" ordinal="4" />
                     <xul:treecol id="Title" label="Title" ordinal="5" flex="2"
                                  persist="width ordinal hidden"
                                  overflow="true"
                                  class="sortDirectionIndicator"
                                  minwidth="120"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="6" />
-                    <xul:treecol id="Time" label="Time" ordinal="7" width="40"
+                    <xul:splitter id="splitTitle" class="tree-splitter" ordinal="6" />
+                    <xul:treecol id="Time" label="Time" ordinal="7" width="60px"
+                                 hidden="false"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="8" />
+                    <xul:splitter id="splitTime" class="tree-splitter" ordinal="8" />
                     <xul:treecol id="Album" label="Album" ordinal="9" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="10" />
+                    <xul:splitter id="splitAlbum" class="tree-splitter" ordinal="10" />
                     <xul:treecol id="Artist" label="Artist" ordinal="11" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="12" />
+                    <xul:splitter id="splitArtist" class="tree-splitter" ordinal="12" />
                     <xul:treecol id="Performer" label="Performer" ordinal="13" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="14" />
+                    <xul:splitter id="splitPerf" class="tree-splitter" ordinal="14" />
                     <xul:treecol id="Composer" label="Composer" ordinal="15" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="16" />
+                    <xul:splitter id="splitComp" class="tree-splitter" ordinal="16" />
                     <xul:treecol id="Genre" label="Genre" ordinal="17" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="18" />
+                    <xul:splitter id="splitGenre" class="tree-splitter" ordinal="18" />
                     <xul:treecol id="Date" label="Date" ordinal="19" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:splitter class="tree-splitter" ordinal="20" />
+                    <xul:splitter id="splitDate" class="tree-splitter" ordinal="20" />
                     <xul:treecol id="name" label="[File]Name" ordinal="21" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
@@ -99,6 +101,7 @@
         <implementation>
             <field name="view"/>
             <field name="tree">document.getAnonymousNodes(this)[0]</field>
+            <field name="mpm_name">document.getAnonymousNodes(this)[0].getAttribute("mpm_name")</field>
             <field name="state">document.getAnonymousNodes(this)[1]</field>
             <field name="box"/>
             <field name="obsPL"/>
@@ -114,14 +117,7 @@
                 Components.utils.import("resource://minion/trees.js");
 
                 var me = this
-                debug("load playlist")
-                debug(me.state.persist)
-                var cols=me.state.persist.split(" ")
-                for (i=0;i<cols.length;i++) {
-                    var c = document.getAnonymousElementByAttribute(me, 'id', cols[i])
-                    c.setAttribute("ordinal", i)
-                    c.setAttribute("hidden", false)
-                }
+                debug(this.mpm_name)
                 function applyView() {
                     me.view = new arrayView(mpd.plinfo)
                     me.tree.view = me.view
@@ -149,12 +145,45 @@
                 observerService.addObserver(this.obsPL,'plinfo',false)
                 observerService.addObserver(this.obsCurSong,'state',false)
                 observerService.addObserver(this.obsCurSong,'file',false)
+                
+                var colprops = prefs.get(this.mpm_name+"_columns", "")
+                function setCol(val, index, arr) {
+                    props = val.split(":")
+                    if (props[0] > "") {
+                        var c = document.getAnonymousElementByAttribute(this, 'id', props[0])
+                        c.hidden = (props[1]=="true")
+                        c.setAttribute("width", props[2])
+                        c.setAttribute("ordinal", props[3])
+                    }
+                }
+                if (colprops > "") {
+                    var cols = colprops.split(";")
+                    cols.forEach(setCol, this)
+                } else {
+                    var cols=me.state.persist.split(" ")
+                    for (i=0;i<cols.length;i++) {
+                        var c = document.getAnonymousElementByAttribute(me, 'id', cols[i])
+                        c.setAttribute("ordinal", i)
+                        c.setAttribute("hidden", false)
+                    }
+                }
                 ]]>
             </constructor>
             <destructor>
+                <![CDATA[
+                var bcols = this.tree.childNodes[0].childNodes
+                var colCount = bcols.length
+                var colprops = ""
+                for (i=0;i<colCount;i++) {
+                    var col = bcols[i]
+                    if (colprops != "") colprops += ";"
+                    colprops += [col.id, col.hidden, col.boxObject.width, col.ordinal].join(":")
+                }
+                prefs.set(this.mpm_name+"_columns", colprops)
                 observerService.removeObserver(this.obsPL,'plinfo')
                 observerService.removeObserver(this.obsCurSong,'state')
                 observerService.removeObserver(this.obsCurSong,'file')
+                ]]>
             </destructor>
             <method name="delete">
                 <body>
@@ -245,6 +274,23 @@
                 <![CDATA[
                 var moveToPos = parseInt(mpd.song)
                 this.moveTo(moveToPos)
+                ]]>
+                </body>
+            </method>
+            <method name="showCurrent">
+                <body>
+                <![CDATA[
+                try {
+                    var idx = mpd.song
+                    if (idx) {
+                        if (idx < this.view.rowCount) {
+                            this.box.scrollToRow(idx)
+                        }
+                        else {
+                            this.box.ensureRowIsVisible(this.view.rowCount-1)
+                        }
+                    }
+                } catch (e) { debug(e) }
                 ]]>
                 </body>
             </method>

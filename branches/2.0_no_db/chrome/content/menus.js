@@ -131,7 +131,7 @@ function mpmMenu_contextShowing(event, location, activeItem) {
         var menu = document.getElementById("mpmDynamicMenu")
         var elem = event.target
         var activeItem = Nz(activeItem) ? activeItem : Nz(elem.getActiveItem())
-        var location = Nz(location) ? location : Nz(elem.tagName)
+        var location = Nz(location) ? location : Nz(elem.tagNameOverride, elem.tagName)
         while (menu.hasChildNodes()) {
             menu.removeChild(menu.firstChild)
         }

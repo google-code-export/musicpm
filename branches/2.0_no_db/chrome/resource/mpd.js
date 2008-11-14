@@ -135,6 +135,13 @@ dbQuery.prototype.evaluate = function() {
             }
             ;
             break;
+        case 'current_playlist' :
+            this.path = [{
+                type : "playlist",
+                Title : "Playlists",
+                name : ""
+            }];
+            break;
         default :
             this.cmd = "list " + this.type;
             this.path = [{
@@ -152,6 +159,10 @@ dbQuery.prototype.evaluate = function() {
 }
 
 dbQuery.prototype.execute = function(callBack) {
+    if (!mpd._socket) {
+        mpd.connect()
+        debug("dbQuery forcing connect.")
+    }
     callBack = Nz(callBack, this.callBack)
     this.evaluate()
     var cmd = this.cmd
@@ -307,15 +318,15 @@ var mpd = {
 
 mpd._checkStatus = function() {
     mpd._doStatus = true
+    var tm = (mpd.state != 'play') ? 1500 : mpd.update_interval
+    if (mpd._timer) {
+        mpd._timer.cancel()
+    }
     if (!mpd._socket) {
         mpd._socket = socketTalker()
     }
     if (mpd._idle) {
         mpd.doCmd("ping", null, true)
-    }
-    var tm = (mpd.state != 'play') ? 1500 : mpd.update_interval
-    if (mpd._timer) {
-        mpd._timer.cancel()
     }
     if (mpd._socket) {
         var cb = {
