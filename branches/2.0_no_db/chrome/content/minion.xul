@@ -86,6 +86,7 @@
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event)">
             <mpdplaylist flex="1"
+                id="browser_playlist"
                 mpm_name="browser_playlist"
                 context="mpmMenu"
                 oncontextmenu="mpmMenu_contextShowing(event)"/>
@@ -128,6 +129,7 @@
             </tree>
             <splitter id="playlist_splitter" collapse="before" collapsed="true"/>
             <mpdplaylist flex="1"
+                id="playlist"
                 mpm_name="main_window_playlist"
                 context="mpmMenu"
                 oncontextmenu="mpmMenu_contextShowing(event)"/>

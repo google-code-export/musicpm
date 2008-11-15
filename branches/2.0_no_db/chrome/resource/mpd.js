@@ -751,20 +751,9 @@ mpd.getArt = function(item, img) {
     if (prefs.get("use_custom_art", false)) {
         var url = urlReplace(prefs.get("custom_art_url"), item)
         debug("Attempting to fetch cover at " + url)
-        
-        var req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
-                    .createInstance(Components.interfaces.nsIXMLHttpRequest);
-        req.QueryInterface(Components.interfaces.nsIDOMEventTarget);
-        req.onprogress = function (e) {
-            req.abort()
-            img.src = url
-            img.setAttribute("tooltiptext",url)
-        }
-        req.onerror = fallback
-        req.overrideMimeType('text/plain; charset=x-user-defined');
-        debug(url)
-        req.open("GET", url, true);
-        try { req.send(""); } catch (e) { debug("image load error");fallback() }
+        img.onerror = fallback
+        img.setAttribute("tooltiptext",url)
+        img.src = url
     } else {
         fallback()
     }

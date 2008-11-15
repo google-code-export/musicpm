@@ -145,54 +145,35 @@
                 observerService.addObserver(this.obsPL,'plinfo',false)
                 observerService.addObserver(this.obsCurSong,'state',false)
                 observerService.addObserver(this.obsCurSong,'file',false)
-                
-                var colprops = prefs.get(this.mpm_name+"_columns", "")
-                function setCol(val, index, arr) {
-                    props = val.split(":")
-                    if (props[0] > "") {
-                        var c = document.getAnonymousElementByAttribute(this, 'id', props[0])
-                        c.hidden = (props[1]=="true")
-                        c.setAttribute("width", props[2])
-                        c.setAttribute("ordinal", props[3])
+                try {
+                    var colprops = prefs.get(this.mpm_name+"_columns", "")
+                    function setCol(val, index, arr) {
+                        props = val.split(":")
+                        if (props[0] > "") {
+                            var c = document.getAnonymousElementByAttribute(this, 'id', props[0])
+                            c.hidden = (props[1]=="true")
+                            c.setAttribute("width", props[2])
+                            c.setAttribute("ordinal", props[3])
+                        }
                     }
-                }
-                if (colprops > "") {
-                    var cols = colprops.split(";")
-                    cols.forEach(setCol, this)
-                } else {
-                    var cols=me.state.persist.split(" ")
-                    for (i=0;i<cols.length;i++) {
-                        var c = document.getAnonymousElementByAttribute(me, 'id', cols[i])
-                        c.setAttribute("ordinal", i)
-                        c.setAttribute("hidden", false)
+                    if (colprops > "") {
+                        var cols = colprops.split(";")
+                        cols.forEach(setCol, this)
+                    } else {
+                        var cols=me.state.persist.split(" ")
+                        for (i=0;i<cols.length;i++) {
+                            var c = document.getAnonymousElementByAttribute(me, 'id', cols[i])
+                            c.setAttribute("ordinal", i)
+                            c.setAttribute("hidden", false)
+                        }
                     }
+                } catch (e) {
+                    debug(e)
                 }
                 ]]>
             </constructor>
             <destructor>
                 <![CDATA[
-                var bcols = this.tree.childNodes[0].childNodes
-                function sortX (a, b) {
-                    try {
-                        aX = a.boxObject.x
-                        bX = b.boxObject.x
-                        if (aX > bX) return 1
-                        if (aX < bX) return -1
-                        return 0
-                    } catch (e) {
-                        debug(e)
-                        return 0
-                    }
-                }
-                bcols.sort(sortX)
-                var colCount = bcols.length
-                var colprops = ""
-                for (i=0;i<colCount;i++) {
-                    var col = bcols[i]
-                    if (colprops != "") colprops += ";"
-                    colprops += [col.id, col.hidden, col.boxObject.width, i+1].join(":")
-                }
-                prefs.set(this.mpm_name+"_columns", colprops)
                 observerService.removeObserver(this.obsPL,'plinfo')
                 observerService.removeObserver(this.obsCurSong,'state')
                 observerService.removeObserver(this.obsCurSong,'file')
@@ -287,6 +268,25 @@
                 <![CDATA[
                 var moveToPos = parseInt(mpd.song)
                 this.moveTo(moveToPos)
+                ]]>
+                </body>
+            </method>
+            <method name="saveColumns">
+                <body>
+                <![CDATA[
+                try {
+                    var col= this.tree.columns.getFirstColumn()
+                    var colprops = ""
+                    var i = 1
+                    while (col) {
+                        if (colprops > "") colprops += ";"
+                        colprops += [col.id, (col.width==0), col.width, i++].join(":")
+                        col = col.getNext()
+                    }
+                    prefs.set(this.mpm_name+"_columns", colprops)
+                } catch (e) {
+                    debug(e)
+                }
                 ]]>
                 </body>
             </method>

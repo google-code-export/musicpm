@@ -35,24 +35,30 @@ var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
 
 function debug(s) {
     // return null
-    if (!s) s = "null passed to debug"
-    if (typeof(s) == 'object') {
-        var str = ""
-        for (x in s) {
-            try {
-                // str += (typeof(s[x]) == 'object') ? s[x].toSource() : x + ":
-                // " + s[x]
-                str += x + ": " + s[x] + "\n"
-            } catch (e) {
-                str += x + ": ERROR\n"
+    try {
+        if (s == null) s = "null passed to debug"
+        if (typeof(s) == 'object') {
+            var str = ""
+            for (x in s) {
+                try {
+                    // str += (typeof(s[x]) == 'object') ? s[x].toSource() : x + ":
+                    // " + s[x]
+                    str += x + ": " + s[x] + "\n"
+                } catch (e) {
+                    str += x + ": ERROR\n"
+                }
             }
+        } else if (typeof(str) == 'string') {
+            var str = s
         }
-    } else {
-        var str = s
-    }
-    if (typeof(str) == 'string') {
-        dump(str + "\n\n")
-        consoleService.logStringMessage(str)
+        if (typeof(str) == 'string' && str.length > 0) {
+            dump(str + "\n\n")
+            consoleService.logStringMessage(str)
+        }
+    } catch (e) {
+        dump("error in debug!")
+        consoleService.logStringMessage("error in debug!")
+        
     }
 }
 

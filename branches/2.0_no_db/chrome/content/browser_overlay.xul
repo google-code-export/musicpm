@@ -30,9 +30,11 @@
             var b = document.getElementById("mpm_playlist_sb")
             var pl = document.getElementById("mpm_mw_playlist_box")
             var s = document.getElementById("mpm_playlist_splitter")
+            if (!b.collapsed) pl.saveColumns()
             s.collapsed = !s.collapsed
             b.collapsed = !b.collapsed
-            pl.showCurrent()
+            if (!b.collapsed) pl.showCurrent()
+            
             //if (parseInt(b.height) < 1) slidePlaylist(10,200)
             //else slidePlaylist(-10,0)
         }
@@ -49,6 +51,9 @@
                 observerService.addObserver(obs, 'greeting', false);
                 observerService.addObserver(obsVol, 'volume', false);
                 csPrefObserver.register();
+            },
+            onPlaylistUnload: function (e) {
+                e.target.saveColumns()
             },
             open: function(url, event) {
                 openUILink(url, event, false, true);
@@ -162,6 +167,8 @@
             }
         };
         window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
+        document.getElementById('popup_playlist').addEventListener("unload", function(e) { mpm.onPlaylistUnload(e); }, true);
+        document.getElementById('mpm_mw_playlist_box').addEventListener("unload", function(e) { mpm.onPlaylistUnload(e); }, true);
         ]]>
     </script>
 
@@ -188,8 +195,10 @@
         <menupopup id="mpm_playlist_popup" 
                    sizetocontent="true"
                    position="before_end"
-                   onpopupshowing="this.childNodes[0].showCurrent()">
+                   onpopupshowing="this.childNodes[0].showCurrent()"
+                   onpopuphiding="this.childNodes[0].saveColumns()">
             <mpdplaylist flex="1"
+                id="popup_playlist"
                 mpm_name="popup_playlist"
                 context="mpmMenu"
                 oncontextmenu="mpmMenu_contextShowing(event)"
