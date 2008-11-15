@@ -1,4 +1,13 @@
+1.99.10
 Fixed folder collapsing bug.  If collapsing a folder with subfolders open the wrong amount of folders were removed from the list.
 Added timer setting for Search As You Type feature, 0 for disable.
 Added setting to luanch Minion in new window or tab.
 Remove Artist and Album tag requirements from getArt() (album cover fetching)
+
+1.99.11
+Added 'Current Playlist' to playlists tab in browser.
+Added new playlist bottom pane option for firefox (as opposed to menu popup).
+Statusbar playlists scroll to current song when displayed.
+Starting to clean up settings window into a tabbed pane.
+Fixed bug loading tags pane with persistence.
+Added column size and order persistance.
