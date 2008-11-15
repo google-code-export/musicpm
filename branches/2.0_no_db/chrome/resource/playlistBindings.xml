@@ -172,12 +172,25 @@
             <destructor>
                 <![CDATA[
                 var bcols = this.tree.childNodes[0].childNodes
+                function sortX (a, b) {
+                    try {
+                        aX = a.boxObject.x
+                        bX = b.boxObject.x
+                        if (aX > bX) return 1
+                        if (aX < bX) return -1
+                        return 0
+                    } catch (e) {
+                        debug(e)
+                        return 0
+                    }
+                }
+                bcols.sort(sortX)
                 var colCount = bcols.length
                 var colprops = ""
                 for (i=0;i<colCount;i++) {
                     var col = bcols[i]
                     if (colprops != "") colprops += ";"
-                    colprops += [col.id, col.hidden, col.boxObject.width, col.ordinal].join(":")
+                    colprops += [col.id, col.hidden, col.boxObject.width, i+1].join(":")
                 }
                 prefs.set(this.mpm_name+"_columns", colprops)
                 observerService.removeObserver(this.obsPL,'plinfo')

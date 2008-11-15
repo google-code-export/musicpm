@@ -13,7 +13,7 @@
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
     onload="init()"
-    onunload="unload()"
+    onbeforeunload="unload()"
     width="780px"
     height="550px"
     persist="width height screenX screenY sizemode">

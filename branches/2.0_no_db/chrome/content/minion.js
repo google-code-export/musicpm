@@ -59,6 +59,7 @@ function init () {
 }
 
 function unload () {
+    document.getElementById("browse").saveColumns()
     observerService.removeObserver(observerPlaylists,"playlists")
     observerService.removeObserver(observerPlaylistName,"load_playlist")
 }

@@ -48,9 +48,6 @@
                 <setter>this.treeNode.setAttribute('sortResource', val)</setter>
             </property>
             <constructor>
-                Components.utils.import("resource://minion/mpmUtils.js");
-                Components.utils.import("resource://minion/mpd.js");
-                Components.utils.import("resource://minion/trees.js");
                 this.treeNode = document.getAnonymousNodes(this)[0]
                 this.box = this.treeNode.boxObject;
                 this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
@@ -189,6 +186,26 @@
                     }
                     if (Nz(this.box)) this.box.invalidate()
                     ]]>
+                </body>
+            </method>
+            <method name="saveCols">
+                <body>
+                <![CDATA[
+                try {
+                    var col= this.treeNode.columns.getFirstColumn()
+                    var colprops = ""
+                    var i = 1
+                    while (col) {
+                        if (colprops > "") colprops += ";"
+                        colprops += [col.id, (col.width==0), col.width, i++].join(":")
+                        col = col.getNext()
+                    }
+                    debug(colprops)
+                    prefs.set("browser_columns", colprops)
+                } catch (e) {
+                    debug(e)
+                }
+                ]]>
                 </body>
             </method>
         </implementation>
@@ -772,15 +789,6 @@
             </constructor>
             <destructor>
                 <![CDATA[
-                var bcols = browser.treeNode.childNodes[0].childNodes
-                var colCount = bcols.length
-                var colprops = ""
-                for (i=0;i<colCount;i++) {
-                    var col = bcols[i]
-                    if (colprops != "") colprops += ";"
-                    colprops += [col.id, col.hidden, col.boxObject.width, col.ordinal].join(":")
-                }
-                prefs.set("browser_columns", colprops)
                 
                 if (prefs.get("persistant_state", true)) {
                     var file = DirIO.get("Home")
@@ -1027,6 +1035,13 @@
                         }
                         query.execute()
                     }
+                </body>
+            </method>
+            <method name="saveColumns">
+                <body>
+                    <![CDATA[
+                    this.browser.saveCols()
+                    ]]>
                 </body>
             </method>
             <method name="showDetails">
