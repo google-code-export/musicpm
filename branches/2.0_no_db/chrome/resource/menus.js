@@ -24,6 +24,7 @@ EXPORTED_SYMBOLS = ["mpmMenu"]
  * Use doCommand = function (item, location, event) {} to override
  * the default onclick handler.
  */
+
 function mpmMenuItem (label, id) {
     this.id = Nz(id, "mpm_custom_menuItem")
     this.label = Nz(label, "New Menu Item")
@@ -114,13 +115,13 @@ function mpmMenu_contextShowing (event, location, activeItem) {
     for (var i=0;i<mpmMenuItems.length;i++) {
         if (mpmMenuItems[i] == "separator") {
             if (readySep) {
-			    var e = document.createElementNS(NS, "menuseparator")
+		    var e = document.createElementNS(NS, "menuseparator")
 	            menu.appendChild(e)
 	            readySep = false
             }
         }
         else if (isValid(mpmMenuItems[i], activeItem, location)) {
-            var e = createMenuNode(menu, mpmMenuItems[i], activeItem, location)
+            var e = createMenuNode(menu, mpmMenuItems[i], activeItem, location, event)
             readySep = true
         }
     }

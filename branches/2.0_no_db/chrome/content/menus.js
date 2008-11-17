@@ -80,7 +80,7 @@ function handleMenuCommand(self, item, location) {
         }
     }
     if (self.script) {
-        var mb = {
+        var fakebrowser = {
             doUpdate : function() {
                 mpd.doCmd("update")
             },
@@ -89,8 +89,10 @@ function handleMenuCommand(self, item, location) {
                 return item
             }
         }
-        var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0], mb)
-        var mpdplaylist = Nz(document.getElementsByTagName("mpdplaylist")[0])
+        var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0], fakebrowser)
+        var focused = Nz(document.commandDispatcher.focusedElement.parentNode)
+        var firstPL = Nz(document.getElementsByTagName("mpdplaylist")[0])
+        var mpdplaylist = (Nz(focused.tagName) == 'mpdplaylist') ? focused : firstPL
 
         try {
             eval(self.script)

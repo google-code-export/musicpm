@@ -284,6 +284,12 @@
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter id="splitDisc" class="tree-splitter" ordinal="22" />
+                    <xul:treecol id="Disc" label="Disc" ordinal="23" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                 </xul:treecols>
                 <xul:treechildren/>
             </xul:tree>

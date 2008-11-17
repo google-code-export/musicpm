@@ -81,6 +81,12 @@
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:splitter id="splitDisc" class="tree-splitter" ordinal="22" />
+                    <xul:treecol id="Disc" label="Disc" ordinal="23" flex="1"
+                                 hidden="true"
+                                 persist="width ordinal hidden"
+                                 class="sortDirectionIndicator"
+                                 onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                 </xul:treecols>
                 <xul:treechildren id="children"/>
             </xul:tree>
@@ -183,12 +189,12 @@
                 <body>
                 <![CDATA[
                 var tree = this.tree
-                    var view = this.view
+                var view = this.view
                 var start = new Object();
                 var end = new Object();
                 var numRanges = view.selection.getRangeCount();
                 var offset = 0
-                    var item
+                var item
                 var cmd = "command_list_begin"
 
                 for (var t=0; t<numRanges; t++){
@@ -259,7 +265,7 @@
             <method name="moveLast">
                 <body>
                 <![CDATA[
-                this.moveTo(mpd.playlistlength-2)
+                this.moveTo(mpd.playlistlength-1)
                 ]]>
                 </body>
             </method>
