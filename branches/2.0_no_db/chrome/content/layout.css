@@ -8,7 +8,7 @@
     min-height: 132px;
     max-width: 132px;
     max-height: 132px;
-    padding: auto;
+    margin: auto;
 }
 mpdalbumcover > image{
     margin: 5px 10px 3px 10px;
@@ -20,20 +20,20 @@ mpdalbumcover > image{
 
 
 mpdtime {
-	-moz-box-pack: center;
-	-moz-box-align: center;
+    -moz-box-pack: center;
+    -moz-box-align: center;
 }
 
 
 .tagsContentLabel {
-	text-align: center;
-	padding-top: 6px;
+    text-align: center;
+    padding-top: 6px;
 }
 
 .cwd {
-	font-weight: bold;
-	height: 1.5em;
-	overflow: hidden;
+    font-weight: bold;
+    height: 1.5em;
+    overflow: hidden;
 }
 
 
@@ -100,7 +100,7 @@ treechildren::-moz-tree-cell-text(Artist) {
 #mpm_playlist_popup {
     padding: 0px !important;
 }
-mpdplaylist > tree,  {
+mpdplaylist > tree  {
     margin: 0px !important;
 }
 #mpm_playlist_popup mpdplaylist {

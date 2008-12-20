@@ -1,27 +1,27 @@
 mpdlabel {
-	-moz-binding: url("resource://minion/mpdControls.xml#mpdLabel")
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdLabel")
 }
 mpdtime {
-	-moz-binding: url("resource://minion/mpdControls.xml#mpdTime")
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdTime")
 }
 mpdvolume {
-	-moz-binding: url("resource://minion/mpdControls.xml#mpdVolume")
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdVolume")
 }
 mpdcontrols {
-	-moz-binding: url("resource://minion/mpdControls.xml#mpdPlayback")
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdPlayback")
 }
 mpdplaylist {
-    -moz-binding: url("resource://minion/playlistBindings.xml#mpdPlaylist")
+    -moz-binding: url("chrome://minion/content/playlistBindings.xml#mpdPlaylist")
 }
 mpdbrowser {
-    -moz-binding: url("resource://minion/collectionBindings.xml#mpdBrowser")
+    -moz-binding: url("chrome://minion/content/collectionBindings.xml#mpdBrowser")
 }
 mpdservers {
-    -moz-binding: url("resource://minion/mpdControls.xml#mpdServers")
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdServers")
 }
 mpdtoggle {
-    -moz-binding: url("resource://minion/mpdControls.xml#mpdToolbarButton")
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdToolbarButton")
 }
 mpdalbumcover {
-    -moz-binding: url("resource://minion/mpdControls.xml#mpdAlbumCover")
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdAlbumCover")
 }

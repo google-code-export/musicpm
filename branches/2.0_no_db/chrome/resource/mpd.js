@@ -18,14 +18,13 @@
 Components.utils.import("resource://minion/mpmUtils.js");
 Components.utils.import("resource://minion/io.js");
 EXPORTED_SYMBOLS = ["dbQuery", "mpd", "prefBranch", "Sz"]
-
 var prefService = Components.classes["@mozilla.org/preferences-service;1"]
         .getService(Components.interfaces.nsIPrefService);
 var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
         .getService(Components.interfaces.nsIPrefBranch);
 
 var lfId = prefs.get("lyricsfly_id","8890a06f973057f4b")
-
+debug("mpd.js load")
 function dbQuery(cmd, callBack) {
     this.cmd = Nz(cmd)
     this.path = []
@@ -1178,3 +1177,4 @@ file = null
 
 loadSrvPref()
 myPrefObserver.register();
+debug("mpd.js finish")

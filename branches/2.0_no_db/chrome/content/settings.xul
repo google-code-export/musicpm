@@ -44,7 +44,7 @@
   </prefpane>
   
   
-  <prefpane id="pane2" label="Apperance">
+  <prefpane id="pane2" label="Appearance">
     <preferences>
       <preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
       <preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>

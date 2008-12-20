@@ -112,7 +112,7 @@
                     else {
                         for (var i=0;i<cols.length;i++) {
                             var col = this.getCol(cols[i].id)
-                            col.collapsed = (col.id == id || col.id == 'Track')
+                            col.collapsed = (col.id == id)
                         }
                     }
                     ]]>

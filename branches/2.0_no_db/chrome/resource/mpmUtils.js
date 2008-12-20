@@ -15,7 +15,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
         "observerService", "getFileContents", "fetch", "winw", "urlReplace",
         "openReuseByURL", "openReuseByAttribute", "mpm_openDialog", "prefs",
@@ -32,10 +31,11 @@ var branch = prefService.getBranch("extensions.mpm.");
 
 var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
         .getService(Components.interfaces.nsIWindowWatcher);
-
+        
 function debug(s) {
-    // return null
+    return null
     try {
+        var str = ""
         if (s == null) s = "null passed to debug"
         if (typeof(s) == 'object') {
             var str = ""
@@ -61,7 +61,6 @@ function debug(s) {
         
     }
 }
-
 function Nz(obj, def) {
     if (typeof(obj) == 'undefined') {
         return (typeof(def) == 'undefined') ? null : def
