@@ -14,13 +14,8 @@
     xmlns:html="http://www.w3.org/1999/xhtml"
     onload="init()"
     onbeforeunload="unload()"
-    width="780px"
-    height="550px"
+    sizemode="maximized"
     persist="width height screenX screenY sizemode">
-    <html:link id="mpm_favicon"
-        rel="shortcut icon"
-        type="image/x-icon"
-        href="chrome://minion/content/images/album_blank.png"/>
     <script src="chrome://minion/content/minion.js"/>
 
     <keyset>
@@ -84,13 +79,9 @@
     <box id="main_content" flex="1" orient="horizontal">
         <mpdbrowser id="browse" flex="4"
             context="mpmMenu"
-            oncontextmenu="mpmMenu_contextShowing(event)">
-            <mpdplaylist flex="1"
-                id="browser_playlist"
-                mpm_name="browser_playlist"
-                context="mpmMenu"
-                oncontextmenu="mpmMenu_contextShowing(event)"/>
-        </mpdbrowser>
+            oncontextmenu="mpmMenu_contextShowing(event,this.getActiveLocation(),this.getActiveItem())">
+            <vbox id="mpmDynamicMenu2"/>
+            </mpdbrowser>
         <splitter id="main_content_splitter" collapse="both" persist="state substate"/>
         <vbox minwidth="150" minheight="150" flex="1">
             <toolbar id="playlistToolbar">

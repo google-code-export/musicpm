@@ -5,7 +5,7 @@ Components.utils.import("resource://minion/mpd.js");
 EXPORTED_SYMBOLS = ["mpmMenu", "mpmMenuItem"]
 
 function loadDefaults () {
-	mpmMenu.items = [
+    mpmMenu.items = [
         {
             id : "mpm_menu_launch",
             label : "Launch in New Window",
@@ -58,7 +58,7 @@ function loadDefaults () {
             URL : null,
             queryType : null,
             queryScope : null,
-	    filterField: null,
+        filterField: null,
             mpdCommand : null,
             script : "mpdbrowser.showDetails(item)"
         }, {
@@ -69,7 +69,7 @@ function loadDefaults () {
             URL : null,
             queryType : null,
             queryScope : null,
-	    filterField: null,
+        filterField: null,
             mpdCommand : null,
             script : "mpm_openDialog('chrome://minion/content/fileActions.xul', 'mpm_file_actions')"
         }, {
@@ -182,13 +182,36 @@ function loadDefaults () {
             filterField: null,
             mpdCommand : null,
             script : 'var val = prompt("Please enter a URL to add to the playlist.", "http://")\n'+
-			    'if (val != null) {\n'+
-			    '    var v = new RegExp();\n'+
-			    '    v.compile(/(ftp|http|https):\\/\\/(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(\\/|\\/([\\w#!:.?+=&%@!\\-\\/]))?/);\n'+
-			    '    if (v.test(val)) {\n'+
-			    '        mpd.handleURL(val)\n'+
-			    '    }\n'+
-			    '    else alert("`"+val+"` is not a valid URL.")\n}'
+                'if (val != null) {\n'+
+                '    var v = new RegExp();\n'+
+                '    v.compile(/(ftp|http|https):\\/\\/(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(\\/|\\/([\\w#!:.?+=&%@!\\-\\/]))?/);\n'+
+                '    if (v.test(val)) {\n'+
+                '        mpd.handleURL(val)\n'+
+                '    }\n'+
+                '    else alert("`"+val+"` is not a valid URL.")\n}'
+        }, {
+            id : "mpm_menu_ClearPlaylist",
+            label : "Clear Playlist",
+            locations : "mpdplaylist",
+            targets : null,
+            URL : null,
+            queryType : null,
+            queryScope : null,
+            filterField: null,
+            mpdCommand : "clear",
+            script : null
+        }, {
+            id : "mpm_menu_SavePlaylist",
+            label : "Save Playlist As...",
+            locations : "mpdplaylist",
+            targets : null,
+            URL : null,
+            queryType : null,
+            queryScope : null,
+            filterField: null,
+            mpdCommand : null,
+            script : "var name = prompt('Enter Playlist name:');\n"+
+                "mpd.doCmd('save \"' + name.replace(/\"/g, '\\\"') + '\"')"
         }, "separator", {
             id : "mpm_menu_google",
             label : "Google It!",

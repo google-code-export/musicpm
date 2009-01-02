@@ -1,6 +1,7 @@
 Components.utils.import("resource://minion/mpd.js");
 Components.utils.import("resource://minion/trees.js");
 
+
 var observerPlaylists = {
     observe: function(subject,topic,data){
         refreshPlaylists()
@@ -11,6 +12,13 @@ var observerPlaylistName = {
         document.getElementById("playlistName").value = data
     }
 };
+
+function browse_select (item, loc) {
+    var browse = document.getElementById('browse')
+    if (!item) return null
+    debug("select from minion.js: "+item.Title)
+    mpmMenu_contextShowing(null,loc,item,'mpmDynamicMenu2', "toolbarbutton")
+}
 
 function init () {
     document.getElementById("main").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
@@ -56,6 +64,8 @@ function init () {
         document.getElementById("browse").goTo(window.doQuery)
     }
     window.name = "chrome://minion/content/minion.xul"
+    var browse = document.getElementById('browse')
+    browse.handle_select = browse_select
 }
 
 function unload () {

@@ -15,7 +15,7 @@
                 action="this.followItem(this.activeItem)"/>
         </handlers>
         <implementation>
-            <field name="box"/>
+            <field name="box">document.getAnonymousNodes(this)[0].boxObject</field>
             <field name="db"/>
             <field name="filter"/>
             <field name="treeNode">document.getAnonymousNodes(this)[0]</field>
@@ -49,7 +49,6 @@
             </property>
             <constructor>
                 this.treeNode = document.getAnonymousNodes(this)[0]
-                this.box = this.treeNode.boxObject;
                 this.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
             </constructor>
             <method name="addAll">
@@ -139,6 +138,7 @@
                     me.view = new arrayView(me.db)
                     me.treeNode.view = me.view
                     if (prefs.get("linguistic_sort", false)) me.sort("name")
+                    me.treeNode.currentIndex = 0
                     ]]>
                 </body>
             </method>
@@ -290,6 +290,10 @@
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
+                    <xul:treecol id="AlbumCover" label="Cover/Actions" ordinal="24"
+                                 collapsed="true"
+                                 hidden="true"
+                                 persist="width ordinal hidden"/>
                 </xul:treecols>
                 <xul:treechildren/>
             </xul:tree>
@@ -511,6 +515,7 @@
                     <xul:toolbarbutton label="Selected"
                         class="mpm_btn_AddSelected"
                         oncommand="this.parentNode.parentNode.parentNode.browser.addSelected()"/>
+                    <xbl:children includes="toolbarbutton"/>
                     <xul:spacer flex="1"/>
                     <xul:menulist id="searchType"
                         label="Search"
@@ -595,17 +600,21 @@
                                 <xul:label id="cwd" class="cwd" crop="start" flex="1"/>
                             </xul:hbox>
                             <xul:hbox flex="1" id="mpm_browser_browser" style="overflow:auto">
-                                <xul:vbox class="mpm_browser_image_box" collapsed="true">
-                                    <xul:label class="fake_treecol" value="Album Cover"/>
+                                <xul:vbox class="mpm_browser_image_box">
+                                    <xul:label id="detail_label" class="fake_treecol" crop="end" value="Item"/>
                                     <xul:image id="image" class="mpm_browser_image"
                                                validate="never"
                                                ondblclick="this.className=(this.className=='mpm_browser_image') ? '' : 'mpm_browser_image'"/>
+                                    <xbl:children includes="vbox"/>
                                     <xul:spacer flex="1"/>
                                 </xul:vbox>
                                 <xul:deck id="browser-playlist_deck" flex="1">
                                     <xul:box id="browser" class="mpm_browser" flex="1"
                                              style="-moz-binding: url('#mpmBrowser')"/>
-                                    <xbl:children/>
+                                    <xul:box id="playlist" flex="1"
+                                             mpm_name="browser_playlist"
+                                             style="-moz-binding: url('chrome://minion/content/playlistBindings.xml#mpdPlaylist')"/>
+                                    <xbl:children includes="mpdplaylist"/>
                                 </xul:deck>
                             </xul:hbox>
                         </xul:vbox>
@@ -628,12 +637,15 @@
             <field name="searchType">document.getAnonymousElementByAttribute(this, 'id', 'searchType')</field>
             <field name="searchInput">document.getAnonymousElementByAttribute(this, 'id', 'searchInput')</field>
             <field name="history">new Array()</field>
+            <field name="historyRows">new Array()</field>
             <field name="historyIndex">0</field>
             <field name="obsCurSong"/>
             <field name="browser">document.getAnonymousElementByAttribute(this, 'id', 'browser')</field>
+            <field name="playlist">document.getAnonymousElementByAttribute(this, 'id', 'playlist')</field>
             <field name="bp_deck">document.getAnonymousElementByAttribute(this, 'id', 'browser-playlist_deck')</field>
             <field name="deck">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_deck')</field>
             <field name="content">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_content')</field>
+            <field name="detail_label">document.getAnonymousElementByAttribute(this, 'id', 'detail_label')</field>
             <field name="image">document.getAnonymousElementByAttribute(this, 'id', 'image')</field>
             <field name="cwd">document.getAnonymousElementByAttribute(this, 'id', 'cwd')</field>
             <field name="fileDetails">document.getAnonymousElementByAttribute(this, 'id', 'file_details')</field>
@@ -666,14 +678,43 @@
                 this.content.contentWindow.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 var me = this
                 var browser = this.browser
+                var playlist = this.playlist
+                var albumCol = browser.treeNode.columns.getNamedColumn("AlbumCover").element
+                var image = this.image
                 var folders = this.folders
                 var playlists = this.playlists
                 var tags = this.tags
-                
+
+                me.handle_select = function(){}
                 browser.goTo = function(q) {me.goTo(q)}
                 browser.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 folders.goTo = function(q) {me.goTo(q)}
                 folders.followItem = function(i, f, q) {me.followItem(i, f, q)}
+                this.selectChange = function (item, location) {
+                    debug("selectChange")
+                    var item = Nz(item, me.getActiveItem())
+                    var location = Nz(location, me.getActiveLocation())
+                    if (item) {
+                        detail_label.value = item.Title
+                        if (item.type == 'file') {
+                            mpd.getArt(item, image)
+                        } else {
+                            me.image.src = ""
+                        }
+                    } else {
+                        me.image.src = ""
+                    }        
+                    me.handle_select(item, location)
+                }
+                browser.treeNode.addEventListener("select",
+                    function(){
+                        var a = browser.activeItem
+                        var l = "mpdbrowser"
+                        if (Nz(a.name)=='Current Playlist') var l = "mpdplaylist"
+                        selectChange(a, l)
+                    }, false)
+                playlist.tree.addEventListener("select",
+                    function(){selectChange(playlist.activeItem, "mpdplaylist")}, false)
                 this.folders_tab.onclick = function () {
                     if (!Nz(folders.db)) {
                         mpd.getAllDirs(function(db){
@@ -696,6 +737,7 @@
                         db.unshift(cur)
                         playlists.load(db,playlists)
                     })
+                    me.goTo({query:'Current Playlist'})
                 }
                 this.tags_tab.onclick = function () {
                     //if (!Nz(tags.db)) tags.loadMain()
@@ -762,6 +804,7 @@
                     var cols = colprops.split(";")
                     cols.forEach(setCol, cols)
                 }
+                image.parentNode.collapsed=albumCol.hidden
                 
                 me.goHome()
                 if (prefs.get("persistant_state", true)) {
@@ -790,7 +833,7 @@
                     tabbox.selectedIndex = 0
                     tabbox.selectedTab.onclick()
                 }
-                
+                albumCol.addEventListener("DOMAttrModified", function(){image.parentNode.collapsed=albumCol.hidden}, false)
                 ]]>
             </constructor>
             <destructor>
@@ -902,11 +945,38 @@
                     ]]>
                 </body>
             </method>
-            <method name="getActiveItem">
+            <method name="getActiveBrowser">
                 <body>
                     <![CDATA[
                     var e = document.commandDispatcher.focusedElement.parentNode
-                    return Nz(e.activeItem)
+                    return Nz(e)
+                    ]]>
+                </body>
+            </method>
+            <method name="getActiveLocation">
+                <body>
+                    <![CDATA[
+                    if (this.bp_deck.selectedIndex==0) {
+                        var a = this.browser.activeItem
+                        var l = "mpdbrowser"
+                        if (Nz(a.name)=='Current Playlist') var l = "mpdplaylist"
+                        return l
+                    } else {
+                        return "mpdplaylist"
+                    }
+                    ]]>
+                </body>
+            </method>
+            <method name="getActiveItem">
+                <body>
+                    <![CDATA[
+                    var f = document.commandDispatcher.focusedElement
+                    if (!f) {debug("No focused Element!");return null}
+                    var e = f.parentNode
+                    if (!e) {debug("No parentNode!");return null}
+                    var a = Nz(e.activeItem)
+                    if (!a) {debug("No activeItem!");return null}
+                    return a
                     ]]>
                 </body>
             </method>
@@ -915,6 +985,9 @@
                     if (this.historyIndex >= (this.history.length-1)) return null
                     this.historyIndex++
                     this.goTo(this.history[this.historyIndex])
+                    atRow = this.historyRows[this.historyIndex]
+                    this.browser.treeNode.currentIndex = atRow
+                    this.browser.box.scrollToRow(atRow)
                 </body>
             </method>
             <method name="goForward">
@@ -922,6 +995,9 @@
                     if (this.historyIndex == 0) return null
                     this.historyIndex--
                     this.goTo(this.history[this.historyIndex])
+                    atRow = this.historyRows[this.historyIndex]
+                    this.browser.treeNode.currentIndex = atRow
+                    this.browser.box.scrollToRow(atRow)
                 </body>
             </method>
             <method name="goHome">
@@ -934,38 +1010,43 @@
                 <body>
                     <![CDATA[
                     query = Nz(query)
+                    var me = this
+                    this.browser.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
                     if (query && query.query != 'Current Playlist') {
                         this.deck.selectedIndex = 0
                         this.bp_deck.selectedIndex = 0
                         var browser = this.browser
                         var albumCol = browser.getCol('Album')
-                        var me = this
                         query.callBack = function (db) {
+                            debug(query)
+                            if (Nz(query.type)=='playlist' && Nz(query.query)=='') {
+                                var cur = {
+                                    type: "playlist",
+                                    name: "Current Playlist",
+                                    Title: "Current Playlist"
+                                }
+                                db.unshift(cur)
+                            }
                             browser.load(db);
                             me.cwd.value = query.query.split("/").slice(-1)
                             if (Nz(query.filterField)) me.cwd.value += " ("+query.filterField + ": " + query.filterQuery + ")"
                             me.cwd_icon.className = "mpm_icon_"
                             if (query.type != "search") browser.collapseOne(query.scope)
                             else browser.collapseOne(null)
-                            if (query.type == 'file') {
-                                me.cwd_icon.className += query.scope
-                                if (query.scope.toLowerCase()=='album') {
-                                    me.image.src = "chrome://minion/content/images/album_loading.png"
-                                    me.image.parentNode.collapsed = false
-                                    mpd.getArt(db[0], me.image)
-                                }
-                                else me.image.parentNode.collapsed = true
-                            }
-                            else {
-                                me.cwd_icon.className += query.type
-                                me.image.parentNode.collapsed = true
-                            }
+                            me.cwd_icon.className += query.scope
+                            me.selectChange()
+                            //browser.treeNode.view.selection.select(0)
                         }
                         query.execute()
                     }
                     else if (query && query.query == 'Current Playlist') {
-                        this.deck.selectedIndex = 0
-                        this.bp_deck.selectedIndex = 1                        
+                        me.deck.selectedIndex = 0
+                        me.bp_deck.selectedIndex = 1
+                        me.cwd.value = 'Current Playlist'
+                        me.cwd_icon.className = 'mpm_icon_playlist'
+                        var pos = parseInt(Nz(mpd.song,0))
+                        me.selectChange()
+                        //me.playlist.tree.view.selection.select(pos)                    
                     }
                     else {
                         var home = [
@@ -991,11 +1072,16 @@
                             }
                         ]
                         this.browser.load(home)
+                        me.selectChange()
                     }
                     if (!query) return null
                     if (query.type.indexOf("search") < 0 ) {
                         if (this.history[this.historyIndex] != query) {
                             this.history.splice(this.historyIndex,0,query)
+                            this.historyRows.splice(this.historyIndex,0,this.browser.box.getFirstVisibleRow())
+                            debug(this.historyIndex)
+                            debug(this.historyRows)
+                            debug([x.query for each (x in this.history)])
                         }
                     }
                     ]]>
@@ -1054,8 +1140,8 @@
                 <parameter name="item"/>
                 <body>
                     <![CDATA[
-                    
-                        this.content.contentWindow.load(item);
+                        var win = this.content.contentWindow.wrappedJSObject
+                        win.load(item);
                         this.fileDetails.value = item.file;
                         this.deck.selectedIndex =1;
                     ]]>

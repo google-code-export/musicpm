@@ -38,6 +38,23 @@ function ensureQuery(q) {
         }
     }
 }
+
+function run (cmd, args) {
+    try {
+        var f = FileIO.open(cmd)
+        var process = Components.classes["@mozilla.org/process/util;1"]
+                                .createInstance(Components.interfaces.nsIProcess);
+        process.init(f)
+        var arrayArgs = []
+        if (Nz(args)) {
+            if (typeof(args)=='string') {
+                arrayArgs = args.split(" ")
+            }
+        }           
+        process.run(false, arrayArgs, arrayArgs.length)
+    } catch (e) {alert(e.message)}
+}
+
 function handleMenuCommand(self, item, location) {
     if (self.URL) {
         var s = self.URL
@@ -89,10 +106,18 @@ function handleMenuCommand(self, item, location) {
                 return item
             }
         }
-        var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0], fakebrowser)
+                
         var focused = Nz(document.commandDispatcher.focusedElement.parentNode)
-        var firstPL = Nz(document.getElementsByTagName("mpdplaylist")[0])
-        var mpdplaylist = (Nz(focused.tagName) == 'mpdplaylist') ? focused : firstPL
+        var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0])
+        var mpdplaylist = Nz(document.getElementsByTagName("mpdplaylist")[0])
+        if (mpdbrowser) {
+            if (mpdbrowser.getActiveLocation() == "mpdplaylist") {
+                var bplaylist = mpdbrowser.getActiveBrowser()
+                if (bplaylist == focused) mpdplaylist = bplaylist
+            }
+        } else {
+            mpdbrowser = fakebrowser
+        }
 
         try {
             eval(self.script)
@@ -102,9 +127,9 @@ function handleMenuCommand(self, item, location) {
     }
 }
 
-function createMenuNode(menupopup, menuItem, activeItem, location) {
+function createMenuNode(menupopup, menuItem, activeItem, location, nodeType) {
     var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    var e = document.createElementNS(NS, "menuitem")
+    var e = document.createElementNS(NS, nodeType)
     if (Nz(menuItem.doCommand)) {
         e.onclick = function(event) {
             menuItem.doCommand(activeItem, location, event)
@@ -126,34 +151,40 @@ function createMenuNode(menupopup, menuItem, activeItem, location) {
     return e
 }
 
-function mpmMenu_contextShowing(event, location, activeItem) {
-    debug(event.target.id + " calling menu")
+function mpmMenu_contextShowing(event, location, activeItem, fillNode, nodeType) {
     try {
         var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        var menu = document.getElementById("mpmDynamicMenu")
-        var elem = event.target
-        var activeItem = Nz(activeItem) ? activeItem : Nz(elem.getActiveItem())
-        var location = Nz(location) ? location : Nz(elem.tagNameOverride, elem.tagName)
+        var menu = document.getElementById(Nz(fillNode, "mpmDynamicMenu"))
+        debug(menu.id)
+        location = Nz(location)
+        activeItem = Nz(activeItem)
+        nodeType = Nz(nodeType, "menuitem")
+        if ((!location || !activeItem) && event) {
+            var elem = event.target
+            var activeItem = Nz(activeItem) ? activeItem : Nz(elem.getActiveItem())
+            var location = Nz(location) ? location : Nz(elem.tagNameOverride, elem.tagName)
+        }
         while (menu.hasChildNodes()) {
             menu.removeChild(menu.firstChild)
         }
-
-        var readySep = false
-        for (var i = 0; i < mpmMenu.items.length; i++) {
-            if (mpmMenu.items[i] == "separator") {
-                if (readySep) {
-                    var e = document.createElementNS(NS, "menuseparator")
-                    menu.appendChild(e)
-                    readySep = false
+        if (location && activeItem) {
+            var readySep = false
+            for (var i = 0; i < mpmMenu.items.length; i++) {
+                if (mpmMenu.items[i] == "separator") {
+                    if (readySep) {
+                        var e = document.createElementNS(NS, "menuseparator")
+                        menu.appendChild(e)
+                        readySep = false
+                    }
+                } else if (isValid(mpmMenu.items[i], activeItem, location)) {
+                    var e = createMenuNode(menu, mpmMenu.items[i], activeItem,
+                            location, nodeType)
+                    readySep = true
                 }
-            } else if (isValid(mpmMenu.items[i], activeItem, location)) {
-                var e = createMenuNode(menu, mpmMenu.items[i], activeItem,
-                        location)
-                readySep = true
             }
+            if (menu.lastChild.tagName == "menuseparator")
+                menu.removeChild(menu.lastChild)
         }
-        if (menu.lastChild.tagName == "menuseparator")
-            menu.removeChild(menu.lastChild)
     } catch (e) {
         debug(e)
     }

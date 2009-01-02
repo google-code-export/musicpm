@@ -3,6 +3,15 @@
     padding-right: 5px;
 }
 
+.mpm_browser_image_box > toolbarbutton {
+    text-align: left;
+}
+
+.fake_treecol {
+    overflow: clip;
+    width: 136px !important;
+}
+
 .mpm_browser_image {
     min-width: 132px;
     min-height: 132px;

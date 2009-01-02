@@ -15,7 +15,7 @@ Added column size and order persistance.
 1.99.12
 Bad developer!  No changes recorded...
 
-1.99.12
+1.99.13
 Fixed Firefox 3.1 incompatibility due to loading xbl from resource urls.  Moved
   xbl files to chrome://minion/content/.
 Stopped collapsing Track column when not showing album, it will now always
