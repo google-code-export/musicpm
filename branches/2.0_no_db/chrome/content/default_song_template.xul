@@ -9,7 +9,7 @@
 <window
     id="song"
     title="Song Detail"
-    orient="vertical"
+    orient="horizontal"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
     flex="1"
@@ -111,16 +111,11 @@
         }
     ]]>
     </script>
-    <hbox>
+    <vbox>
         <hbox id="image-box" align="center" pack="center">
-            <spacer flex="1"/>
-            <vbox>
-                <spacer flex="1"/>
-                <image id="cover" class="mpm_browser_image"
+            <image id="cover" class="mpm_browser_image"
                     validate="never"
                     ondblclick="this.className=(this.className=='mpm_browser_image') ? '' : 'mpm_browser_image'"/>
-                <spacer flex="1"/>
-            </vbox>
             <spacer flex="1"/>
         </hbox>
         <grid id="props">
@@ -177,16 +172,18 @@
                 </row>
             </rows>
         </grid>
-    </hbox>
-    <hbox>
-        <toolbarbutton label="Lyrics from Lyricsfly.com" style="font-weight: bold"
-            oncommand="openReuseByURL('http://lyricsfly.com')"/>
         <spacer flex="1"/>
-        <toolbarbutton id="lyricsButton" label="Edit"
-            oncommand="editLyrics(this.edit_link)"/>
-    </hbox>
-    <textbox id="lyrics" flex="1" multiline="true" readonly="true"/>
-    <checkbox checked="false" label="Follow Currently Playing Song"
+        <checkbox checked="false" label="Follow Currently Playing Song"
               oncommand="toggleFollowCurrent(this.checked)"/>
-
+    </vbox>
+    <vbox flex="1">
+        <hbox>
+            <toolbarbutton label="Lyrics from Lyricsfly.com" style="font-weight: bold"
+                oncommand="openReuseByURL('http://lyricsfly.com')"/>
+            <spacer flex="1"/>
+            <toolbarbutton id="lyricsButton" label="Edit"
+                oncommand="editLyrics(this.edit_link)"/>
+        </hbox>
+        <textbox id="lyrics" flex="1" multiline="true" readonly="true"/>
+    </vbox>
 </window>

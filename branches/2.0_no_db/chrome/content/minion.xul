@@ -74,6 +74,9 @@
                 </hbox>
                 <mpdtime flex="1" id="mytime" ordinal="4"/>
             </vbox>
+            <toolbarbutton class="mpm_btn_Fullscreen"
+                tooltiptext="Toggle FullScreen"
+                oncommand="window.setTimeout('window.fullScreen=!window.fullScreen',1)"/>
         </hbox>
     </hbox>
     <box id="main_content" flex="1" orient="horizontal">

@@ -293,6 +293,7 @@
                     <xul:treecol id="AlbumCover" label="Cover/Actions" ordinal="24"
                                  collapsed="true"
                                  hidden="true"
+                                 max-width="0"
                                  persist="width ordinal hidden"/>
                 </xul:treecols>
                 <xul:treechildren/>
@@ -509,12 +510,29 @@
                     <xul:toolbarbutton tooltiptext="Update Database"
                         class="mpm_btn_Update"
                         oncommand="mpd.doCmd('update')"/>
-                    <xul:toolbarbutton label="All"
-                        class="mpm_btn_AddAll"
-                        oncommand="this.parentNode.parentNode.parentNode.browser.addAll()"/>
-                    <xul:toolbarbutton label="Selected"
-                        class="mpm_btn_AddSelected"
-                        oncommand="this.parentNode.parentNode.parentNode.browser.addSelected()"/>
+                    <xul:toolbarseparator/>
+                    <xul:deck id="toolbar_deck">
+                        <xul:hbox>
+                            <xul:toolbarbutton label="All"
+                                class="mpm_btn_AddAll"
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.browser.addAll()"/>
+                            <xul:toolbarbutton label="Selected"
+                                class="mpm_btn_AddSelected"
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.browser.addSelected()"/>
+                        </xul:hbox>
+                        <xul:hbox>
+                            <xul:toolbarbutton label="Clear Playlist "
+                                class="mpm_btn_Clear"
+                                oncommand="mpd.doCmd('clear')"/>
+                            <xul:textbox id="plname"
+                                value="Playlist"
+                                flex="1"
+                                maxwidth="200"/>
+                            <xul:toolbarbutton tooltiptext="Save Playlist"
+                                class="mpm_btn_Save"
+                                oncommand="var n=this.parentNode.childNodes[1].value;if(!n)return null;mpd.doCmd('save '+String.fromCharCode(34)+n+String.fromCharCode(34))"/>
+                        </xul:hbox>
+                    </xul:deck>
                     <xbl:children includes="toolbarbutton"/>
                     <xul:spacer flex="1"/>
                     <xul:menulist id="searchType"
@@ -608,7 +626,8 @@
                                     <xbl:children includes="vbox"/>
                                     <xul:spacer flex="1"/>
                                 </xul:vbox>
-                                <xul:deck id="browser-playlist_deck" flex="1">
+                                <xul:deck id="browser-playlist_deck" flex="1"
+                                onselect="me.tdeck.selectedIndex=this.selectedIndex">
                                     <xul:box id="browser" class="mpm_browser" flex="1"
                                              style="-moz-binding: url('#mpmBrowser')"/>
                                     <xul:box id="playlist" flex="1"
@@ -644,6 +663,7 @@
             <field name="playlist">document.getAnonymousElementByAttribute(this, 'id', 'playlist')</field>
             <field name="bp_deck">document.getAnonymousElementByAttribute(this, 'id', 'browser-playlist_deck')</field>
             <field name="deck">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_deck')</field>
+            <field name="tdeck">document.getAnonymousElementByAttribute(this, 'id', 'toolbar_deck')</field>
             <field name="content">document.getAnonymousElementByAttribute(this, 'id', 'mpm_browser_content')</field>
             <field name="detail_label">document.getAnonymousElementByAttribute(this, 'id', 'detail_label')</field>
             <field name="image">document.getAnonymousElementByAttribute(this, 'id', 'image')</field>
@@ -653,6 +673,7 @@
             <field name="folders">document.getAnonymousElementByAttribute(this, 'id', 'folders')</field>
             <field name="folders_tab">document.getAnonymousElementByAttribute(this, 'id', 'folders_tab')</field>
             <field name="playlists">document.getAnonymousElementByAttribute(this, 'id', 'playlists')</field>
+            <field name="plname">document.getAnonymousElementByAttribute(this, 'id', 'plname')</field>
             <field name="playlist_tab">document.getAnonymousElementByAttribute(this, 'id', 'playlist_tab')</field>
             <field name="tags_tab">document.getAnonymousElementByAttribute(this, 'id', 'tags_tab')</field>
             <field name="sidebar">document.getAnonymousElementByAttribute(this, 'id', 'sidebar')</field>
@@ -663,7 +684,9 @@
                 Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
                 Components.utils.import("resource://minion/io.js");
-                
+
+                var me = this
+                this.deck.me = me
                 var searchInput = this.searchInput
                 function searchInputSet () {
                     var t = prefs.get("search_timeout",200)
@@ -675,8 +698,8 @@
                 
                 var url = prefs.get("song_template", "chrome://minion/content/default_song_template.xul")
                 this.content.setAttribute("src", url);
-                this.content.contentWindow.followItem = function(i, f, q) {me.followItem(i, f, q)}
-                var me = this
+                this.content.contentWindow.wrappedJSObject.followItem = function(i, f, q) {me.followItem(i, f, q)}
+                
                 var browser = this.browser
                 var playlist = this.playlist
                 var albumCol = browser.treeNode.columns.getNamedColumn("AlbumCover").element
@@ -787,7 +810,13 @@
                     }
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)
-                
+
+                this.observerPlaylistName = {
+                    observe: function(subject,topic,data){
+                        me.plname.value = data
+                    }
+                };
+                observerService.addObserver(this.observerPlaylistName,"load_playlist",false)
                 
                 var bcols = browser.treeNode.childNodes[0].childNodes
                 var colprops = prefs.get("browser_columns", "")
@@ -861,6 +890,7 @@
                 observerService.removeObserver(this.observerUpdate,"plinfo")
                 observerService.removeObserver(this.observerServer,"new_mpd_server")
                 observerService.removeObserver(this.observerPlaylists,"playlists")
+                observerService.removeObserver(this.observerPlaylistName,"load_playlist")
                 ]]>
             </destructor>
             <method name="addSelected">
@@ -1002,6 +1032,7 @@
             </method>
             <method name="goHome">
                 <body>
+                    this.deck.selectedIndex = 0
                     this.goTo(null)
                 </body>
             </method>

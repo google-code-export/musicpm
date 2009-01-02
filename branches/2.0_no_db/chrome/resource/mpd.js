@@ -413,14 +413,17 @@ mpd._parseDB = function(data) {
                         db.push({
                             type : 'directory',
                             name : val,
-                            Title : dir[dir.length - 1]
+                            Title : dir[dir.length - 1],
+                            file : val
                         })
                     } else {
-                        db.push({
+                        var x = {
                             type : fld,
                             name : val,
                             Title : val
-                        })
+                        }
+                        x[fld] = val
+                        db.push(x)
                     }
                 }
             }

@@ -115,7 +115,7 @@ toolbar, statusbar, label {
     -moz-border-right-colors: #1a1a1a #272727 #333333;
 }
 
-.mpm_themed toolbar > textbox {
+.mpm_themed toolbar textbox {
     background-image: none;
     background-color: #4E0005 !important;
     -moz-border-radius: 3px;

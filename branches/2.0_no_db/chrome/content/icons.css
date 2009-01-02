@@ -83,6 +83,9 @@ statusbar .mpm_btn_Volume {
 .mpm_btn_Forward {
     list-style-image: url('chrome://minion/content/images/forward.png')
     }
+.mpm_btn_Fullscreen{
+    list-style-image: url('chrome://minion/content/images/restore.png')
+    }
 .mpm_btn_Home {
     list-style-image: url('chrome://minion/content/images/home.png')
     }
