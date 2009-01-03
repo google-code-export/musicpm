@@ -197,7 +197,11 @@
                     var i = 1
                     while (col) {
                         if (colprops > "") colprops += ";"
-                        colprops += [col.id, (col.width==0), col.width, i++].join(":")
+                        if (col.id=='AlbumCover') {
+                            colprops += [col.id, (col.hidden), col.width, i++].join(":")
+                        } else {
+                            colprops += [col.id, (col.width==0), col.width, i++].join(":")
+                        }
                         col = col.getNext()
                     }
                     debug(colprops)
@@ -292,7 +296,7 @@
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:treecol id="AlbumCover" label="Cover/Actions" ordinal="24"
                                  collapsed="true"
-                                 hidden="true"
+                                 hidden="false"
                                  max-width="0"
                                  persist="width ordinal hidden"/>
                 </xul:treecols>
@@ -718,12 +722,21 @@
                     debug("selectChange")
                     var item = Nz(item, me.getActiveItem())
                     var location = Nz(location, me.getActiveLocation())
+                    image.removeAttribute("tooltiptext")
                     if (item) {
-                        detail_label.value = item.Title
-                        if (item.type == 'file') {
-                            mpd.getArt(item, image)
-                        } else {
-                            me.image.src = ""
+                        if (item.type=='search') {
+                            detail_label.value = "Search "+item.Title
+                                var s = "chrome://minion/content/images/"
+                                me.image.src = s + item.Title.toLowerCase() + "_xlarge.png"
+                        }
+                        else {
+                            detail_label.value = item.Title
+                            if (item.type == 'file') {
+                                mpd.getArt(item, image)
+                            } else {
+                                var s = "chrome://minion/content/images/"
+                                me.image.src = s + item.type.toLowerCase() + "_xlarge.png"
+                            }
                         }
                     } else {
                         me.image.src = ""
@@ -835,6 +848,7 @@
                     cols.forEach(setCol, cols)
                 }
                 image.parentNode.collapsed=albumCol.hidden
+                albumCol.collapsed = true
                 
                 me.goHome()
                 if (prefs.get("persistant_state", true)) {
@@ -863,7 +877,7 @@
                     tabbox.selectedIndex = 0
                     tabbox.selectedTab.onclick()
                 }
-                albumCol.addEventListener("DOMAttrModified", function(){image.parentNode.collapsed=albumCol.hidden}, false)
+                albumCol.addEventListener("DOMAttrModified", function(){image.parentNode.collapsed=albumCol.hidden;albumCol.collapsed=true}, false)
                 ]]>
             </constructor>
             <destructor>
@@ -885,6 +899,7 @@
                     FileIO.write(file, str)
                     file = null
                 }
+                this.saveColumns()
                 observerService.removeObserver(this.observerUpdate,"updating_db")
                 observerService.removeObserver(this.observerUpdate,"song")
                 observerService.removeObserver(this.observerUpdate,"state")
@@ -971,7 +986,7 @@
                             break;
                     }
                     q.query = item.name
-                    this.goTo(q)
+                    this.goTo(q, item)
                     } catch(e){debug(e)}
                     ]]>
                 </body>
@@ -990,7 +1005,7 @@
                     if (this.bp_deck.selectedIndex==0) {
                         var a = this.browser.activeItem
                         var l = "mpdbrowser"
-                        if (Nz(a.name)=='Current Playlist') var l = "mpdplaylist"
+                        if (a && Nz(a.name)=='Current Playlist') var l = "mpdplaylist"
                         return l
                     } else {
                         return "mpdplaylist"
@@ -1039,6 +1054,7 @@
             </method>
             <method name="goTo">
                 <parameter name="query"/>
+                <parameter name="followitem"/>
                 <body>
                     <![CDATA[
                     query = Nz(query)
@@ -1050,7 +1066,6 @@
                         var browser = this.browser
                         var albumCol = browser.getCol('Album')
                         query.callBack = function (db) {
-                            debug(query)
                             if (Nz(query.type)=='playlist' && Nz(query.query)=='') {
                                 var cur = {
                                     type: "playlist",
@@ -1066,8 +1081,11 @@
                             if (query.type != "search") browser.collapseOne(query.scope)
                             else browser.collapseOne(null)
                             me.cwd_icon.className += query.scope
-                            me.selectChange()
-                            //browser.treeNode.view.selection.select(0)
+                            if (Nz(followitem)) {
+                                me.selectChange(followitem, "mpdbrowser")
+                            } else {
+                                me.selectChange()
+                            }
                         }
                         query.execute()
                     }
@@ -1132,7 +1150,7 @@
                         case "Playlist": q.type = "playlistsearch"; q.scope = "any";break;
                         case "Filter": this.browser.applyFilter(this.searchInput.value); return null; break;
                     }
-                    this.goTo(q)
+                    this.goTo(q, {type:"search", Title:q.scope, name:q.scope})
                     ]]>
                 </body>
             </method>
