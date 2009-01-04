@@ -511,12 +511,11 @@
         <content>
             <xul:vbox flex="1">
                 <xul:toolbar align="center">
-                    <xul:toolbarbutton tooltiptext="Update Database"
-                        class="mpm_btn_Update"
-                        oncommand="mpd.doCmd('update')"/>
-                    <xul:toolbarseparator/>
                     <xul:deck id="toolbar_deck">
                         <xul:hbox>
+                            <xul:toolbarbutton tooltiptext="Update Database"
+                                class="mpm_btn_Update"
+                                oncommand="mpd.doCmd('update')"/>
                             <xul:toolbarbutton label="All"
                                 class="mpm_btn_AddAll"
                                 oncommand="this.parentNode.parentNode.parentNode.parentNode.browser.addAll()"/>
@@ -529,12 +528,12 @@
                                 class="mpm_btn_Clear"
                                 oncommand="mpd.doCmd('clear')"/>
                             <xul:textbox id="plname"
-                                value="Playlist"
+                                value="Playlist Name"
                                 flex="1"
-                                maxwidth="200"/>
+                                maxwidth="250"/>
                             <xul:toolbarbutton tooltiptext="Save Playlist"
                                 class="mpm_btn_Save"
-                                oncommand="var n=this.parentNode.childNodes[1].value;if(!n)return null;mpd.doCmd('save '+String.fromCharCode(34)+n+String.fromCharCode(34))"/>
+                                oncommand='var n=this.parentNode.childNodes[1].value;if(!n)return null;mpd.doCmd("save "+String.fromCharCode(34)+n.replace(/"/g,String.fromCharCode(39))+String.fromCharCode(34))'/>
                         </xul:hbox>
                     </xul:deck>
                     <xbl:children includes="toolbarbutton"/>
@@ -626,7 +625,7 @@
                                     <xul:label id="detail_label" class="fake_treecol" crop="end" value="Item"/>
                                     <xul:image id="image" class="mpm_browser_image"
                                                validate="never"
-                                               ondblclick="this.className=(this.className=='mpm_browser_image') ? '' : 'mpm_browser_image'"/>
+                                               ondblclick="switch(this.className){case 'mpm_browser_image':this.className='mpm_browser_image_large';break;case 'mpm_browser_image_large':this.className='mpm_browser_image_small';break;default:this.className='mpm_browser_image'}"/>
                                     <xbl:children includes="vbox"/>
                                     <xul:spacer flex="1"/>
                                 </xul:vbox>
@@ -728,18 +727,22 @@
                             detail_label.value = "Search "+item.Title
                                 var s = "chrome://minion/content/images/"
                                 me.image.src = s + item.Title.toLowerCase() + "_xlarge.png"
+                                me.image.className='mpm_browser_image_small'
                         }
                         else {
                             detail_label.value = item.Title
                             if (item.type == 'file') {
                                 mpd.getArt(item, image)
+                                me.image.className='mpm_browser_image'
                             } else {
                                 var s = "chrome://minion/content/images/"
                                 me.image.src = s + item.type.toLowerCase() + "_xlarge.png"
+                                me.image.className='mpm_browser_image_small'
                             }
                         }
                     } else {
                         me.image.src = ""
+                        me.image.className='mpm_browser_image_small'
                     }        
                     me.handle_select(item, location)
                 }
@@ -820,7 +823,15 @@
                         var q = new dbQuery()
                         q.type = "playlist"
                         q.query = ""
-                        q.execute(function(db){playlists.load(db,playlists)})
+                        q.execute(function(db){
+                            var cur = {
+                                type: "playlist",
+                                name: "Current Playlist",
+                                Title: "Current Playlist"
+                            }
+                            db.unshift(cur)
+                            playlists.load(db,playlists)
+                        })
                     }
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)

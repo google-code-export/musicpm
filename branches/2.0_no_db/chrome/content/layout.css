@@ -17,7 +17,26 @@
     min-height: 132px;
     max-width: 132px;
     max-height: 132px;
-    margin: auto;
+    margin: 5px;
+}
+.mpm_browser_image_small {
+    min-width: 132px;
+    min-height: 84px;
+    max-width: 132px;
+    max-height: 84px;
+    margin: 5px;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin: 5px;
+}
+.mpm_browser_image_large {
+    min-width: 260px;
+    min-height: 260px;
+    max-width: 260px;
+    max-height: 260px;
+    margin: 5px;
 }
 mpdalbumcover > image{
     margin: 5px 10px 3px 10px;

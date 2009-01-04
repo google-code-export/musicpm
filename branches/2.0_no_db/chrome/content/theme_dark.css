@@ -335,9 +335,12 @@ toolbar, statusbar, label {
     color: white;
 }
 
-.mpm_themed .mpm_browser_image {
-    margin: 5px;
+.mpm_themed .mpm_browser_image,
+.mpm_themed .mpm_browser_image_large,
+.mpm_themed .mpm_browser_image_small
+ {
     border: 2px solid #303030;
+    background-color: #171717;
 }
 
 .mpm_themed treechildren::-moz-tree-cell-text() {

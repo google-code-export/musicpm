@@ -97,7 +97,7 @@
                     tooltiptext="Show Saved Playlists"
                     oncommand="showPlaylists()"/>
                 <textbox id="playlistName"
-                    value="Playlist"
+                    value="Playlist Name"
                     flex="1"
                     maxwidth="200"/>
                 <toolbarbutton id="savePlaylist"

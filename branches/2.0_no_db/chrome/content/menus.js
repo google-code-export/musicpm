@@ -39,18 +39,27 @@ function ensureQuery(q) {
     }
 }
 
+function bash_escape (v) {
+    if (typeof(v)=='string') {
+        var str = v
+        var esc = "`~!@#$%^&*()+={}[];:'<>?,|\" "
+        esc = esc.split("")
+        debug(esc)
+        for each (c in esc) {
+            var re = new RegExp("\\"+c, "g")
+            str = str.replace(re, "\\" + c)
+        }
+        return str
+    } else return v
+}
+
 function run (cmd, args) {
     try {
         var f = FileIO.open(cmd)
         var process = Components.classes["@mozilla.org/process/util;1"]
                                 .createInstance(Components.interfaces.nsIProcess);
         process.init(f)
-        var arrayArgs = []
-        if (Nz(args)) {
-            if (typeof(args)=='string') {
-                arrayArgs = args.split(" ")
-            }
-        }           
+        var arrayArgs = Nz(args, [])
         process.run(false, arrayArgs, arrayArgs.length)
     } catch (e) {alert(e.message)}
 }
