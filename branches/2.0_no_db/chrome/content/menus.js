@@ -44,7 +44,6 @@ function bash_escape (v) {
         var str = v
         var esc = "`~!@#$%^&*()+={}[];:'<>?,|\" "
         esc = esc.split("")
-        debug(esc)
         for each (c in esc) {
             var re = new RegExp("\\"+c, "g")
             str = str.replace(re, "\\" + c)

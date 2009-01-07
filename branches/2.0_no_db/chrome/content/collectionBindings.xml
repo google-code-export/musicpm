@@ -760,6 +760,9 @@
                         mpd.getAllDirs(function(db){
                             folders.load(db, folders)
                         })
+                    } else {
+                        if (folders.treeNode.currentIndex < 0) folders.treeNode.currentIndex = 0
+                        folders.treeNode.onselect()
                     }
                 }
                 playlists.goTo = function(q) {me.goTo(q)}
@@ -776,11 +779,16 @@
                         }
                         db.unshift(cur)
                         playlists.load(db,playlists)
+                        if (playlists.treeNode.currentIndex < 0) playlists.treeNode.currentIndex = 0
+                        playlists.treeNode.onselect()
                     })
-                    me.goTo({query:'Current Playlist'})
                 }
                 this.tags_tab.onclick = function () {
                     //if (!Nz(tags.db)) tags.loadMain()
+                    var sub = tags.treeSub.treeNode.currentIndex
+                    var main = tags.treeMain.treeNode.currentIndex
+                    if (sub >= 0 && tags.treeSub.view.selection.isSelected(sub)) tags.treeSub.treeNode.onselect()
+                    else if (main >= 0) tags.treeMain.treeNode.onselect()
                 }
 
                 tags.treeMain.followItem = function(i){debug("treeMain.followItem()");me.followItem(i)}
