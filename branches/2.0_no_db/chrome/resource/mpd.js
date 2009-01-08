@@ -876,6 +876,7 @@ mpd.load_pls_stream = function(data, action) {
     if (action == "play")
         cmd += "\nplay"
     cmd += '\ncommand_list_end'
+    debug(cmd)
     mpd.doCmd(cmd)
 }
 
@@ -894,9 +895,32 @@ mpd.load_m3u_stream = function(data, action) {
     if (action == "play")
         cmd += "\nplay"
     cmd += '\ncommand_list_end'
+    debug(cmd)
     mpd.doCmd(cmd)
 }
 
+mpd.load_xspf_stream = function(data, action) {
+    if (typeof(action) == 'undefined')
+        action = "add"
+    urls = data.getElementsByTagName("location")
+    var cmd = 'command_list_begin'
+    if (action == "play")
+        cmd += "\nclear"
+    for (var x=0; x < urls.length; x++) {
+        var u = urls.item(x)
+        cmd += '\nadd ' + u.textContent
+    }
+    if (action == "play")
+        cmd += "\nplay"
+    cmd += '\ncommand_list_end'
+    debug(cmd)
+    mpd.doCmd(cmd)
+}
+
+mpd.load_unknown_stream = function(data, action, req) {
+    var head = req.getAllResponseHeaders()
+    debug(head)
+}
 mpd.handleURL = function(url, action) {
     if (typeof(url) != 'string')
         return null
@@ -907,12 +931,16 @@ mpd.handleURL = function(url, action) {
     if (url.indexOf("http://somafm.com/play/") == 0) {
         url = url.replace("/play", "") + ".pls"
     }
+    debug(action + ": " + url)
     switch (url.substr(-4).toLocaleLowerCase()) {
         case ".pls" :
             fetch(url, mpd.load_pls_stream, action);
             break;
         case ".m3u" :
             fetch(url, mpd.load_m3u_stream, action);
+            break;
+        case "xspf" :
+            fetch(url, mpd.load_xspf_stream, action, true);
             break;
         case ".mp3" :
             mpd.doCmd('add "' + url + '"');
@@ -931,6 +959,9 @@ mpd.handleURL = function(url, action) {
             break;
         case ".mod" :
             mpd.doCmd('add "' + url + '"');
+            break;
+        default:
+            fetch(url, mpd.load_unknown_stream, action);
             break;
     }
 }

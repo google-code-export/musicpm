@@ -213,9 +213,9 @@ function fetch(url, callBack, arg, getXML) {
             if (request.readyState == 4) {
                 if (request.status == 200) {
                     if (Nz(getXML)) {
-                        callBack(request.responseXML, arg)
+                        callBack(request.responseXML, arg, request)
                     } else {
-                        callBack(request.responseText, arg)
+                        callBack(request.responseText, arg, request)
                     }
                     request.onreadystatechange = null
                     request = null

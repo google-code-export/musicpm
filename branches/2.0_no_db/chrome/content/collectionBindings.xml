@@ -1100,6 +1100,11 @@
                             if (query.type != "search") browser.collapseOne(query.scope)
                             else browser.collapseOne(null)
                             me.cwd_icon.className += query.scope
+                            switch (query.type) {
+                                case "playlist": me.tabbox.selectedIndex = 1; break;
+                                case "directory": me.tabbox.selectedIndex = 0; break;
+                                default: me.tabbox.selectedIndex = 2; break;
+                            }
                             if (Nz(followitem)) {
                                 me.selectChange(followitem, "mpdbrowser")
                             } else {

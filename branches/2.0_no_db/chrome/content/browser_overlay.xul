@@ -10,9 +10,9 @@
         <![CDATA[
         Components.utils.import("resource://minion/mpmUtils.js");
         Components.utils.import("resource://minion/mpd.js");
-	function launchMinion () {
-	    openReuseByURL('chrome://minion/content/minion.xul')
-	}
+    function launchMinion () {
+        openReuseByURL('chrome://minion/content/minion.xul')
+    }
         
         function slidePlaylist (incr, end) {
             var b = document.getElementById("mpm_playlist_sb")
@@ -73,9 +73,9 @@
                     var url = gContextMenu.linkURL
                     if (typeof(url) != 'string') url = "none"
                     if (url.length < 4) url = "none"
-					if (url.indexOf("http://somafm.com/play/")==0){
-						url = ".pls"
-					}
+                    if (url.indexOf("http://somafm.com/play/")==0){
+                        url = ".pls"
+                    }
                     switch (url.substr(-4).toLocaleLowerCase()) {
                         case "none": ma.hidden = mp.hidden = true; break;
                         case ".pls": ma.hidden = mp.hidden = false; break;
@@ -86,10 +86,11 @@
                         case "flac": ma.hidden = mp.hidden = false; break;
                         case ".acc": ma.hidden = mp.hidden = false; break;
                         case ".mod": ma.hidden = mp.hidden = false; break;
+                        case "xspf": ma.hidden = mp.hidden = false; break;
                         default: ma.hidden = mp.hidden = true; break;
                     }
                 }
-				return true
+                return true
             }
         }
         function mpm_linkHandlerAction(action) {
