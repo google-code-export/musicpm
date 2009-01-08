@@ -107,6 +107,10 @@ function loadCurrentAlbum() {
     q.filterQuery = mpd.Artist
     document.getElementById("browse").goTo(q)
 }
+
+function viewCurrentSong() {
+    document.getElementById("browse").showDetails(mpd.currentsong)
+}
 function refreshPlaylists () {
     var list = document.getElementById("savedPlaylists")
     mpd.doCmd('lsinfo', function(data){

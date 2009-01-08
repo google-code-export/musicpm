@@ -52,24 +52,30 @@
                     observes="Title"
                     class="Title"
                     flex="1"
-                    ordinal="2"/>
-                <hbox style="overflow:hidden" flex="1" ordinal="3">
+                    ordinal="2"
+                    onclick="viewCurrentSong()"/>
+                <hbox style="overflow:hidden" flex="1" ordinal="3"
+                    onclick="viewCurrentSong()">
                     <label id="preAlbum"
                         value="from"
-                        ordinal="1"/>
+                        ordinal="1"
+                        onclick="viewCurrentSong()"/>
                     <mpdlabel id="curAlbum"
                         value="Album"
                         class="Album"
                         observes="Album"
-                        ordinal="2"/>
+                        ordinal="2"
+                        onclick="viewCurrentSong()"/>
                     <label id="preArtist"
                         value="by"
-                        ordinal="3"/>
+                        ordinal="3"
+                        onclick="viewCurrentSong()"/>
                     <mpdlabel id="curArtist"
                         value="Artist"
                         class="Artist"
                         observes="Artist"
-                        ordinal="4"/>
+                        ordinal="4"
+                        onclick="viewCurrentSong()"/>
                     <spacer flex="1" ordinal="5"/>
                 </hbox>
                 <mpdtime flex="1" id="mytime" ordinal="4"/>
