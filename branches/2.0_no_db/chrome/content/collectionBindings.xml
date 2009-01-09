@@ -518,10 +518,10 @@
                                 oncommand="mpd.doCmd('update')"/>
                             <xul:toolbarbutton label="All"
                                 class="mpm_btn_AddAll"
-                                oncommand="this.parentNode.parentNode.parentNode.parentNode.browser.addAll()"/>
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.browser.addAll()"/>
                             <xul:toolbarbutton label="Selected"
                                 class="mpm_btn_AddSelected"
-                                oncommand="this.parentNode.parentNode.parentNode.parentNode.browser.addSelected()"/>
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.browser.addSelected()"/>
                         </xul:hbox>
                         <xul:hbox>
                             <xul:toolbarbutton label="Clear Playlist "
@@ -1114,6 +1114,7 @@
                         query.execute()
                     }
                     else if (query && query.query == 'Current Playlist') {
+                        me.tabbox.selectedIndex = 1
                         me.deck.selectedIndex = 0
                         me.bp_deck.selectedIndex = 1
                         me.cwd.value = 'Current Playlist'
