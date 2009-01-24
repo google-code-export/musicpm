@@ -535,6 +535,11 @@
                                 class="mpm_btn_Save"
                                 oncommand='var n=this.parentNode.childNodes[1].value;if(!n)return null;mpd.doCmd("save "+String.fromCharCode(34)+n.replace(/"/g,String.fromCharCode(39))+String.fromCharCode(34))'/>
                         </xul:hbox>
+                        <xul:hbox>
+                            <xul:toolbarbutton class="mpm_btn_Back"
+                                label="Back to Music Collection"
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.deck.selectedIndex=0"/>
+                        </xul:hbox>
                     </xul:deck>
                     <xbl:children includes="toolbarbutton"/>
                     <xul:spacer flex="1"/>
@@ -620,13 +625,13 @@
                                 <xul:image id="cwd_icon"/>
                                 <xul:label id="cwd" class="cwd" crop="start" flex="1"/>
                             </xul:hbox>
-                            <xul:hbox flex="1" id="mpm_browser_browser" style="overflow:auto">
-                                <xul:vbox class="mpm_browser_image_box">
+                            <xul:hbox flex="1" id="mpm_browser_browser" style="overflow: hidden">
+                                <xul:vbox class="mpm_browser_image_box" style="overflow: hidden">
                                     <xul:label id="detail_label" class="fake_treecol" crop="end" value="Item"/>
                                     <xul:image id="image" class="mpm_browser_image"
                                                validate="never"
                                                ondblclick="switch(this.className){case 'mpm_browser_image':this.className='mpm_browser_image_large';break;case 'mpm_browser_image_large':this.className='mpm_browser_image_small';break;default:this.className='mpm_browser_image'}"/>
-                                    <xbl:children includes="vbox"/>
+                                    <xbl:children includes="arrowscrollbox"/>
                                     <xul:spacer flex="1"/>
                                 </xul:vbox>
                                 <xul:deck id="browser-playlist_deck" flex="1"
@@ -636,22 +641,13 @@
                                     <xul:box id="playlist" flex="1"
                                              mpm_name="browser_playlist"
                                              style="-moz-binding: url('chrome://minion/content/playlistBindings.xml#mpdPlaylist')"/>
-                                    <xbl:children includes="mpdplaylist"/>
                                 </xul:deck>
                             </xul:hbox>
                         </xul:vbox>
                     </xul:hbox>
-                    <xul:vbox>
-                        <xul:toolbar class="mpm_navbar" align="center">
-                            <xul:toolbarbutton class="mpm_btn_Back"
-                                tooltiptext="Back to Music Collection"
-                                oncommand="this.parentNode.parentNode.parentNode.selectedIndex=0"/>
-                            <xul:toolbarseparator/>
-                            <xul:image class="mpm_icon_file"/>
-                            <xul:label id="file_details" class="cwd" crop="start" flex="1"/>
-                        </xul:toolbar>
+                    <xul:hbox flex="1">
                         <xul:browser id="mpm_browser_content" style="overflow:auto" flex="1"/>
-                    </xul:vbox>
+                    </xul:hbox>
                 </xul:deck>
             </xul:vbox>
         </content>
@@ -671,7 +667,6 @@
             <field name="detail_label">document.getAnonymousElementByAttribute(this, 'id', 'detail_label')</field>
             <field name="image">document.getAnonymousElementByAttribute(this, 'id', 'image')</field>
             <field name="cwd">document.getAnonymousElementByAttribute(this, 'id', 'cwd')</field>
-            <field name="fileDetails">document.getAnonymousElementByAttribute(this, 'id', 'file_details')</field>
             <field name="cwd_icon">document.getAnonymousElementByAttribute(this, 'id', 'cwd_icon')</field>
             <field name="folders">document.getAnonymousElementByAttribute(this, 'id', 'folders')</field>
             <field name="folders_tab">document.getAnonymousElementByAttribute(this, 'id', 'folders_tab')</field>
@@ -731,8 +726,10 @@
                         }
                         else {
                             detail_label.value = item.Title
-                            if (item.type == 'file') {
-                                mpd.getArt(item, image)
+                            var itemimg = item
+                            if (item.type=='album') itemimg = Nz(browser.db[0], item)
+                            if (itemimg.type == 'file') {
+                                mpd.getArt(itemimg, image)
                                 me.image.className='mpm_browser_image'
                             } else {
                                 var s = "chrome://minion/content/images/"
@@ -1217,8 +1214,8 @@
                     <![CDATA[
                         var win = this.cwin
                         win.load(item);
-                        this.fileDetails.value = item.file;
                         this.deck.selectedIndex =1;
+                        this.tdeck.selectedIndex=2
                     ]]>
                 </body>
             </method>

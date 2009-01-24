@@ -399,7 +399,7 @@ mpd._parseDB = function(data) {
                         Pos : null
                     };
                     var d = data[i + 1]
-                    while (d && d.substr(0, 6) != "file: ") {
+                    while (d && d.charCodeAt(0) < 97) {
                         var sep = d.indexOf(": ")
                         song[d.substr(0, sep)] = d.slice(sep + 2);
                         --n;
@@ -1017,7 +1017,9 @@ function socketTalker() {
         utf_instream.init(instream, 'UTF-8', 1024, replacementChar);
         utf_outstream.init(outstream, 'UTF-8', 0, 0x0000)
     } catch (e) {
-        debug(e)
+        mpd._host = null
+        mpd._port = null
+        mpd.disconnect()
         return null
     }
 
@@ -1133,6 +1135,9 @@ function socketTalker() {
                     }
                 }
             } catch (e) {
+                mpd._host = null
+                mpd._port = null
+                mpd.disconnect()
                 debug(e)
             }
         }

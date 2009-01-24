@@ -33,7 +33,7 @@ var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
         .getService(Components.interfaces.nsIWindowWatcher);
         
 function debug(s) {
-    //return null
+    return null
     try {
         var str = ""
         if (s == null) s = "null passed to debug"

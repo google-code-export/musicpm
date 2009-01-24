@@ -89,12 +89,12 @@
         <mpdbrowser id="browse" flex="4"
             context="mpmMenu"
             oncontextmenu="mpmMenu_contextShowing(event,this.getActiveLocation(),this.getActiveItem())">
-            <vbox>
+            <arrowscrollbox orient="vertical" flex="1">
                 <vbox id="mpmDynamicMenu2"/>
                 <menuseparator/>
                 <toolbarbutton label="Edit Actions" 
                     oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
-            </vbox>
+            </arrowscrollbox>
             </mpdbrowser>
         <splitter id="main_content_splitter" collapse="both" persist="state substate"/>
         <vbox minwidth="150" minheight="150" flex="1">

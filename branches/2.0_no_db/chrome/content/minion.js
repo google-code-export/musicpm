@@ -105,7 +105,7 @@ function loadCurrentAlbum() {
     q.query = mpd.Album
     q.filterField = "Artist"
     q.filterQuery = mpd.Artist
-    document.getElementById("browse").goTo(q)
+    document.getElementById("browse").goTo(q, mpd.currentsong)
 }
 
 function viewCurrentSong() {

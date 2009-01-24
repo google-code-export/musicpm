@@ -82,6 +82,14 @@ treechildren::-moz-tree-cell-text(Artist) {
     text-align: right;
 }
 
+.tag_val {
+    overflow: hidden;
+}
+.tag_row {
+    max-width: 400px;
+    overflow: hidden;
+}
+
 .mpm_sb_Title > label {
     overflow: hidden;
     width: 130px;
