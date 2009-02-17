@@ -25,6 +25,24 @@ var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
 
 var lfId = prefs.get("lyricsfly_id","8890a06f973057f4b")
 debug("mpd.js load")
+
+
+function smartsort (a,b) {
+    if (a.type != b.type) {
+        if (a.type>b.type) return 1
+        if (a.type<b.type) return -1
+    }
+    var column = "name"     
+    if (isNaN(a[column]+b[column])) {
+        var al = a[column].toLowerCase()
+        var bl = b[column].toLowerCase()
+        if (al>bl) return 1
+        if (al<bl) return -1
+        return 0
+    }
+    else { return a[column]-b[column]}
+}
+
 function dbQuery(cmd, callBack) {
     this.cmd = Nz(cmd)
     this.path = []
@@ -185,13 +203,14 @@ dbQuery.prototype.execute = function(callBack) {
     if (this.filterField) useCache = false
     var filterField = this.filterField
     var filterQuery = this.filterQuery
-
+    var isPlaylists = (this.type=='playlist' && this.query=='')
     mpd.doCmd(cmd, function(d) {
         var db = mpd._parseDB(d)
         if (restrict)
             db = dbFilter(db, restrict)
         if (chkDupes)
             db = dbDistinct(db)
+        if (prefs.get("linguistic_sort", false) || isPlaylists) db.sort(smartsort)
         if (useCache && db.length > 0)
             mpd.cachedDB[cmd] = db
         if (filterField) {
@@ -999,6 +1018,7 @@ function loadSrvPref() {
 }
 
 function socketTalker() {
+    dump("enter socketTalker")
     var initialized = false
     var regGreet = /OK MPD [0-9\.]+\n/gm
     try {

@@ -137,7 +137,6 @@
                     me.db = db
                     me.view = new arrayView(me.db)
                     me.treeNode.view = me.view
-                    if (prefs.get("linguistic_sort", false)) me.sort("name")
                     me.treeNode.currentIndex = 0
                     ]]>
                 </body>

@@ -281,6 +281,7 @@
                 <body>
                 <![CDATA[
                 try {
+                    if (this.boxObject.width < 1) return null
                     var col= this.tree.columns.getFirstColumn()
                     var colprops = ""
                     var i = 1
