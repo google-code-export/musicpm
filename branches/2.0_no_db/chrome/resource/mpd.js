@@ -986,9 +986,12 @@ mpd.handleURL = function(url, action) {
 }
 
 function loadSrvPref() {
+    var srv = ''
     if (prefBranch.getPrefType("extensions.mpm.server") == prefBranch.PREF_STRING) {
         var srv = prefBranch.getCharPref("extensions.mpm.server");
-        mpd.disconnect()
+    }
+    debug('srv = '+srv)
+    if (srv > '') {
         srv = srv.split(":", 3);
         var cb = function() {
             mpd._cmdQueue = []
@@ -1002,7 +1005,6 @@ function loadSrvPref() {
             } else {
                 mpd._host = null
                 mpd._port = null
-                mpd._password = null
                 observerService.notifyObservers(null, "new_mpd_server", null)
             }
         }
@@ -1011,14 +1013,14 @@ function loadSrvPref() {
         timer.initWithCallback(cb, 100,
                 Components.interfaces.nsITimer.TYPE_ONE_SHOT)
     } else {
-        mpd._host = null;
-        mpd._port = null;
-        mpd._password = '';
+        debug("No server, disconnecting.")
+        mpd.disconnect()
     }
 }
 
 function socketTalker() {
-    dump("enter socketTalker")
+    if (mpd._port <= '' || mpd._host <= '') return null
+    debug("enter socketTalker")
     var initialized = false
     var regGreet = /OK MPD [0-9\.]+\n/gm
     try {
@@ -1039,6 +1041,7 @@ function socketTalker() {
     } catch (e) {
         mpd._host = null
         mpd._port = null
+        mpd._password = null
         mpd.disconnect()
         return null
     }
@@ -1060,6 +1063,11 @@ function socketTalker() {
             debug('close status = ' + status)
             mpd._socket = null
             mpd.set('greeting', 'Not Connected');
+            if (status > 0) {
+                mpd._host = null
+                mpd._port = null
+                mpd._password = null
+            }
         },
         onDataAvailable : function(request, context, inputStream, offset, count) {
             try {
@@ -1170,18 +1178,8 @@ function socketTalker() {
 
     var con = {
         cancel : function() {
-            try {
-                utf_outstream.close()
-            } catch (e) {
-            }
-            try {
-                utf_instream.close()
-            } catch (e) {
-            }
-            try {
-                transport.close(0)
-            } catch (e) {
-            }
+            debug("Cancel socket")
+            transport.close(0)
         },
         writeOut : function(str) {
             if (initialized)

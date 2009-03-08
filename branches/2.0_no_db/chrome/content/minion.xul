@@ -18,6 +18,7 @@
     persist="width height screenX screenY sizemode">
     <script src="chrome://minion/content/minion.js"/>
 
+
     <keyset>
       <key id="kbExecute" modifiers="alt" key="x"
         oncommand="mpdExecute()"/>
@@ -95,7 +96,7 @@
                 <toolbarbutton label="Edit Actions" 
                     oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
             </arrowscrollbox>
-            </mpdbrowser>
+        </mpdbrowser>
         <splitter id="main_content_splitter" collapse="both" persist="state substate"/>
         <vbox minwidth="150" minheight="150" flex="1">
             <toolbar id="playlistToolbar">

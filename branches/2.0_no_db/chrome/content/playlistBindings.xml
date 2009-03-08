@@ -201,7 +201,7 @@
                     view.selection.getRangeAt(t,start,end);
                     for (var v=start.value; v<=end.value; v++){
                         item = view.get(v)
-                        if (item.type == 'file') {
+                        if (item.type == 'file' && item.Pos > -1) {
                             cmd += "\ndelete "+ (parseInt(item.Pos)-offset)
                             offset++
                         }

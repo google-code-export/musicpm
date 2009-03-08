@@ -11,6 +11,8 @@
                 action="this.followItem(this.activeItem)"/>
             <handler event="keypress" keycode="VK_DELETE"
                 action="this.delete()"/>
+            <handler event="keypress" keycode="VK_INSERT"
+                action="this.addSelected()"/>
             <handler event="keypress" keycode="VK_RETURN"
                 action="this.followItem(this.activeItem)"/>
         </handlers>
@@ -115,6 +117,38 @@
                         }
                     }
                     ]]>
+                </body>
+            </method>
+            <method name="delete">
+                <body>
+                <![CDATA[
+                var tree = this.treeNode
+                var view = this.view
+                var start = new Object();
+                var end = new Object();
+                var numRanges = view.selection.getRangeCount();
+                var offset = 0
+                var item
+                var cmd = "command_list_begin"
+
+                for (var t=0; t<numRanges; t++){
+                    view.selection.getRangeAt(t,start,end);
+                    for (var v=start.value; v<=end.value; v++){
+                        item = view.get(v)
+                        if (item.type == 'file') {
+                            var p = Nz(mpd.pl_lookup[item.file], -1)
+                            if (p > -1) {
+                                cmd += "\ndelete "+ (parseInt(p)-offset)
+                                offset++
+                            }
+                        }
+                    }
+                }
+
+                cmd += "\ncommand_list_end"
+                debug(cmd)
+                mpd.doCmd(cmd, null, false)
+                ]]>
                 </body>
             </method>
             <method name="getCol">
@@ -650,6 +684,10 @@
                 </xul:deck>
             </xul:vbox>
         </content>
+        <handlers>
+            <handler event="keypress" keycode="VK_HOME"
+                action="this.goHome()"/>
+        </handlers>
         <implementation>
             <field name="searchType">document.getAnonymousElementByAttribute(this, 'id', 'searchType')</field>
             <field name="searchInput">document.getAnonymousElementByAttribute(this, 'id', 'searchInput')</field>

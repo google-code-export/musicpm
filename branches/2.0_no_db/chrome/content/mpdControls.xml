@@ -184,7 +184,7 @@
                     onpopupshowing="this.childNodes[5].setAttribute('label','Crossfade ('+mpd.xfade+')')">
                     <xul:vbox id="servers_box"/>
                     <xul:menuitem label="Disconnect"
-                        oncommand="this.parentNode.parentNode.parentNode.serverSelect('None')"/>
+                        oncommand="this.parentNode.parentNode.parentNode.serverSelect('')"/>
                     <xul:menuitem label="Manage Servers"
                         oncommand="mpm_openDialog('chrome://minion/content/servers.xul', 'servers')"/>
                     <xul:menuseparator/>
