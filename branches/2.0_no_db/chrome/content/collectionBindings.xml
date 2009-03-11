@@ -1102,7 +1102,13 @@
             <method name="goHome">
                 <body>
                     this.deck.selectedIndex = 0
-                    this.goTo(null)
+                    var Folders = {
+                                type: 'directory',
+                                Title: 'Folders',
+                                name: ''
+                            }
+                    if (prefs.get("home_is_folders", false)) this.followItem(Folders)
+                    else this.goTo(null)
                 </body>
             </method>
             <method name="goTo">

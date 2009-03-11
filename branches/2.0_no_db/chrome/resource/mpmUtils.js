@@ -377,7 +377,7 @@ var prefs = {
                 branch.setBoolPref(strPref, val);
                 break;
             default :
-                if (Nz(val)) {
+                if (typeof(val) != 'undefined') {
                     switch (typeof(val)) {
                         case 'string' :
                             branch.setCharPref(strPref, val);
