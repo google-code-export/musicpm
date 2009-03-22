@@ -725,43 +725,43 @@ mpd.getAllDirs = function(callBack) {
 }
 
 function getAmazonArt (item, img) {
-        var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
-                + encodeURI(item.Artist)
-                + "&title="
-                + encodeURI(item.Album)
-                + "&limit=1"
-        var art =  "chrome://minion/content/images/album_blank.png"
-        debug("searching Metabrainz...")
-        if (typeof(mpd.cachedArt[search_url]) == 'string') {
-            img.src = mpd.cachedArt[search_url]
-            img.setAttribute("tooltiptext",mpd.cachedArt[search_url])
-        } else {
-            var cb = function(data) {
-                try {
-                    var asin = ""
-                    if (data != "") {
-                        var s = data.indexOf("<asin>") + 6
-                        if (s > 6) {
-                            var e = data.indexOf("</asin>", s)
-                            if (e > 0) {
-                                asin = data.slice(s, e)
-                            }
-                            if (asin.length == 10) {
-                                base = "http://images.amazon.com/images/P/"
-                                        + asin
-                                art = base + ".01.MZZZZZZZ.jpg"
-                            }
-                        }
-                    }
-                    mpd.cachedArt[search_url] = art
-                    img.src = art
-                    img.setAttribute("tooltiptext",art)
-                } catch (e) {
-                    debug(e)
-                }
-            }
-            fetch(search_url, cb)
-        }
+	var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
+			+ encodeURI(item.Artist)
+			+ "&title="
+			+ encodeURI(item.Album)
+			+ "&limit=1"
+	var art =  "chrome://minion/content/images/album_blank.png"
+	debug("searching Metabrainz...")
+	if (typeof(mpd.cachedArt[search_url]) == 'string') {
+		img.src = mpd.cachedArt[search_url]
+		img.setAttribute("tooltiptext",mpd.cachedArt[search_url])
+	} else {
+		var cb = function(data) {
+			try {
+				var asin = ""
+				if (data != "") {
+					var s = data.indexOf("<asin>") + 6
+					if (s > 6) {
+						var e = data.indexOf("</asin>", s)
+						if (e > 0) {
+							asin = data.slice(s, e)
+						}
+						if (asin.length == 10) {
+							base = "http://images.amazon.com/images/P/"
+									+ asin
+							art = base + ".01.MZZZZZZZ.jpg"
+						}
+					}
+				}
+				mpd.cachedArt[search_url] = art
+				img.src = art
+				img.setAttribute("tooltiptext",art)
+			} catch (e) {
+				debug(e)
+			}
+		}
+		fetch(search_url, cb)
+	}
 }
 
 mpd.getArt = function(item, img) {
@@ -946,7 +946,22 @@ mpd.load_xspf_stream = function(data, action) {
 
 mpd.load_unknown_stream = function(data, action, req) {
     var head = req.getAllResponseHeaders()
-    debug(head)
+	var content = head.match(/Content-Type: (.*)\n/)[1]
+    debug("content = '"+content+"'")
+	switch (content) {
+        case "audio/x-scpls" :
+            mpd.load_pls_stream(data, action);
+            break;
+        case "audio/x-mpegurl" :
+            mpd.load_m3u_stream(data, action);
+            break;
+        case "application/xspf+xml" :
+            mpd.load_xspf_stream(req.responseXML, action);
+            break;
+        default :
+            mpd.doCmd('add "' + url + '"');
+            break;
+	}
 }
 mpd.handleURL = function(url, action) {
     if (typeof(url) != 'string')

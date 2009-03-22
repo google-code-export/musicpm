@@ -211,7 +211,7 @@ function fetch(url, callBack, arg, getXML) {
         request.open("GET", url, true)
         request.onreadystatechange = function() {
             if (request.readyState == 4) {
-                if (request.status == 200) {
+                if (request.status == 200 || request.status == 0) {
                     if (Nz(getXML)) {
                         callBack(request.responseXML, arg, request)
                     } else {
@@ -220,6 +220,7 @@ function fetch(url, callBack, arg, getXML) {
                     request.onreadystatechange = null
                     request = null
                 } else {
+					debug(request.status+": "+url)
                     request.onreadystatechange = null
                     request = null
                 }

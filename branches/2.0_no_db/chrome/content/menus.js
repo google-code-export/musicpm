@@ -163,7 +163,6 @@ function mpmMenu_contextShowing(event, location, activeItem, fillNode, nodeType)
     try {
         var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         var menu = document.getElementById(Nz(fillNode, "mpmDynamicMenu"))
-        debug(menu.id)
         location = Nz(location)
         activeItem = Nz(activeItem)
         nodeType = Nz(nodeType, "menuitem")
@@ -175,7 +174,8 @@ function mpmMenu_contextShowing(event, location, activeItem, fillNode, nodeType)
         while (menu.hasChildNodes()) {
             menu.removeChild(menu.firstChild)
         }
-        if (location && activeItem) {
+		debug("location="+location)
+        if (location) {
             var readySep = false
             for (var i = 0; i < mpmMenu.items.length; i++) {
                 if (mpmMenu.items[i] == "separator") {

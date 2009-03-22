@@ -66,6 +66,16 @@ function init () {
     window.name = "chrome://minion/content/minion.xul"
     var browse = document.getElementById('browse')
     browse.handle_select = browse_select
+	var s = window.location.search
+	if (s.length > 0) {
+		s = s.split("=")
+		debug(s)
+		switch (s[0]) {
+			case "?url": mpd.handleURL(s[1]); break;
+			case "?play_url":  mpd.handleURL(s[1], "play"); break;
+			case "?cmd": mpd.doCmd(s[1]); break;
+		}
+	}
 }
 
 function unload () {

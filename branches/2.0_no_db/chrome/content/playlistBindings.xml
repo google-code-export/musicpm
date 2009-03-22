@@ -114,7 +114,7 @@
             <field name="obsLn"/>
             <field name="obsCurSong"/>
             <property name="activeItem"
-                onget="return this.view.get(this.tree.currentIndex)"
+                onget="try{return this.view.get(this.tree.currentIndex)}catch(e){return null}"
                 readonly="true"/>
             <constructor>
                 <![CDATA[

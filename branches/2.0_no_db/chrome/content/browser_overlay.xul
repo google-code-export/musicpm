@@ -66,30 +66,7 @@
             linkHandler: function(event) {
                 var ma = document.getElementById('mpm_linkHandlerAdd')
                 var mp = document.getElementById('mpm_linkHandlerPlay')
-                if (!gContextMenu.onLink) {
-                    ma.hidden = mp.hidden = true
-                }
-                else {
-                    var url = gContextMenu.linkURL
-                    if (typeof(url) != 'string') url = "none"
-                    if (url.length < 4) url = "none"
-                    if (url.indexOf("http://somafm.com/play/")==0){
-                        url = ".pls"
-                    }
-                    switch (url.substr(-4).toLocaleLowerCase()) {
-                        case "none": ma.hidden = mp.hidden = true; break;
-                        case ".pls": ma.hidden = mp.hidden = false; break;
-                        case ".m3u": ma.hidden = mp.hidden = false; break;
-                        case ".mp3": ma.hidden = mp.hidden = false; break;
-                        case ".ogg": ma.hidden = mp.hidden = false; break;
-                        case ".wav": ma.hidden = mp.hidden = false; break;
-                        case "flac": ma.hidden = mp.hidden = false; break;
-                        case ".acc": ma.hidden = mp.hidden = false; break;
-                        case ".mod": ma.hidden = mp.hidden = false; break;
-                        case "xspf": ma.hidden = mp.hidden = false; break;
-                        default: ma.hidden = mp.hidden = true; break;
-                    }
-                }
+                ma.hidden = mp.hidden = !gContextMenu.onLink
                 return true
             }
         }
