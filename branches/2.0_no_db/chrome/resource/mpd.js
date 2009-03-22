@@ -503,11 +503,13 @@ mpd._update = function(data) {
         } while (--dl)
 
         // React to and alter certain values.
+		var t = Nz(obj.time, '0:0').split(":")
         if (obj.state == 'stop') {
             obj.time = 0
         } else {
-            obj.time = Nz(obj.time, '0:0').split(":")[0]
+            obj.time = t[0]
         }
+        mpd.set('Time', t[1])
 
         // Adaptive update intervals. Run updates at 200 ms until we are
         // updating in sync with the time, then switch to 1000 ms.
@@ -527,6 +529,11 @@ mpd._update = function(data) {
 
         if (obj.song != mpd.song) {
             mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
+		} else {
+			CS = Nz(mpd.plinfo[obj.song], {Title:""})
+			if (CS.Title != mpd.Title){
+				mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
+			} 
         }
         mpd.playlist = Nz(mpd.playlist, 0)
         if (obj.playlist != mpd.playlist) {
@@ -919,6 +926,7 @@ mpd.load_m3u_stream = function(data, action) {
 }
 
 mpd.load_xspf_stream = function(data, action) {
+	debug(data)
     if (typeof(action) == 'undefined')
         action = "add"
     urls = data.getElementsByTagName("location")
@@ -950,7 +958,7 @@ mpd.handleURL = function(url, action) {
     if (url.indexOf("http://somafm.com/play/") == 0) {
         url = url.replace("/play", "") + ".pls"
     }
-    debug(action + ": " + url)
+    debug(action + ": " + url + ", " + url.substr(-4).toLocaleLowerCase())
     switch (url.substr(-4).toLocaleLowerCase()) {
         case ".pls" :
             fetch(url, mpd.load_pls_stream, action);

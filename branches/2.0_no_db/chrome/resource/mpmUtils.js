@@ -53,7 +53,7 @@ function debug(s) {
         }
         if (typeof(str) == 'string' && str.length > 0) {
             dump(str + "\n\n")
-            consoleService.logStringMessage(str)
+            //consoleService.logStringMessage(str)
         }
     } catch (e) {
         dump("error in debug!")
