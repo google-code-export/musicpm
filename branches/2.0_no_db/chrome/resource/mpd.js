@@ -509,7 +509,6 @@ mpd._update = function(data) {
         } else {
             obj.time = t[0]
         }
-        mpd.set('Time', t[1])
 
         // Adaptive update intervals. Run updates at 200 ms until we are
         // updating in sync with the time, then switch to 1000 ms.
