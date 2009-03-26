@@ -342,8 +342,11 @@
                 min="0"
                 max="0"
                 value="0"
+				userdrag="false"
                 enabled="false"
-                onchange="this.parentNode.seekToSec(this.value)"
+                onchange="this.parentNode.lbl1.value=hmsFromSec(this.value);if(!this.userdrag)this.parentNode.seekToSec(this.value)"
+				onmousedown="this.userdrag=true"
+				onmouseup="if(this.userdrag)this.parentNode.seekToSec(this.value);this.userdrag=false"
                 collapsed="false"
                 xbl:inherits="collapsed=hidescale"/>
             <xul:label class="mpdTime mpdTimeSeparator" value="/"
@@ -364,6 +367,7 @@
                 onget="return document.getAnonymousNodes(this)[3].seconds"
                 onset=""/>
             <constructor>
+                <![CDATA[
                 Components.utils.import("resource://minion/mpmUtils.js");
                 Components.utils.import("resource://minion/mpd.js");
                 var lbl1 = this.lbl1 = document.getAnonymousNodes(this)[0]
@@ -381,10 +385,12 @@
                 }
                 var obs1 = {
                     observe: function(subject,topic,data){
-                        lbl1.seconds = data;
-                        lbl1.value = hmsFromSec(data);
-                        progress.value = data
-                        progress.enabled = true
+						lbl1.seconds = data;
+						if (!progress.userdrag) {
+							progress.value = data
+							progress.enabled = true
+							lbl1.value = hmsFromSec(data);
+						}
                     }
                 };
                 var obs2 = {
@@ -416,6 +422,7 @@
                 observerService.addObserver(obs2,"Time",false)
                 observerService.addObserver(obsState,"state",false)
                 this.addEventListener("DOMMouseScroll", seekScroll, false)
+                ]]>
             </constructor>
             <destructor>
                 Components.utils.import("resource://minion/mpd.js");
