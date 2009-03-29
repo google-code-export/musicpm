@@ -1131,6 +1131,12 @@
                     <![CDATA[
                     query = Nz(query)
                     var me = this
+					var statscb = function (data) {
+						var sng = /^songs\:\s(.*)$/gm.exec(data)
+						var tm = /^db_playtime\:\s(.*)$/gm.exec(data)
+						me.trackcount.value = sng[1] + " tracks"
+						me.timecount.value = prettyTime(tm[1], true)
+					}
                     this.browser.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
                     if (query && query.query != 'Current Playlist') {
                         this.deck.selectedIndex = 0
@@ -1147,8 +1153,8 @@
                                 db.unshift(cur)
                             }
                             browser.load(db);
-							if (db[0].type == 'directory') {
-								if (query.query > "") {
+							if (query.query > "") {
+								if (db[0].type == 'directory') {
 									var tcb = function (data) {
 										var times = data.match(/^Time\:\s(.*)$/gm)
 										me.trackcount.value = times.length + " tracks"
@@ -1158,23 +1164,20 @@
 									}
 									mpd.doCmd('listallinfo "'+query.query+'"', tcb)
 								} else {
-									var statscb = function (data) {
-										var sng = /^songs\:\s(.*)$/gm.exec(data)
-										var tm = /^db_playtime\:\s(.*)$/gm.exec(data)
-										me.trackcount.value = sng[1] + " tracks"
-										me.timecount.value = prettyTime(tm[1], true)
-									}
-									mpd.doCmd('stats', statscb)
-								}
-							} else {
-								try {
 									var files = [x for each (x in db) if (x.type=='file')]
 									var time = 0
 									function sumTimes (el, idx, arr) {time += parseInt(el.Time)}
 									files.forEach(sumTimes)
 									me.trackcount.value = files.length + " tracks"
 									me.timecount.value = prettyTime(time, true)
-								} catch(e){debug(e)}
+								}
+							} else {
+								if (query.type == 'playlist') {
+									me.trackcount.value = ""
+									me.timecount.value = ""								
+								} else {
+									mpd.doCmd('stats', statscb)
+								}
 							}
                             me.cwd.value = query.query.split("/").slice(-1)
                             if (Nz(query.filterField)) me.cwd.value += " ("+query.filterField + ": " + query.filterQuery + ")"
@@ -1230,6 +1233,9 @@
                                 name: ''
                             }
                         ]
+                        this.deck.selectedIndex = 0
+                        this.bp_deck.selectedIndex = 0
+						me.cwd.value = ""
 						me.trackcount.value = ""
 						me.timecount.value = ""
                         this.browser.load(home)

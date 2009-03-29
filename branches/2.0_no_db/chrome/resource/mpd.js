@@ -1047,6 +1047,7 @@ function loadSrvPref() {
         }
         var timer = Components.classes["@mozilla.org/timer;1"]
                 .createInstance(Components.interfaces.nsITimer)
+		mpd.disconnect()
         timer.initWithCallback(cb, 100,
                 Components.interfaces.nsITimer.TYPE_ONE_SHOT)
     } else {
@@ -1058,6 +1059,7 @@ function loadSrvPref() {
 function socketTalker() {
     if (mpd._port <= '' || mpd._host <= '') return null
     debug("enter socketTalker")
+	mpd.set('greeting', 'Connecting...');
     var initialized = false
     var regGreet = /OK MPD [0-9\.]+\n/gm
     try {

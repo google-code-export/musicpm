@@ -305,8 +305,8 @@
                 var class = "mpm_btn_Settings"
                 for (var i=0;i<len;i++) {
                     var item = document.createElementNS(NS, "menuitem")
-                    var cur_server = [mpd._host,mpd._port,mpd._password].join(":")
-                    var active = (mpd._socket && mpd.servers[i][1]==cur_server)
+                    var this_server = "MPD@"+mpd.servers[i][1].split(":",3).slice(0,2).join(":")
+                    var active = (mpd.greeting==this_server)
                     if (active) class += " mpm_server_connected"
                     item.setAttribute("type", "radio")
                     item.setAttribute("name", "servers")
@@ -324,9 +324,8 @@
                 <parameter name="serverString"/>
                 <body>
                     <![CDATA[
-                        try{
-                            prefBranch.setCharPref("extensions.mpm.server", serverString);
-                        } catch (e) { debug(e) }
+						if (prefs.get("server") == serverString) prefs.set("server", "")
+                        prefs.set("server", serverString)
                     ]]>
                 </body>
             </method>
