@@ -53,7 +53,7 @@
         <implementation>
             <field name="child">document.getAnonymousNodes(this)[0]</field>
             <field name="observer"/>
-            <field name="observes">"song"</field>
+            <field name="observes">"file"</field>
             <constructor>
                 Components.utils.import("resource://minion/mpmUtils.js");
                 Components.utils.import("resource://minion/mpd.js");

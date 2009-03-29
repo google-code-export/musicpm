@@ -192,9 +192,9 @@ toolbar, statusbar, label {
     background-repeat: repeat;
     border: 1px solid black;
 }
-.mpm_themed toolbar > toolbarbutton,
-.mpm_themed toolbar > menulist,
-.mpm_themed toolbar > scale {
+.mpm_themed toolbar toolbarbutton,
+.mpm_themed toolbar menulist,
+.mpm_themed toolbar scale {
     background-image: none !important;
     background-color: transparent !important;
     border: 2px solid transparent !important;
@@ -214,21 +214,23 @@ toolbar, statusbar, label {
     -moz-border-left-colors: #1a1a1a #272727 #333333;
     -moz-border-right-colors: #1a1a1a #272727 #333333;
 }
-.mpm_themed toolbar > toolbarbutton:hover,
+.mpm_themed toolbar toolbarbutton:hover,
 .mpm_themed .mpm_btn_Location:hover,
-.mpm_themed toolbar > menulist:hover {
+.mpm_themed toolbar menulist:hover {
     background-image: none;
     background-color: #760008;
+    border: 2px solid !important;
     -moz-border-top-colors: #2B0002 #99000A;
     -moz-border-bottom-colors: #2B0002 #99000A;
     -moz-border-right-colors: #2B0002 #99000A;
     -moz-border-left-colors: #2B0002 #99000A;
 }
-.mpm_themed toolbar > toolbarbutton:active,
+.mpm_themed toolbar toolbarbutton:active,
 .mpm_themed .mpm_btn_Location:active,
-.mpm_themed toolbar > menulist:active {
+.mpm_themed toolbar menulist:active {
     background-image: none;
     background-color: #4E0005;
+    border: 2px solid !important;
     -moz-border-top-colors: #1D0001 #390003;
     -moz-border-bottom-colors: #1D0001 #390003;
     -moz-border-right-colors: #1D0001 #390003;

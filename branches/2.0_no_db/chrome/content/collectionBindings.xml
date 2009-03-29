@@ -549,6 +549,11 @@
                             <xul:toolbarbutton tooltiptext="Update Database"
                                 class="mpm_btn_Update"
                                 oncommand="mpd.doCmd('update')"/>
+							<xul:toolbarbutton label="Clear Playlist "
+								id="browse_Clear_btn"
+								collapsed="true"
+								class="mpm_btn_Clear"
+								oncommand="mpd.doCmd('clear')"/>
                             <xul:toolbarbutton label="All"
                                 class="mpm_btn_AddAll"
                                 oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.browser.addAll()"/>
@@ -557,9 +562,9 @@
                                 oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.browser.addSelected()"/>
                         </xul:hbox>
                         <xul:hbox>
-                            <xul:toolbarbutton label="Clear Playlist "
-                                class="mpm_btn_Clear"
-                                oncommand="mpd.doCmd('clear')"/>
+							<xul:toolbarbutton label="Clear Playlist "
+								class="mpm_btn_Clear"
+								oncommand="mpd.doCmd('clear')"/>
                             <xul:textbox id="plname"
                                 value="Playlist Name"
                                 flex="1"
@@ -656,7 +661,12 @@
                                     oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.goHome()"/>
                                 <xul:toolbarseparator/>
                                 <xul:image id="cwd_icon"/>
-                                <xul:label id="cwd" class="cwd" crop="start" flex="1"/>
+                                <xul:label id="cwd" class="cwd" crop="start"/>
+								<xul:spacer flex="1"/>
+								<xul:vbox>
+									<xul:label id="trackcount" crop="end" class="cwd_counts"/>
+									<xul:label id="timecount" crop="end" class="cwd_counts"/>
+								</xul:vbox>
                             </xul:hbox>
                             <xul:hbox flex="1" id="mpm_browser_browser" style="overflow: hidden">
                                 <xul:vbox class="mpm_browser_image_box" style="overflow: hidden">
@@ -704,6 +714,8 @@
             <field name="detail_label">document.getAnonymousElementByAttribute(this, 'id', 'detail_label')</field>
             <field name="image">document.getAnonymousElementByAttribute(this, 'id', 'image')</field>
             <field name="cwd">document.getAnonymousElementByAttribute(this, 'id', 'cwd')</field>
+            <field name="trackcount">document.getAnonymousElementByAttribute(this, 'id', 'trackcount')</field>
+            <field name="timecount">document.getAnonymousElementByAttribute(this, 'id', 'timecount')</field>
             <field name="cwd_icon">document.getAnonymousElementByAttribute(this, 'id', 'cwd_icon')</field>
             <field name="folders">document.getAnonymousElementByAttribute(this, 'id', 'folders')</field>
             <field name="folders_tab">document.getAnonymousElementByAttribute(this, 'id', 'folders_tab')</field>
@@ -719,7 +731,8 @@
                 Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
                 Components.utils.import("resource://minion/io.js");
-
+				var hideEC = prefs.get("hide_extra_clearplaylist", true)
+				document.getAnonymousElementByAttribute(this, 'id', 'browse_Clear_btn').setAttribute('collapsed', hideEC)
                 var me = this
                 this.deck.me = me
                 var searchInput = this.searchInput
@@ -1134,12 +1147,41 @@
                                 db.unshift(cur)
                             }
                             browser.load(db);
+							if (db[0].type == 'directory') {
+								if (query.query > "") {
+									var tcb = function (data) {
+										var times = data.match(/^Time\:\s(.*)$/gm)
+										me.trackcount.value = times.length + " tracks"
+										var t = 0
+										times.forEach(function(x){t+=parseInt(x.slice(6))})
+										me.timecount.value = prettyTime(t, true)
+									}
+									mpd.doCmd('listallinfo "'+query.query+'"', tcb)
+								} else {
+									var statscb = function (data) {
+										var sng = /^songs\:\s(.*)$/gm.exec(data)
+										var tm = /^db_playtime\:\s(.*)$/gm.exec(data)
+										me.trackcount.value = sng[1] + " tracks"
+										me.timecount.value = prettyTime(tm[1], true)
+									}
+									mpd.doCmd('stats', statscb)
+								}
+							} else {
+								try {
+									var files = [x for each (x in db) if (x.type=='file')]
+									var time = 0
+									function sumTimes (el, idx, arr) {time += parseInt(el.Time)}
+									files.forEach(sumTimes)
+									me.trackcount.value = files.length + " tracks"
+									me.timecount.value = prettyTime(time, true)
+								} catch(e){debug(e)}
+							}
                             me.cwd.value = query.query.split("/").slice(-1)
                             if (Nz(query.filterField)) me.cwd.value += " ("+query.filterField + ": " + query.filterQuery + ")"
                             me.cwd_icon.className = "mpm_icon_"
                             if (query.type != "search") browser.collapseOne(query.scope)
                             else browser.collapseOne(null)
-                            me.cwd_icon.className += query.scope
+                            me.cwd_icon.className += (query.scope) ? query.scope : query.type
                             switch (query.type) {
                                 case "playlist": me.tabbox.selectedIndex = 1; break;
                                 case "directory": me.tabbox.selectedIndex = 0; break;
@@ -1159,6 +1201,8 @@
                         me.bp_deck.selectedIndex = 1
                         me.cwd.value = 'Current Playlist'
                         me.cwd_icon.className = 'mpm_icon_playlist'
+						me.trackcount.value = mpd.playlistlength + " tracks"
+						me.timecount.value = prettyTime(mpd.pltime, true)
                         var pos = parseInt(Nz(mpd.song,0))
                         me.selectChange()
                         //me.playlist.tree.view.selection.select(pos)                    
@@ -1186,6 +1230,8 @@
                                 name: ''
                             }
                         ]
+						me.trackcount.value = ""
+						me.timecount.value = ""
                         this.browser.load(home)
                         me.selectChange()
                     }

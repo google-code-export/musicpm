@@ -60,10 +60,18 @@ mpdtime {
 
 .cwd {
     font-weight: bold;
-    height: 1.5em;
     overflow: hidden;
 }
 
+.cwd_counts {
+	text-align: center;
+    font-weight: normal;
+	font-size: 0.75em !important;
+    overflow: hidden;
+	padding: 0px !important;
+	margin: 0px !important;
+	opacity: 0.7;
+}
 
 .Title {
     font-weight: bold;

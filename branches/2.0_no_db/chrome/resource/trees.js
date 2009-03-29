@@ -118,6 +118,12 @@ function customTreeView () {
 function arrayView(dbArray) {
     this.rowCount = dbArray.length
     this.rs = dbArray
+	this.getCounts = function () {
+		var files = [x for each (x in dbArray) if (x.type='file')]
+		var time = 0
+		for each (f in files) {time += Math.parseInt(f.Time)}
+		var text = f.length + " tracks, " + prettyTime(time)
+	}
 }
 arrayView.prototype = new customTreeView
 

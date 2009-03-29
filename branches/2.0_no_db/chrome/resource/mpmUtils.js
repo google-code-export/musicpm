@@ -126,7 +126,7 @@ function hmsFromSec(sec) {
     return hms
 }
 
-function prettyTime(sec) {
+function prettyTime(sec, round) {
     var tm = ""
     try {
         sec = parseInt(sec)
@@ -173,7 +173,7 @@ function prettyTime(sec) {
                 tm += "s"
             }
         }
-        if (s > 0) {
+        if (!Nz(round) && s > 0) {
             if (tm.length > 0) {
                 tm += ", "
             }

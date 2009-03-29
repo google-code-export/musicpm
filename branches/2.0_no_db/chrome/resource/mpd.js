@@ -24,7 +24,9 @@ var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
         .getService(Components.interfaces.nsIPrefBranch);
 
 var lfId = prefs.get("lyricsfly_id","8890a06f973057f4b")
-debug("mpd.js load")
+
+const NOSRV_STATUS = 2152398861
+const LOSTC_STATUS = 2152398868
 
 
 function smartsort (a,b) {
@@ -381,7 +383,6 @@ mpd._parseCurrentSong = function(data) {
     obj.name = obj.file
 
     // set currentsong values
-    mpd.set('file', Nz(obj.file))
     mpd.set('Time', Nz(obj.Time))
     mpd.set('Artist', Nz(obj.Artist))
     mpd.set('Title', Nz(obj.Title))
@@ -391,6 +392,7 @@ mpd._parseCurrentSong = function(data) {
     mpd.set('Genre', Nz(obj.Genre))
     mpd.set('Composer', Nz(obj.Composer))
     mpd.set('currentsong', obj)
+    mpd.set('file', Nz(obj.file))
 }
 
 mpd._parseDB = function(data) {
@@ -476,7 +478,7 @@ mpd._parsePL = function(data) {
                 }
             } while (--n)
         }
-
+		mpd.pltime = tm
         observerService.notifyObservers(null, "plinfo", db.length)
         observerService.notifyObservers(null, "playlistlength",
                 mpd.playlistlength)
@@ -613,7 +615,14 @@ mpd.addToPlaylist = function(itemArray) {
 }
 // Connection methods
 mpd.connect = function() {
-    mpd.disconnect()
+    if (mpd._timer) {
+        mpd._timer.cancel()
+        mpd._timer = null
+    }
+    if (mpd._socket) {
+        mpd._socket.cancel()
+		mpd._socket = null
+    }
     if (mpd._host && mpd._port) {
         mpd._checkStatus()
     } else
@@ -627,13 +636,17 @@ mpd.disconnect = function() {
     }
     if (mpd._socket) {
         mpd._socket.cancel()
+		mpd._socket = null
     }
+	mpd._host = null
+	mpd._port = null
 }
 
 // Talk directlty to MPD, outputData must be properly escaped and quoted.
 // callBack is optional, if left out or null and no socket is in use,
 // a single use connection will be made for this mpd.doCmd.
 mpd.doCmd = function(outputData, callBack, hide, priority) {
+	
     hide = Nz(hide)
     priority = Nz(priority)
     if (/^rename\ |^rm\ |^save\ /m.test(outputData)) {
@@ -665,8 +678,8 @@ mpd.doCmd = function(outputData, callBack, hide, priority) {
             sent : false
         })
     }
-    mpd._doStatus = true
     if (mpd._socket) {
+		mpd._doStatus = true
         if (mpd._idle) {
             mpd._socket.writeOut(mpd._cmdQueue[0].outputData)
             if (!hide)
@@ -1085,10 +1098,11 @@ function socketTalker() {
             debug('close status = ' + status)
             mpd._socket = null
             mpd.set('greeting', 'Not Connected');
-            if (status > 0) {
+            if (status == NOSRV_STATUS) {
                 mpd._host = null
                 mpd._port = null
                 mpd._password = null
+				debug("Killing socket")
             }
         },
         onDataAvailable : function(request, context, inputStream, offset, count) {
