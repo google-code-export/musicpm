@@ -146,8 +146,8 @@
         };
 		var srv = ""
         window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
-        window.addEventListener("online", function(e) { prefs.set("server", srv);dump("online\n") }, false);
-        window.addEventListener("offline", function(e) { srv=prefs.get("server","");mpd.disconnect();dump("offline\n") }, false);
+        window.addEventListener("online", function(e) { mpd.force_connect();dump("online\n") }, false);
+        window.addEventListener("offline", function(e) { mpd.disconnect();dump("offline\n") }, false);
         document.getElementById('popup_playlist').addEventListener("unload", function(e) { mpm.onPlaylistUnload(e); }, true);
         document.getElementById('mpm_mw_playlist_box').addEventListener("unload", function(e) { mpm.onPlaylistUnload(e); }, true);
         ]]>

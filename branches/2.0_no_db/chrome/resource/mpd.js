@@ -629,6 +629,8 @@ mpd.connect = function() {
         mpd.set("lastResponse", "Server Not Selected")
 }
 
+mpd.force_connect = function() { loadSrvPref() }
+
 mpd.disconnect = function() {
     if (mpd._timer) {
         mpd._timer.cancel()
