@@ -28,7 +28,7 @@ You'll notice that I put the warning _after_ I told you about Linux.  This is be
 
 === MPD Installation on Linux ===
 
-The vast majority of Linux distribution of some sort of package manager.  This is similar to Add/Remove Programs in Windows, except that it is *actually* used to *Add* programs.  Common package managers include Synaptic, YAST, Fedorsa Package Manager, etc.  Just open up whichever you have and search for mpd.
+The vast majority of Linux distributions use some sort of package manager.  This is similar to Add/Remove Programs in Windows, except that it is *actually* used to *Add* programs.  Common package managers include Synaptic, YAST, Fedora Package Manager, etc.  Just open up whichever you have and search for mpd.
 
 If you have Ubuntu, you can install MPD by opening a terminal and typing (or copy and pasting):
 {{{sudo apt-get install mpd}}}
