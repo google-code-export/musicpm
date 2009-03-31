@@ -494,18 +494,16 @@
                 var me = this
                 this.observerServer = {
                     observe: function(subject,topic,data){
-                        try {
-                            var tree = me.treeMain
-                            var filter = me.filterText.value
-                            var q = new dbQuery()
-                            q.type = me.typeMain.value
-                            q.query = ""
-                            q.execute(function(db){
-                                tree.load(db,tree)
-                                if (filter > "") tree.applyFilter(filter)
-                            })
-                            me.treeSub.load([],me.treeSub)
-                        } catch (e) { debug(e) }
+						var tree = me.treeMain
+						var filter = me.filterText.value
+						var q = new dbQuery()
+						q.type = me.typeMain.value
+						q.query = ""
+						q.execute(function(db){
+							tree.load(db,tree)
+							if (filter > "") tree.applyFilter(filter)
+						})
+						me.treeSub.load([],me.treeSub)
                     }
                 };
                 observerService.addObserver(this.observerServer,"new_connection",false)
@@ -1153,30 +1151,32 @@
                                 db.unshift(cur)
                             }
                             browser.load(db);
-							if (query.query > "") {
-								if (db[0].type == 'directory') {
-									var tcb = function (data) {
-										var times = data.match(/^Time\:\s(.*)$/gm)
-										me.trackcount.value = times.length + " tracks"
-										var t = 0
-										times.forEach(function(x){t+=parseInt(x.slice(6))})
-										me.timecount.value = prettyTime(t, true)
+							if (prefs.get("enable_counts", true)) {
+								if (query.query > "") {
+									if (db[0].type == 'directory') {
+										var tcb = function (data) {
+											var times = data.match(/^Time\:\s(.*)$/gm)
+											me.trackcount.value = times.length + " tracks"
+											var t = 0
+											times.forEach(function(x){t+=parseInt(x.slice(6))})
+											me.timecount.value = prettyTime(t, true)
+										}
+										mpd.doCmd('listallinfo "'+query.query+'"', tcb)
+									} else {
+										var files = [x for each (x in db) if (x.type=='file')]
+										var time = 0
+										function sumTimes (el, idx, arr) {time += parseInt(el.Time)}
+										files.forEach(sumTimes)
+										me.trackcount.value = files.length + " tracks"
+										me.timecount.value = prettyTime(time, true)
 									}
-									mpd.doCmd('listallinfo "'+query.query+'"', tcb)
 								} else {
-									var files = [x for each (x in db) if (x.type=='file')]
-									var time = 0
-									function sumTimes (el, idx, arr) {time += parseInt(el.Time)}
-									files.forEach(sumTimes)
-									me.trackcount.value = files.length + " tracks"
-									me.timecount.value = prettyTime(time, true)
-								}
-							} else {
-								if (query.type == 'playlist') {
-									me.trackcount.value = ""
-									me.timecount.value = ""								
-								} else {
-									mpd.doCmd('stats', statscb)
+									if (query.type == 'playlist') {
+										me.trackcount.value = ""
+										me.timecount.value = ""								
+									} else {
+										mpd.doCmd('stats', statscb)
+									}
 								}
 							}
                             me.cwd.value = query.query.split("/").slice(-1)
@@ -1204,8 +1204,10 @@
                         me.bp_deck.selectedIndex = 1
                         me.cwd.value = 'Current Playlist'
                         me.cwd_icon.className = 'mpm_icon_playlist'
-						me.trackcount.value = mpd.playlistlength + " tracks"
-						me.timecount.value = prettyTime(mpd.pltime, true)
+						if (prefs.get("enable_counts", true)) {
+							me.trackcount.value = mpd.playlistlength + " tracks"
+							me.timecount.value = prettyTime(mpd.pltime, true)
+						}
                         var pos = parseInt(Nz(mpd.song,0))
                         me.selectChange()
                         //me.playlist.tree.view.selection.select(pos)                    
@@ -1246,9 +1248,6 @@
                         if (this.history[this.historyIndex] != query) {
                             this.history.splice(this.historyIndex,0,query)
                             this.historyRows.splice(this.historyIndex,0,this.browser.box.getFirstVisibleRow())
-                            debug(this.historyIndex)
-                            debug(this.historyRows)
-                            debug([x.query for each (x in this.history)])
                         }
                     }
                     ]]>

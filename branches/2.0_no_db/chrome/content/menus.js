@@ -30,9 +30,35 @@ function ensureQuery(q) {
                 if (Nz(mpdbrowser[0])) {
                     mpdbrowser[0].goTo(q)
                 } else {
-                    win.doQuery = q
+                    Application.storage.set("doQuery", q)
                 }
             }
+        } catch (e) {
+            debug(e)
+        }
+    }
+}
+
+function ensureDetails(item) {
+    debug("ensureDetails")
+    var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0])
+    if (mpdbrowser) {
+        mpdbrowser.showDetails(item)
+    } else {
+        try {
+            var url = "chrome://minion/content/minion.xul"
+            var win = openReuseByURL(url)
+			if (win) {
+				var doc = Nz(win.document)
+				if (doc) {
+					var mpdbrowser = doc.getElementsByTagName("mpdbrowser")
+					if (Nz(mpdbrowser[0])) {
+						mpdbrowser[0].showDetails(item)
+					} else {
+						Application.storage.set("doDetails", item)
+					}
+				}
+			}
         } catch (e) {
             debug(e)
         }
@@ -112,7 +138,8 @@ function handleMenuCommand(self, item, location) {
             goTo : ensureQuery,
             getActiveItem : function() {
                 return item
-            }
+            },
+			showDetails : ensureDetails				
         }
                 
         var focused = Nz(document.commandDispatcher.focusedElement.parentNode)

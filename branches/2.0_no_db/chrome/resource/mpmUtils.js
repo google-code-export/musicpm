@@ -18,7 +18,7 @@
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
         "observerService", "getFileContents", "fetch", "winw", "urlReplace",
         "openReuseByURL", "openReuseByAttribute", "mpm_openDialog", "prefs",
-        "mpmUtils_EXPORTED_SYMBOLS"]
+        "guessTags", "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 var observerService = Components.classes["@mozilla.org/observer-service;1"]
@@ -396,4 +396,40 @@ var prefs = {
                 }
         }
     }
+}
+
+function guessTags(song) {
+    _artist = ""
+    _album = ""
+    _title = ""
+    _track = ""
+	track = Nz(song.Track, "")
+	title = Nz(song.Title, "")
+	artist = Nz(song.Artist, "")
+	album = Nz(song.Album, "")
+	try {
+		myfile = song.file.match(/[^\/]+$/)[0].replace(/\.[a-zA-Z0-9]+$/, "")
+		_title = myfile
+		myfile = myfile.replace(/\(.*\)/g, "")
+		s = myfile.split("-")
+		l = s.length
+		
+		for (var i=0;i<l;i++) {
+			if (/^[0-9\.\/\s]+$/.test(s[i])) {
+				_track = s.splice(i,1)
+				if (typeof(_track) == 'string')
+					_track = _track.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+			}
+		}
+
+		if (s.length > 0) _title = s.pop()
+		if (s.length > 0) _artist = s.shift()
+		if (s.length > 0) _album = s.join("-")
+		
+		if (track == "") song.Track = _track
+		if (title == "") song.Title = _title.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+		if (artist == "") song.Artist = _artist.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+		if (album == "") song.Album = _album.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+	} catch (e) {debug(e)}
+	return song
 }

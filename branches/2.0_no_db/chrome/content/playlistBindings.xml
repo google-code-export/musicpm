@@ -185,6 +185,19 @@
                 observerService.removeObserver(this.obsCurSong,'file')
                 ]]>
             </destructor>
+            <method name="crop">
+                <body>
+                    <![CDATA[
+						var cmd = "command_list_begin"
+						var L = mpd.playlistlength
+						for (var i=0;i<L;i++) {
+							if (i != mpd.song) cmd +="\ndeleteid "+mpd.plinfo[i].Id
+						}
+						cmd += "\ncommand_list_end"
+						mpd.doCmd(cmd, null, false)
+                    ]]>
+                </body>
+            </method>
             <method name="delete">
                 <body>
                 <![CDATA[

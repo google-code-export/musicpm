@@ -60,22 +60,38 @@ function init () {
     observerService.addObserver(observerPlaylists,"playlists",false)
     observerService.addObserver(observerPlaylistName,"load_playlist",false)
     if(!mpd._socket) mpd.connect()
-    if (Nz(window.doQuery)) {
-        document.getElementById("browse").goTo(window.doQuery)
-    }
     window.name = "chrome://minion/content/minion.xul"
     var browse = document.getElementById('browse')
     browse.handle_select = browse_select
-	var s = window.location.search
-	if (s.length > 0) {
+	var s = decodeURI(window.location.search)
+	dump(s)
+	if (s.length != 0) {
 		s = s.split("=")
-		debug(s)
 		switch (s[0]) {
 			case "?url": mpd.handleURL(s[1]); break;
 			case "?play_url":  mpd.handleURL(s[1], "play"); break;
-			case "?cmd": mpd.doCmd(s[1]); break;
+			case "?cmd": 
+				var q = new dbQuery((s[1]));
+				q.execute();
+				break;
 		}
 	}
+	setTimeout("post_init()",1)
+}
+
+function post_init () {
+	q = Application.storage.get("doQuery", null)
+	d = Application.storage.get("doDetails", null)
+	debug(q)
+	debug(d)
+    if (q) {
+        document.getElementById("browse").goTo(q)
+		Application.storage.set("doQuery", null)
+    }
+    if (d) {
+        document.getElementById("browse").showDetails(d)
+		Application.storage.set("doDetails", null)
+    }
 }
 
 function unload () {

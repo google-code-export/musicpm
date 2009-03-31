@@ -318,6 +318,7 @@ var mpd = {
     // Playlist contents and total playtime
     plinfo : [],
     pltime : 0,
+	prettytime: '',
     pl_lookup : {},
 
     // Connection state information
@@ -399,6 +400,7 @@ mpd._parseDB = function(data) {
     data = data.split("\n")
     var db = []
     var dl = data.length
+	var guess = prefs.get("guess_tags", false)
     if (dl > 0) {
         var n = dl
         do {
@@ -412,12 +414,13 @@ mpd._parseDB = function(data) {
                         type : 'file',
                         file : val,
                         name : val,
-                        Track : '0',
-                        Title : null,
+                        Track : '',
+                        Title : '',
                         Artist : '',
                         Album : '',
                         Time : 0,
-                        Pos : null
+                        Pos : null,
+						Id: null
                     };
                     var d = data[i + 1]
                     while (d && d.charCodeAt(0) < 97) {
@@ -426,7 +429,10 @@ mpd._parseDB = function(data) {
                         --n;
                         var d = data[dl - n + 1]
                     };
-                    if (!song.Title) song.Title = val.split("/").pop()
+					if (song.Title == '') {
+						if (guess) song = guessTags(song)
+						else song.Title = val.split("/").pop()
+					}
                     db.push(song);
                 } else {
                     if (fld == 'directory') {
@@ -478,11 +484,10 @@ mpd._parsePL = function(data) {
                 }
             } while (--n)
         }
-		mpd.pltime = tm
+		mpd.set("pltime", tm)
         observerService.notifyObservers(null, "plinfo", db.length)
-        observerService.notifyObservers(null, "playlistlength",
-                mpd.playlistlength)
-        observerService.notifyObservers(null, "pltime", prettyTime(tm))
+        mpd.set("playlistlength", mpd.playlistlength)
+		mpd.set("prettytime", prettyTime(tm))
     } catch (e) {
         debug(e);
         mpd.playlist = 0
@@ -659,10 +664,12 @@ mpd.doCmd = function(outputData, callBack, hide, priority) {
     if (/^\s*load\s/m.test(outputData)) {
         var name = /^\s*load\s+\"(.+)\"\s*$/m.exec(outputData)
         debug(outputData)
-        debug(name)
-        callBack = function(d) {
-            observerService.notifyObservers(null, 'load_playlist', name[1])
-        }
+        if (name) {
+			debug(name)
+			callBack = function(d) {
+				observerService.notifyObservers(null, 'load_playlist', name[1])
+			}
+		}
     }
     if (priority) {
         debug("priority command: " + outputData)

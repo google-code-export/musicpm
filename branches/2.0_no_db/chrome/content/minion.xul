@@ -143,7 +143,7 @@
     </box>
     <statusbar pack="center">
         <label value="Playlist Time:"/>
-        <mpdlabel observes="pltime"/>
+        <mpdlabel id="pltime_observer" observes="prettytime"/>
         <spacer flex="1"/>
         <mpdlabel value="response" observes="lastResponse" crop="end" tooltip="mpm_last_command"/>
         <mpdlabel value="disconnected" observes="greeting"/>

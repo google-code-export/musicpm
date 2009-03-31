@@ -68,7 +68,7 @@ mpdtime {
     font-weight: normal;
 	font-size: 0.75em !important;
     overflow: hidden;
-	padding: 0px !important;
+	padding: 0px 2px 0px 2px!important;
 	margin: 0px !important;
 	opacity: 0.7;
 }
