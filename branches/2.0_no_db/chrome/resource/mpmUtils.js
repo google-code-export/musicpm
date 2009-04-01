@@ -410,7 +410,7 @@ function guessTags(song) {
 	try {
 		myfile = song.file.match(/[^\/]+$/)[0].replace(/\.[a-zA-Z0-9]+$/, "")
 		_title = myfile
-		myfile = myfile.replace(/\(.*\)/g, "")
+		myfile = myfile.replace(/\(.*\)/g, "").replace(/_/g, " ")
 		s = myfile.split("-")
 		l = s.length
 		
@@ -419,6 +419,7 @@ function guessTags(song) {
 				_track = s.splice(i,1)
 				if (typeof(_track) == 'string')
 					_track = _track.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+				break
 			}
 		}
 

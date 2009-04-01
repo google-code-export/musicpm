@@ -292,6 +292,7 @@ var mpd = {
     xfade : null,
     state : null,
     song : null,
+    songid : null,
     time : null,
     bitrate : null,
     updating_db : null,
@@ -376,10 +377,11 @@ mpd._parseCurrentSong = function(data) {
         }
     } while (--dl)
 
-    // React to and alter certain values.
-    if (!Nz(obj.Title) && Nz(obj.file)) {
-        obj.Title = obj.file.split("/").slice(-1)
-    }
+    // React to and alter certain values.	
+	if (Nz(obj.Title, '') == '') {
+		if (prefs.get("guess_tags", false)) obj = guessTags(obj)
+		else obj.Title = obj.file.split("/").pop()
+	}
     obj.type = 'file'
     obj.name = obj.file
 
@@ -533,13 +535,15 @@ mpd._update = function(data) {
             mpd.update_interval = (mpd.sec_synced) ? 1000 : 200
         }
 
-        if (obj.song != mpd.song) {
+        if (obj.songid != mpd.songid) {
             mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
 		} else {
-			CS = Nz(mpd.plinfo[obj.song], {Title:""})
-			if (CS.Title != mpd.Title){
-				mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
-			} 
+			CS = Nz(mpd.plinfo[obj.song], {Title:"", file: ""})
+			if (CS.file.indexOf("://") > 0) {
+				if (CS.Title != mpd.Title){
+					mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
+				}
+			}
         }
         mpd.playlist = Nz(mpd.playlist, 0)
         if (obj.playlist != mpd.playlist) {
