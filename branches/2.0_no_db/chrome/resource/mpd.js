@@ -464,6 +464,7 @@ mpd._parseDB = function(data) {
 mpd._parsePL = function(data) {
     try {
         var db = mpd._parseDB(data, false)
+		if (db.length == 0) mpd._parseCurrentSong("")
         if (db.length > 0) {
             var i = db.length - 1
             do {
@@ -538,12 +539,15 @@ mpd._update = function(data) {
         if (obj.songid != mpd.songid) {
             mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
 		} else {
-			CS = Nz(mpd.plinfo[obj.song], {Title:"", file: ""})
-			if (CS.file.indexOf("://") > 0) {
-				if (CS.Title != mpd.Title){
-					mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
-				}
-			}
+			CS = false
+			if (obj.song <= mpd.plinfo.length) {
+                CS = Nz(mpd.plinfo[obj.song])
+                if (CS.file.indexOf("://") > 0) {
+                    if (CS.Title != mpd.Title){
+                        mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
+                    }
+                }
+            }
         }
         mpd.playlist = Nz(mpd.playlist, 0)
         if (obj.playlist != mpd.playlist) {
@@ -812,6 +816,51 @@ mpd.getArt = function(item, img) {
     }
 }
 
+mpd.searchLyrics = function (q, origCallBack) {
+	q = q.replace(/[^A-Za-z0-9]/g, '%')
+	var url = "http://lyricsfly.com/api/txt-api.php?i={id}&i=" + q
+    url = url.replace("{id}", "14f6b319c854ca8a8-temporary.API.access")
+    //url = url.replace("{id}", prefs.get("lyricsfly_id",""))
+    //url = url.replace("{amo}", "addons.mozilla.org/en-US/firefox/addon/6324")
+	
+    var cb = function(data) {
+        try {
+			var ar = data.getElementsByTagName("ar")
+			var tt = data.getElementsByTagName("tt")
+			debug(tt)
+			var artists = []
+			var titles = []
+			var cmd = null
+			if (tt) {
+				cmd = "command_list_begin\n"
+				for (i=0;i<tt.length;i++) {
+					titles.push(tt[i].textContent)
+					artists.push(ar[i].textContent)
+					cmd += 'find title "'+titles[i]+'"\n'
+				}
+				cmd += "command_list_end\n"
+			}
+        }
+        catch (e) {debug(e)}
+		if (cmd) {
+			debug(cmd)
+			var db_cb = function (d) {
+				var db = mpd._parseDB(d)
+				debug(d)
+				for (i=0;i<db.length;i++) {
+					var x = titles.indexOf(db[i].Title)
+					if (x > -1 && db[i].Artist != artists[x]) {
+						db.splice(i,1)
+					}
+				}
+				origCallBack(db)
+			}
+			mpd.doCmd(cmd, db_cb)
+		}
+    }
+	debug(url)
+	fetch(url, cb, null, true)
+}
 mpd.getLyrics = function (item, txtLyrics, btnEdit) {
     if (!Nz(item.Artist)) {
         txtLyrics.value = "No Lyrics Found."
@@ -842,8 +891,8 @@ mpd.getLyrics = function (item, txtLyrics, btnEdit) {
     // It is easy to obtain your own id, please see http://lyricsfly.com/api/
     url = url.replace("{id}", prefs.get("lyricsfly_id",""))
     url = url.replace("{amo}", "addons.mozilla.org/en-US/firefox/addon/6324")
-    url = url.replace("{Artist}", encodeURI(Nz(item.Artist)))
-    url = url.replace("{Title}", encodeURI(Nz(item.Title)))
+    url = url.replace("{Artist}", Nz(item.Artist, '').replace(/[^A-Za-z0-9]/g, '%'))
+    url = url.replace("{Title}", Nz(item.Title, '').replace(/[^A-Za-z0-9]/g, '%'))
     txtLyrics.value = "Searching for lyrics on LyricsFly.com..."
     btnEdit.edit_link = "http://lyricsfly.com/submit/"
     fetch(url, cb, null, true)

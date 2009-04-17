@@ -104,9 +104,9 @@
         
         function toggleFollowCurrent (val) {
             if (val) {
-                observerService.addObserver(observerCurSong,"currentsong",false)
+                observerService.addObserver(observerCurSong,"file",false)
             } else {
-                observerService.removeObserver(observerCurSong,"currentsong")
+                observerService.removeObserver(observerCurSong,"file")
             }
         }
     ]]>

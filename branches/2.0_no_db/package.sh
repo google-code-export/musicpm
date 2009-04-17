@@ -12,5 +12,5 @@ rm defaults/preferences/prefs.js
 mv defaults/preferences/prefs.xr defaults/preferences/prefs.js
 zip -r mpm_xulrunner_$1.zip * -x mpm_$1.xpi
 cd ../mpm2
-python googlecode_upload.py -s "Music Player Minion 2 Alpha (xulrunner package)" -p musicpm -l "Type-Archive,OpSys-All" ../mpm_release/mpm_xulrunner_$1.zip
-python googlecode_upload.py -s "Music Player Minion 2 Alpha (firefox extension)" -p musicpm -l "Featured,Type-Installer,OpSys-All" ../mpm_release/mpm_$1.xpi
+python googlecode_upload.py -u cseickel -p k7e5b4w8 -s "Music Player Minion 2 Alpha (xulrunner package)" -p musicpm -l "Type-Archive,OpSys-All" ../mpm_release/mpm_xulrunner_$1.zip
+python googlecode_upload.py -u cseickel -p k7e5b4w8 -s "Music Player Minion 2 Alpha (firefox extension)" -p musicpm -l "Featured,Type-Installer,OpSys-All" ../mpm_release/mpm_$1.xpi

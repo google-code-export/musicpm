@@ -671,7 +671,7 @@
                                     <xul:label id="detail_label" class="fake_treecol" crop="end" value="Item"/>
                                     <xul:image id="image" class="mpm_browser_image"
                                                validate="never"
-                                               ondblclick="switch(this.className){case 'mpm_browser_image':this.className='mpm_browser_image_large';break;case 'mpm_browser_image_large':this.className='mpm_browser_image_small';break;default:this.className='mpm_browser_image'}"/>
+                                               ondblclick="switch(this.className){case 'mpm_browser_image':this.className='mpm_browser_image_large';break;case 'mpm_browser_image_large':this.className='mpm_browser_image_small';break;default:this.className='mpm_browser_image'};prefs.set('image_size',this.className)"/>
                                     <xbl:children includes="arrowscrollbox"/>
                                     <xul:spacer flex="1"/>
                                 </xul:vbox>
@@ -738,6 +738,13 @@
                     var t = prefs.get("search_timeout",200)
                     if (t == 0) t = null
                     searchInput.setAttribute("timeout", t)
+                    searchInput.onchange = function(){
+                        var s = searchInput
+                        if (s.value.length < 3 && t)
+                            s.timeout=1200
+                        else
+                            s.timeout=t
+                    }
                 }
                 searchInputSet()
                 var obsSearchInput = prefs.getObserver("search_timeout", searchInputSet)
@@ -778,7 +785,7 @@
                             if (item.type=='album') itemimg = Nz(browser.db[0], item)
                             if (itemimg.type == 'file') {
                                 mpd.getArt(itemimg, image)
-                                me.image.className='mpm_browser_image'
+                                me.image.className=prefs.get('image_size','mpm_browser_image')
                             } else {
                                 var s = "chrome://minion/content/images/"
                                 me.image.src = s + item.type.toLowerCase() + "_xlarge.png"
@@ -1153,7 +1160,7 @@
                             browser.load(db);
 							if (prefs.get("enable_counts", true)) {
 								if (query.query > "") {
-									if (db[0].type == 'directory') {
+									if (db.length > 0 && db[0].type == 'directory') {
 										var tcb = function (data) {
 											var times = data.match(/^Time\:\s(.*)$/gm)
 											me.trackcount.value = times.length + " tracks"
