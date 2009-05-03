@@ -1,6 +1,9 @@
 #summary How to use Music Player Minion
 #labels Featured,Help
 
+== How do I add Music to Music Player Minion? How do I add songs?==
+Answer:  You don't.  See MusicPlayerDaemon.
+
 == Introduction ==
 Welcome to the Music Player Minion help page.  This page is a work in progress.  If you don't see what you are looking for yet, please feel free to post your question in the comments section at the bottom of this page in at [http://groups.google.com/group/music-player-minion]
 
