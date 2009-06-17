@@ -1,6 +1,6 @@
 #!/bin/bash
 rm -rf ../mpm_release
-svn export * ../mpm_release
+svn export ./ ../mpm_release
 cp -R * ../mpm_release
 cd ../mpm_release
 rm *.py

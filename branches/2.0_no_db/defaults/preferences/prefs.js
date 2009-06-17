@@ -1,5 +1,5 @@
 
-//pref("toolkit.defaultChromeURI", "chrome://minion/content/minion.xul");
+pref("toolkit.defaultChromeURI", "chrome://minion/content/minion.xul");
 pref("browser.dom.window.dump.enabled", true);
 pref("javascript.options.showInConsole", true);
 //pref("javascript.options.strict", true);
