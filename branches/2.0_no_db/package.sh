@@ -1,7 +1,7 @@
 #!/bin/bash
 cd ..
 rm -rf mpm_release
-svn export 2.0_nodb mpm_release
+svn export 2.0_no_db mpm_release
 cd mpm_release
 rm *.py
 rm *.sh
@@ -10,5 +10,5 @@ zip -r mpm_$1.xpi *
 rm defaults/preferences/prefs.js
 mv defaults/preferences/prefs.xr defaults/preferences/prefs.js
 zip -r mpm_xulrunner_$1.zip * -x mpm_$1.xpi
-python ../2.0_nodb/goooglecode_upload.py -u cseickel -s "Music Player Minion 2 Alpha (xulrunner package)" -p musicpm -l "Type-Archive,OpSys-All" mpm_xulrunner_$1.zip
-python ../2.0_nodb/googlecode_upload.py -u cseickel -s "Music Player Minion 2 Alpha (firefox extension)" -p musicpm -l "Featured,Type-Installer,OpSys-All" mpm_$1.xpi
+python ../2.0_no_db/goooglecode_upload.py -u cseickel -s "Music Player Minion 2 Alpha (xulrunner package)" -p musicpm -l "Type-Archive,OpSys-All" mpm_xulrunner_$1.zip
+python ../2.0_no_db/googlecode_upload.py -u cseickel -s "Music Player Minion 2 Alpha (firefox extension)" -p musicpm -l "Featured,Type-Installer,OpSys-All" mpm_$1.xpi
