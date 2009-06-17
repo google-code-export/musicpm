@@ -125,6 +125,7 @@
                 var me = this
                 debug(this.mpm_name)
                 function applyView() {
+                    debug("mpd.plinfo.length="+mpd.plinfo.length)
                     me.view = new arrayView(mpd.plinfo)
                     me.tree.view = me.view
                     me.box = me.tree.boxObject;
@@ -133,6 +134,7 @@
                 applyView()
                 this.obsPL = {
                     observe: function(subject,topic,data){
+                        debug("obsPL: "+data)
                         var idx = me.box.getFirstVisibleRow()
                         applyView()
                         if (idx < me.view.rowCount) {

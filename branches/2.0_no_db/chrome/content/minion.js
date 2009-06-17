@@ -58,7 +58,7 @@ function init () {
     };
     prefObserver.register();
     observerService.addObserver(observerPlaylists,"playlists",false)
-    observerService.addObserver(observerPlaylistName,"load_playlist",false)
+    observerService.addObserver(observerPlaylistName,"playlistname",false)
     if(!mpd._socket) mpd.connect()
     window.name = "chrome://minion/content/minion.xul"
     var browse = document.getElementById('browse')
@@ -77,6 +77,7 @@ function init () {
 		}
 	}
 	setTimeout("post_init()",1)
+    document.getElementById("playlistName").value = mpd.playlistname
 }
 
 function post_init () {

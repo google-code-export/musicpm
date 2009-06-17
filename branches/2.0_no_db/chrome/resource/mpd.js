@@ -315,6 +315,7 @@ var mpd = {
     sec_synced : false,
     update_interval : prefs.get("update_interval", 200),
     adaptive_interval : prefs.get("adaptive_interval", true),
+    playlistname : "New Playlist",
 
     // Playlist contents and total playtime
     plinfo : [],
@@ -377,13 +378,15 @@ mpd._parseCurrentSong = function(data) {
         }
     } while (--dl)
 
-    // React to and alter certain values.	
-	if (Nz(obj.Title, '') == '') {
-		if (prefs.get("guess_tags", false)) obj = guessTags(obj)
-		else obj.Title = obj.file.split("/").pop()
-	}
-    obj.type = 'file'
-    obj.name = obj.file
+    // React to and alter certain values.
+    if (Nz(obj.file)) {
+        if (Nz(obj.Title, '') == '') {
+            if (prefs.get("guess_tags", false)) obj = guessTags(obj)
+            else obj.Title = obj.file.split("/").pop()
+        }
+        obj.type = 'file'
+        obj.name = obj.file
+    }
 
     // set currentsong values
     mpd.set('Time', Nz(obj.Time))
@@ -463,6 +466,7 @@ mpd._parseDB = function(data) {
 
 mpd._parsePL = function(data) {
     try {
+        debug("_parsePL: playlist="+mpd.playlist)
         var db = mpd._parseDB(data, false)
 		if (db.length == 0) mpd._parseCurrentSong("")
         if (db.length > 0) {
@@ -491,6 +495,11 @@ mpd._parsePL = function(data) {
         observerService.notifyObservers(null, "plinfo", db.length)
         mpd.set("playlistlength", mpd.playlistlength)
 		mpd.set("prettytime", prettyTime(tm))
+        if (mpd.playlistlength == 0) {
+            mpd.set("playlistname", "New Playlist")
+        } else {
+            if (mpd.playlistname == "New Playlist") mpd.guessPlaylistName()
+        }
     } catch (e) {
         debug(e);
         mpd.playlist = 0
@@ -637,6 +646,7 @@ mpd.connect = function() {
 		mpd._socket = null
     }
     if (mpd._host && mpd._port) {
+        mpd.set("playlistname", "New Playlist")
         mpd._checkStatus()
     } else
         mpd.set("lastResponse", "Server Not Selected")
@@ -673,10 +683,7 @@ mpd.doCmd = function(outputData, callBack, hide, priority) {
         var name = /^\s*load\s+\"(.+)\"\s*$/m.exec(outputData)
         debug(outputData)
         if (name) {
-			debug(name)
-			callBack = function(d) {
-				observerService.notifyObservers(null, 'load_playlist', name[1])
-			}
+			mpd.set("playlistname", name[1])
 		}
     }
     if (priority) {
@@ -816,6 +823,36 @@ mpd.getArt = function(item, img) {
     }
 }
 
+mpd.guessPlaylistName = function () {
+    var playlists = []
+    var aCurPL = []
+    var plinfo = mpd.plinfo
+    
+    for (x=0, l=plinfo.length; x<l; x++) {
+        aCurPL.push(plinfo[x].file)
+    }
+    var currentPL = "file: " + aCurPL.join("\nfile: ") + "\n"
+    
+    var nextPL = function () {
+        pl = playlists.shift().replace(/"/g, '\\"')
+        mpd.doCmd('listplaylist "'+pl+'"', function(data){
+            if (data==currentPL) {
+                mpd.set("playlistname", pl)
+            } else {
+                if (playlists.length > 0) nextPL()
+            }
+        }, false)
+    }
+    
+    var q = new dbQuery()
+    q.type = "playlist"
+    q.query = ""
+    q.execute(function(db){
+        for (i in db) playlists.push(db[i].Title) 
+        nextPL()
+    })
+}
+    
 mpd.searchLyrics = function (q, origCallBack) {
 	q = q.replace(/[^A-Za-z0-9]/g, '%')
 	var url = "http://lyricsfly.com/api/txt-api.php?i={id}&i=" + q

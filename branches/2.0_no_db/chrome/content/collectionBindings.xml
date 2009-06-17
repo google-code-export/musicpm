@@ -896,12 +896,13 @@
                 };
                 observerService.addObserver(this.observerPlaylists,"playlists",false)
 
+                me.plname.value = mpd.playlistname
                 this.observerPlaylistName = {
                     observe: function(subject,topic,data){
                         me.plname.value = data
                     }
                 };
-                observerService.addObserver(this.observerPlaylistName,"load_playlist",false)
+                observerService.addObserver(this.observerPlaylistName,"playlistname",false)
                 
                 var bcols = browser.treeNode.childNodes[0].childNodes
                 var colprops = prefs.get("browser_columns", "")
