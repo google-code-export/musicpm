@@ -212,7 +212,7 @@ dbQuery.prototype.execute = function(callBack) {
             db = dbFilter(db, restrict)
         if (chkDupes)
             db = dbDistinct(db)
-        if (prefs.get("linguistic_sort", false) || isPlaylists) db.sort(smartsort)
+        if (prefs.get("linguistic_sort", true) || isPlaylists) db.sort(smartsort)
         if (useCache && db.length > 0)
             mpd.cachedDB[cmd] = db
         if (filterField) {
@@ -239,9 +239,9 @@ function dbDistinct(db) {
     var n = dl
 
     var srt = function(a, b) {
-        if (a.name.substr(i, 1) < b.name.substr(i, 1))
+        if (a.name < b.name)
             return -1
-        if (a.name.substr(i, 1) > b.name.substr(i, 1))
+        if (a.name > b.name)
             return 1
         return 0
     }
@@ -335,8 +335,7 @@ var mpd = {
 
     cachedArt : [],
     cachedDB : [],
-    servers : [["media-server", "192.168.1.2:6600:"],
-            ["localhost", "localhost:6600:"]]
+    servers : [["localhost", "localhost:6600:"]]
 }
 
 mpd._checkStatus = function() {
@@ -848,8 +847,8 @@ mpd.guessPlaylistName = function () {
     q.type = "playlist"
     q.query = ""
     q.execute(function(db){
-        for (i in db) playlists.push(db[i].Title) 
-        nextPL()
+        for (i in db) playlists.push(db[i].Title)
+        if (playlists.length > 0) nextPL()
     })
 }
     

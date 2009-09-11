@@ -394,7 +394,7 @@
                     isRS = (rs != null) ? "true" : "false"
                     debug("folders.load(); cache=" + isRS)
                     me = Nz(me,this)
-                    if (prefs.get("linguistic_sort", false)) {
+                    if (prefs.get("linguistic_sort", true)) {
                         var column = "Title"
                         var smartsort = function (a,b) {
                             if (isNaN(a[column]+b[column])) {

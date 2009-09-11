@@ -5,11 +5,11 @@
   <RDF:Description RDF:about="rdf:#$wZohf1"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.0"
-                   em:maxVersion="3.*" />
+                   em:maxVersion="3.5.*" />
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:id="Music_Player_Minion2@code.google.com"
                    em:name="Music Player Minion 2"
-                   em:version="1.99.26"
+                   em:version="__mpm_version__"
                    em:creator="Chris Seickel"
                    em:description="Music Player Daemon client"
                    em:homepageURL="http://code.google.com/p/musicpm"

@@ -140,25 +140,12 @@ function viewCurrentSong() {
 }
 function refreshPlaylists () {
     var list = document.getElementById("savedPlaylists")
-    mpd.doCmd('lsinfo', function(data){
-        try {
-            data = data.replace(/(directory:.+\n|file:.+\n)|(playlist: )/g, "").split("\n")
-            var db = []
-            for (x in data) {
-                if (data[x].length > 0) {
-                    db.push({
-                        type: 'playlist',
-                        Title: data[x],
-                        name: data[x]
-                    })
-                }
-            }
-            list.view = new arrayView(db)
-        }
-        catch (e) {
-            debug(e)
-        }
-    }, false)
+    var q = new dbQuery()
+    q.type = "playlist"
+    q.query = ""
+    q.execute(function(db){
+        list.view = new arrayView(db)
+    })
 }
 
 function showPlaylists () {
