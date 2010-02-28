@@ -320,7 +320,7 @@ var mpd = {
     // Playlist contents and total playtime
     plinfo : [],
     pltime : 0,
-	prettytime: '',
+    prettytime: '',
     pl_lookup : {},
 
     // Connection state information
@@ -404,7 +404,7 @@ mpd._parseDB = function(data) {
     data = data.split("\n")
     var db = []
     var dl = data.length
-	var guess = prefs.get("guess_tags", false)
+    var guess = prefs.get("guess_tags", false)
     if (dl > 0) {
         var n = dl
         do {
@@ -424,7 +424,7 @@ mpd._parseDB = function(data) {
                         Album : '',
                         Time : 0,
                         Pos : null,
-						Id: null
+                        Id: null
                     };
                     var d = data[i + 1]
                     while (d && d.charCodeAt(0) < 97) {
@@ -433,10 +433,10 @@ mpd._parseDB = function(data) {
                         --n;
                         var d = data[dl - n + 1]
                     };
-					if (song.Title == '') {
-						if (guess) song = guessTags(song)
-						else song.Title = val.split("/").pop()
-					}
+                    if (song.Title == '') {
+                        if (guess) song = guessTags(song)
+                        else song.Title = val.split("/").pop()
+                    }
                     db.push(song);
                 } else {
                     if (fld == 'directory') {
@@ -467,7 +467,7 @@ mpd._parsePL = function(data) {
     try {
         debug("_parsePL: playlist="+mpd.playlist)
         var db = mpd._parseDB(data, false)
-		if (db.length == 0) mpd._parseCurrentSong("")
+        if (db.length == 0) mpd._parseCurrentSong("")
         if (db.length > 0) {
             var i = db.length - 1
             do {
@@ -490,10 +490,10 @@ mpd._parsePL = function(data) {
                 }
             } while (--n)
         }
-		mpd.set("pltime", tm)
+        mpd.set("pltime", tm)
         observerService.notifyObservers(null, "plinfo", db.length)
         mpd.set("playlistlength", mpd.playlistlength)
-		mpd.set("prettytime", prettyTime(tm))
+        mpd.set("prettytime", prettyTime(tm))
         if (mpd.playlistlength == 0) {
             mpd.set("playlistname", "New Playlist")
         } else {
@@ -521,7 +521,7 @@ mpd._update = function(data) {
         } while (--dl)
 
         // React to and alter certain values.
-		var t = Nz(obj.time, '0:0').split(":")
+        var t = Nz(obj.time, '0:0').split(":")
         if (obj.state == 'stop') {
             obj.time = 0
         } else {
@@ -546,9 +546,9 @@ mpd._update = function(data) {
 
         if (obj.songid != mpd.songid) {
             mpd.doCmd("currentsong", mpd._parseCurrentSong, true)
-		} else {
-			CS = false
-			if (obj.song <= mpd.plinfo.length) {
+        } else {
+            CS = false
+            if (obj.song <= mpd.plinfo.length) {
                 CS = Nz(mpd.plinfo[obj.song])
                 if (CS.file.indexOf("://") > 0) {
                     if (CS.Title != mpd.Title){
@@ -642,7 +642,7 @@ mpd.connect = function() {
     }
     if (mpd._socket) {
         mpd._socket.cancel()
-		mpd._socket = null
+        mpd._socket = null
     }
     if (mpd._host && mpd._port) {
         mpd.set("playlistname", "New Playlist")
@@ -660,17 +660,17 @@ mpd.disconnect = function() {
     }
     if (mpd._socket) {
         mpd._socket.cancel()
-		mpd._socket = null
+        mpd._socket = null
     }
-	mpd._host = null
-	mpd._port = null
+    mpd._host = null
+    mpd._port = null
 }
 
 // Talk directlty to MPD, outputData must be properly escaped and quoted.
 // callBack is optional, if left out or null and no socket is in use,
 // a single use connection will be made for this mpd.doCmd.
 mpd.doCmd = function(outputData, callBack, hide, priority) {
-	
+    
     hide = Nz(hide)
     priority = Nz(priority)
     if (/^rename\ |^rm\ |^save\ /m.test(outputData)) {
@@ -682,8 +682,8 @@ mpd.doCmd = function(outputData, callBack, hide, priority) {
         var name = /^\s*load\s+\"(.+)\"\s*$/m.exec(outputData)
         debug(outputData)
         if (name) {
-			mpd.set("playlistname", name[1])
-		}
+            mpd.set("playlistname", name[1])
+        }
     }
     if (priority) {
         debug("priority command: " + outputData)
@@ -702,7 +702,7 @@ mpd.doCmd = function(outputData, callBack, hide, priority) {
         })
     }
     if (mpd._socket) {
-		mpd._doStatus = true
+        mpd._doStatus = true
         if (mpd._idle) {
             mpd._socket.writeOut(mpd._cmdQueue[0].outputData)
             if (!hide)
@@ -760,43 +760,43 @@ mpd.getAllDirs = function(callBack) {
 }
 
 function getAmazonArt (item, img) {
-	var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
-			+ encodeURI(item.Artist)
-			+ "&title="
-			+ encodeURI(item.Album)
-			+ "&limit=1"
-	var art =  "chrome://minion/content/images/album_blank.png"
-	debug("searching Metabrainz...")
-	if (typeof(mpd.cachedArt[search_url]) == 'string') {
-		img.src = mpd.cachedArt[search_url]
-		img.setAttribute("tooltiptext",mpd.cachedArt[search_url])
-	} else {
-		var cb = function(data) {
-			try {
-				var asin = ""
-				if (data != "") {
-					var s = data.indexOf("<asin>") + 6
-					if (s > 6) {
-						var e = data.indexOf("</asin>", s)
-						if (e > 0) {
-							asin = data.slice(s, e)
-						}
-						if (asin.length == 10) {
-							base = "http://images.amazon.com/images/P/"
-									+ asin
-							art = base + ".01.MZZZZZZZ.jpg"
-						}
-					}
-				}
-				mpd.cachedArt[search_url] = art
-				img.src = art
-				img.setAttribute("tooltiptext",art)
-			} catch (e) {
-				debug(e)
-			}
-		}
-		fetch(search_url, cb)
-	}
+    var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
+            + encodeURI(item.Artist)
+            + "&title="
+            + encodeURI(item.Album)
+            + "&limit=1"
+    var art =  "chrome://minion/content/images/album_blank.png"
+    debug("searching Metabrainz...")
+    if (typeof(mpd.cachedArt[search_url]) == 'string') {
+        img.src = mpd.cachedArt[search_url]
+        img.setAttribute("tooltiptext",mpd.cachedArt[search_url])
+    } else {
+        var cb = function(data) {
+            try {
+                var asin = ""
+                if (data != "") {
+                    var s = data.indexOf("<asin>") + 6
+                    if (s > 6) {
+                        var e = data.indexOf("</asin>", s)
+                        if (e > 0) {
+                            asin = data.slice(s, e)
+                        }
+                        if (asin.length == 10) {
+                            base = "http://images.amazon.com/images/P/"
+                                    + asin
+                            art = base + ".01.MZZZZZZZ.jpg"
+                        }
+                    }
+                }
+                mpd.cachedArt[search_url] = art
+                img.src = art
+                img.setAttribute("tooltiptext",art)
+            } catch (e) {
+                debug(e)
+            }
+        }
+        fetch(search_url, cb)
+    }
 }
 
 mpd.getArt = function(item, img) {
@@ -853,49 +853,49 @@ mpd.guessPlaylistName = function () {
 }
     
 mpd.searchLyrics = function (q, origCallBack) {
-	q = q.replace(/[^A-Za-z0-9]/g, '%')
-	var url = "http://lyricsfly.com/api/txt-api.php?i={id}&i=" + q
+    q = q.replace(/[^A-Za-z0-9]/g, '%')
+    var url = "http://lyricsfly.com/api/txt-api.php?i={id}&i=" + q
     url = url.replace("{id}", "14f6b319c854ca8a8-temporary.API.access")
     //url = url.replace("{id}", prefs.get("lyricsfly_id",""))
     //url = url.replace("{amo}", "addons.mozilla.org/en-US/firefox/addon/6324")
-	
+    
     var cb = function(data) {
         try {
-			var ar = data.getElementsByTagName("ar")
-			var tt = data.getElementsByTagName("tt")
-			debug(tt)
-			var artists = []
-			var titles = []
-			var cmd = null
-			if (tt) {
-				cmd = "command_list_begin\n"
-				for (i=0;i<tt.length;i++) {
-					titles.push(tt[i].textContent)
-					artists.push(ar[i].textContent)
-					cmd += 'find title "'+titles[i]+'"\n'
-				}
-				cmd += "command_list_end\n"
-			}
+            var ar = data.getElementsByTagName("ar")
+            var tt = data.getElementsByTagName("tt")
+            debug(tt)
+            var artists = []
+            var titles = []
+            var cmd = null
+            if (tt) {
+                cmd = "command_list_begin\n"
+                for (i=0;i<tt.length;i++) {
+                    titles.push(tt[i].textContent)
+                    artists.push(ar[i].textContent)
+                    cmd += 'find title "'+titles[i]+'"\n'
+                }
+                cmd += "command_list_end\n"
+            }
         }
         catch (e) {debug(e)}
-		if (cmd) {
-			debug(cmd)
-			var db_cb = function (d) {
-				var db = mpd._parseDB(d)
-				debug(d)
-				for (i=0;i<db.length;i++) {
-					var x = titles.indexOf(db[i].Title)
-					if (x > -1 && db[i].Artist != artists[x]) {
-						db.splice(i,1)
-					}
-				}
-				origCallBack(db)
-			}
-			mpd.doCmd(cmd, db_cb)
-		}
+        if (cmd) {
+            debug(cmd)
+            var db_cb = function (d) {
+                var db = mpd._parseDB(d)
+                debug(d)
+                for (i=0;i<db.length;i++) {
+                    var x = titles.indexOf(db[i].Title)
+                    if (x > -1 && db[i].Artist != artists[x]) {
+                        db.splice(i,1)
+                    }
+                }
+                origCallBack(db)
+            }
+            mpd.doCmd(cmd, db_cb)
+        }
     }
-	debug(url)
-	fetch(url, cb, null, true)
+    debug(url)
+    fetch(url, cb, null, true)
 }
 mpd.getLyrics = function (item, txtLyrics, btnEdit) {
     if (!Nz(item.Artist)) {
@@ -1036,7 +1036,7 @@ mpd.load_m3u_stream = function(data, action) {
 }
 
 mpd.load_xspf_stream = function(data, action) {
-	debug(data)
+    debug(data)
     if (typeof(action) == 'undefined')
         action = "add"
     urls = data.getElementsByTagName("location")
@@ -1056,9 +1056,9 @@ mpd.load_xspf_stream = function(data, action) {
 
 mpd.load_unknown_stream = function(data, action, req) {
     var head = req.getAllResponseHeaders()
-	var content = head.match(/Content-Type: (.*)\n/)[1]
+    var content = head.match(/Content-Type: (.*)\n/)[1]
     debug("content = '"+content+"'")
-	switch (content) {
+    switch (content) {
         case "audio/x-scpls" :
             mpd.load_pls_stream(data, action);
             break;
@@ -1071,7 +1071,7 @@ mpd.load_unknown_stream = function(data, action, req) {
         default :
             mpd.doCmd('add "' + url + '"');
             break;
-	}
+    }
 }
 mpd.handleURL = function(url, action) {
     if (typeof(url) != 'string')
@@ -1143,7 +1143,7 @@ function loadSrvPref() {
         }
         var timer = Components.classes["@mozilla.org/timer;1"]
                 .createInstance(Components.interfaces.nsITimer)
-		mpd.disconnect()
+        mpd.disconnect()
         timer.initWithCallback(cb, 100,
                 Components.interfaces.nsITimer.TYPE_ONE_SHOT)
     } else {
@@ -1155,7 +1155,7 @@ function loadSrvPref() {
 function socketTalker() {
     if (mpd._port <= '' || mpd._host <= '') return null
     debug("enter socketTalker")
-	mpd.set('greeting', 'Connecting...');
+    mpd.set('greeting', 'Connecting...');
     var initialized = false
     var regGreet = /OK MPD [0-9\.]+\n/gm
     try {
@@ -1202,7 +1202,7 @@ function socketTalker() {
                 mpd._host = null
                 mpd._port = null
                 mpd._password = null
-				debug("Killing socket")
+                debug("Killing socket")
             }
         },
         onDataAvailable : function(request, context, inputStream, offset, count) {
