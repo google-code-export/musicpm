@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/settings.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/settings.dtd">
 
 <prefwindow id="mpmPreferences"
-            title="Music Player Minion Settings"
+            title="&settings.title;"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="pane1" label="General">
+  <prefpane id="pane1" label="&settings.pane1;">
     <preferences>
       <preference id="adapt_interval" name="extensions.mpm.adaptive_interval" type="bool"/>
       <preference id="interval" name="extensions.mpm.update_interval" type="int"/>
@@ -20,32 +21,33 @@
     </preferences>
 
     <checkbox id="check_peristant_state" preference="peristant_state"
-          label="Save browser state between sessions."/>
+          label="&settings.check_peristant_state;"/>
     <checkbox id="check_linguistic_sort" preference="linguistic_sort"
-          label="Always load with linguistic sort (case insensitive)"/>
+          label="&settings.check_linguistic_sort;"/>
     <checkbox id="check_launch_in_browser" preference="launch_in_browser"
-          label="Launch Minion in tab (as opposed to new window)"/>
+          label="&settings.check_launch_in_browser;"/>
     <checkbox id="check_adapt" preference="adapt_interval"
-          label="Use adaptive update interval"
-          tooltiptext="This option will cause Minion to update once per second, after the timer has been synchronized with the current song."/>
+          label="&settings.check_adapt;"
+          tooltiptext="&settings.check_adapt_tt;"/>
     <hbox align="center">
-        <label value="Static update interval (milliseconds)"/>
+        <label value="&settings.update;"/>
         <textbox id="update" type="number" preference="interval"
                  maxlength="5" style="max-width: 5em !important"/>
     </hbox>
     <hbox align="center">
-        <label value="Search As You Type interval (milliseconds, 0 to disable)"/>
+        <label value="&settings.txt_search_timeout;"/>
         <textbox id="txt_search_timeout" type="number" preference="search_timeout"
                  maxlength="5" style="max-width: 5em !important"/>
     </hbox>
-    <checkbox label="Use custom album cover URL:" preference="use_custom"/>
+    <checkbox id="use_custom_url" preference="use_custom"
+	     label="&settings.use_custom_url;" />
     <textbox id="art"  preference="art_url" flex="1"/>
     <checkbox id="amazon" preference="use_amazon"
-          label="Fetch album covers from Amazon.com"/>
+          label="&settings.amazon;"/>
   </prefpane>
   
   
-  <prefpane id="pane2" label="Appearance">
+  <prefpane id="pane2" label="&settings.pane2;">
     <preferences>
       <preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
       <preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
@@ -54,13 +56,13 @@
     </preferences>
 
     <checkbox id="check_cs" preference="sb_cs_hide"
-          label="Hide current song display in statusbar"/>
+          label="&settings.check_cs;"/>
     <checkbox id="check_theme" preference="theme"
-          label="Use default Firefox theme"/>
+          label="&settings.check_theme;"/>
     <checkbox id="check_playlist_bottom" preference="playlist_bottom"
-          label="Show Playlist on bottom"/>
+          label="&settings.check_playlist_bottom;"/>
     <checkbox id="check_playlist_menu" preference="sb_playlist_menu"
-          label="Display playlist as menu in statusbar"/>
+          label="&settings.check_playlist_menu;"/>
   </prefpane>
 
 </prefwindow>

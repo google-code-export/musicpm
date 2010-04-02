@@ -1,0 +1,16 @@
+<!ENTITY settings.title "Paramètres Music Player Minion">
+<!ENTITY settings.pane1 "Général">
+<!ENTITY settings.check_peristant_state "Sauvegarder l'état du navigateur entre les sessions.">
+<!ENTITY settings.check_linguistic_sort "Toujours charger avec le tri linguistique (casse insensible)">
+<!ENTITY settings.check_launch_in_browser "Lancer Minion dans un onglet (à l'opposé d'une nouvelle fenêtre)">
+<!ENTITY settings.check_adapt "Utiliser l'interval adaptatif.">
+<!ENTITY settings.check_adapt_tt "Minion se mettra à jour chaque seconde, après que le minuteur se soit synchronisé avec la piste courrante.">
+<!ENTITY settings.update "Interval statique (millisecondes)">
+<!ENTITY settings.txt_search_timeout "Interval de la recherche temps réel (millisecondes, 0 désactivé)">
+<!ENTITY settings.use_custom_url "Utiliser une URL personnalisée:">
+<!ENTITY settings.amazon "Télécharger les pochettes via Amazon.com">
+<!ENTITY settings.pane2 "Apparence">
+<!ENTITY settings.check_cs "Cacher le titre de la piste courant dans la barre d'état.">
+<!ENTITY settings.check_theme "Utiliser le thème par défaut de Firefox.">
+<!ENTITY settings.check_playlist_bottom "Afficher la liste de lecture en bas.">
+<!ENTITY settings.check_playlist_menu "Mettre en menu la liste de lecture dans la barre d'état.">

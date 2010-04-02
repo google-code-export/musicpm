@@ -1,0 +1,16 @@
+<!ENTITY settings.title "Music Player Minion Settings">
+<!ENTITY settings.pane1 "General">
+<!ENTITY settings.check_peristant_state "Save browser state between sessions.">
+<!ENTITY settings.check_linguistic_sort "Always load with linguistic sort (case insensitive)">
+<!ENTITY settings.check_launch_in_browser "Launch Minion in tab (as opposed to new window)">
+<!ENTITY settings.check_adapt "Use adaptive update interval.">
+<!ENTITY settings.check_adapt_tt "This option will cause Minion to update once per second, after the timer has been synchronized with the current song.">
+<!ENTITY settings.update "Static update interval (milliseconds)">
+<!ENTITY settings.txt_search_timeout "Search As You Type interval (milliseconds, 0 to disable)">
+<!ENTITY settings.use_custom_url "Use custom album cover URL:">
+<!ENTITY settings.amazon "Fetch album covers from Amazon.com">
+<!ENTITY settings.pane2 "Appearance">
+<!ENTITY settings.check_cs "Hide current song display in statusbar.">
+<!ENTITY settings.check_theme "Use default Firefox theme">
+<!ENTITY settings.check_playlist_bottom "Show Playlist on bottom.">
+<!ENTITY settings.check_playlist_menu "Display playlist as menu in statusbar.">
