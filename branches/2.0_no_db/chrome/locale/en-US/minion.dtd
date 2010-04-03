@@ -16,6 +16,7 @@
 <!ENTITY performer "Performer">
 <!ENTITY performers "Performers">
 <!ENTITY songs "Songs">
+<!ENTITY title "Title">
 
 <!ENTITY minion.dummy1 "<----------------- settings window --------------->">
 <!ENTITY settings.title "Settings">

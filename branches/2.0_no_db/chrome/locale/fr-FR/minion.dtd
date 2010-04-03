@@ -16,6 +16,7 @@
 <!ENTITY performers "Interprètes">
 <!ENTITY songs "Morceaux">
 <!ENTITY length "Durée">
+<!ENTITY title "Titre">
 
 <!ENTITY minion.dummy1 "<----------------- fenetre des parametres --------------->">
 <!ENTITY settings.title "Paramètres">
