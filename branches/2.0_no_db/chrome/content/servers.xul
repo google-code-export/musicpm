@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 
-<dialog id="mpmServers" title="Music Player Minion Servers"
+<dialog id="mpmServers" title="&appname; - &servers.title;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="getPrefs()"
         buttons="accept,cancel"
         buttonaccesskeyaccept="S"
         ondialogaccept="return doSave();"
-        buttonlabelcancel="Cancel"
+        buttonlabelcancel="&cancel;"
         buttonaccesskeycancel="n"
         ondialogcancel="return doCancel();"
         resizable="true"
@@ -18,7 +19,10 @@
         Components.utils.import("resource://minion/mpd.js");
         Components.utils.import("resource://minion/mpmUtils.js");
         var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-
+        var wrstrings = Components.classes["@mozilla.org/intl/stringbundle;1"]
+            .getService(Components.interfaces.nsIStringBundleService)
+            .createBundle("chrome://minion/locale/strings.properties")
+		
         function addServerRow (index) {
             var rows = document.getElementById("server_rows")
             var row = document.createElementNS(xul,'row')
@@ -44,7 +48,7 @@
             t4.setAttribute('type', 'password')
             var btn = document.createElementNS(xul,'button')
             btn.setAttribute('oncommand', 'this.parentNode.parentNode.removeChild(this.parentNode)')
-            btn.setAttribute('label', "Remove")
+            btn.setAttribute('label', wrstrings.GetStringFromName("removeString"))
             if (Nz(index,null) != null) {
                 var desc = mpd.servers[index][0]
                 var srv = mpd.servers[index][1].split(":",3)
@@ -89,7 +93,7 @@
     ]]>
     </script>
 
-    <dialogheader title="Music Player Minion" description="Servers"/>
+    <dialogheader title="&appname;" description="&servers.title;"/>
     <grid id="server_grid">
     <columns>
       <column flex="5"/>
@@ -100,16 +104,16 @@
     </columns>
     <rows id="server_rows">
         <row>
-            <label value="Server Description"/>
-            <label value="Host"/>
-            <label value="Port"/>
-            <label value="Password"/>
+            <label id="lserver" value="&servers.lserver;"/>
+            <label id="lhost" value="&servers.lhost;"/>
+            <label id="lport" value="&servers.lport;"/>
+            <label id="lpassword" value="&servers.lpassword;"/>
             <spacer/>
         </row>
     </rows>
     </grid>
     <hbox>
         <spacer flex="1"/>
-        <button label="Add Server" oncommand="addServerRow(); window.sizeToContent()"/>
+        <button id="addserver" label="&servers.addserver;" oncommand="addServerRow(); window.sizeToContent()"/>
     </hbox>
 </dialog>

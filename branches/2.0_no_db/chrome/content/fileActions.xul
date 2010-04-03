@@ -2,14 +2,15 @@
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 
-<dialog id="mpmMenus" title="Music Player Minion File Actions"
+<dialog id="mpmMenus" title="&appname; - &menu.title;"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     onload="load();window.sizeToContent()"
     buttons="accept,cancel"
     buttonaccesskeyaccept="S"
     ondialogaccept="return doSave();"
-    buttonlabelcancel="Cancel"
+    buttonlabelcancel="&cancel;"
     buttonaccesskeycancel="n"
     ondialogcancel="return doCancel();">
     <script>
@@ -33,16 +34,16 @@
     ]]>
     </script>
 
-    <dialogheader title="Music Player Minion" description="File Actions"/>
-    <label value="Please select the action to take when double clicking on a file:"/>
+    <dialogheader title="&appname;" description="&menu.title;"/>
+    <label value="&menu.desc;"/>
     <menulist id="file_action">
         <menupopup>
-            <menuitem value="1" label="Add to Playlist"/>
-            <menuitem value="2" label="Add to Playlist and Play Now"/>
-            <menuitem value="3" label="Add to Playlist and Play if stopped" selected="true"/>
-            <menuitem value="4" label="View Song Details"/>
+            <menuitem value="1" label="&menu.item1;"/>
+            <menuitem value="2" label="&menu.item2;"/>
+            <menuitem value="3" label="&menu.item3;" selected="true"/>
+            <menuitem value="4" label="&menu.item4;"/>
         </menupopup>
     </menulist>
-    
+
 </dialog>
 

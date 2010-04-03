@@ -5,10 +5,11 @@
 <?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/theme_dark.css" type="text/css"?>
 <?xul-overlay href="chrome://minion/content/menus.xul"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 
 <window
     id="main"
-    title="Music Player Minion 2.0"
+    title="&appname; __mpm_version__"
     orient="vertical"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
@@ -27,7 +28,7 @@
     <popupset>
         <menupopup id="mpmMenu"/>
         <tooltip id="mpm_last_command">
-            <label value="Last MPD Command:"/>
+            <label value="&minion.lastcmd;"/>
             <mpdlabel observes="last_command"/>
         </tooltip>
     </popupset>
@@ -49,7 +50,7 @@
             <vbox flex="1">
                 <spacer flex="1" ordinal="1"/>
                 <mpdlabel id="curTitle"
-                    value="Title"
+                    value="&minion.curtitle;"
                     observes="Title"
                     class="Title"
                     flex="1"
@@ -58,21 +59,21 @@
                 <hbox style="overflow:hidden" flex="1" ordinal="3"
                     onclick="viewCurrentSong()">
                     <label id="preAlbum"
-                        value="from"
+                        value="&minion.prealbum;"
                         ordinal="1"
                         onclick="viewCurrentSong()"/>
                     <mpdlabel id="curAlbum"
-                        value="Album"
+                        value="&minion.curalbum;"
                         class="Album"
                         observes="Album"
                         ordinal="2"
                         onclick="viewCurrentSong()"/>
                     <label id="preArtist"
-                        value="by"
+                        value="&minion.preartist;"
                         ordinal="3"
                         onclick="viewCurrentSong()"/>
                     <mpdlabel id="curArtist"
-                        value="Artist"
+                        value="&minion.curartist;"
                         class="Artist"
                         observes="Artist"
                         ordinal="4"
@@ -82,7 +83,7 @@
                 <mpdtime flex="1" id="mytime" ordinal="4"/>
             </vbox>
             <toolbarbutton class="mpm_btn_Fullscreen"
-                tooltiptext="Toggle FullScreen"
+                tooltiptext="&minion.tglfullscreen;"
                 oncommand="window.setTimeout('window.fullScreen=!window.fullScreen',1)"/>
         </hbox>
     </hbox>
@@ -93,7 +94,7 @@
             <arrowscrollbox orient="vertical" flex="1">
                 <vbox id="mpmDynamicMenu2"/>
                 <menuseparator/>
-                <toolbarbutton label="Edit Actions" 
+                <toolbarbutton label="&minion.editactions;" 
                     oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
             </arrowscrollbox>
         </mpdbrowser>
@@ -102,19 +103,19 @@
             <toolbar id="playlistToolbar">
                 <toolbarbutton id="clearPlaylist"
                     class="mpm_btn_Clear"
-                    tooltiptext="Clear Playlist"
+                    tooltiptext="&minion.clearlist;"
                     oncommand="mpd.doCmd('clear');document.getElementById('playlistName').value='Untitled'"/>
                 <toolbarbutton id="loadPlaylist"
                     class="mpm_btn_Playlists"
-                    tooltiptext="Show Saved Playlists"
+                    tooltiptext="&minion.showsavepls;"
                     oncommand="showPlaylists()"/>
                 <textbox id="playlistName"
-                    value="Playlist Name"
+                    value="&minion.plsname;"
                     flex="1"
                     maxwidth="200"/>
                 <toolbarbutton id="savePlaylist"
                     class="mpm_btn_Save"
-                    tooltiptext="Save Playlist"
+                    tooltiptext="&minion.savepls;"
                     oncommand="savePlaylist()"/>
                 <spacer flex="1"/>
             </toolbar>
@@ -142,7 +143,7 @@
         </vbox>
     </box>
     <statusbar pack="center">
-        <label value="Playlist Time:"/>
+        <label value="&minion.plstime;"/>
         <mpdlabel id="pltime_observer" observes="prettytime"/>
         <spacer flex="1"/>
         <mpdlabel value="response" observes="lastResponse" crop="end" tooltip="mpm_last_command"/>

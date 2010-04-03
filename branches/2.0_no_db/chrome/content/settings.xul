@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/settings.css" type="text/css"?>
-<!DOCTYPE overlay SYSTEM "chrome://minion/locale/settings.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 
 <prefwindow id="mpmPreferences"
-            title="&settings.title;"
+            title="&appname; - &settings.title;"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <prefpane id="pane1" label="&settings.pane1;">

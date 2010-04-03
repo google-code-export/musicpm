@@ -5,10 +5,11 @@
 <?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/theme_dark.css" type="text/css"?>
 <?xul-overlay href="chrome://minion/content/menus.xul"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 
 <window
     id="song"
-    title="Song Detail"
+    title="&song.title;"
     orient="horizontal"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:html="http://www.w3.org/1999/xhtml"
@@ -126,62 +127,62 @@
             </columns>
             <rows>
                 <row id="Title_row" class="tag_row">
-                    <label style="font-weight:bold" value="Title:"/>
+                    <label style="font-weight:bold" value="&title;:"/>
                     <label id="Title_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_add" oncommand="addItem()"/>
                 </row>
                 <row id="length_row" class="tag_row">
-                    <label style="font-weight:bold" value="Length:"/>
+                    <label style="font-weight:bold" value="&length;:"/>
                     <label id="length_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_play" oncommand="playItem()"/>
                 </row>
                 <row id="Album_row" class="tag_row">
-                    <label style="font-weight:bold" value="Album:"/>
+                    <label style="font-weight:bold" value="&album;:"/>
                     <label id="Album_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Album')"/>
                 </row>
                 <row id="Artist_row" class="tag_row">
-                    <label style="font-weight:bold" value="Artist:"/>
+                    <label style="font-weight:bold" value="&artist;:"/>
                     <label id="Artist_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Artist')"/>
                 </row>
                 <row id="Composer_row" class="tag_row">
-                    <label style="font-weight:bold" value="Composer:"/>
+                    <label style="font-weight:bold" value="&composer;:"/>
                     <label id="Composer_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Composer')"/>
                 </row>
                 <row id="Performer_row" class="tag_row">
-                    <label style="font-weight:bold" value="Performer:"/>
+                    <label style="font-weight:bold" value="&performer;:"/>
                     <label id="Performer_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Performer')"/>
                 </row>
                 <row id="Date_row" class="tag_row">
-                    <label style="font-weight:bold" value="Date:"/>
+                    <label style="font-weight:bold" value="&date;:"/>
                     <label id="Date_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Date')"/>
                 </row>
                 <row id="Genre_row" class="tag_row">
-                    <label style="font-weight:bold" value="Genre:"/>
+                    <label style="font-weight:bold" value="&genre;:"/>
                     <label id="Genre_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('Genre')"/>
                 </row>
                 <row id="directory_row" class="tag_row">
-                    <label style="font-weight:bold" value="In Folder:"/>
+                    <label style="font-weight:bold" value="&folder;:"/>
                     <label id="directory_label" class="tag_val" crop="start"/>
                     <toolbarbutton class="mpm_icon_Search" oncommand="browseTo('directory')"/>
                 </row>
             </rows>
         </grid>
         <spacer flex="1"/>
-        <checkbox checked="false" label="Follow Currently Playing Song"
+        <checkbox checked="false" label="&song.follow;"
               oncommand="toggleFollowCurrent(this.checked)"/>
     </vbox>
     <vbox flex="1">
         <hbox>
-            <toolbarbutton label="Lyrics from Lyricsfly.com" style="font-weight: bold"
+            <toolbarbutton label="&song.lyricsfly;" style="font-weight: bold"
                 oncommand="openReuseByURL('http://lyricsfly.com')"/>
             <spacer flex="1"/>
-            <toolbarbutton id="lyricsButton" label="Edit"
+            <toolbarbutton id="lyricsButton" label="&song.edit;"
                 oncommand="editLyrics(this.edit_link)"/>
         </hbox>
         <textbox id="lyrics" flex="1" multiline="true" readonly="true"/>
