@@ -574,7 +574,7 @@
                         <xul:hbox>
                             <xul:toolbarbutton class="mpm_btn_Back"
                                 label="Back to Music Collection"
-                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.deck.selectedIndex=0"/>
+                                oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.deck.selectedIndex=0;this.parentNode.parentNode.parentNode.parentNode.parentNode.tdeck.selectedIndex=0;"/>
                         </xul:hbox>
                     </xul:deck>
                     <xbl:children includes="toolbarbutton"/>
@@ -1041,8 +1041,8 @@
                                 case 4:
                                     //View Song Details
                                     this.cwin.load(item);
-                                    this.fileDetails.value = item.file;
                                     this.deck.selectedIndex =1;
+                                    this.tdeck.selectedIndex=2;
                                     return null;
                             }
                             break;
