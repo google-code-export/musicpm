@@ -51,6 +51,8 @@
                 observerService.addObserver(obs, 'greeting', false);
                 observerService.addObserver(obsVol, 'volume', false);
                 csPrefObserver.register();
+                updateStatusBarPosition(document);
+                window.removeEventListener("load", function(e) { mpm.onLoad(e); }, false);
             },
             onPlaylistUnload: function (e) {
                 e.target.saveColumns()
@@ -140,6 +142,9 @@
                         var menu = prefs.get('sb_playlist_menu', false)
                         document.getElementById('sb_playlist_menu').collapsed = !menu
                         document.getElementById('sb_playlist_box').collapsed = menu
+                        break;
+                    case "statusbar_position":
+                        updateStatusBarPosition(document);
                         break;
                 }
             }

@@ -81,8 +81,8 @@ function init () {
 }
 
 function post_init () {
-	q = Application.storage.get("doQuery", null)
-	d = Application.storage.get("doDetails", null)
+	var q = Application.storage.get("doQuery", null)
+	var d = Application.storage.get("doDetails", null)
 	debug(q)
 	debug(d)
     if (q) {

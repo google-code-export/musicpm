@@ -18,7 +18,7 @@
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
         "observerService", "getFileContents", "fetch", "winw", "urlReplace",
         "openReuseByURL", "openReuseByAttribute", "mpm_openDialog", "prefs",
-        "guessTags", "mpmUtils_EXPORTED_SYMBOLS"]
+        "guessTags", "updateStatusBarPosition", "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 var observerService = Components.classes["@mozilla.org/observer-service;1"]
@@ -31,7 +31,7 @@ var branch = prefService.getBranch("extensions.mpm.");
 
 var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
         .getService(Components.interfaces.nsIWindowWatcher);
-        
+  
 function debug(s) {
     //return null
     try {
@@ -433,4 +433,29 @@ function guessTags(song) {
 		if (album == "") song.Album = _album.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 	} catch (e) {debug(e)}
 	return song
+}
+
+function updateStatusBarPosition(doc) {
+    var index = prefs.get("statusbar_position", 0);
+    if (index <= 0) return;
+    debug('status-bar index: '+index);	
+    try
+    {
+        var statusBar = doc.getElementById("status-bar");
+        var children = statusBar.childNodes;
+
+        var statusbarItem = doc.getElementById("mpm_status-bar_controls");
+
+        var newStatusbarItem = statusBar.removeChild(statusbarItem);
+
+        if ((children.length == 0) || (index >= children.length)){
+            statusBar.appendChild(newStatusbarItem);
+        } else {
+            statusBar.insertBefore(newStatusbarItem, children[index-1]);
+        }
+    } catch(e) {
+        debug(e);
+        debug('doc/document:');
+		debug(doc);
+    }
 }
