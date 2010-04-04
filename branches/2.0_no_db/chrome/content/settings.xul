@@ -71,4 +71,14 @@
     </hbox>
   </prefpane>
 
+  <prefpane id="pane3" label="&settings.pane3;">
+    <preferences>
+      <preference id="mpm_debug" name="extensions.mpm.debug" type="bool"/>
+    </preferences>
+
+    <checkbox id="mpm_enable_debug" preference="mpm_debug"
+          label="&settings.enable_debug;"/>
+
+  </prefpane>
+
 </prefwindow>

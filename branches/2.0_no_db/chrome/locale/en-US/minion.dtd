@@ -36,6 +36,8 @@
 <!ENTITY settings.check_playlist_bottom "Show Playlist on bottom.">
 <!ENTITY settings.check_playlist_menu "Display playlist as menu in statusbar.">
 <!ENTITY settings.txt_statusbar_position "Status bar item position at">
+<!ENTITY settings.pane3 "Debug">
+<!ENTITY settings.enable_debug "Display debug info in the console">
 <!ENTITY minion.dummy2 "<----------------- servers window --------------->">
 <!ENTITY servers.title "Servers">
 <!ENTITY servers.lserver "Description">

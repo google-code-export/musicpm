@@ -36,6 +36,8 @@
 <!ENTITY settings.check_playlist_bottom "Afficher la liste de lecture en bas.">
 <!ENTITY settings.check_playlist_menu "Mettre en menu la liste de lecture dans la barre d'état.">
 <!ENTITY settings.txt_statusbar_position "Indexe de position dans la barre de status">
+<!ENTITY settings.pane3 "Debug">
+<!ENTITY settings.enable_debug "Afficher les infos de debug dans la console">
 <!ENTITY minion.dummy2 "<----------------- fenetre des servers --------------->">
 <!ENTITY servers.title "Serveurs">
 <!ENTITY servers.lserver "Description">
