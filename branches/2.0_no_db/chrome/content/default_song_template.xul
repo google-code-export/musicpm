@@ -20,9 +20,14 @@
     <![CDATA[
         Components.utils.import("resource://minion/mpmUtils.js");
         Components.utils.import("resource://minion/mpd.js");
-        var item = null
-        var win = null
-        var cycles = 0
+        var item = null;
+        var win = null;
+        var cycles = 0;
+        var pagefilled = 0;
+
+        var LFTagstimer = Components.classes["@mozilla.org/timer;1"]
+                    .createInstance(Components.interfaces.nsITimer);
+
         var observerCurSong = {
             observe: function(subject,topic,data){
                 load(mpd.currentsong)
@@ -77,29 +82,40 @@
             mpd.doCmd("play "+item.Pos)
         }
 
-        function loadLFTags () {
+        var LFTagsevent = { notify: function(LFTagstimer) {
             try {
-                var doc = win.document.wrappedJSObject
-                doc.getElementById("title").value = item.Title
-                doc.getElementById("artist").value = item.Artist
-                doc.getElementById("album").value = item.Album
-                doc.getElementById("comments").value = "Submitted via Music Player Minion."
-                doc.getElementById("checker1").value = doc.getElementById("checker2").value
+                if ( win != null ) {
+                    if ( pagefilled == 1) {
+                        LFTagstimer.cancel(); /* info loaded, no more actions */
+                        return;
+                    }
+                    if ( win.document == null ) {
+                        LFTagstimer.cancel(); /* the page may have been closed or submitted. No more actions */
+                        return;
+                    }
+                    var doc = win.document.wrappedJSObject
+                    doc.getElementById("title").value = item.Title
+                    doc.getElementById("artist").value = item.Artist
+                    doc.getElementById("album").value = item.Album
+                    doc.getElementById("comments").value = "Submitted via Music Player Minion."
+                    doc.getElementById("checker1").value = doc.getElementById("checker2").value
+                    pagefilled = 1 /* comes last to be sure all elements have been filled */
+                }
             }
             catch (e) {
                 cycles++
-                if (cycles < 100) {
-                    window.setTimeout("loadLFTags()",100)
+                if (cycles >= 100) {
+                    LFTagstimer.cancel();
                 }
                 else debug(e)
             }
-        }
+        } }
 
         function editLyrics (link) {
             win = window.open(link)
             if (link == "http://lyricsfly.com/submit/") {
-                cycles = 0
-                window.setTimeout("loadLFTags()",100)
+                cycles = 0;
+                LFTagstimer.initWithCallback(LFTagsevent,100,Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
             }
         }
         

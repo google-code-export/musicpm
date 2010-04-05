@@ -1,4 +1,11 @@
 #!/bin/bash
+
+if [ -z "$1" ]
+then
+	echo "$0 release_number"
+	exit 1
+fi
+
 cd ..
 rm -rf mpm_release
 svn export 2.0_no_db mpm_release
