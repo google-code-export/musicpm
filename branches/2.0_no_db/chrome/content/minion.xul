@@ -84,7 +84,7 @@
             </vbox>
             <toolbarbutton class="mpm_btn_Fullscreen"
                 tooltiptext="&minion.tglfullscreen;"
-                oncommand="window.setTimeout('window.fullScreen=!window.fullScreen',1)"/>
+                oncommand="window.fullScreen=!window.fullScreen"/>
         </hbox>
     </hbox>
     <box id="main_content" flex="1" orient="horizontal">
