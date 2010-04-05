@@ -10,33 +10,55 @@
         <![CDATA[
         Components.utils.import("resource://minion/mpmUtils.js");
         Components.utils.import("resource://minion/mpd.js");
-    function launchMinion () {
-        openReuseByURL('chrome://minion/content/minion.xul')
-    }
-        
-        function slidePlaylist (incr, end) {
-            var b = document.getElementById("mpm_playlist_sb")
-            b.height = parseInt(b.boxObject.height) + incr
-            if (end < 1) end = 0
-            debug("incr="+incr+", end="+end+", b.height="+b.height)
-            if (incr > 0) {
-                debug("slidePlaylist("+incr+","+end+")")
-                if (b.boxObject.height < end) setTimeout("slidePlaylist("+incr+","+end+")", 100)
-            } else {
-                if (b.boxObject.height > end) setTimeout("slidePlaylist("+incr+","+end+")", 100)                
-            }
+        var incr = 0;
+		var end = 0;
+        var operated = 0;
+        function launchMinion () {
+            openReuseByURL('chrome://minion/content/minion.xul')
         }
+        var slidetimer = Components.classes["@mozilla.org/timer;1"]
+                    .createInstance(Components.interfaces.nsITimer);
+
+        var slideevent = { notify: function(slidetimer) {
+            if (end < 1) end = 0;
+            if ( incr == 0 ) {
+                slidetimer.cancel();
+                return;
+            }
+			try {
+                var b = document.getElementById("mpm_playlist_sb");
+                debug("slideevent: incr="+incr+", end="+end+", b.height="+b.height+", b.boxObject.height="+b.boxObject.height);
+                b.height = parseInt(b.height) + incr;
+			} catch(e) { debug(e) }
+            if (incr > 0) {
+                if (b.height >= end) slidetimer.cancel();
+            } else {
+                if (b.height <= end) {
+                    slidetimer.cancel();
+                    b.collapsed = !b.collapsed;
+                    var s = document.getElementById("mpm_playlist_splitter");
+                    s.collapsed = !s.collapsed;
+                }
+            }
+        } }
+
         function togglePlaylistBar () {
-            var b = document.getElementById("mpm_playlist_sb")
-            var pl = document.getElementById("mpm_mw_playlist_box")
-            var s = document.getElementById("mpm_playlist_splitter")
-            if (!b.collapsed) pl.saveColumns()
-            s.collapsed = !s.collapsed
-            b.collapsed = !b.collapsed
-            if (!b.collapsed) pl.showCurrent()
+            var b = document.getElementById("mpm_playlist_sb");
+            var pl = document.getElementById("mpm_mw_playlist_box");
+            var s = document.getElementById("mpm_playlist_splitter");
+            if (!b.collapsed) pl.saveColumns();
+			else pl.showCurrent();
             
-            //if (parseInt(b.height) < 1) slidePlaylist(10,200)
-            //else slidePlaylist(-10,0)
+            if (parseInt(b.height) < 1) {
+                s.collapsed = !s.collapsed;
+                b.collapsed = !b.collapsed;
+                incr = 10;
+                end = 110;
+            } else {
+                incr = -10;
+                end = 0;
+            }
+			slidetimer.initWithCallback(slideevent,100,Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
         }
         var mpm = {
             onLoad: function (e) {
@@ -209,10 +231,12 @@
     <window id="main-window">
         <splitter id="mpm_playlist_splitter"
               insertbefore="browser-bottombox"
+              resizebefore="flex"
               collapsed="true"/>
         <hbox id="mpm_playlist_sb"
               insertbefore="browser-bottombox"
               collapsed="true"
+              height="0"
               style="overflow:hidden">
             <vbox pack="center" align="center">
                 <mpdalbumcover/>
