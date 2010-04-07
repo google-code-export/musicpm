@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 <bindings xmlns="http://www.mozilla.org/xbl"
           xmlns:xbl="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -15,74 +16,74 @@
                 ondblclick="var a=this.parentNode.activeItem;if(a)mpd.doCmd('play '+a.Pos)">
                 <children/>
                 <xul:treecols>
-                    <xul:treecol id="Pos" label="Position" ordinal="1" width="30px"
+                    <xul:treecol id="Pos" label="&position;" ordinal="1" width="30px"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
-                                 tooltiptext="Playlist Position"
+                                 tooltiptext="&minion.positiontt;"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitPos" class="tree-splitter" ordinal="2" />
-                    <xul:treecol id="Track" label="Track" ordinal="3" width="60px"
+                    <xul:treecol id="Track" label="&track;" ordinal="3" width="60px"
                                  persist="width ordinal hidden"
                                  collapsed="true"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitTrack" class="tree-splitter" ordinal="4" />
-                    <xul:treecol id="Title" label="Title" ordinal="5" flex="2"
+                    <xul:treecol id="Title" label="&title;" ordinal="5" flex="2"
                                  persist="width ordinal hidden"
                                  overflow="true"
                                  class="sortDirectionIndicator"
                                  minwidth="120"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitTitle" class="tree-splitter" ordinal="6" />
-                    <xul:treecol id="Time" label="Time" ordinal="7" width="60px"
+                    <xul:treecol id="Time" label="&time;" ordinal="7" width="60px"
                                  hidden="false"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitTime" class="tree-splitter" ordinal="8" />
-                    <xul:treecol id="Album" label="Album" ordinal="9" flex="1"
+                    <xul:treecol id="Album" label="&album;" ordinal="9" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitAlbum" class="tree-splitter" ordinal="10" />
-                    <xul:treecol id="Artist" label="Artist" ordinal="11" flex="1"
+                    <xul:treecol id="Artist" label="&artist;" ordinal="11" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitArtist" class="tree-splitter" ordinal="12" />
-                    <xul:treecol id="Performer" label="Performer" ordinal="13" flex="1"
+                    <xul:treecol id="Performer" label="&performer;" ordinal="13" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitPerf" class="tree-splitter" ordinal="14" />
-                    <xul:treecol id="Composer" label="Composer" ordinal="15" flex="1"
+                    <xul:treecol id="Composer" label="&composer;" ordinal="15" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitComp" class="tree-splitter" ordinal="16" />
-                    <xul:treecol id="Genre" label="Genre" ordinal="17" flex="1"
+                    <xul:treecol id="Genre" label="&genre;" ordinal="17" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitGenre" class="tree-splitter" ordinal="18" />
-                    <xul:treecol id="Date" label="Date" ordinal="19" flex="1"
+                    <xul:treecol id="Date" label="&date;" ordinal="19" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitDate" class="tree-splitter" ordinal="20" />
-                    <xul:treecol id="name" label="[File]Name" ordinal="21" flex="1"
+                    <xul:treecol id="name" label="&filename;" ordinal="21" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitDisc" class="tree-splitter" ordinal="22" />
-                    <xul:treecol id="Disc" label="Disc" ordinal="23" flex="1"
+                    <xul:treecol id="Disc" label="&disc;" ordinal="23" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
