@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 <bindings xmlns="http://www.mozilla.org/xbl"
           xmlns:xbl="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -257,77 +258,77 @@
                 enableColumnDrag="true"
                 flex="1">
                 <xul:treecols>
-                    <xul:treecol id="Pos" label="Position" ordinal="1" width="30px"
+                    <xul:treecol id="Pos" label="&position;" ordinal="1" width="30px"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
-                                 tooltiptext="Playlist Position"
+                                 tooltiptext="&minion.positiontt;"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitPos" class="tree-splitter" ordinal="2" />
-                    <xul:treecol id="Track" label="Track" ordinal="3" width="60px"
+                    <xul:treecol id="Track" label="&track;" ordinal="3" width="60px"
                                  persist="width ordinal hidden"
                                  collapsed="true"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitTrack" class="tree-splitter" ordinal="4" />
-                    <xul:treecol id="Title" label="Title" ordinal="5" flex="2"
+                    <xul:treecol id="Title" label="&title;" ordinal="5" flex="2"
                                  persist="width ordinal hidden"
                                  overflow="true"
                                  class="sortDirectionIndicator"
                                  minwidth="120"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitTitle" class="tree-splitter" ordinal="6" />
-                    <xul:treecol id="Time" label="Time" ordinal="7" width="60px"
+                    <xul:treecol id="Time" label="&time;" ordinal="7" width="60px"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitTime" class="tree-splitter" ordinal="8" />
-                    <xul:treecol id="Album" label="Album" ordinal="9" flex="1"
+                    <xul:treecol id="Album" label="&album;" ordinal="9" flex="1"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitAlbum" class="tree-splitter" ordinal="10" />
-                    <xul:treecol id="Artist" label="Artist" ordinal="11" flex="1"
+                    <xul:treecol id="Artist" label="&artist;" ordinal="11" flex="1"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitArtist" class="tree-splitter" ordinal="12" />
-                    <xul:treecol id="Performer" label="Performer" ordinal="13" flex="1"
+                    <xul:treecol id="Performer" label="&performer;" ordinal="13" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitPerf" class="tree-splitter" ordinal="14" />
-                    <xul:treecol id="Composer" label="Composer" ordinal="15" flex="1"
+                    <xul:treecol id="Composer" label="&composer;" ordinal="15" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitComp" class="tree-splitter" ordinal="16" />
-                    <xul:treecol id="Genre" label="Genre" ordinal="17" flex="1"
+                    <xul:treecol id="Genre" label="&genre;" ordinal="17" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitGenre" class="tree-splitter" ordinal="18" />
-                    <xul:treecol id="Date" label="Date" ordinal="19" flex="1"
+                    <xul:treecol id="Date" label="&date;" ordinal="19" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitDate" class="tree-splitter" ordinal="20" />
-                    <xul:treecol id="name" label="[File]Name" ordinal="21" flex="1"
+                    <xul:treecol id="name" label="&filename;" ordinal="21" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
                     <xul:splitter id="splitDisc" class="tree-splitter" ordinal="22" />
-                    <xul:treecol id="Disc" label="Disc" ordinal="23" flex="1"
+                    <xul:treecol id="Disc" label="&disc;" ordinal="23" flex="1"
                                  hidden="true"
                                  persist="width ordinal hidden"
                                  class="sortDirectionIndicator"
                                  onclick="this.parentNode.parentNode.parentNode.sort(this.id)"/>
-                    <xul:treecol id="AlbumCover" label="Cover/Actions" ordinal="24"
+                    <xul:treecol id="AlbumCover" label="&minion.cover_action;" ordinal="24"
                                  collapsed="true"
                                  hidden="false"
                                  max-width="0"
@@ -441,12 +442,12 @@
                     onselect="this.parentNode.parentNode.loadMain()"
                     persist="selectedItem value">
                     <xul:menupopup>
-                        <xul:menuitem label="Albums" value="album"/>
-                        <xul:menuitem label="Artists" value="artist" selected="true"/>
-                        <xul:menuitem label="Composers" value="composer"/>
-                        <xul:menuitem label="Dates" value="date"/>
-                        <xul:menuitem label="Genres" value="genre"/>
-                        <xul:menuitem label="Performers" value="performer"/>
+                        <xul:menuitem label="&albums;" value="album"/>
+                        <xul:menuitem label="&artists;" value="artist" selected="true"/>
+                        <xul:menuitem label="&composers;" value="composer"/>
+                        <xul:menuitem label="&dates;" value="date"/>
+                        <xul:menuitem label="&genres;" value="genre"/>
+                        <xul:menuitem label="&performers;" value="performer"/>
                     </xul:menupopup>
                 </xul:menulist>
                 <xul:textbox
@@ -461,17 +462,17 @@
                     onselect="this.parentNode.parentNode.loadSub()"/>
                 <xul:splitter collapse="after"/>
                 <xul:vbox flex="1">
-                    <xul:label class="tagsContentLabel" value="Related Items:"/>
+                    <xul:label class="tagsContentLabel" value="&minion.relitems;"/>
                     <xul:menulist id="tagsSubType"
                         onselect="this.parentNode.parentNode.parentNode.loadSub()"
                         persist="selectedItem value">
                         <xul:menupopup>
-                            <xul:menuitem label="Albums" value="album"/>
-                            <xul:menuitem label="Artists" value="artist"/>
-                            <xul:menuitem label="Composers" value="composer"/>
-                            <xul:menuitem label="Dates" value="date"/>
-                            <xul:menuitem label="Genres" value="genre"/>
-                            <xul:menuitem label="Performers" value="performer"/>
+                            <xul:menuitem label="&albums;" value="album"/>
+                            <xul:menuitem label="&artists;" value="artist"/>
+                            <xul:menuitem label="&composers;" value="composer"/>
+                            <xul:menuitem label="&dates;" value="date"/>
+                            <xul:menuitem label="&genres;" value="genre"/>
+                            <xul:menuitem label="&performers;" value="performer"/>
                         </xul:menupopup>
                     </xul:menulist>
                     <xul:box
@@ -544,68 +545,70 @@
                 <xul:toolbar align="center">
                     <xul:deck id="toolbar_deck">
                         <xul:hbox>
-                            <xul:toolbarbutton tooltiptext="Update Database"
+                            <xul:toolbarbutton tooltiptext="&minion.updatedb;"
                                 class="mpm_btn_Update"
                                 oncommand="mpd.doCmd('update')"/>
-							<xul:toolbarbutton label="Clear Playlist "
+							<xul:toolbarbutton label="&minion.clearlist; "
 								id="browse_Clear_btn"
 								collapsed="true"
 								class="mpm_btn_Clear"
 								oncommand="mpd.doCmd('clear')"/>
-                            <xul:toolbarbutton label="All"
+                            <xul:toolbarbutton label="&all;"
+                                tooltiptext="&minion.alltt;"
                                 class="mpm_btn_AddAll"
                                 oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.browser.addAll()"/>
-                            <xul:toolbarbutton label="Selected"
+                            <xul:toolbarbutton label="&minion.selected;"
+                                tooltiptext="&minion.selectedtt;"
                                 class="mpm_btn_AddSelected"
                                 oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.browser.addSelected()"/>
                         </xul:hbox>
                         <xul:hbox>
-							<xul:toolbarbutton label="Clear Playlist "
+							<xul:toolbarbutton label="&minion.clearlist; "
 								class="mpm_btn_Clear"
 								oncommand="mpd.doCmd('clear')"/>
                             <xul:textbox id="plname"
                                 value="Playlist Name"
                                 flex="1"
                                 maxwidth="250"/>
-                            <xul:toolbarbutton tooltiptext="Save Playlist"
+                            <xul:toolbarbutton tooltiptext="&minion.savepls;"
                                 class="mpm_btn_Save"
                                 oncommand='var n=this.parentNode.childNodes[1].value;if(!n)return null;mpd.doCmd("save "+String.fromCharCode(34)+n.replace(/"/g,String.fromCharCode(39))+String.fromCharCode(34))'/>
                         </xul:hbox>
                         <xul:hbox>
                             <xul:toolbarbutton class="mpm_btn_Back"
-                                label="Back to Music Collection"
+                                label="&minion.backcollection;"
                                 oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.deck.selectedIndex=0;this.parentNode.parentNode.parentNode.parentNode.parentNode.tdeck.selectedIndex=0;"/>
                         </xul:hbox>
                     </xul:deck>
                     <xbl:children includes="toolbarbutton"/>
                     <xul:spacer flex="1"/>
                     <xul:menulist id="searchType"
-                        label="Search"
+                        label="&minion.search;"
                         sizetopopup="always"
                         onselect="this.parentNode.parentNode.parentNode.searchTypeSelect()"
                         persist="selectedItem">
                         <xul:menupopup>
-                            <xul:menuitem label="Filter"
-                                tooltiptext="Filter contents of current location by Title column"/>
-                            <xul:menuitem label="Search All"
-                                tooltiptext="Search songs on all fields"
+                            <xul:menuitem label="&minion.filter;" value="Filter"
+                                tooltiptext="&minion.filtertt;"/>
+                            <xul:menuitem label="&minion.searchall;" value="Search All"
+                                tooltiptext="&minion.searchalltt;"
                                 selected="true"/>
-                            <xul:menuitem label="Playlist"
-                                tooltiptext="Search in Playlist on all fields"/>
-                            <xul:menuitem label="Title"
-                                tooltiptext="Search by song's Title only"/>
-                            <xul:menuitem label="Artist"
-                                tooltiptext="Search Artists"/>
-                            <xul:menuitem label="Album"
-                                tooltiptext="Search Albums"/>
-                            <xul:menuitem label="Genre"
-                                tooltiptext="Search Genres"/>
-                            <xul:menuitem label="Composer"
-                                tooltiptext="Search Composers"/>
-                            <xul:menuitem label="Performer"
-                                tooltiptext="Search Performers"/>
-                            <xul:menuitem label="Date"
-                                tooltiptext="Search Release Years"/>
+                            <xul:menuitem label="&playlist;" value="Playlist"
+                                tooltiptext="&minion.playlisttt;"/>
+                            <xul:menuitem label="&title;" value="Title"
+                                tooltiptext="&minion.titlett;"/>
+                            <xul:menuitem label="&artist;" value="Artist"
+                                tooltiptext="&minion.artisttt;"/>
+                            <xul:menuitem label="&album;" value="Album"
+                                tooltiptext="&minion.albumtt;"/>
+                            <xul:menuitem label="&genre;" value="Genre"
+                                tooltiptext="&minion.genrett;"/>
+                            <xul:menuitem label="&composer;" value="Composer"
+                                tooltiptext="&minion.composertt;"/>
+                            <xul:menuitem label="&performer;" value="Performer"
+                                tooltiptext="&minion.performertt;"/>
+                            <xul:menuitem label="&date;" value="Date"
+                                tooltiptext="&minion.datett;"/>
                         </xul:menupopup>
                     </xul:menulist>
                     <xul:textbox id="searchInput"
@@ -620,9 +623,9 @@
                             id="browserTabbox"
                             persist="selectedTab selectedItem selectedPanel">
                             <xul:tabs>
-                                <xul:tab label="Folders" id="folders_tab" flex="1"/>
-                                <xul:tab label="Playlists" id="playlist_tab" flex="1"/>
-                                <xul:tab label="Tags" id="tags_tab" flex="1"/>
+                                <xul:tab label="&folders;" id="folders_tab" flex="1"/>
+                                <xul:tab label="&playlists;" id="playlist_tab" flex="1"/>
+                                <xul:tab label="&tags;" id="tags_tab" flex="1"/>
                             </xul:tabs>
                             <xul:tabpanels flex="1">
                                 <xul:tabpanel flex="1">
@@ -649,13 +652,13 @@
                         <xul:vbox flex="1" style="overflow:hidden">
                             <xul:hbox class="mpm_navbar" align="center">
                                 <xul:toolbarbutton class="mpm_btn_Back"
-                                    tooltiptext="Back"
+                                    tooltiptext="&minion.back;"
                                     oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.goBack()"/>
                                 <xul:toolbarbutton class="mpm_btn_Forward"
-                                    tooltiptext="Forward"
+                                    tooltiptext="&minion.forward;"
                                     oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.goForward()"/>
                                 <xul:toolbarbutton class="mpm_btn_Home"
-                                    tooltiptext="Home"
+                                    tooltiptext="&minion.home;"
                                     oncommand="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.goHome()"/>
                                 <xul:toolbarseparator/>
                                 <xul:image id="cwd_icon"/>
@@ -1266,7 +1269,7 @@
                     <![CDATA[
                     var q = new dbQuery()
                     q.type = "search"
-                    q.scope = this.searchType.selectedItem.label
+                    q.scope = this.searchType.selectedItem.value
                     q.query = this.searchInput.value
 
                     switch (q.scope) {
@@ -1281,7 +1284,7 @@
             <method name="searchTypeSelect">
                 <body>
                     <![CDATA[
-                    if (this.searchType.selectedItem.label == 'Filter') {
+                    if (this.searchType.selectedItem.value == 'Filter') {
                         this.searchInput.select()
                     }
                     else {

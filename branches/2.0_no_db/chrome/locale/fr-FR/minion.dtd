@@ -1,7 +1,8 @@
-<!ENTITY minion.dummy0 "<----------------- General purpose strings --------------->">
+<!ENTITY minion.dummy0 "<----------------- Chaines d'utilite generale --------------->">
 <!ENTITY appname "Music Player Minion">
 <!ENTITY album "Album">
 <!ENTITY albums "Albums">
+<!ENTITY all "Tout">
 <!ENTITY artist "Artiste">
 <!ENTITY artists "Artistes">
 <!ENTITY cancel "Annuler">
@@ -9,14 +10,24 @@
 <!ENTITY composers "Compositeurs">
 <!ENTITY date "Date">
 <!ENTITY dates "Dates">
+<!ENTITY disc "Disque">
+<!ENTITY filename "Fichier">
 <!ENTITY folder "Dossier">
+<!ENTITY folders "Dossiers">
 <!ENTITY genre "Genre">
 <!ENTITY genres "Genres">
 <!ENTITY performer "Interprète">
 <!ENTITY performers "Interprètes">
+<!ENTITY playlist "Liste de lecture">
+<!ENTITY playlists "Listes de lecture">
+<!ENTITY position "Position">
+<!ENTITY positions "Positions">
 <!ENTITY songs "Morceaux">
 <!ENTITY length "Durée">
+<!ENTITY tags "Etiquettes">
+<!ENTITY time "Temps">
 <!ENTITY title "Titre">
+<!ENTITY track "Piste">
 
 <!ENTITY minion.dummy1 "<----------------- fenetre des parametres --------------->">
 <!ENTITY settings.title "Paramètres">
@@ -84,6 +95,31 @@
 <!ENTITY minion.plsname "Nom de la liste">
 <!ENTITY minion.savepls "Enregistrer la liste">
 <!ENTITY minion.plstime "Durée de la liste:">
+<!ENTITY minion.cover_action "Pochette/Action">
+<!ENTITY minion.relitems "Eléments relatif:">
+<!ENTITY minion.selected "Sélection">
+<!ENTITY minion.selectedtt "Ajouter la sélection à la liste de lecture">
+<!ENTITY minion.alltt "Ajoute tous les éléments à la liste de lecture">
+<!ENTITY minion.backcollection "Retour à la collection de musique">
+<!ENTITY minion.search "Recherche">
+<!ENTITY minion.updatedb "Mettre à jour la base">
+<!ENTITY minion.filter "Filtre">
+<!ENTITY minion.filtertt "Filtrer le contenu courant par le titre de la colonne">
+<!ENTITY minion.searchall "Recherche complète">
+<!ENTITY minion.searchalltt "Recherche des morceaux sur tous les critères">
+<!ENTITY minion.playlisttt "Recherche dans les listes de lecture sur tous les champs">
+<!ENTITY minion.titlett "Recherche par titres">
+<!ENTITY minion.artisttt "Recherche par artistes">
+<!ENTITY minion.albumtt "Recherche par albums">
+<!ENTITY minion.genrett "Recherche par Genres">
+<!ENTITY minion.composertt "Recherche par compositeurs">
+<!ENTITY minion.performertt "Recherche par interprètes">
+<!ENTITY minion.datett "Recherche par années">
+<!ENTITY minion.positiontt "Position dans la liste de lecture">
+<!ENTITY minion.back "Retour">
+<!ENTITY minion.forward "Avancer">
+<!ENTITY minion.home "Accueil">
+<!ENTITY minion.currentplaylist "Liste courante">
 <!ENTITY song.dummy6 "<----------------- Squelette morceau --------------->">
 <!ENTITY song.title "Détails du morceau">
 <!ENTITY song.follow "Suivre le morceau courant">
