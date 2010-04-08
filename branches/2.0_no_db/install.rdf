@@ -1,23 +1,39 @@
 <?xml version="1.0"?>
-<RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
-         xmlns:NC="http://home.netscape.com/NC-rdf#"
-         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$wZohf1"
-                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-                   em:minVersion="3.0"
-                   em:maxVersion="3.6.*" />
-  <RDF:Description RDF:about="urn:mozilla:install-manifest"
-                   em:id="Music_Player_Minion2@code.google.com"
-                   em:name="Music Player Minion 2"
-                   em:version="__mpm_version__"
-                   em:creator="Chris Seickel"
-                   em:description="Music Player Daemon client"
-                   em:homepageURL="http://code.google.com/p/musicpm"
-                   em:iconURL="chrome://minion/content/images/song.png"
-                   em:optionsURL="chrome://minion/content/servers.xul"
-                   em:aboutURL="chrome://minion/content/about.html">
-    <em:contributor>Alexandre Moore (icons)</em:contributor>
-    <em:contributor>Tango Desktop Project (icons)</em:contributor>
-    <em:targetApplication RDF:resource="rdf:#$wZohf1"/>
-  </RDF:Description>
-</RDF:RDF>
+
+<rdf:RDF xmlns="http://www.mozilla.org/2004/em-rdf#"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+  <rdf:Description about="urn:mozilla:install-manifest">
+    <id>Music_Player_Minion2@code.google.com</id>
+    <version>2.0.3</version>
+    <type>2</type>
+    <optionsURL>chrome://minion/content/servers.xul</optionsURL>
+    <iconURL>chrome://minion/content/images/logo.png</iconURL>
+    <aboutURL>chrome://minion/content/about/about.xul</aboutURL>
+
+    <!-- Target Application this extension can install into,
+         with minimum and maximum supported versions. -->
+    <targetApplication>
+      <rdf:Description>
+        <id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</id>
+        <minVersion>3.0</minVersion>
+        <maxVersion>3.6.*</maxVersion>
+      </rdf:Description>
+    </targetApplication>
+
+    <!-- Front End MetaData -->
+    <name>Music Player Minion 2</name>
+    <description>Music Player Daemon (MPD) client.</description>
+    <creator>Chris Seickel</creator>
+    <homepageURL>http://code.google.com/p/musicpm/</homepageURL>
+
+    <contributor>Aurélien Requiem</contributor>
+    <contributor>Alexandre Moore (icons)</contributor>
+    <contributor>Tango Desktop Project (icons)</contributor>
+
+    <translator>Aurélien Requiem (fr-FR)</translator>
+    <translator>Roberto Ripio (es-ES)</translator>
+    <translator>Rüdiger Hausmann (de-DE)</translator>
+
+  </rdf:Description>
+</rdf:RDF>
