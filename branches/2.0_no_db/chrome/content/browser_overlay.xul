@@ -3,6 +3,7 @@
 <?xml-stylesheet href="chrome://minion/content/bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
 <?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 
 <overlay id="minion-overlay"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -68,7 +69,7 @@
                 var volbtn = document.getElementById('mpm_sb_volume')
                 var volscl = document.getElementById('mpm_sb_volume_scale')
                 volbtn.addEventListener("DOMMouseScroll", volscl.volScroll, false)
-                volbtn.setAttribute("tooltiptext", "Volume: "+mpd.volume+"%")
+                volbtn.setAttribute("tooltiptext", translateService.GetStringFromName("volume")+" "+mpd.volume+"%")
                 observerService.addObserver(obs, 'greeting', false);
                 observerService.addObserver(obsVol, 'volume', false);
                 csPrefObserver.register();
@@ -130,7 +131,7 @@
         var obsVol = {
             observe: function(sub,topic,data){
                 var vol = document.getElementById('mpm_sb_volume')
-                vol.setAttribute("tooltiptext", "Volume: "+data+"%")
+                vol.setAttribute("tooltiptext", translateService.GetStringFromName("volume")+" "+data+"%")
             }
         };
         var csPrefObserver = {
@@ -259,7 +260,7 @@
                     context="mpmMenu"
                     oncontextmenu="mpmMenu_contextShowing(event, 'statusbar', mpd.currentsong)">
             <toolbarbutton id="mpm_sb_launch" class="mpm_btn_Launch"
-                           tooltiptext="Launch Music Player Minion"
+                           tooltiptext="&minion.launch;"
                            oncommand="launchMinion()"/>
             <mpdcontrols id="mpm_sb_controls" hidden="true"/>
             <toolbarbutton id="mpm_sb_volume"

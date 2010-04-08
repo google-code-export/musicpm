@@ -730,6 +730,7 @@
             <constructor>
                 <![CDATA[
                 Components.utils.import("resource://minion/mpd.js");
+                Components.utils.import("resource://minion/mpmUtils.js");
                 Components.utils.import("resource://minion/trees.js");
                 Components.utils.import("resource://minion/io.js");
 				var hideEC = prefs.get("hide_extra_clearplaylist", true)
@@ -777,7 +778,7 @@
                     image.removeAttribute("tooltiptext")
                     if (item) {
                         if (item.type=='search') {
-                            detail_label.value = "Search "+item.Title
+                            detail_label.value = translateService.GetStringFromName("search")+" "+item.Title
                                 var s = "chrome://minion/content/images/"
                                 me.image.src = s + item.Title.toLowerCase() + "_xlarge.png"
                                 me.image.className='mpm_browser_image_small'
@@ -805,7 +806,7 @@
                     function(){
                         var a = browser.activeItem
                         var l = "mpdbrowser"
-                        if (Nz(a.name)=='Current Playlist') var l = "mpdplaylist"
+                        if (Nz(a.name)== translateService.GetStringFromName('current_playlist')) var l = "mpdplaylist"
                         selectChange(a, l)
                     }, false)
                 playlist.tree.addEventListener("select",
@@ -829,8 +830,8 @@
                     q.execute(function(db){
                         var cur = {
                             type: "playlist",
-                            name: "Current Playlist",
-                            Title: "Current Playlist"
+                            name: translateService.GetStringFromName("current_playlist"),
+                            Title: translateService.GetStringFromName("current_playlist")
                         }
                         db.unshift(cur)
                         playlists.load(db,playlists)
@@ -889,8 +890,8 @@
                         q.execute(function(db){
                             var cur = {
                                 type: "playlist",
-                                name: "Current Playlist",
-                                Title: "Current Playlist"
+                                name: translateService.GetStringFromName("current_playlist"),
+                                Title: translateService.GetStringFromName("current_playlist")
                             }
                             db.unshift(cur)
                             playlists.load(db,playlists)
@@ -1080,7 +1081,7 @@
                     if (this.bp_deck.selectedIndex==0) {
                         var a = this.browser.activeItem
                         var l = "mpdbrowser"
-                        if (a && Nz(a.name)=='Current Playlist') var l = "mpdplaylist"
+                        if (a && Nz(a.name)==translateService.GetStringFromName('current_playlist')) var l = "mpdplaylist"
                         return l
                     } else {
                         return "mpdplaylist"
@@ -1147,7 +1148,7 @@
 						me.timecount.value = prettyTime(tm[1], true)
 					}
                     this.browser.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
-                    if (query && query.query != 'Current Playlist') {
+                    if (query && query.query != translateService.GetStringFromName('current_playlist')) {
                         this.deck.selectedIndex = 0
                         this.bp_deck.selectedIndex = 0
                         var browser = this.browser
@@ -1156,8 +1157,8 @@
                             if (Nz(query.type)=='playlist' && Nz(query.query)=='') {
                                 var cur = {
                                     type: "playlist",
-                                    name: "Current Playlist",
-                                    Title: "Current Playlist"
+                                    name: translateService.GetStringFromName("current_playlist"),
+                                    Title: translateService.GetStringFromName("current_playlist")
                                 }
                                 db.unshift(cur)
                             }
@@ -1178,7 +1179,9 @@
 										var time = 0
 										function sumTimes (el, idx, arr) {time += parseInt(el.Time)}
 										files.forEach(sumTimes)
-										me.trackcount.value = files.length + " tracks"
+										var label_track = translateService.GetStringFromName("track");
+                                        if (files.length >1) label_track = translateService.GetStringFromName("tracks");
+										me.trackcount.value = files.length + " " + label_track
 										me.timecount.value = prettyTime(time, true)
 									}
 								} else {
@@ -1209,14 +1212,16 @@
                         }
                         query.execute()
                     }
-                    else if (query && query.query == 'Current Playlist') {
+                    else if (query && query.query == translateService.GetStringFromName("current_playlist")) {
                         me.tabbox.selectedIndex = 1
                         me.deck.selectedIndex = 0
                         me.bp_deck.selectedIndex = 1
-                        me.cwd.value = 'Current Playlist'
+                        me.cwd.value = translateService.GetStringFromName("current_playlist")
                         me.cwd_icon.className = 'mpm_icon_playlist'
 						if (prefs.get("enable_counts", true)) {
-							me.trackcount.value = mpd.playlistlength + " tracks"
+                            var label_track = translateService.GetStringFromName("track");
+                            if (mpd.playlistlength >1) label_track = translateService.GetStringFromName("tracks");
+							me.trackcount.value = mpd.playlistlength + " " + label_track;
 							me.timecount.value = prettyTime(mpd.pltime, true)
 						}
                         var pos = parseInt(Nz(mpd.song,0))
@@ -1227,22 +1232,22 @@
                         var home = [
                             {
                                 type: 'directory',
-                                Title: 'Folders',
+                                Title: translateService.GetStringFromName('folders'),
                                 name: ''
                             },
                             {
                                 type: 'Artist',
-                                Title: 'Artists',
+                                Title: translateService.GetStringFromName('artists'),
                                 name: ''
                             },
                             {
                                 type: 'Album',
-                                Title: 'Albums',
+                                Title: translateService.GetStringFromName('albums'),
                                 name: ''
                             },
                             {
                                 type: 'playlist',
-                                Title: 'Playlists',
+                                Title: translateService.GetStringFromName('playlists'),
                                 name: ''
                             }
                         ]

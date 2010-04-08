@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
 <bindings xmlns="http://www.mozilla.org/xbl"
           xmlns:xbl="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -75,37 +76,37 @@
     <binding id="mpdPlayback">
         <content>
             <xul:toolbarbutton class="mpdButtonPrevious"
-                tooltiptext="Previous Track"
+                tooltiptext="&minion.previoustrack;"
                 oncommand="mpd.doCmd('previous')"/>
             <xul:deck>
                 <xul:hbox class="mpdStateStop">
                     <xul:spacer flex="1"/>
                     <xul:toolbarbutton class="mpdButtonPlay"
-                        tooltiptext="Play"
+                        tooltiptext="&minion.play;"
                         oncommand="mpd.doCmd('play')"/>
                     <xul:spacer flex="1"/>
                 </xul:hbox>
                 <xul:hbox pack="center" align="center" class="mpdStatePlay">
                     <xul:toolbarbutton class="mpdButtonPause"
-                        tooltiptext="Pause"
+                        tooltiptext="&minion.pause;"
                         oncommand="mpd.doCmd('pause')"/>
                     <xul:toolbarbutton class="mpdButtonStop"
-                        tooltiptext="Stop"
+                        tooltiptext="&minion.stop;"
                         oncommand="mpd.doCmd('stop')"
                         xbl:inherits="collapsed=hidestop"/>
                 </xul:hbox>
                 <xul:hbox class="mpdStatePause">
                     <xul:toolbarbutton class="mpdButtonPlay"
-                        tooltiptext="Play"
+                        tooltiptext="&minion.pause;"
                         oncommand="mpd.doCmd('play')"/>
                     <xul:toolbarbutton class="mpdButtonStop"
-                        tooltiptext="Stop"
+                        tooltiptext="&minion.stop;"
                         oncommand="mpd.doCmd('stop')"
                         xbl:inherits="collapsed=hidestop"/>
                 </xul:hbox>
             </xul:deck>
             <xul:toolbarbutton class="mpdButtonNext"
-                tooltiptext="Next Track"
+                tooltiptext="&minion.nexttrack;"
                 oncommand="mpd.doCmd('next')"/>
         </content>
         <implementation>
@@ -175,45 +176,45 @@
     <binding id="mpdServers">
         <content>
             <xul:toolbarbutton class="mpm_btn_Settings"
-                tooltiptext="Manage MPM Settings"
+                tooltiptext="&minion.mpm_settings;"
                 xbl:inherits="label"
                 type="menu">
                 <xul:menupopup
-                    onpopupshowing="this.childNodes[5].setAttribute('label','Crossfade ('+mpd.xfade+')')">
+                    onpopupshowing="this.childNodes[5].setAttribute('label','&minion.crossfade; ('+mpd.xfade+')')">
                     <xul:vbox id="servers_box"/>
-                    <xul:menuitem label="Disconnect"
+                    <xul:menuitem label="&minion.disconnect;"
                         oncommand="this.parentNode.parentNode.parentNode.serverSelect('')"/>
-                    <xul:menuitem label="Manage Servers"
+                    <xul:menuitem label="&minion.manage_servers;"
                         oncommand="mpm_openDialog('chrome://minion/content/servers.xul', 'servers')"/>
                     <xul:menuseparator/>
-                    <xul:menu label="Outputs">
+                    <xul:menu label="&minion.outputs;">
                         <xul:menupopup id="outputs_box"
                             onpopupshowing="this.parentNode.parentNode.parentNode.parentNode.refreshOutputs()">
                             <xul:vbox id="outputs_box"/>
                         </xul:menupopup>
                     </xul:menu>
-                    <xul:menu label="Crossfade">
+                    <xul:menu label="&minion.crossfade;">
                         <xul:menupopup id="outputs_box">
-                            <xul:menuitem label="0 seconds (None)"
+                            <xul:menuitem label="&minion.crossfade0;"
                                 oncommand="mpd.doCmd('crossfade 0')"/>
-                            <xul:menuitem label="5 seconds"
+                            <xul:menuitem label="&minion.crossfade5;"
                                 oncommand="mpd.doCmd('crossfade 5')"/>
-                            <xul:menuitem label="10 seconds"
+                            <xul:menuitem label="&minion.crossfade10;"
                                 oncommand="mpd.doCmd('crossfade 10')"/>
-                            <xul:menuitem label="Other..."
-                                oncommand="var s=prompt('Enter number of seconds to crossfade:',10);
+                            <xul:menuitem label="&minion.crossfade_other;"
+                                oncommand="var s=prompt('&minion.crossfade_other_prompt;',10);
                                     if (s) mpd.doCmd('crossfade '+s)"/>
                         </xul:menupopup>
                     </xul:menu>
-                    <xul:menuitem label="Random" type="checkbox" id="random"
+                    <xul:menuitem label="&minion.random;" type="checkbox" id="random"
                                   autocheck="false"
                                   oncommand="mpd.toggleRandom()"/>
-                    <xul:menuitem label="Repeat" type="checkbox" id="repeat"
+                    <xul:menuitem label="&minion.repeat;" type="checkbox" id="repeat"
                                   autocheck="false"
                                   oncommand="mpd.toggleRepeat()"/>
                     <children/>
                     <xul:menuseparator/>
-                    <xul:menuitem label="Settings"
+                    <xul:menuitem label="&settings.title;"
                         oncommand="mpm_openDialog('chrome://minion/content/settings.xul', 'settings')"/>
                 </xul:menupopup>
             </xul:toolbarbutton>

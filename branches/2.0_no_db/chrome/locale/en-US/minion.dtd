@@ -1,4 +1,4 @@
-<!ENTITY minion.dummy0 "<----------------- General purpose strings --------------->">
+﻿<!ENTITY minion.dummy0 "<----------------- General purpose strings --------------->">
 <!ENTITY appname "Music Player Minion">
 <!ENTITY album "Album">
 <!ENTITY albums "Albums">
@@ -120,6 +120,24 @@
 <!ENTITY minion.forward "Forward">
 <!ENTITY minion.home "Home">
 <!ENTITY minion.currentplaylist "Current playlist">
+<!ENTITY minion.previoustrack "Previous track">
+<!ENTITY minion.nexttrack "Next track">
+<!ENTITY minion.play "Play">
+<!ENTITY minion.stop "Stop">
+<!ENTITY minion.pause "Pause">
+<!ENTITY minion.mpm_settings "Manage MPM Settings">
+<!ENTITY minion.disconnect "Disconnect">
+<!ENTITY minion.manage_servers "Manage servers">
+<!ENTITY minion.outputs "Audio outputs">
+<!ENTITY minion.crossfade "Crossfade">
+<!ENTITY minion.crossfade0 "0 seconds (none)">
+<!ENTITY minion.crossfade5 "5 seconds">
+<!ENTITY minion.crossfade10 "10 seconds">
+<!ENTITY minion.crossfade_other "Other...">
+<!ENTITY minion.crossfade_other_prompt "Enter number of seconds to crossfade:">
+<!ENTITY minion.random "Random">
+<!ENTITY minion.repeat "Repeat">
+<!ENTITY minion.launch "Launch Music Player Minion">
 <!ENTITY song.dummy6 "<----------------- Song template --------------->">
 <!ENTITY song.title "Song Detail">
 <!ENTITY song.follow "Follow Currently Playing Song">

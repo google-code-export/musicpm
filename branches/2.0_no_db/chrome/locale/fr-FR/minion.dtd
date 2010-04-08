@@ -1,4 +1,4 @@
-<!ENTITY minion.dummy0 "<----------------- Chaines d'utilite generale --------------->">
+﻿<!ENTITY minion.dummy0 "<----------------- Chaines d'utilite generale --------------->">
 <!ENTITY appname "Music Player Minion">
 <!ENTITY album "Album">
 <!ENTITY albums "Albums">
@@ -120,6 +120,24 @@
 <!ENTITY minion.forward "Avancer">
 <!ENTITY minion.home "Accueil">
 <!ENTITY minion.currentplaylist "Liste courante">
+<!ENTITY minion.previoustrack "Piste précédente">
+<!ENTITY minion.nexttrack "Piste suivante">
+<!ENTITY minion.play "Lecture">
+<!ENTITY minion.stop "Stop">
+<!ENTITY minion.pause "Pause">
+<!ENTITY minion.mpm_settings "Paramètres MPM">
+<!ENTITY minion.disconnect "Se déconnecter">
+<!ENTITY minion.manage_servers "Gérer les serveurs">
+<!ENTITY minion.outputs "Sorties audio">
+<!ENTITY minion.crossfade "Fondu sonore">
+<!ENTITY minion.crossfade0 "0 seconde (aucun)">
+<!ENTITY minion.crossfade5 "5 secondes">
+<!ENTITY minion.crossfade10 "10 secondes">
+<!ENTITY minion.crossfade_other "Autre...">
+<!ENTITY minion.crossfade_other_prompt "Entrez le nombre de secondes pour le fondu sonore:">
+<!ENTITY minion.random "Aléatoire">
+<!ENTITY minion.repeat "Lecture en boucle">
+<!ENTITY minion.launch "Lancer Music Player Minion">
 <!ENTITY song.dummy6 "<----------------- Squelette morceau --------------->">
 <!ENTITY song.title "Détails du morceau">
 <!ENTITY song.follow "Suivre le morceau courant">

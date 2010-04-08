@@ -109,9 +109,7 @@
         }
         
         function restore () {
-            var conf = confirm("Are you sure you want to restore the " +
-                "default menus?  All changes made to the menu will be lost, " +
-                "this action can not be undone.")
+            var conf = confirm(translateService.GetStringFromName("reset_to_default_menus"))
             if (conf) {
                 mpmMenu.restore()
                 var list = document.getElementById("menuList")

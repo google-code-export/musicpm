@@ -1,3 +1,4 @@
+Components.utils.import("resource://minion/mpmUtils.js");
 Components.utils.import("resource://minion/mpd.js");
 Components.utils.import("resource://minion/trees.js");
 
@@ -106,7 +107,7 @@ function unload () {
 
 function mpdExecute () {
     var q = new dbQuery()
-    q.cmd = prompt('Enter MPD Command:')
+    q.cmd = prompt(translateService.GetStringFromName('enter_mpd_cmd'))
     q.query = q.cmd
     document.getElementById("browse").goTo(q)
 }
