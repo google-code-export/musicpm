@@ -18,7 +18,7 @@
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
         "observerService", "getFileContents", "fetch", "winw", "urlReplace",
         "openReuseByURL", "openReuseByAttribute", "mpm_openDialog", "prefs",
-        "guessTags", "updateStatusBarPosition", "mpmUtils_EXPORTED_SYMBOLS"]
+        "guessTags", "updateStatusBarPosition", "translateService", "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
 var observerService = Components.classes["@mozilla.org/observer-service;1"]
@@ -31,7 +31,11 @@ var branch = prefService.getBranch("extensions.mpm.");
 
 var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
         .getService(Components.interfaces.nsIWindowWatcher);
-  
+
+var translateService = Components.classes["@mozilla.org/intl/stringbundle;1"]
+        .getService(Components.interfaces.nsIStringBundleService)
+        .createBundle("chrome://minion/locale/strings.properties");
+		
 function debug(s) {
 	if ( prefs.get("debug", false) != true ) return;	
     try {
@@ -126,63 +130,64 @@ function hmsFromSec(sec) {
 }
 
 function prettyTime(sec, round) {
-    var tm = ""
-    try {
-        sec = parseInt(sec)
-    } catch (err) {
-        debug("prettyTime: " + err.description);
-        sec = 0
-    }
-    if (sec > 0) {
-        var d = Math.floor(sec / 86400)
-        sec = sec % 86400
-        var h = Math.floor(sec / 3600)
-        sec = sec % 3600
-        var m = Math.floor(sec / 60)
-        var s = sec % 60
+	var tm = ""
+	try {
+		sec = parseInt(sec)
+	} catch (err) {
+		debug("prettyTime: " + err.description);
+		sec = 0
+	}
+	if (sec > 0) {
+		var d = Math.floor(sec / 86400)
+		sec = sec % 86400
+		var h = Math.floor(sec / 3600)
+		sec = sec % 3600
+		var m = Math.floor(sec / 60)
+		var s = sec % 60
+		var sep = ""
 
-        if (d > 0) {
-            tm = d + " day"
-            if (d > 1) {
-                tm += "s"
-            }
-            var hs = " hr"
-            var ms = " min"
-            var ss = " sec"
-        } else {
-            var hs = " hour"
-            var ms = " minute"
-            var ss = " second"
-        }
-        if (h > 0) {
-            if (tm.length > 0) {
-                tm += ", "
-            }
-            tm += h + hs
-            if (h > 1) {
-                tm += "s"
-            }
-        }
-        if (m > 0) {
-            if (tm.length > 0) {
-                tm += ", "
-            }
-            tm += m + ms
-            if (m > 1) {
-                tm += "s"
-            }
-        }
-        if (!Nz(round) && s > 0) {
-            if (tm.length > 0) {
-                tm += ", "
-            }
-            tm += s + ss
-            if (s > 1) {
-                tm += "s"
-            }
-        }
-    }
-    return tm
+		if (d > 0) {
+			if (d > 1) tm = d + " " + translateService.GetStringFromName("days");
+			else tm = d + " " + translateService.GetStringFromName("day");
+			sep = ", ";
+		}
+
+		if (h > 0) {
+			tm += sep;
+			if ( h > 1 ) {
+				if (d > 0) tm += h + " " + translateService.GetStringFromName("hrs");
+				else tm += h + " " + translateService.GetStringFromName("hours");
+			} else {
+				if (d > 0) tm += h + " " + translateService.GetStringFromName("hr");
+				else tm += h + " " + translateService.GetStringFromName("hour");
+			}
+			sep = ", ";
+		}
+
+		if (m > 0) {
+			tm += sep;
+			if ( m > 1 ) {
+				if (d > 0) tm += m + " " + translateService.GetStringFromName("mins");
+				else tm += m + " " + translateService.GetStringFromName("minutes");
+			} else {
+				if (d > 0) tm += m + " " + translateService.GetStringFromName("min");
+				else tm += m + " " + translateService.GetStringFromName("minute");
+			}
+			sep = ", ";
+		}
+
+		if (!Nz(round) && s > 0) {
+			tm += sep;
+			if ( s > 1 ) {
+			if (d > 0) tm += s + " " + translateService.GetStringFromName("secs");
+			else tm += s + " " + translateService.GetStringFromName("seconds");
+			} else {
+				if (d > 0) tm += s + " " + translateService.GetStringFromName("sec");
+				else tm += s + " " + translateService.GetStringFromName("second");
+			}
+		}
+	}
+	return tm
 }
 
 function copyArray(oldArray) {

@@ -64,7 +64,7 @@ function init () {
     var browse = document.getElementById('browse')
     browse.handle_select = browse_select
 	var s = decodeURI(window.location.search)
-	dump(s)
+	debug(s)
 	if (s.length != 0) {
 		s = s.split("=")
 		switch (s[0]) {
@@ -83,6 +83,7 @@ function init () {
 function post_init () {
 	var q = Application.storage.get("doQuery", null)
 	var d = Application.storage.get("doDetails", null)
+    debug("post_init()");
 	debug(q)
 	debug(d)
     if (q) {

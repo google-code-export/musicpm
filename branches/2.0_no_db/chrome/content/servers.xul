@@ -19,9 +19,6 @@
         Components.utils.import("resource://minion/mpd.js");
         Components.utils.import("resource://minion/mpmUtils.js");
         var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        var wrstrings = Components.classes["@mozilla.org/intl/stringbundle;1"]
-            .getService(Components.interfaces.nsIStringBundleService)
-            .createBundle("chrome://minion/locale/strings.properties")
 		
         function addServerRow (index) {
             var rows = document.getElementById("server_rows")
@@ -48,7 +45,7 @@
             t4.setAttribute('type', 'password')
             var btn = document.createElementNS(xul,'button')
             btn.setAttribute('oncommand', 'this.parentNode.parentNode.removeChild(this.parentNode)')
-            btn.setAttribute('label', wrstrings.GetStringFromName("removeString"))
+            btn.setAttribute('label', translateService.GetStringFromName("remove"))
             if (Nz(index,null) != null) {
                 var desc = mpd.servers[index][0]
                 var srv = mpd.servers[index][1].split(":",3)

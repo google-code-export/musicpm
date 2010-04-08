@@ -193,7 +193,7 @@ function mpmMenu_contextShowing(event, location, activeItem, fillNode, nodeType)
                     readySep = true
                 }
             }
-            if (menu.lastChild.tagName == "menuseparator")
+            if (menu.lastChild != null && menu.lastChild.tagName == "menuseparator")
                 menu.removeChild(menu.lastChild)
         }
     } catch (e) {

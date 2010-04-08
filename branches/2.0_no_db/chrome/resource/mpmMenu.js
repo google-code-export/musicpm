@@ -8,7 +8,7 @@ function loadDefaults () {
     mpmMenu.items = [
         {
             id : "mpm_menu_launch",
-            label : "Launch in New Window",
+            label : translateService.GetStringFromName("launch_new_browser"),
             locations : "statusbar",
             targets : null,
             URL : null,
@@ -19,7 +19,7 @@ function loadDefaults () {
             script : 'var w=window.open("chrome://minion/content/minion.xul","chrome://minion/content/minion.xul","chrome");w.focus()'
         }, {
             id : "mpm_menu_toggle_cs",
-            label : "Toggle Current Song Display",
+            label : translateService.GetStringFromName("toggle_song_display"),
             locations : "statusbar",
             targets : null,
             URL : null,
@@ -30,7 +30,7 @@ function loadDefaults () {
             script : "prefs.set (\n    'sb_currentsong_hide',\n    !prefs.get('sb_currentsong_hide')\n);"
         }, {
             id : "mpm_menu_add",
-            label : "Add to Playlist",
+            label : translateService.GetStringFromName("add_to_playlist"),
             locations : "mpdbrowser",
             targets : "file directory Artist Album Date Genre Performer Composer",
             URL : null,
@@ -41,7 +41,7 @@ function loadDefaults () {
             script : "mpdbrowser.addSelected()"
         }, {
             id : "mpm_menu_replace",
-            label : "Replace Playlist",
+            label : translateService.GetStringFromName("replace_playlist"),
             locations : "mpdbrowser",
             targets : "file directory Artist Album Date Genre Performer Composer",
             URL : null,
@@ -52,7 +52,7 @@ function loadDefaults () {
             script : "mpdbrowser.addSelected()"
         }, {
             id : "mpm_menu_viewDetails",
-            label : "View Song Details",
+            label : translateService.GetStringFromName("view_song_details"),
             locations : null,
             targets : "file",
             URL : null,
@@ -63,7 +63,7 @@ function loadDefaults () {
             script : "mpdbrowser.showDetails(item)"
         }, {
             id : "mpm_menu_setFileAction",
-            label : "Set Default Action",
+            label : translateService.GetStringFromName("set_default_action"),
             locations : "mpdbrowser",
             targets : "file",
             URL : null,
@@ -74,7 +74,7 @@ function loadDefaults () {
             script : "mpm_openDialog('chrome://minion/content/fileActions.xul', 'mpm_file_actions')"
         }, {
             id : "mpm_menu_update",
-            label : "Update this Folder",
+            label : translateService.GetStringFromName("update_this_folder"),
             locations : null,
             targets : "directory",
             URL : null,
@@ -85,7 +85,7 @@ function loadDefaults () {
             script : "mpdbrowser.doUpdate()"
         }, "separator", {
             id : "mpm_menu_loadPlaylist",
-            label : "Load Playlist",
+            label : translateService.GetStringFromName("load_playlist"),
             locations : "mpdbrowser",
             targets : "playlist",
             URL : null,
@@ -96,7 +96,7 @@ function loadDefaults () {
             script : null
         }, {
             id : "mpm_custom_playlistAppend",
-            label : "Append Playlist",
+            label : translateService.GetStringFromName("append_playlist"),
             locations : "mpdbrowser",
             targets : "playlist",
             URL : null,
@@ -107,7 +107,7 @@ function loadDefaults () {
             script : null
         }, {
             id : "mpm_menu_rmPlaylist",
-            label : "Delete Playlist",
+            label : translateService.GetStringFromName("delete_playlist"),
             locations : "mpdbrowser",
             targets : "playlist",
             URL : null,
@@ -118,7 +118,7 @@ function loadDefaults () {
             script : null
         }, {
             id : "mpm_menu_renPlaylist",
-            label : "Rename Playlist",
+            label : translateService.GetStringFromName("rename_playlist"),
             locations : "mpdbrowser",
             targets : "playlist",
             URL : null,
@@ -126,10 +126,10 @@ function loadDefaults () {
             queryScope : null,
             filterField: null,
             mpdCommand : null,
-            script : "var name = prompt(\"Please enter a new name:\", item.Title);\nif (name) mpd.doCmd(\"rename \"+Sz(item.Title)+\" \"+Sz(name))"
+            script : "var name = prompt(\""+translateService.GetStringFromName("enter_new_name")+"\", item.Title);\nif (name) mpd.doCmd(\"rename \"+Sz(item.Title)+\" \"+Sz(name))"
         }, "separator", {
             id : "mpm_menu_playlistRemove",
-            label : "Remove from Playlist",
+            label : translateService.GetStringFromName("remove_from_playlist"),
             locations : "mpdplaylist",
             targets : "file",
             URL : null,
@@ -140,7 +140,7 @@ function loadDefaults () {
             script : "mpdplaylist.delete()"
         }, {
             id : "mpm_menu_playlistmvFirst",
-            label : "Move To Begining of Playlist",
+            label : translateService.GetStringFromName("move_to_begining_playlist"),
             locations : "mpdplaylist",
             targets : "file",
             URL : null,
@@ -151,7 +151,7 @@ function loadDefaults () {
             script : "mpdplaylist.moveFirst()"
         }, {
             id : "mpm_menu_playlistmvNext",
-            label : "Move to Next in Queue",
+            label : translateService.GetStringFromName("move_to_next_in_queue"),
             locations : "mpdplaylist",
             targets : "file",
             URL : null,
@@ -162,7 +162,7 @@ function loadDefaults () {
             script : "mpdplaylist.moveNext()"
         }, {
             id : "mpm_menu_playlistmvLast",
-            label : "Move To End of Playlist",
+            label : translateService.GetStringFromName("move_to_end_playlist"),
             locations : "mpdplaylist",
             targets : "file",
             URL : null,
@@ -173,7 +173,7 @@ function loadDefaults () {
             script : "mpdplaylist.moveLast()"
         }, {
             id : "mpm_menu_addURL",
-            label : "Add URL to Playlist",
+            label : translateService.GetStringFromName("add_url_to_playlist"),
             locations : "mpdplaylist",
             targets : null,
             URL : null,
@@ -181,17 +181,17 @@ function loadDefaults () {
             queryScope : null,
             filterField: null,
             mpdCommand : null,
-            script : 'var val = prompt("Please enter a URL to add to the playlist.", "http://")\n'+
+            script : 'var val = prompt("'+translateService.GetStringFromName("enter_url")+'", "http://")\n'+
                 'if (val != null) {\n'+
                 '    var v = new RegExp();\n'+
                 '    v.compile(/(ftp|http|https):\\/\\/(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(\\/|\\/([\\w#!:.?+=&%@!\\-\\/]))?/);\n'+
                 '    if (v.test(val)) {\n'+
                 '        mpd.handleURL(val)\n'+
                 '    }\n'+
-                '    else alert("`"+val+"` is not a valid URL.")\n}'
+                '    else alert("`"+val+"` '+translateService.GetStringFromName("is_not_valid")+'")\n}'
         }, {
             id : "mpm_menu_ClearPlaylist",
-            label : "Clear Playlist",
+            label : translateService.GetStringFromName("clear_playlist"),
             locations : "mpdplaylist",
             targets : null,
             URL : null,
@@ -202,7 +202,7 @@ function loadDefaults () {
             script : null
         }, {
             id : "mpm_menu_SavePlaylist",
-            label : "Save Playlist As...",
+            label : translateService.GetStringFromName("save_playlist_as"),
             locations : "mpdplaylist",
             targets : null,
             URL : null,
@@ -210,11 +210,11 @@ function loadDefaults () {
             queryScope : null,
             filterField: null,
             mpdCommand : null,
-            script : "var name = prompt('Enter Playlist name:');\n"+
+            script : "var name = prompt('"+translateService.GetStringFromName("enter_playlist_name")+"');\n"+
                 "mpd.doCmd('save \"' + name.replace(/\"/g, '\\\"') + '\"')"
         }, "separator", {
             id : "mpm_menu_google",
-            label : "Google It!",
+            label : translateService.GetStringFromName("google_it"),
             locations : null,
             targets : "file Artist Album",
             URL : "http://www.google.com/search?q={Artist}+{Title}",
@@ -225,7 +225,7 @@ function loadDefaults () {
             script : null
         }, {
             id : "mpm_menu_viewAlbum",
-            label : "View this Album",
+            label : translateService.GetStringFromName("view_this_album"),
             locations : null,
             targets : "file",
             URL : null,
@@ -236,7 +236,7 @@ function loadDefaults () {
             script : null
         }, {
             id : "mpm_menu_viewArtistAlbum",
-            label : "View Albums by this Artist",
+            label : translateService.GetStringFromName("view_albums_by_artist"),
             locations : null,
             targets : "file Artist",
             URL : null,
@@ -300,7 +300,7 @@ function loadMenuItems () {
  */
 function mpmMenuItem (label, id) {
     this.id = Nz(id, "mpm_custom_menuItem")
-    this.label = Nz(label, "New Menu Item")
+    this.label = Nz(label, translateService.GetStringFromName("new_menu_item"))
     
     this.locations = null
     this.targets = null

@@ -27,7 +27,7 @@ function customTreeView () {
     this.db = []
     this.treeBox = null
     this.rowCount = 0
-        this.get = function (row) {return this.rs[row]}
+    this.get = function (row) {return this.rs[row]}
     this.canDrop = function (index, orientation ) {return false}
     this.cycleCell = function (row, col ) {}
     this.cycleHeader = function (col ) {}
@@ -122,7 +122,7 @@ function arrayView(dbArray) {
 		var files = [x for each (x in dbArray) if (x.type='file')]
 		var time = 0
 		for each (f in files) {time += Math.parseInt(f.Time)}
-		var text = f.length + " tracks, " + prettyTime(time)
+		var text = f.length + " "+translateService.GetStringFromName("tracks")+", " + prettyTime(time)
 	}
 }
 arrayView.prototype = new customTreeView
@@ -167,14 +167,14 @@ function playlistView(){
                     rs[rc - n] = {
                         index: idx,
                         type: 'Album',
-                        Prefix: "from ",
+                        Prefix: translateService.GetStringFromName("from")+" ",
                         isContainer: false
                     }
                     --n
                     rs[rc - n] = {
                         index: idx,
                         type: 'Artist',
-                        Prefix: "by ",
+                        Prefix: translateService.GetStringFromName("by")+" ",
                         isContainer: false
                     }
                     idx++
@@ -202,13 +202,13 @@ function playlistView(){
             this.rs[i+1] = {
                 index: idx,
                 type: 'Album',
-                Prefix: "from ",
+                Prefix: translateService.GetStringFromName("from")+" ",
                 isContainer: false
             }
             this.rs[i+2] = {
                 index: idx,
                 type: 'Artist',
-                Prefix: "by ",
+                Prefix: translateService.GetStringFromName("by")+" ",
                 isContainer: false
             }
             this.treeBox.rowCountChanged(i-1, 3)
@@ -306,13 +306,13 @@ function playlistView(){
                 var art = {
                     index: item.Pos,
                     type: 'Artist',
-                    Prefix: "by ",
+                    Prefix: translateService.GetStringFromName("by")+" ",
                     isContainer: false
                 }
                 var alb = {
                     index: item.Pos,
                     type: 'Album',
-                    Prefix: "from ",
+                    Prefix: translateService.GetStringFromName("from")+" ",
                     isContainer: false
                 }
                 this.rs[row].isOpen = true

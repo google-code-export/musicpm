@@ -315,7 +315,7 @@ var mpd = {
     sec_synced : false,
     update_interval : prefs.get("update_interval", 200),
     adaptive_interval : prefs.get("adaptive_interval", true),
-    playlistname : "New Playlist",
+    playlistname : translateService.GetStringFromName("new_playlist"),
 
     // Playlist contents and total playtime
     plinfo : [],
@@ -324,7 +324,7 @@ var mpd = {
     pl_lookup : {},
 
     // Connection state information
-    greeting : 'Not Connected',
+    greeting : translateService.GetStringFromName('not_connected'),
     last_command : '',
     lastResponse : '',
     _idle : false,
@@ -495,9 +495,9 @@ mpd._parsePL = function(data) {
         mpd.set("playlistlength", mpd.playlistlength)
         mpd.set("prettytime", prettyTime(tm))
         if (mpd.playlistlength == 0) {
-            mpd.set("playlistname", "New Playlist")
+            mpd.set("playlistname", translateService.GetStringFromName("new_playlist"))
         } else {
-            if (mpd.playlistname == "New Playlist") mpd.guessPlaylistName()
+            if (mpd.playlistname == translateService.GetStringFromName("new_playlist")) mpd.guessPlaylistName()
         }
     } catch (e) {
         debug(e);
@@ -645,10 +645,10 @@ mpd.connect = function() {
         mpd._socket = null
     }
     if (mpd._host && mpd._port) {
-        mpd.set("playlistname", "New Playlist")
+        mpd.set("playlistname", translateService.GetStringFromName("new_playlist"))
         mpd._checkStatus()
     } else
-        mpd.set("lastResponse", "Server Not Selected")
+        mpd.set("lastResponse", translateService.GetStringFromName("server_not_selected"))
 }
 
 mpd.force_connect = function() { loadSrvPref() }
@@ -809,7 +809,7 @@ mpd.getArt = function(item, img) {
         }
     }
     img.src = "chrome://minion/content/images/album_loading.png"
-    img.setAttribute("tooltiptext","loading")
+    img.setAttribute("tooltiptext","...")
 
     if (prefs.get("use_custom_art", false)) {
         var url = urlReplace(prefs.get("custom_art_url"), item)
@@ -899,12 +899,12 @@ mpd.searchLyrics = function (q, origCallBack) {
 }
 mpd.getLyrics = function (item, txtLyrics, btnEdit) {
     if (!Nz(item.Artist)) {
-        txtLyrics.value = "No Lyrics Found."
+        txtLyrics.value = translateService.GetStringFromName("no_lyrics_found");
         btnEdit.edit_link = "http://lyricsfly.com/submit/"
         return null
     }
     var cb = function(data) {
-        var lyrics = "No Lyrics Found."
+        var lyrics = translateService.GetStringFromName("no_lyrics");
         try {
             var tx = data.getElementsByTagName("tx")
             if (Nz(tx[0])) {
@@ -929,7 +929,7 @@ mpd.getLyrics = function (item, txtLyrics, btnEdit) {
     url = url.replace("{amo}", "addons.mozilla.org/en-US/firefox/addon/6324")
     url = url.replace("{Artist}", Nz(item.Artist, '').replace(/[^A-Za-z0-9]/g, '%'))
     url = url.replace("{Title}", Nz(item.Title, '').replace(/[^A-Za-z0-9]/g, '%'))
-    txtLyrics.value = "Searching for lyrics on LyricsFly.com..."
+    txtLyrics.value = translateService.GetStringFromName("searching_lyrics");
     btnEdit.edit_link = "http://lyricsfly.com/submit/"
     fetch(url, cb, null, true)
 }
@@ -1189,7 +1189,7 @@ function socketTalker() {
             initialized = false
             debug('socketTalker for server ' + mpd._host + ":" + mpd._port
                     + " created.")
-            mpd.set('greeting', 'Connecting');
+            mpd.set('greeting', translateService.GetStringFromName('connecting'));
         },
         onStopRequest : function(request, context, status) {
             this.data = null
@@ -1197,7 +1197,7 @@ function socketTalker() {
                     + " destroyed.")
             debug('close status = ' + status)
             mpd._socket = null
-            mpd.set('greeting', 'Not Connected');
+            mpd.set('greeting', translateService.GetStringFromName('not_connected'));
             if (status == NOSRV_STATUS) {
                 mpd._host = null
                 mpd._port = null
@@ -1237,9 +1237,9 @@ function socketTalker() {
                             utf_outstream.writeString(snd);
                             if (!mpd._cmdQueue[0].hide) {
                                 mpd.set('last_command', snd);
-                                mpd.set('lastResponse', "Working...");
+                                mpd.set('lastResponse', translateService.GetStringFromName("working"));
                             } else if (snd.slice(0, 9) == "plchanges") {
-                                mpd.set('lastResponse', "Working...");
+                                mpd.set('lastResponse', translateService.GetStringFromName("working"));
                             }
                         } else {
                             done = true
@@ -1271,9 +1271,9 @@ function socketTalker() {
                         utf_outstream.writeString(snd);
                         if (!mpd._cmdQueue[0].hide) {
                             mpd.set('last_command', snd);
-                            mpd.set('lastResponse', "Working...");
+                            mpd.set('lastResponse', translateService.GetStringFromName("working"));
                         } else if (snd.slice(0, 9) == "plchanges") {
-                            mpd.set('lastResponse', "Working...");
+                            mpd.set('lastResponse', translateService.GetStringFromName("working"));
                         }
                     } else {
                         done = true

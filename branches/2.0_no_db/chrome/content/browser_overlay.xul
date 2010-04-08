@@ -12,7 +12,6 @@
         Components.utils.import("resource://minion/mpd.js");
         var incr = 0;
 		var end = 0;
-        var operated = 0;
         function launchMinion () {
             openReuseByURL('chrome://minion/content/minion.xul')
         }
