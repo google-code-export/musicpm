@@ -1144,7 +1144,9 @@
 					var statscb = function (data) {
 						var sng = /^songs\:\s(.*)$/gm.exec(data)
 						var tm = /^db_playtime\:\s(.*)$/gm.exec(data)
-						me.trackcount.value = sng[1] + " tracks"
+						var label_track = translateService.GetStringFromName("track");
+						if (sng[1] >1) label_track = translateService.GetStringFromName("tracks");
+						me.trackcount.value = sng[1] + " "+label_track
 						me.timecount.value = prettyTime(tm[1], true)
 					}
                     this.browser.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
@@ -1168,7 +1170,9 @@
 									if (db.length > 0 && db[0].type == 'directory') {
 										var tcb = function (data) {
 											var times = data.match(/^Time\:\s(.*)$/gm)
-											me.trackcount.value = times.length + " tracks"
+											var label_track = translateService.GetStringFromName("track");
+											if (times.length >1) label_track = translateService.GetStringFromName("tracks");
+											me.trackcount.value = times.length + " "+ label_track;
 											var t = 0
 											times.forEach(function(x){t+=parseInt(x.slice(6))})
 											me.timecount.value = prettyTime(t, true)
