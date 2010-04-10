@@ -2,6 +2,8 @@ Components.utils.import("resource://minion/mpmUtils.js");
 Components.utils.import("resource://minion/mpd.js");
 Components.utils.import("resource://minion/trees.js");
 
+var postinittimer = Components.classes["@mozilla.org/timer;1"]
+                .createInstance(Components.interfaces.nsITimer);
 
 var observerPlaylists = {
     observe: function(subject,topic,data){
@@ -77,11 +79,11 @@ function init () {
 				break;
 		}
 	}
-	setTimeout("post_init()",1)
+    postinittimer.initWithCallback(postinit,100,Components.interfaces.nsITimer.TYPE_ONE_SHOT);
     document.getElementById("playlistName").value = mpd.playlistname
 }
 
-function post_init () {
+var postinit = { notify: function(postinittimer) {
 	var q = Application.storage.get("doQuery", null)
 	var d = Application.storage.get("doDetails", null)
     debug("post_init()");
@@ -95,7 +97,7 @@ function post_init () {
         document.getElementById("browse").showDetails(d)
 		Application.storage.set("doDetails", null)
     }
-}
+}}
 
 function unload () {
     document.getElementById("browse").saveColumns()
