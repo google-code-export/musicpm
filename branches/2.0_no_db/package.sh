@@ -6,6 +6,18 @@ then
 	exit 1
 fi
 
+DEFLNG="en-US"
+L10N="chrome/locale"
+for x in `cat $L10N/all-locales | grep -v $DEFLNG`
+do
+	php testlocale.php -s $L10N/$DEFLNG -d $L10N/$x
+	if [ $? -ne 0 ]
+	then
+		echo "locale $x check failed"
+		exit 1;
+	fi
+done
+
 cd ..
 rm -rf mpm_release
 svn export 2.0_no_db mpm_release
