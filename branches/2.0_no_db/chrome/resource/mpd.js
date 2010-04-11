@@ -28,6 +28,14 @@ var lfId = prefs.get("lyricsfly_id","8890a06f973057f4b")
 const NOSRV_STATUS = 2152398861
 const LOSTC_STATUS = 2152398868
 
+var default_servers = [["localhost", "localhost:6600:"]];
+
+var pref_dir = "PrefD"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
+var pref_file = "mpm_servers.js";
+
+var pref_dir_old = "Home"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
+var pref_file_old = ".mpm_servers.js";
+
 
 function smartsort (a,b) {
     if (a.type != b.type) {
@@ -967,15 +975,15 @@ mpd.getOutputs = function(callBack) {
 }
 
 mpd.setServers = function(servers) {
-    mpd.set('servers', servers)
-    var file = DirIO.get("Home")
-    file.append(".mpm_servers.js")
-    if (!file.exists()) {
-        FileIO.create(file)
-    }
-    var str = mpd.servers.toSource()
-    FileIO.write(file, str)
-    file = null
+	mpd.set('servers', servers)
+	var file = DirIO.get(pref_dir)
+	file.append(pref_file)
+	if (!file.exists()) {
+		FileIO.create(file)
+	}
+	var str = mpd.servers.toSource()
+	FileIO.write(file, str)
+	file = null
 }
 
 // Any property that may be observed must be set with this method.
@@ -1354,17 +1362,28 @@ var myPrefObserver = {
     }
 }
 
-var file = DirIO.get("Home")
-file.append(".mpm_servers.js")
+var file = DirIO.get(pref_dir);
+file.append(pref_file);
 if (file.exists()) {
-    var str = FileIO.read(file)
-    mpd.servers = eval(str)
+	debug("Reading server prefs from: "+file.target);
+	var str = FileIO.read(file)
+	mpd.servers = eval(str)
 } else {
-    debug("Creating default servers.")
-    mpd.servers = [["localhost", "localhost:6600:"]]
-    FileIO.create(file)
-    var str = mpd.servers.toSource()
-    FileIO.write(file, str)
+	var file = DirIO.get(pref_dir_old);
+	file.append(pref_file_old);
+	if (file.exists()) {
+		debug("Reading OLD server prefs from: "+file.target);
+		// migrating old server file to new location
+		debug("Migrating old server prefs to new location/name");
+		var str = FileIO.read(file);
+		mpd.servers = eval(str);
+		FileIO.unlink(file);
+	} else {
+		// creating default server
+		debug("Creating default servers.")
+		mpd.servers = default_servers;
+	}
+	mpd.setServers(mpd.servers);
 }
 file = null
 
