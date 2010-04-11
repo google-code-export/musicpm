@@ -93,7 +93,7 @@
                         LFTagstimer.cancel(); /* the page may have been closed or submitted. No more actions */
                         return;
                     }
-                    var doc = win.document; //.wrappedJSObject
+                    var doc = win.document;
                     doc.getElementById("title").value = item.Title
                     doc.getElementById("artist").value = item.Artist
                     doc.getElementById("album").value = item.Album
