@@ -32,7 +32,6 @@
 <!ENTITY minion.dummy1 "<----------------- Ventana de ajustes --------------->">
 <!ENTITY settings.title "Ajustes">
 <!ENTITY settings.pane1 "General">
-<!ENTITY settings.check_peristant_state "Guardar el estado del navegador entre sesiones.">
 <!ENTITY settings.check_linguistic_sort "Cargar siempre con orden lingüístico ( no distingue entre mayúsculas y minúsculas)">
 <!ENTITY settings.check_launch_in_browser "Ejecutar Minion en una pestaña (no en una nueva ventana)">
 <!ENTITY settings.check_adapt "Usar intervalo de actualización adaptativo.">
