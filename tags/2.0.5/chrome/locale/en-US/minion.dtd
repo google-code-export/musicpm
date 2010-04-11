@@ -1,0 +1,144 @@
+﻿<!ENTITY minion.dummy0 "<----------------- General purpose strings --------------->">
+<!ENTITY appname "Music Player Minion">
+<!ENTITY album "Album">
+<!ENTITY albums "Albums">
+<!ENTITY all "All">
+<!ENTITY artist "Artist">
+<!ENTITY artists "Artists">
+<!ENTITY cancel "Cancel">
+<!ENTITY composer "Composer">
+<!ENTITY composers "Composers">
+<!ENTITY date "Date">
+<!ENTITY dates "Dates">
+<!ENTITY disc "Disc">
+<!ENTITY filename "Filename">
+<!ENTITY folder "Folder">
+<!ENTITY folders "Folders">
+<!ENTITY genre "Genre">
+<!ENTITY genres "Genres">
+<!ENTITY length "Length">
+<!ENTITY performer "Performer">
+<!ENTITY performers "Performers">
+<!ENTITY playlist "Playlist">
+<!ENTITY playlists "Playlists">
+<!ENTITY position "Position">
+<!ENTITY positions "Positions">
+<!ENTITY songs "Songs">
+<!ENTITY tags "Tags">
+<!ENTITY time "Time">
+<!ENTITY title "Title">
+<!ENTITY track "Track">
+
+<!ENTITY minion.dummy1 "<----------------- settings window --------------->">
+<!ENTITY settings.title "Settings">
+<!ENTITY settings.pane1 "General">
+<!ENTITY settings.check_linguistic_sort "Always load with linguistic sort (case insensitive)">
+<!ENTITY settings.check_launch_in_browser "Launch Minion in tab (as opposed to new window)">
+<!ENTITY settings.check_adapt "Use adaptive update interval.">
+<!ENTITY settings.check_adapt_tt "This option will cause Minion to update once per second, after the timer has been synchronized with the current song.">
+<!ENTITY settings.update "Static update interval (milliseconds)">
+<!ENTITY settings.txt_search_timeout "Search As You Type interval (milliseconds, 0 to disable)">
+<!ENTITY settings.use_custom_url "Use custom album cover URL:">
+<!ENTITY settings.amazon "Fetch album covers from Amazon.com">
+<!ENTITY settings.pane2 "Appearance">
+<!ENTITY settings.check_cs "Hide current song display in statusbar.">
+<!ENTITY settings.check_theme "Use default Firefox theme">
+<!ENTITY settings.check_playlist_bottom "Show Playlist on bottom.">
+<!ENTITY settings.check_playlist_menu "Display playlist as menu in statusbar.">
+<!ENTITY settings.txt_statusbar_position "Status bar item position at">
+<!ENTITY settings.pane3 "Debug">
+<!ENTITY settings.enable_debug "Display debug info in the console">
+<!ENTITY minion.dummy2 "<----------------- servers window --------------->">
+<!ENTITY servers.title "Servers">
+<!ENTITY servers.lserver "Description">
+<!ENTITY servers.lhost "Host">
+<!ENTITY servers.lport "Port">
+<!ENTITY servers.lpassword "Password">
+<!ENTITY servers.addserver "Add">
+<!ENTITY minion.dummy3 "<----------------- various menus --------------->">
+<!ENTITY menu.title "Default action on double-click">
+<!ENTITY menu.editmenu "Edit menu">
+<!ENTITY menu.desc "Please select the action to take when double clicking on a file:">
+<!ENTITY menu.item1 "Add to Playlist">
+<!ENTITY menu.item2 "Add to Playlist and Play Now">
+<!ENTITY menu.item3 "Add to Playlist and Play if stopped">
+<!ENTITY menu.item4 "View Song Details">
+<!ENTITY minion.dummy4 "<----------------- Menu editor window --------------->">
+<!ENTITY menued.title "Menu Editor">
+<!ENTITY menued.addmenuitem "Add Menu Item">
+<!ENTITY menued.addsep "Add Separator">
+<!ENTITY menued.removemenuitem "Remove Menu Item">
+<!ENTITY menued.restdefaults "Restore Defaults">
+<!ENTITY menued.moveup "Move Up">
+<!ENTITY menued.movedown "Move Down">
+<!ENTITY menued.itemlabel "Menu Item Label:">
+<!ENTITY menued.restricttype "Restrict Item Types:">
+<!ENTITY menued.restrictloc "Restrict Locations:">
+<!ENTITY menued.loadurl "URL to load:">
+<!ENTITY menued.qfindall "(Query) Find all:">
+<!ENTITY menued.qsame "(Query) With the same:">
+<!ENTITY menued.qandsame "(Query) And with the same:">
+<!ENTITY menued.mpdcmd "MPD Command:">
+<!ENTITY menued.customscript "Custom Script:">
+<!ENTITY minion.dummy5 "<----------------- Minion --------------->">
+<!ENTITY minion.lastcmd "Last MPD Command:">
+<!ENTITY minion.curtitle "Title">
+<!ENTITY minion.prealbum "from">
+<!ENTITY minion.curalbum "Album">
+<!ENTITY minion.preartist "by">
+<!ENTITY minion.curartist "Artist">
+<!ENTITY minion.tglfullscreen "Toggle FullScreen">
+<!ENTITY minion.editactions "Edit Actions">
+<!ENTITY minion.clearlist "Clear Playlist">
+<!ENTITY minion.showsavepls "Show Saved Playlists">
+<!ENTITY minion.plsname "Playlist Name">
+<!ENTITY minion.savepls "Save Playlist">
+<!ENTITY minion.plstime "Playlist Time:">
+<!ENTITY minion.cover_action "Cover/Action">
+<!ENTITY minion.relitems "Related Items:">
+<!ENTITY minion.selected "Selected">
+<!ENTITY minion.selectedtt "Add Selected item(s) to the playlist">
+<!ENTITY minion.alltt "Add all items to the playlist">
+<!ENTITY minion.backcollection "Back to Music Collection">
+<!ENTITY minion.search "Search">
+<!ENTITY minion.updatedb "Update Database">
+<!ENTITY minion.filter "Filter">
+<!ENTITY minion.filtertt "Filter contents of current location by Title column">
+<!ENTITY minion.searchall "Search all">
+<!ENTITY minion.searchalltt "Search songs on all fields">
+<!ENTITY minion.playlisttt "Search in Playlist on all fields">
+<!ENTITY minion.titlett "Search by song's Title only">
+<!ENTITY minion.artisttt "Search Artists">
+<!ENTITY minion.albumtt "Search Albums">
+<!ENTITY minion.genrett "Search Genres">
+<!ENTITY minion.composertt "Search Composers">
+<!ENTITY minion.performertt "Search Performers">
+<!ENTITY minion.datett "Search Release Years">
+<!ENTITY minion.positiontt "Playlist Position">
+<!ENTITY minion.back "Back">
+<!ENTITY minion.forward "Forward">
+<!ENTITY minion.home "Home">
+<!ENTITY minion.currentplaylist "Current playlist">
+<!ENTITY minion.previoustrack "Previous track">
+<!ENTITY minion.nexttrack "Next track">
+<!ENTITY minion.play "Play">
+<!ENTITY minion.stop "Stop">
+<!ENTITY minion.pause "Pause">
+<!ENTITY minion.mpm_settings "Manage MPM Settings">
+<!ENTITY minion.disconnect "Disconnect">
+<!ENTITY minion.manage_servers "Manage servers">
+<!ENTITY minion.outputs "Audio outputs">
+<!ENTITY minion.crossfade "Crossfade">
+<!ENTITY minion.crossfade0 "0 seconds (none)">
+<!ENTITY minion.crossfade5 "5 seconds">
+<!ENTITY minion.crossfade10 "10 seconds">
+<!ENTITY minion.crossfade_other "Other...">
+<!ENTITY minion.crossfade_other_prompt "Enter number of seconds to crossfade:">
+<!ENTITY minion.random "Random">
+<!ENTITY minion.repeat "Repeat">
+<!ENTITY minion.launch "Launch Music Player Minion">
+<!ENTITY song.dummy6 "<----------------- Song template --------------->">
+<!ENTITY song.title "Song Detail">
+<!ENTITY song.follow "Follow Currently Playing Song">
+<!ENTITY song.lyricsfly "Lyrics from Lyricsfly.com">
+<!ENTITY song.edit "Edit">
