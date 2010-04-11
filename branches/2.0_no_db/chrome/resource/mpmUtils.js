@@ -370,6 +370,11 @@ var prefs = {
         po.register()
         return po
     },
+	clear : function(strPref) {
+		try {
+			branch.clearUserPref(strPref);
+		} catch(e) { debug(e); }
+	},
     set : function(strPref, val) {
         switch (branch.getPrefType(strPref)) {
             case branch.PREF_STRING :

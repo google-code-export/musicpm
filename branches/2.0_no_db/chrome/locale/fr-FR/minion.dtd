@@ -32,7 +32,6 @@
 <!ENTITY minion.dummy1 "<----------------- fenetre des parametres --------------->">
 <!ENTITY settings.title "Paramètres">
 <!ENTITY settings.pane1 "Général">
-<!ENTITY settings.check_peristant_state "Sauvegarder l'état du navigateur entre les sessions.">
 <!ENTITY settings.check_linguistic_sort "Toujours charger avec le tri linguistique (casse insensible)">
 <!ENTITY settings.check_launch_in_browser "Lancer Minion dans un onglet (à l'opposé d'une nouvelle fenêtre)">
 <!ENTITY settings.check_adapt "Utiliser l'interval adaptatif.">

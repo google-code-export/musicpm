@@ -226,6 +226,7 @@
                 <body>
                 <![CDATA[
                 try {
+				    if (!this.treeNode.columns)return;
                     var col= this.treeNode.columns.getFirstColumn()
                     var colprops = ""
                     var i = 1
@@ -755,6 +756,7 @@
                 
                 var url = prefs.get("song_template", "chrome://minion/content/default_song_template.xul")
                 this.content.setAttribute("src", url);
+				// wrappedJSObject is quite compulsory here if we want to access to methods like cwin.load()
                 this.cwin = Nz(this.content.contentWindow.wrappedJSObject, this.content.contentWindow)
                 this.cwin.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 
@@ -927,54 +929,14 @@
                 albumCol.collapsed = true
                 
                 me.goHome()
-                if (prefs.get("persistant_state", true)) {
-                    try {
-                        var file = DirIO.get("Home")
-                        file.append(".mpm_browser_state.js")
-                        if (file.exists()) {
-                            var cache_browser = eval(FileIO.read(file))
-                            tabbox.selectedIndex = cache_browser.activeTab
-                            if (cache_browser.db_update == mpd.db_update) {
-                                folders.db = cache_browser.foldersDB
-                                folders.view = new folderView(cache_browser.foldersDB, cache_browser.foldersRS);
-                                folders.treeNode.view = folders.view;
-                                folders.treeNode.currentIndex = cache_browser.foldersIndex
-                                if (cache_browser.activeTab == 0)
-                                    folders.treeNode.view.selection.select(cache_browser.foldersIndex)
-                            }
-                            tabbox.selectedTab.onclick()
-                            file = null
-                        }
-                    } catch (e) {
-                        tabbox.selectedIndex = 0
-                        tabbox.selectedTab.onclick()
-                    }
-                } else {
-                    tabbox.selectedIndex = 0
-                    tabbox.selectedTab.onclick()
-                }
+                tabbox.selectedIndex = 0
+                tabbox.selectedTab.onclick()
                 albumCol.addEventListener("DOMAttrModified", function(){image.parentNode.collapsed=albumCol.hidden;albumCol.collapsed=true}, false)
                 ]]>
             </constructor>
             <destructor>
                 <![CDATA[
                 
-                if (prefs.get("persistant_state", true)) {
-                    var file = DirIO.get("Home")
-                    file.append(".mpm_browser_state.js")
-                    if (!file.exists()) FileIO.create(file)
-                    var tree = folders.treeObject
-                    var obj = {
-                        activeTab: tabbox.selectedIndex,
-                        db_update: mpd.db_update,
-                        foldersDB: folders.view.db,
-                        foldersRS: folders.view.rs,
-                        foldersIndex: folders.treeNode.currentIndex
-                    }
-                    var str = obj.toSource()
-                    FileIO.write(file, str)
-                    file = null
-                }
                 this.saveColumns()
                 observerService.removeObserver(this.observerUpdate,"updating_db")
                 observerService.removeObserver(this.observerUpdate,"song")
@@ -1011,6 +973,7 @@
                     <![CDATA[
                     try {
                     var q = new dbQuery()
+					if (!item) return;
                     q.type = item.type
                     switch (item.type) {
                         case 'file':

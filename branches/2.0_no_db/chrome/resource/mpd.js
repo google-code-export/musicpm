@@ -1385,8 +1385,9 @@ if (file.exists()) {
 	}
 	mpd.setServers(mpd.servers);
 }
-file = null
+file = null;
 
-loadSrvPref()
+prefs.clear("persistant_state");
+loadSrvPref();
 myPrefObserver.register();
 debug("mpd.js finish")

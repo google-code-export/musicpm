@@ -16,12 +16,9 @@
       <preference id="art_url" name="extensions.mpm.custom_art_url" type="string"/>
       <preference id="use_amazon" name="extensions.mpm.use_amazon_art" type="bool"/>
       <preference id="launch_in_browser" name="extensions.mpm.launch_in_browser" type="bool"/>
-      <preference id="peristant_state" name="extensions.mpm.persistant_state" type="bool"/>
       <preference id="linguistic_sort" name="extensions.mpm.linguistic_sort" type="bool"/>
     </preferences>
 
-    <checkbox id="check_peristant_state" preference="peristant_state"
-          label="&settings.check_peristant_state;"/>
     <checkbox id="check_linguistic_sort" preference="linguistic_sort"
           label="&settings.check_linguistic_sort;"/>
     <checkbox id="check_launch_in_browser" preference="launch_in_browser"

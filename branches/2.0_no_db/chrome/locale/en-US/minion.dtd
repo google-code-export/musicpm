@@ -32,7 +32,6 @@
 <!ENTITY minion.dummy1 "<----------------- settings window --------------->">
 <!ENTITY settings.title "Settings">
 <!ENTITY settings.pane1 "General">
-<!ENTITY settings.check_peristant_state "Save browser state between sessions.">
 <!ENTITY settings.check_linguistic_sort "Always load with linguistic sort (case insensitive)">
 <!ENTITY settings.check_launch_in_browser "Launch Minion in tab (as opposed to new window)">
 <!ENTITY settings.check_adapt "Use adaptive update interval.">
