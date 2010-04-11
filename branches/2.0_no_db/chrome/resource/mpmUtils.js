@@ -373,7 +373,7 @@ var prefs = {
 	clear : function(strPref) {
 		try {
 			branch.clearUserPref(strPref);
-		} catch(e) { debug(e); }
+		} catch(e) { return; }
 	},
     set : function(strPref, val) {
         switch (branch.getPrefType(strPref)) {
