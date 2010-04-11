@@ -5,3 +5,4 @@ overlay chrome://browser/content/browser.xul chrome://minion/content/browser_ove
 
 locale minion en-US chrome/locale/en-US/
 locale minion fr-FR chrome/locale/fr-FR/
+locale minion es-ES chrome/locale/es-ES/

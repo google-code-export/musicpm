@@ -22,8 +22,7 @@ cd ..
 rm -rf mpm_release
 svn export 2.0_no_db mpm_release
 cd mpm_release
-rm *.py
-rm *.sh
+rm *.py *.sh *.php $L10N/all-locales
 find . \( -iname "*.js" -or -iname "*.rdf" -or -iname "*.x?l" -or -iname "*.html" \) -type f | xargs sed -i "s/__mpm_version__/$1/g"
 zip -r mpm_$1.xpi *
 rm defaults/preferences/prefs.js
