@@ -1,0 +1,192 @@
+.mpdButtonPrevious {
+    list-style-image: url("chrome://minion/content/images/prev.png");
+}
+.mpdButtonPlay {
+    list-style-image: url("chrome://minion/content/images/play.png");
+}
+.mpdStatePause .mpdButtonPlay {
+    list-style-image: url("chrome://minion/content/images/play_large.png");
+}
+.mpdButtonPause {
+    list-style-image: url("chrome://minion/content/images/pause_large.png");
+}
+.mpdButtonStop {
+    list-style-image: url("chrome://minion/content/images/stop_large.png");
+}
+.mpdButtonNext {
+    list-style-image: url("chrome://minion/content/images/next.png");
+}
+
+statusbar .mpdButtonPrevious {
+    list-style-image: url("chrome://minion/content/images/prev_extrasmall.png");
+}
+statusbar .mpdButtonPlay {
+    list-style-image: url("chrome://minion/content/images/play_extrasmall.png");
+}
+statusbar .mpdStatePause .mpdButtonPlay {
+    list-style-image: url("chrome://minion/content/images/play_extrasmall.png");
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+    padding-left: 2px !important;
+    padding-right: 0px !important;
+}
+statusbar .mpdButtonPause {
+    list-style-image: url("chrome://minion/content/images/pause_extrasmall.png");
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+    padding-left: 2px !important;
+    padding-right: 0px !important;
+}
+statusbar .mpdButtonStop {
+    list-style-image: url("chrome://minion/content/images/stop_extrasmall.png");
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+    padding-left: 2px !important;
+    padding-right: 0px !important;
+}
+statusbar .mpdButtonNext {
+    list-style-image: url("chrome://minion/content/images/next_extrasmall.png");
+}
+
+statusbar .mpm_btn_Settings {
+    list-style-image: url('chrome://minion/content/images/settings_off_extrasmall.png');
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 2px !important;
+    padding-bottom: 3px !important;
+}
+statusbar .mpm_server_connected {
+    list-style-image: url('chrome://minion/content/images/settings_on_extrasmall.png');
+}
+statusbar .mpm_btn_Volume {
+    list-style-image: url('chrome://minion/content/images/volume_extrasmall.png');
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding: 2px 4px 2px 6px !important;
+}
+
+.mpm_btn_AddAll, .mpm_btn_Add {
+    list-style-image: url('chrome://minion/content/images/add.png')
+    }
+.mpm_btn_AddSelected {
+    list-style-image: url('chrome://minion/content/images/add.png')
+    }
+.mpm_btn_Back {
+    list-style-image: url('chrome://minion/content/images/back.png')
+    }
+.mpm_btn_Clear{
+    list-style-image: url("chrome://minion/content/images/clear.png");
+}
+.mpm_btn_Close {
+    list-style-image: url("chrome://minion/content/images/exit.png");
+}
+.mpm_btn_Forward {
+    list-style-image: url('chrome://minion/content/images/forward.png')
+    }
+.mpm_btn_Fullscreen{
+    list-style-image: url('chrome://minion/content/images/restore.png')
+    }
+.mpm_btn_Home {
+    list-style-image: url('chrome://minion/content/images/home.png')
+    }
+.mpm_btn_Launch {
+    list-style-image: url('chrome://minion/content/images/launch_small.png');
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 2px !important;
+    padding-bottom: 0px !important;
+    }
+.mpm_btn_Playlists {
+    list-style-image: url("chrome://minion/content/images/playlists.png");
+}
+.mpm_btn_Playlist {
+    list-style-image: url('chrome://minion/content/images/playlist.png');
+    margin-top: 1px !important;
+    margin-bottom: 0px !important;
+    padding-top: 1px !important;
+    padding-bottom: 0px !important;
+    }
+.mpm_btn_Remove {
+    list-style-image: url('chrome://minion/content/images/remove.png')
+    }
+.mpm_btn_Rescan {
+    list-style-image: url('chrome://minion/content/images/rescan.png')
+    }
+.mpm_btn_Restore {
+    list-style-image: url("chrome://minion/content/images/restore.png");
+}
+.mpm_btn_Save {
+    list-style-image: url('chrome://minion/content/images/save.png')
+    }
+.mpm_btn_Settings {
+    list-style-image: url('chrome://minion/content/images/settings.png');
+    }
+.mpm_btn_Update {
+    list-style-image: url('chrome://minion/content/images/rescan.png')
+    }
+.mpm_icon_add  {
+    list-style-image: url('chrome://minion/content/images/add_small.png')
+    }
+.mpm_icon_Search  {
+    list-style-image: url('chrome://minion/content/images/search.png')
+    }
+.mpdObserver_repeat {
+    list-style-image: url('chrome://minion/content/images/repeat.png')
+}
+.mpdObserver_repeat[value="1"] {
+    list-style-image: url('chrome://minion/content/images/repeat-on.png')
+}
+.mpdObserver_random {
+    list-style-image: url('chrome://minion/content/images/random.png')
+}
+.mpdObserver_random[value="1"] {
+    list-style-image: url('chrome://minion/content/images/random-on.png')
+}
+treechildren::-moz-tree-image {
+    margin: 0px 5px 0px 1px;
+    }
+treechildren::-moz-tree-image(Title_Genre) {
+    list-style-image: url("chrome://minion/content/images/unknown.png");
+    }
+treechildren::-moz-tree-image(Title_Date) {
+    list-style-image: url("chrome://minion/content/images/unknown.png");
+    }
+treechildren::-moz-tree-image(Title_file), .mpm_icon_file {
+    list-style-image: url("chrome://minion/content/images/song.png");
+    }
+mpdplaylist > tree > treechildren::-moz-tree-image(Title_file){
+    list-style-image: none;
+    }
+treechildren::-moz-tree-image(Title_Artist), .mpm_icon_Artist {
+    list-style-image: url("chrome://minion/content/images/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(Title_Composer), .mpm_icon_Composer {
+    list-style-image: url("chrome://minion/content/images/artist.png");
+    margin: 0px 3px 0px 1px;
+    }
+treechildren::-moz-tree-image(Title_Album), .mpm_icon_Album {
+    list-style-image: url("chrome://minion/content/images/album.png");
+    }
+treechildren::-moz-tree-image(Title_directory), .mpm_icon_directory {
+    list-style-image: url("chrome://minion/content/images/folder.png");
+    }
+treechildren::-moz-tree-image(open) {
+    list-style-image: url("chrome://minion/content/images/folder_open.png");
+    }
+treechildren::-moz-tree-image(Title_playlist), .mpm_icon_playlist {
+    list-style-image: url("chrome://minion/content/images/playlist.png");
+    }
+treechildren::-moz-tree-image(Title_custom), .mpm_icon_ {
+    list-style-image: url("chrome://minion/content/images/custom.png");
+    }
+
+treechildren::-moz-tree-image(play_currentsong), .mpm_icon_play {
+    list-style-image: url("chrome://minion/content/images/play_small.png") !important;
+    }
+treechildren::-moz-tree-image(pause_currentsong) {
+    list-style-image: url("chrome://minion/content/images/pause_small.png") !important;
+    }
+treechildren::-moz-tree-image(Title_updating) {
+    list-style-image: url("chrome://minion/content/images/rescan_small.png") !important;
+    }

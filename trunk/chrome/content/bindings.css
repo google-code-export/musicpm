@@ -1,0 +1,27 @@
+mpdlabel {
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdLabel")
+}
+mpdtime {
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdTime")
+}
+mpdvolume {
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdVolume")
+}
+mpdcontrols {
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdPlayback")
+}
+mpdplaylist {
+    -moz-binding: url("chrome://minion/content/playlistBindings.xml#mpdPlaylist")
+}
+mpdbrowser {
+    -moz-binding: url("chrome://minion/content/collectionBindings.xml#mpdBrowser")
+}
+mpdservers {
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdServers")
+}
+mpdtoggle {
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdToolbarButton")
+}
+mpdalbumcover {
+    -moz-binding: url("chrome://minion/content/mpdControls.xml#mpdAlbumCover")
+}
