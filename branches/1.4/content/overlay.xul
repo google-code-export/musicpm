@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/toolbar-button.css" type="text/css"?>
+<overlay id="minion-overlay"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <script src="chrome://minion/content/common.js"></script>
+    <script type="text/javascript">
+        <![CDATA[
+        var mpm = {
+            onLoad: function (e) {
+                var cm = document.getElementById("contentAreaContextMenu")
+                if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, true)
+            },
+            open: function(url, event) {
+                openUILink(url, event, false, true);
+            },
+            doConfig: function() {
+                var cb = function (w){try{w.close}catch(e){}}
+                window.openDialog("chrome://minion/content/settings.xul",
+                                    "showmore", "chrome", cb)
+            },
+            linkHandler: function(event) {
+                var ma = document.getElementById('mpm_linkHandlerAdd')
+                var mp = document.getElementById('mpm_linkHandlerPlay')
+                if (!gContextMenu.onLink) {
+                    ma.hidden = mp.hidden = true
+                }
+                else {
+                    var url = gContextMenu.linkURL
+                    if (typeof(url) != 'string') url = "none"
+                    if (url.length < 4) url = "none"
+					if (url.indexOf("http://somafm.com/play/")==0){
+						url = ".pls"
+					}
+                    switch (url.substr(-4).toLocaleLowerCase()) {
+                        case "none": ma.hidden = mp.hidden = true; break;
+                        case ".pls": ma.hidden = mp.hidden = false; break;
+                        case ".m3u": ma.hidden = mp.hidden = false; break;
+                        case ".mp3": ma.hidden = mp.hidden = false; break;
+                        case ".ogg": ma.hidden = mp.hidden = false; break;
+                        case ".wav": ma.hidden = mp.hidden = false; break;
+                        case "flac": ma.hidden = mp.hidden = false; break;
+                        case ".acc": ma.hidden = mp.hidden = false; break;
+                        case ".mod": ma.hidden = mp.hidden = false; break;
+                        default: ma.hidden = mp.hidden = true; break;
+                    }
+                }
+				return true
+            }
+        }
+        window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
+        ]]>
+    </script>
+    <menubar id="main-menubar">
+        <menu id="menu_mpm" label="Minion" accesskey="M">
+            <menupopup id="menu_mpmPopup">
+              <menuitem observes="viewmpm_PlaylistSidebar" accesskey="l"/>
+              <menuitem label="Open in Browser"
+                 oncommand="mpm.open('chrome://minion/content/minion.xul', event)"
+                 onclick="checkForMiddleClick(this, event)"
+                 accesskey="O"/>
+              <menuitem label="Launch in New Window"
+                oncommand="window.open('chrome://minion/content/minion.xul', 'mpm_main','chrome,resizable=yes')"
+               accesskey="L" />
+              <menuitem label="Launch Mini-Player"
+                oncommand="window.open('chrome://minion/content/mini.xul', 'mpm_mini','chrome,alwaysRaised=yes')"
+               accesskey="L" />
+              <menuseparator/>
+              <menuitem label="Play" oncommand="doPlay()" accesskey="P"/>
+              <menuitem label="Pause" oncommand="doPause()" accesskey="a"/>
+              <menuitem label="Stop" oncommand="doStop()" accesskey="t"/>
+              <menuitem label="Next Track" oncommand="doNext()" accesskey="n"/>
+              <menuitem label="Previous Track" oncommand="doPrev()" accesskey="r"/>
+              <menuseparator/>
+              <menuitem label="Settings"
+                oncommand="mpm.doConfig()"
+                accesskey="S"/>
+              <menuitem label="About"
+                 oncommand="mpm.open('chrome://minion/content/about.html', event)"
+                 onclick="checkForMiddleClick(this, event)"
+                 accesskey="u"/>
+              <menuitem label="Help"
+                 oncommand="mpm.open('http://code.google.com/p/musicpm/wiki/Help', event)"
+                 onclick="checkForMiddleClick(this, event)"
+                 accesskey="H"/>
+            </menupopup>
+        </menu>
+    </menubar>
+
+    <menupopup id="viewSidebarMenu">
+        <menuitem observes="mpm_PlaylistSidebar" />
+    </menupopup>
+
+    <popup id="contentAreaContextMenu">
+      <menuitem id="mpm_linkHandlerAdd"
+            label="Add Link to MPD Playlist"
+            oncommand="mpm_linkHandlerAction('add');"
+            insertafter="context-openlinkintab" />
+      <menuitem id="mpm_linkHandlerPlay"
+            label="Play Link with MPD"
+            oncommand="mpm_linkHandlerAction('play');"
+            insertafter="context-openlinkintab" />
+    </popup>
+    <broadcasterset id="mainBroadcasterSet">
+        <broadcaster id="viewmpm_PlaylistSidebar"
+                 label="Playlist (Sidebar)"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebarurl="chrome://minion/content/playlist.xul"
+                 sidebartitle="Music Player Minion Playlist"
+                 oncommand="toggleSidebar('viewmpm_PlaylistSidebar');" />
+    </broadcasterset>
+
+    <statusbar id="status-bar">
+        <statusbarpanel id="mpm_status-bar_controls">
+            <toolbarbutton
+                id="mpm_sb_prev_button"
+                oncommand="doPrev()"
+                tooltiptext="Previous Track"/>
+            <toolbarbutton
+                id="mpm_sb_pause_button"
+                oncommand="doPause()"
+                tooltiptext="Pause"/>
+            <toolbarbutton
+                id="mpm_sb_play_button"
+                oncommand="doPlay()"
+                tooltiptext="Play"/>
+            <toolbarbutton
+                id="mpm_sb_stop_button"
+                oncommand="doStop()"
+                tooltiptext="Stop"/>
+            <toolbarbutton
+                id="mpm_sb_next_button"
+                oncommand="doNext()"
+                tooltiptext="Next Track"/>
+        </statusbarpanel>
+    </statusbar>
+    <toolbarpalette id="BrowserToolbarPalette">
+        <toolbarbutton
+            id="mpm_sidebar_button"
+            observes="viewmpm_PlaylistSidebar"
+            class="toolbarbutton-1"
+            tooltiptext="Music Player Minion Playlist (Sidebar)"/>
+        <toolbarbutton
+            id="mpm_launch_button"
+            class="toolbarbutton-1"
+            label="Open MPM"
+            tooltiptext="Open Music Player Minion in Firefox"
+            oncommand="mpm.open('chrome://minion/content/minion.xul', event)"
+            onclick="checkForMiddleClick(this, event)"/>
+        <toolbarbutton
+            id="mpm_launchWindow_button"
+            class="toolbarbutton-1"
+            label="Open MPM in New Window"
+            tooltiptext="Open Music Player Minion in New Window"
+            oncommand="window.open('chrome://minion/content/minion.xul', 'mpm_standalone','chrome,resizable=yes')"/>
+        <toolbarbutton
+            id="mpm_prev_button"
+            oncommand="doPrev()"
+            class="toolbarbutton-1"
+            label="MPM Previous Track"
+            tooltiptext="Previous Track"/>
+        <toolbarbutton
+            id="mpm_stop_button"
+            oncommand="doStop()"
+            class="toolbarbutton-1"
+            label="MPM Stop"
+            tooltiptext="Stop"/>
+        <toolbarbutton
+            id="mpm_pause_button"
+            oncommand="doPause()"
+            class="toolbarbutton-1"
+            label="MPM Pause"
+            tooltiptext="Pause"/>
+        <toolbarbutton
+            id="mpm_play_button"
+            oncommand="doPlay()"
+            class="toolbarbutton-1"
+            label="MPM Play"
+            tooltiptext="Play"/>
+        <toolbarbutton
+            id="mpm_next_button"
+            oncommand="doNext()"
+            class="toolbarbutton-1"
+            label="MPM Next Track"
+            tooltiptext="Next Track"/>
+    </toolbarpalette>
+
+</overlay>

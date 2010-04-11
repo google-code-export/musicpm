@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/playlist.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/collection.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/style.css" type="text/css"?>
+<?xul-overlay href="chrome://minion/content/mpm_overlay.xul"?>
+
+<window
+    id="main"
+    title="Music Player Minion"
+    orient="vertical"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    onload="init_mpd();init_main()"
+    onopen="init_mpd();init_main()">
+
+    <script src="common.js"></script>
+    <script src="playlist.js"></script>
+    <script src="collection.js"></script>
+    <script src="chrome://global/content/nsDragAndDrop.js"/>
+    <script src="chrome://global/content/nsTransferable.js"/>
+    <stringbundleset id="strbundles">
+        <stringbundle id="settings" src="minion.settings"/>
+    </stringbundleset>
+    <commandset id="commandset_overlay"/>
+    <keyset id="mpm_keyset"/>
+    <menupopup id="playlist_context"/>
+    <menupopup id="files_context"/>
+    <menupopup id="nav_context"/>
+    <broadcasterset id="playlistBroadcasterSet"/>
+
+    <toolbar id="playback_controls">
+        <vbox pack="center" style="min-width:155px">
+            <hbox pack="center">
+                <toolbarbutton id="prev"
+                            oncommand="doPrev()"/>
+                <toolbarbutton id="playpause"
+                            class="play"
+                            oncommand="doPlay()"/>
+                <toolbarbutton id="next"
+                            oncommand="doNext()"/>
+            </hbox>
+            <hbox pack="center">
+                <toolbarbutton id="vol" value="70" oncommand="mute(this)"/>
+                <progressmeter id="vol_slider"
+                        orient="horizontal"
+                        flex="1"
+                        value="0"
+                        onmousedown="prgmtrChange(event)"/>
+            </hbox>
+        </vbox>
+        <vbox>
+            <spacer flex="1"/>
+            <image id="cur_album_art"
+                value="-1"
+                onclick="getDir('Album',this.value)"></image>
+            <spacer flex="1"/>
+        </vbox>
+        <vbox id="cur_song"
+            flex="1"
+            ondraggesture="nsDragAndDrop.startDrag(event,csObserver)"
+            ondragover="nsDragAndDrop.dragOver(event,csObserver)"
+            ondragexit="nsDragAndDrop.dragExit(event,csObserver)"
+            ondragdrop="nsDragAndDrop.drop(event,csObserver)">
+            <label id="lbl_title"
+                crop="right"
+                value="Not Playing."
+                class="Title"
+                style="font-size:1.5em"
+                onclick="centerPL()"/>
+            <hbox flex="1">
+                <label value="by"></label>
+                <label id="lbl_artist" value="" class="Artist" crop="right"
+                    onclick="getDir('Artist', this.value)" />
+                <label value="from"></label>
+                <label id="lbl_album" value="" class="Album" crop="right"
+                    onclick="getDir('Album', this.value)"/>
+                <spacer flex="1"/>
+            </hbox>
+            <spacer flex="1"/>
+            <hbox flex="1" pack="center" align="center">
+                <toolbarbutton id="stop"
+                            oncommand="doStop()"
+                            tooltiptext="Stop Playback"/>
+                <progressmeter id="progress"
+                    value="0"
+                    flex="1"
+                    onmousedown="prgmtrChange(event)">
+                </progressmeter>
+                <label id="elapsedTm" value="0:00"/>
+                <label value="/"/>
+                <label id="totalTm" value="0:00"/>
+            </hbox>
+            <spacer flex="1"/>
+        </vbox>
+        <vbox>
+            <toolbarbutton id="mpm_mini"
+                oncommand="window.minimize()"
+                tooltiptext="Collapse to Mini-Player"/>
+            <toolbarbutton id="mpm_about"
+                oncommand="openURL('chrome://minion/content/about.html','mpm_info')"
+                tooltiptext="About Music Player Minion"/>
+            <toolbarbutton id="mpm_help"
+                oncommand="openURL('http://code.google.com/p/musicpm/wiki/Help','mpm_info')"
+                tooltiptext="Help"/>
+        </vbox>
+    </toolbar>
+
+    <hbox id="main" flex="1">
+        <vbox style="min-width:240px" id="main_playlist">
+            <toolbar id="playlist_toolbar"/>
+            <vbox id="playlist_tree"/>
+        </vbox>
+        <splitter id="tab_split" collapse="before" persist="width height" />
+        <vbox id="mpm_browse" flex="1"/>
+    </hbox>
+</window>

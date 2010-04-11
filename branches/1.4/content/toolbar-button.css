@@ -1,0 +1,69 @@
+#mpm_sidebar_button {
+  list-style-image: url("chrome://minion/content/playlist_large.png");
+}
+toolbar[iconsize="small"] #mpm_sidebar_button {
+  list-style-image: url("chrome://minion/content/playlist.png");
+}
+
+#mpm_launch_button {
+  list-style-image: url("chrome://minion/content/launch_large.png");
+}
+toolbar[iconsize="small"] #mpm_launch_button {
+  list-style-image: url("chrome://minion/content/launch_small.png");
+}
+
+#mpm_launchWindow_button {
+  list-style-image: url("chrome://minion/content/window_large.png");
+}
+toolbar[iconsize="small"] #mpm_launchWindow_button {
+  list-style-image: url("chrome://minion/content/window_small.png");
+}
+
+#mpm_play_button {
+  list-style-image: url("chrome://minion/content/play_large.png");
+}
+toolbar[iconsize="small"] #mpm_play_button {
+  list-style-image: url("chrome://minion/content/play_small.png");
+}
+#mpm_sb_play_button {
+  list-style-image: url("chrome://minion/content/play_extrasmall.png");
+}
+
+#mpm_pause_button {
+  list-style-image: url("chrome://minion/content/pause_large.png");
+}
+toolbar[iconsize="small"] #mpm_pause_button {
+  list-style-image: url("chrome://minion/content/pause_small.png");
+}
+#mpm_sb_pause_button {
+  list-style-image: url("chrome://minion/content/pause_extrasmall.png");
+}
+
+#mpm_stop_button {
+  list-style-image: url("chrome://minion/content/stop_large.png");
+}
+toolbar[iconsize="small"] #mpm_stop_button {
+  list-style-image: url("chrome://minion/content/stop_small.png");
+}
+#mpm_sb_stop_button {
+  list-style-image: url("chrome://minion/content/stop_extrasmall.png");
+}
+
+#mpm_next_button {
+  list-style-image: url("chrome://minion/content/next_large.png");
+}
+toolbar[iconsize="small"] #mpm_next_button {
+  list-style-image: url("chrome://minion/content/next_small.png");
+}
+#mpm_sb_next_button {
+  list-style-image: url("chrome://minion/content/next_extrasmall.png");
+}
+
+#mpm_prev_button {
+  list-style-image: url("chrome://minion/content/prev_large.png");
+}
+toolbar[iconsize="small"] #mpm_prev_button {
+  list-style-image: url("chrome://minion/content/prev_small.png");
+}
+#mpm_sb_prev_button {
+  list-style-image: url("chrome://minion/content/prev_extrasmall.png");
