@@ -4,6 +4,12 @@ Components.utils.import("resource://minion/mpd.js");
 
 EXPORTED_SYMBOLS = ["mpmMenu", "mpmMenuItem"]
 
+var pref_dir = "PrefD"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
+var pref_file = "mpm_menus.js";
+
+var pref_dir_old = "Home"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
+var pref_file_old = ".mpm_menus.js";
+
 function loadDefaults () {
     mpmMenu.items = [
         {
@@ -250,35 +256,41 @@ function loadDefaults () {
 }
 
 function loadMenuItems () {
-    var file = DirIO.get("Home")
-    file.append(".mpm_menus.js")
-    if (file.exists()) {
-        var str = FileIO.read(file)
-        mpmMenu.items = eval(str)
-        
-        // Handles conversion for < 1.99.4 alpha clients
-        var needsUpdate = false
-        for (var i=0;i<mpmMenu.items.length;i++) {
-            var item = mpmMenu.items[i]
-            if (typeof(item.filterField == 'undefined')) {
-                item.filterField = null
-                if (item.id == "mpm_menu_viewAlbum") item.filterField = 'Artist'
-                needsUpdate = true
-            }
-        }
-        if (needsUpdate) {
-            var str = mpmMenu.items.toSource()
-            FileIO.write(file, str)            
-        }
-    }
-    else {
-        debug("Creating default menus.")
-        loadDefaults()
-        FileIO.create(file)
-        var str = mpmMenu.items.toSource()
-        FileIO.write(file, str)
-    }
-    file = null
+	var file = DirIO.get(pref_dir);
+	file.append(pref_file);
+	if (file.exists()) {
+		debug("Read menus from "+file.target);
+		var str = FileIO.read(file);
+		mpmMenu.items = eval(str);
+	}
+	else {
+		var file = DirIO.get(pref_dir_old);
+		file.append(pref_file_old);
+		if (file.exists()) {
+			debug("Read old menus from"+file.target);
+			var str = FileIO.read(file);
+			mpmMenu.items = eval(str);
+
+			// Handles conversion for < 1.99.4 alpha clients
+			var needsUpdate = false;
+			for (var i=0;i<mpmMenu.items.length;i++) {
+				var item = mpmMenu.items[i];
+				if (typeof(item.filterField == 'undefined')) {
+					item.filterField = null;
+					if (item.id == "mpm_menu_viewAlbum") item.filterField = 'Artist';
+					needsUpdate = true;
+				}
+			}
+			saveMenuItems();
+			FileIO.unlink(file);
+		}
+		else {
+			debug("Creating default menus.")
+			loadDefaults();
+			saveMenuItems();
+		}
+	}
+	file = null;
 }
 
 /* "locations" and "targets":
@@ -314,14 +326,15 @@ function mpmMenuItem (label, id) {
 }
 
 function saveMenuItems () {
-    var file = DirIO.get("Home")
-    file.append(".mpm_menus.js")
-    if (!file.exists()) {
-        FileIO.create(file)
-    }
-    var str = mpmMenu.items.toSource()
-    FileIO.write(file, str)
-    file = null
+	var file = DirIO.get(pref_dir);
+	file.append(pref_file);
+	debug("Saving menus to :"+file.target);
+	if (!file.exists()) {
+		FileIO.create(file);
+	}
+	var str = mpmMenu.items.toSource()
+	FileIO.write(file, str);
+	file = null;
 }
 
 var mpmMenu = {
