@@ -1,13 +1,20 @@
 #!/bin/bash
 
+DEFLNG="en-US"
+L10N="chrome/locale"
+DST="./release"
+PHP="/usr/bin/php"
+
+
+cd "`dirname "$0"`"
+
 if [ -z "$1" ]
 then
 	echo "$0 release_number"
 	exit 1
 fi
 
-DEFLNG="en-US"
-L10N="chrome/locale"
+echo "checking locales..."
 for x in `cat $L10N/all-locales | grep -v $DEFLNG`
 do
 	php testlocale.php -s $L10N/$DEFLNG -d $L10N/$x
@@ -18,13 +25,22 @@ do
 	fi
 done
 
-cd ..
-rm -rf mpm_release
-svn export 2.0_no_db mpm_release
-cd mpm_release
-rm *.py *.sh *.php $L10N/all-locales
+echo "exporting content..."
+rm -rf $DST
+mkdir -p $DST
+rsync -r --delete-excluded --exclude=.\* \
+	--exclude=\*.db --exclude=\*.jar --exclude=\*.php \
+	--exclude=\*.sh --exclude=\*.py --exclude=$DST ./ $DST
+
+cd $DST
+
+echo "applying version information..."
 find . \( -iname "*.js" -or -iname "*.rdf" -or -iname "*.x?l" -or -iname "*.html" \) -type f | xargs sed -i "s/__mpm_version__/$1/g"
-zip -r mpm_$1.xpi *
-rm defaults/preferences/prefs.js
-mv defaults/preferences/prefs.xr defaults/preferences/prefs.js
-zip -r mpm_xulrunner_$1.zip * -x mpm_$1.xpi
+
+echo "creating package..."
+zip -q -r mpm_$1.xpi *
+# rm defaults/preferences/prefs.js
+# mv defaults/preferences/prefs.xr defaults/preferences/prefs.js
+# zip -r mpm_xulrunner_$1.zip * -x mpm_$1.xpi
+mv *.xpi ../
+cd ..
