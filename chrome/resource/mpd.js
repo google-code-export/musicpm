@@ -30,7 +30,7 @@ const LOSTC_STATUS = 2152398868
 
 var default_servers = [["localhost", "localhost:6600:"]];
 
-var pref_dir = "PrefD"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
+var pref_dir = "ProfD"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
 var pref_file = "mpm_servers.js";
 
 var pref_dir_old = "Home"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
@@ -1365,14 +1365,14 @@ var myPrefObserver = {
 var file = DirIO.get(pref_dir);
 file.append(pref_file);
 if (file.exists()) {
-	debug("Reading server prefs from: "+file.target);
+	debug("Reading server prefs from: "+file.path);
 	var str = FileIO.read(file)
 	mpd.servers = eval(str)
 } else {
 	var file = DirIO.get(pref_dir_old);
 	file.append(pref_file_old);
 	if (file.exists()) {
-		debug("Reading OLD server prefs from: "+file.target);
+		debug("Reading OLD server prefs from: "+file.path);
 		// migrating old server file to new location
 		debug("Migrating old server prefs to new location/name");
 		var str = FileIO.read(file);

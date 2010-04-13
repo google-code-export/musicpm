@@ -37,7 +37,7 @@ var translateService = Components.classes["@mozilla.org/intl/stringbundle;1"]
         .createBundle("chrome://minion/locale/strings.properties");
 		
 function debug(s) {
-	if ( prefs.get("debug", false) != true ) return;	
+    if ( prefs.get("debug", false) != true ) return;	
     try {
         var str = ""
         if (s == null) s = "null passed to debug"
