@@ -352,6 +352,7 @@ var prefs = {
     branch : branch,
     service : prefService,
     get : function(strPref, def) {
+		try{
         switch (branch.getPrefType(strPref)) {
             case branch.PREF_STRING :
                 return branch.getCharPref(strPref);
@@ -364,6 +365,7 @@ var prefs = {
                 prefs.set(strPref, def);
                 return def;
         }
+		} catch(e){ debug(e);}
     },
     getObserver : function (prefName, prefAction) {
         var po = new prefObserver(prefName, prefAction)
@@ -467,4 +469,101 @@ function updateStatusBarPosition(doc) {
         debug('doc/document:');
 		debug(doc);
     }
+}
+
+/**
+ * Displays a file picker in which the user can choose the location where
+ * downloads are automatically saved, updating preferences and UI in
+ * response to the choice, if one is made.
+ */
+function chooseFolder(prefName)
+{
+	try {
+		const nsIFilePicker = Components.interfaces.nsIFilePicker;
+		const nsILocalFile = Components.interfaces.nsILocalFile;
+
+		var fp = Components.classes["@mozilla.org/filepicker;1"]
+			   .createInstance(nsIFilePicker);
+		var dnldMgr = Components.classes["@mozilla.org/download-manager;1"]
+					.getService(Components.interfaces.nsIDownloadManager);
+
+		var title = "My title";
+		fp.init(window, title, nsIFilePicker.modeGetFolder);
+		fp.appendFilters(nsIFilePicker.filterAll);
+
+		fp.displayDirectory = dnldMgr.defaultDownloadsDirectory;
+
+		if (fp.show() == nsIFilePicker.returnOK) {
+			if ( typeof(prefName) != 'string' ) { debug('invalid prefName'); return; }
+			if ( prefName.length < 1 ) { debug('invalid prefName'); return; }
+			var forderPref = document.getElementById(prefName);
+			var file = fp.fileURL;
+			forderPref.value = file.spec;
+		}
+	} catch(e) { debug(e); }
+}
+
+// update the UI from the prefs at load time
+function updateCustomArtInterfacePref() {
+	try {
+		var use_customPref = document.getElementById("use_custom");
+		var tbCoverUrl = document.getElementById("tbCoverUrl");
+		var btnBrowse = document.getElementById("btnCustomBrowseLocalFile");
+		
+		if ( use_customPref.value == true ) {
+			tbCoverUrl.disabled = false;
+			btnBrowse.disabled = false;
+		} else {
+			tbCoverUrl.disabled = true;
+			btnBrowse.disabled = true;
+		}
+	} catch(e) { debug(e); }
+}
+
+// update the UI on user click
+function updateCustomArtInterface() {
+	try {
+		var cbUseCustom = document.getElementById("cbUseCustom");
+		var tbCoverUrl = document.getElementById("tbCoverUrl");
+		var btnBrowse = document.getElementById("btnCustomBrowseLocalFile");
+				
+		if ( cbUseCustom.checked == true ) {
+			tbCoverUrl.disabled = false;
+			btnBrowse.disabled = false;
+		} else {
+			tbCoverUrl.disabled = true;
+			btnBrowse.disabled = true;
+		}
+	} catch(e) { debug(e); }
+}
+
+function updateAmazonInterfacePref() {
+	try {
+		var use_amazonPref = document.getElementById("use_amazon");
+		var tbSaveCoverUrl = document.getElementById("tbSaveCoverUrl");
+		var btnBrowse = document.getElementById("btnAmazonBrowseLocalFile");
+
+		if ( use_amazonPref.value == 2 ) {
+			tbSaveCoverUrl.disabled = false;
+			btnBrowse.disabled = false;
+		} else {
+			tbSaveCoverUrl.disabled = true;
+			btnBrowse.disabled = true;
+		}
+	} catch(e) { debug(e); }
+}
+function updateAmazonInterface() {
+	try {
+		var rgUseAmazon = document.getElementById("rgUseAmazon");
+		var tbSaveCoverUrl = document.getElementById("tbSaveCoverUrl");
+		var btnBrowse = document.getElementById("btnAmazonBrowseLocalFile");
+				
+		if ( rgUseAmazon.value == 2 ) {
+			tbSaveCoverUrl.disabled = false;
+			btnBrowse.disabled = false;
+		} else {
+			tbSaveCoverUrl.disabled = true;
+			btnBrowse.disabled = true;
+		}
+	} catch(e) { debug(e); }
 }

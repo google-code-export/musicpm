@@ -5,6 +5,7 @@
 <!ENTITY all "All">
 <!ENTITY artist "Artist">
 <!ENTITY artists "Artists">
+<!ENTITY browse "Browse">
 <!ENTITY cancel "Cancel">
 <!ENTITY composer "Composer">
 <!ENTITY composers "Composers">
@@ -38,8 +39,12 @@
 <!ENTITY settings.check_adapt_tt "This option will cause Minion to update once per second, after the timer has been synchronized with the current song.">
 <!ENTITY settings.update "Static update interval (milliseconds)">
 <!ENTITY settings.txt_search_timeout "Search As You Type interval (milliseconds, 0 to disable)">
-<!ENTITY settings.use_custom_url "Use custom album cover URL:">
-<!ENTITY settings.amazon "Fetch album covers from Amazon.com">
+<!ENTITY settings.use_custom_url "Custom album cover URL">
+<!ENTITY settings.use_customyes "Use custom album cover">
+<!ENTITY settings.amazon "Fetch covers from Amazon.com">
+<!ENTITY settings.amazonno "No">
+<!ENTITY settings.amazonyes "Yes">
+<!ENTITY settings.amazonsave "Save">
 <!ENTITY settings.pane2 "Appearance">
 <!ENTITY settings.check_cs "Hide current song display in statusbar.">
 <!ENTITY settings.check_theme "Use default Firefox theme">
@@ -48,6 +53,7 @@
 <!ENTITY settings.txt_statusbar_position "Status bar item position at">
 <!ENTITY settings.pane3 "Debug">
 <!ENTITY settings.enable_debug "Display debug info in the console">
+<!ENTITY settings.help "Click me for online help">
 <!ENTITY minion.dummy2 "<----------------- servers window --------------->">
 <!ENTITY servers.title "Servers">
 <!ENTITY servers.lserver "Description">

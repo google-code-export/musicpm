@@ -7,41 +7,86 @@
             title="&appname; - &settings.title;"
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="pane1" label="&settings.pane1;">
-    <preferences>
-      <preference id="adapt_interval" name="extensions.mpm.adaptive_interval" type="bool"/>
-      <preference id="interval" name="extensions.mpm.update_interval" type="int"/>
-      <preference id="search_timeout" name="extensions.mpm.search_timeout" type="int"/>
-      <preference id="use_custom" name="extensions.mpm.use_custom_art" type="bool"/>
-      <preference id="art_url" name="extensions.mpm.custom_art_url" type="string"/>
-      <preference id="use_amazon" name="extensions.mpm.use_amazon_art" type="bool"/>
-      <preference id="launch_in_browser" name="extensions.mpm.launch_in_browser" type="bool"/>
-      <preference id="linguistic_sort" name="extensions.mpm.linguistic_sort" type="bool"/>
-    </preferences>
+<prefpane id="pane1" label="&settings.pane1;">
+	<preferences>
+		<preference id="adapt_interval" name="extensions.mpm.adaptive_interval" type="bool"/>
+		<preference id="interval" name="extensions.mpm.update_interval" type="int"/>
+		<preference id="search_timeout" name="extensions.mpm.search_timeout" type="int"/>
+		<preference id="use_custom" name="extensions.mpm.use_custom_art" type="bool"/>
+		<preference id="art_url" name="extensions.mpm.custom_art_url" type="string"/>
+		<preference id="use_amazon" name="extensions.mpm.use_amazon_art" type="int"/>
+		<preference id="launch_in_browser" name="extensions.mpm.launch_in_browser" type="bool"/>
+		<preference id="linguistic_sort" name="extensions.mpm.linguistic_sort" type="bool"/>
+		<preference id="save_art_url" name="extensions.mpm.save_art_url" type="string"/>
+	</preferences>
 
-    <checkbox id="check_linguistic_sort" preference="linguistic_sort"
-          label="&settings.check_linguistic_sort;"/>
-    <checkbox id="check_launch_in_browser" preference="launch_in_browser"
-          label="&settings.check_launch_in_browser;"/>
-    <checkbox id="check_adapt" preference="adapt_interval"
-          label="&settings.check_adapt;"
-          tooltiptext="&settings.check_adapt_tt;"/>
-    <hbox align="center">
-        <label value="&settings.update;"/>
-        <textbox id="update" type="number" preference="interval"
-                 maxlength="5" style="max-width: 5em !important"/>
-    </hbox>
-    <hbox align="center">
-        <label value="&settings.txt_search_timeout;"/>
-        <textbox id="txt_search_timeout" type="number" preference="search_timeout"
-                 maxlength="5" style="max-width: 5em !important"/>
-    </hbox>
-    <checkbox id="use_custom_url" preference="use_custom"
-	     label="&settings.use_custom_url;" />
-    <textbox id="art"  preference="art_url" flex="1"/>
-    <checkbox id="amazon" preference="use_amazon"
-          label="&settings.amazon;"/>
-  </prefpane>
+    <script type="application/x-javascript" src="resource://minion/mpmUtils.js"/>
+
+	<checkbox id="check_linguistic_sort" preference="linguistic_sort"
+		label="&settings.check_linguistic_sort;"/>
+	<checkbox id="check_launch_in_browser" preference="launch_in_browser"
+		label="&settings.check_launch_in_browser;"/>
+	<checkbox id="check_adapt" preference="adapt_interval"
+		label="&settings.check_adapt;"
+		tooltiptext="&settings.check_adapt_tt;"/>
+	<hbox align="center">
+		<label value="&settings.update;"/>
+		<textbox id="update" type="number" preference="interval"
+			maxlength="5" style="max-width: 5em !important"/>
+	</hbox>
+
+	<hbox align="center">
+		<label value="&settings.txt_search_timeout;"/>
+		<textbox id="txt_search_timeout" type="number" preference="search_timeout"
+			maxlength="5" style="max-width: 5em !important"/>
+	</hbox>
+
+	<separator class="thin"/>
+
+	<groupbox id="artGroup">
+		<caption>
+			<label value="&settings.use_custom_url;"/>
+			<image src="chrome://minion/content/images/alwaysAsk.png" 
+				tooltiptext="&settings.help;"
+				onclick="window.open('http://code.google.com/p/musicpm/wiki/AlbumArtCovers')"/>
+		</caption>
+		<checkbox id="cbUseCustom" preference="use_custom" label="&settings.use_customyes;" 
+			oncommand="updateCustomArtInterface()" onsyncfrompreference="updateCustomArtInterfacePref()"/>
+		<hbox align="center">
+			<textbox id="tbCoverUrl"  preference="art_url" flex="1" preference-editable="true"/>
+			<button id="btnCustomBrowseLocalFile" oncommand="chooseFolder('art_url');" label="&browse;"/>
+		</hbox>
+	</groupbox>
+
+	<separator class="thin"/>
+
+	<groupbox id="amazonGroup">
+		<caption>
+			<label value="&settings.amazon;"/>
+			<image src="chrome://minion/content/images/alwaysAsk.png" 
+				tooltiptext="&settings.help;"
+				onclick="window.open('http://code.google.com/p/musicpm/wiki/AlbumArtCovers')"/>
+		</caption>
+		<radiogroup id="rgUseAmazon" preference="use_amazon"
+			oncommand="updateAmazonInterface()"
+			onsyncfrompreference="updateAmazonInterfacePref()">
+			<hbox align="left">
+				<radio id="rUseAmazonNo" value="0" label="&settings.amazonno;"/>
+			</hbox>
+			<hbox align="left">
+				<radio id="rUseAmazonYes" value="1" label="&settings.amazonyes;"/>
+			</hbox>
+			<hbox align="left">
+				<radio id="rUseAmazonYesSave" value="2" label="&settings.amazonsave;"/>
+			</hbox>
+			<hbox align="left">
+				<textbox id="tbSaveCoverUrl"  preference="save_art_url" flex="2" 
+					preference-editable="true"/>
+				<button id="btnAmazonBrowseLocalFile" oncommand="chooseFolder('save_art_url');" label="&browse;"/>
+			</hbox>
+		</radiogroup>
+	</groupbox>
+</prefpane>
   
   
   <prefpane id="pane2" label="&settings.pane2;">
