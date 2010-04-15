@@ -5,6 +5,7 @@
 <!ENTITY all "Tout">
 <!ENTITY artist "Artiste">
 <!ENTITY artists "Artistes">
+<!ENTITY browse "Parcourrir">
 <!ENTITY cancel "Annuler">
 <!ENTITY composer "Compositeur">
 <!ENTITY composers "Compositeurs">
@@ -38,8 +39,12 @@
 <!ENTITY settings.check_adapt_tt "Minion se mettra à jour chaque seconde, après que le minuteur se soit synchronisé avec la piste courrante.">
 <!ENTITY settings.update "Interval statique (millisecondes)">
 <!ENTITY settings.txt_search_timeout "Interval de la recherche temps réel (millisecondes, 0 désactivé)">
-<!ENTITY settings.use_custom_url "Utiliser une URL personnalisée:">
+<!ENTITY settings.use_custom_url "Utiliser une URL pour les pochettes personnalisées">
+<!ENTITY settings.use_customyes "Utiliser les pochettes personnalisées">
 <!ENTITY settings.amazon "Télécharger les pochettes via Amazon.com">
+<!ENTITY settings.amazonno "Non">
+<!ENTITY settings.amazonyes "Oui">
+<!ENTITY settings.amazonsave "Sauver">
 <!ENTITY settings.pane2 "Apparence">
 <!ENTITY settings.check_cs "Cacher le titre de la piste courant dans la barre d'état.">
 <!ENTITY settings.check_theme "Utiliser le thème par défaut de Firefox.">
@@ -48,6 +53,7 @@
 <!ENTITY settings.txt_statusbar_position "Indexe de position dans la barre de status">
 <!ENTITY settings.pane3 "Debug">
 <!ENTITY settings.enable_debug "Afficher les infos de debug dans la console">
+<!ENTITY settings.help "cliquez moi pour de l'aide en ligne">
 <!ENTITY minion.dummy2 "<----------------- fenetre des servers --------------->">
 <!ENTITY servers.title "Serveurs">
 <!ENTITY servers.lserver "Description">

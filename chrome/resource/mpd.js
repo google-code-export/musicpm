@@ -810,7 +810,7 @@ function getAmazonArt (item, img) {
 mpd.getArt = function(item, img) {
     var fallback = function () {
         debug("fallback")
-        if (prefs.get("use_amazon_art", true)) getAmazonArt(item, img)
+        if (prefs.get("use_amazon_art", 1)) getAmazonArt(item, img)
         else {
             img.src = "chrome://minion/content/images/album_blank.png"
             img.removeAttribute("tooltiptext")
@@ -1388,6 +1388,7 @@ if (file.exists()) {
 file = null;
 
 prefs.clear("persistant_state");
+if (typeof(prefs.get("use_amazon_art",1)) == "boolean" ) prefs.clear("use_amazon_art");
 loadSrvPref();
 myPrefObserver.register();
 debug("mpd.js finish")

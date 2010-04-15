@@ -224,7 +224,7 @@ var DirIO = {
 
     create : function(dir) {
         try {
-            dir.create(0x01, 0664);
+            dir.create(0x01, 0640);
             return true;
         }
         catch(e) {

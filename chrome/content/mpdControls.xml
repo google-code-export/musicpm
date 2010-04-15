@@ -20,7 +20,7 @@
                 this.observer = {
                     observe: function(subject,topic,data){
                         me.observedValue = data
-                        me.child.setAttribute(me.observedAttribute, data)
+                        if (me.child) me.child.setAttribute(me.observedAttribute, data)
                     }
                 };
                 observerService.addObserver(this.observer,this.observes,false)
