@@ -7,7 +7,12 @@ This page  is to provide an explanation of the configuration options in Music Pl
 
 = Album Cover Art =
 
-In the Settings window, you may enter a custom location for album cover art if you enter a properly formatted URI and check off the "Use custom album cover URL" option.  If the "Fetch album covers from Amazon.com" option is checked also, it will use that method if the custom URL fails.
+In the Settings window, you may enter a custom location for album cover art. If you enter a properly formatted URI, custom covers may be retrieved from a local location. Additionaly, it is also possible to use amazon service to retrive and save (locally) covers.
+
+= Interface =
+
+http://musicpm.googlecode.com/files/Music_Player_Minion_2c2.png
+
 
 == Tag Syntax ==
 
@@ -21,12 +26,25 @@ You are provide with three variables you may use in the URL:
 
 When viewing an album in the browser, these variables will be pulled from the first song displayed.
 
-For example, I have saved album art using artist_album.png format, and shared the folder as a samba share as well as ftp and can use the following URLs:
+For example, I have saved album art using artist_album.jpg format, and shared the folder as a samba share as well as ftp and can use the following URLs:
 
-  * `file:///mnt/music/covers/{Artist}_{Album}.png` - Linux mounted share.
-  * `file://M:/music/covers/{Artist}_{Album}.png` - Windows share mounted as M:\
-  * `ftp://192.168.1.2/covers/{Artist}_{Album}.png` - Ftp server.
+  * `file:///mnt/music/.covers/{Artist}_{Album}.jpg` - Linux mounted share.
+  * `file://M:/music/.covers/{Artist}_{Album}.jpg` - Windows share mounted as M:\
+  * `ftp://192.168.1.2/.covers/{Artist}_{Album}.jpg` - Ftp server.
+  * `http://192.168.1.2/.covers/{Artist}_{Album}.jpg` - Web server.
+
+You may also want to specify login and password for ftp and http like : *ftp://login:pass@server/path/{Artist}_{Album}.jpg*
+
+It is also possible to a little bit more complex format such as *{Artist}/{Artist}_{Album}.jpg*
+
+If the cover can't be retrieved, then it is possible to fallback and use amazon.com covers.
 
 == Amazon Cover Art ==
 
-(tbc)
+Since version 2.0+, it is possible to retrieve and save custom album covers to a specific location. 
+
+  * *No* - Amazon.com service won't be used
+  * *Yes* - Amazon.com service will be used
+  * *Save* - Amazon.com service is use and album cover will be saved at the specified location
+
+The URI format is same as above. Be sure to have write permissions otherwise music player minion won't be able to save the file.
