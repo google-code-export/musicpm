@@ -767,6 +767,102 @@ mpd.getAllDirs = function(callBack) {
     })
 }
 
+// This function is for fetching an image file from a URL. 
+// Accepts a URL and returns the file. 
+// Returns empty if the file is not found (with an 404 error for instance). 
+// Tried with .jpg, .ico, .gif (even .html).
+// https://developer.mozilla.org/en/Code_snippets/Downloading_Files
+
+function GetImageFromURL(url) { 
+	try {
+		var ioserv = Components.classes["@mozilla.org/network/io-service;1"] 
+					.getService(Components.interfaces.nsIIOService); 
+		var channel = ioserv.newChannel(url, 0, null); 
+		var stream = channel.open(); 
+
+		if (channel instanceof Components.interfaces.nsIHttpChannel && channel.responseStatus != 200) { 
+			return ""; 
+		}
+
+		var bstream = Components.classes["@mozilla.org/binaryinputstream;1"] 
+			.createInstance(Components.interfaces.nsIBinaryInputStream); 
+		bstream.setInputStream(stream); 
+
+		var total = 0;
+		var size = 0; 
+		var file_data = ""; 
+		while(size = bstream.available()) { 
+			file_data += bstream.readBytes(size); 
+			total += size;
+		} 
+		return total;
+	} catch(e) { 
+		// If an exception is thrown, this is mostlikely because the image cannot be found.
+		// debug(e); 
+		return 0;
+	}
+}
+
+function SaveImageToURL(item,url) {
+	try {
+		debug('cbSaveImageToURL url=');
+		debug(url);
+		// we want to reject dummy requests
+		var txt = new String(url);
+		if (txt.indexOf('chrome://') == 0) return;
+
+		// unless specified, we don't save arts
+		if ( parseInt(prefs.get("use_amazon_art",1)) != 2 ) {
+			return;
+		}
+		
+		// the source object we want to download
+		var oSourceURL = Components.classes["@mozilla.org/network/io-service;1"]
+			.getService(Components.interfaces.nsIIOService)
+			.newURI(url, null, null);
+		
+		// if file:// we want to probe if it already exists
+		var oTargetFile = Components.classes["@mozilla.org/file/local;1"]
+			.createInstance(Components.interfaces.nsILocalFile);
+		// use to create the destination object
+		var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+			.getService(Components.interfaces.nsIIOService);
+		
+		var sTargetFile = urlReplace(prefs.get("save_art_url"), item);
+		var oDestination = ioService.newURI(sTargetFile,null,null);
+
+		debug("Attempt to download url: "+url);
+		debug("Attempt to save to file: "+sTargetFile);
+
+		// Probe if the file already exists
+		if ( oDestination.scheme == 'file://' ) {		
+			oTargetFile.initWithPath(oDestination.path);		
+			if(oTargetFile.exists()) {
+				deubg("File already exists");
+				return;
+			} else {
+				oTargetFile.create(0x00,0640);
+			}
+		}
+
+		// create a persist
+		var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].
+			createInstance(Components.interfaces.nsIWebBrowserPersist);
+
+		// with persist flags if desired See nsIWebBrowserPersist page for more PERSIST_FLAGS.
+		const nsIWBP = Components.interfaces.nsIWebBrowserPersist;
+		// const flags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
+		const flags = nsIWBP.PERSIST_FLAGS_NONE;
+		persist.persistFlags = flags | nsIWBP.PERSIST_FLAGS_FROM_CACHE;
+
+		// do the save
+		persist.saveURI(oSourceURL, null, null, null, null, oDestination);
+
+	} catch(e) { 
+		debug(e); 
+	}
+}
+
 function getAmazonArt (item, img) {
     var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
             + encodeURI(item.Artist)
@@ -789,7 +885,7 @@ function getAmazonArt (item, img) {
                         if (e > 0) {
                             asin = data.slice(s, e)
                         }
-                        if (asin.length == 10) {
+                        if (asin.length == 10 && asin != '          ') {
                             base = "http://images.amazon.com/images/P/"
                                     + asin
                             art = base + ".01.MZZZZZZZ.jpg"
@@ -799,6 +895,7 @@ function getAmazonArt (item, img) {
                 mpd.cachedArt[search_url] = art
                 img.src = art
                 img.setAttribute("tooltiptext",art)
+                SaveImageToURL(item,art);
             } catch (e) {
                 debug(e)
             }
@@ -808,26 +905,31 @@ function getAmazonArt (item, img) {
 }
 
 mpd.getArt = function(item, img) {
-    var fallback = function () {
-        debug("fallback")
-        if (prefs.get("use_amazon_art", 1)) getAmazonArt(item, img)
-        else {
-            img.src = "chrome://minion/content/images/album_blank.png"
-            img.removeAttribute("tooltiptext")
-        }
-    }
-    img.src = "chrome://minion/content/images/album_loading.png"
-    img.setAttribute("tooltiptext","...")
+	var fallback = function () {
+		debug("fallback")
+		if (prefs.get("use_amazon_art", 1) >= 1 ) getAmazonArt(item, img)
+		else {
+			img.src = "chrome://minion/content/images/album_blank.png"
+			img.removeAttribute("tooltiptext")
+		}
+	}
 
-    if (prefs.get("use_custom_art", false)) {
-        var url = urlReplace(prefs.get("custom_art_url"), item)
-        debug("Attempting to fetch cover at " + url)
-        img.onerror = fallback
-        img.setAttribute("tooltiptext",url)
-        img.src = url
-    } else {
-        fallback()
-    }
+	img.src = "chrome://minion/content/images/album_loading.png"
+	img.setAttribute("tooltiptext","...")
+
+	if (prefs.get("use_custom_art", false)) {
+		var url = urlReplace(prefs.get("custom_art_url"), item)
+		debug("Attempting to fetch cover at " + url)
+		// do not img.onerror, it appears not to work...
+		if ( GetImageFromURL(url) < 1 ) {
+			fallback();
+		} else {
+			img.setAttribute("tooltiptext",url)
+			img.src = url;
+		}
+	} else {
+		fallback()
+	}
 }
 
 mpd.guessPlaylistName = function () {
