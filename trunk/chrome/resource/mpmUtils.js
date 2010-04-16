@@ -61,6 +61,7 @@ function debug(s) {
         }
     } catch (e) {
         dump("error in debug!")
+        dump(e);
         consoleService.logStringMessage("error in debug!")
     }
 }
