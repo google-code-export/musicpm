@@ -30,7 +30,7 @@ rm -rf $DST
 mkdir -p $DST
 rsync -r --delete-excluded --exclude=.\* \
 	--exclude=\*.db --exclude=\*.jar --exclude=\*.php \
-	--exclude=\*.sh --exclude=\*.py --exclude=$DST ./ $DST
+	--exclude=\*.sh --exclude=\*.py --exclude=\*.xpi --exclude=$DST ./ $DST
 
 cd $DST
 

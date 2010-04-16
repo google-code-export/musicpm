@@ -5,6 +5,7 @@
 <!ENTITY all "Todo">
 <!ENTITY artist "Artista">
 <!ENTITY artists "Artistas">
+<!ENTITY browse "Examinar">
 <!ENTITY cancel "Cancelar">
 <!ENTITY composer "Compositor">
 <!ENTITY composers "Compositores">
@@ -32,14 +33,18 @@
 <!ENTITY minion.dummy1 "<----------------- Ventana de ajustes --------------->">
 <!ENTITY settings.title "Ajustes">
 <!ENTITY settings.pane1 "General">
-<!ENTITY settings.check_linguistic_sort "Cargar siempre con orden lingüístico ( no distingue entre mayúsculas y minúsculas)">
+<!ENTITY settings.check_linguistic_sort "Cargar siempre con orden lingüístico (no distingue entre mayúsculas y minúsculas)">
 <!ENTITY settings.check_launch_in_browser "Ejecutar Minion en una pestaña (no en una nueva ventana)">
 <!ENTITY settings.check_adapt "Usar intervalo de actualización adaptativo.">
 <!ENTITY settings.check_adapt_tt "Esta opción actualiza los datos una vez por segundo, después de que el temporizador se haya sincronizado con la canción en curso.">
 <!ENTITY settings.update "Intervalo de actualización estático (milisegundos)">
 <!ENTITY settings.txt_search_timeout "Intervalo para Búsqueda Mientras Escribe (milisegundos, 0 para anular)">
 <!ENTITY settings.use_custom_url "Usar URL local para carátulas :">
+<!ENTITY settings.use_customyes "Usar carátula propia">
 <!ENTITY settings.amazon "Bajar carátulas de Amazon.com">
+<!ENTITY settings.amazonno "No">
+<!ENTITY settings.amazonyes "Sí">
+<!ENTITY settings.amazonsave "Guardar">
 <!ENTITY settings.pane2 "Apariencia">
 <!ENTITY settings.check_cs "No mostrar la canción en curso en la barra de estado.">
 <!ENTITY settings.check_theme "Usar el tema por defecto de Firefox">
@@ -48,6 +53,7 @@
 <!ENTITY settings.txt_statusbar_position "Posición en la barra de estado">
 <!ENTITY settings.pane3 "Depuración">
 <!ENTITY settings.enable_debug "Mostrar información de depuración en la consola">
+<!ENTITY settings.help "Click para ayuda en línea">
 <!ENTITY minion.dummy2 "<----------------- Ventana de servidores --------------->">
 <!ENTITY servers.title "Servidores">
 <!ENTITY servers.lserver "Descripción">
