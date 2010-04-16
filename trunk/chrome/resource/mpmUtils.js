@@ -16,8 +16,8 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
-        "observerService", "getFileContents", "fetch", "winw", "urlReplace",
-        "openReuseByURL", "openReuseByAttribute", "mpm_openDialog", "prefs",
+        "observerService", "getFileContents", "fetch", "prefetchImageFromURL", "winw", 
+		"urlReplace", "openReuseByURL", "openReuseByAttribute", "mpm_openDialog", "prefs",
         "guessTags", "updateStatusBarPosition", "translateService", "mpmUtils_EXPORTED_SYMBOLS"]
 var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
 
@@ -204,6 +204,29 @@ function copyArray(oldArray) {
         return newArray
     } else
         return oldArray
+}
+
+function prefetchImageFromURL(url, callBack, arg) {
+	try {
+		var request = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
+						.createInstance();
+		request.QueryInterface(Components.interfaces.nsIDOMEventTarget);
+		request.QueryInterface(Components.interfaces.nsIXMLHttpRequest);
+
+		request.open("POST", url, true);
+		request.onreadystatechange = function() {
+			if (request.readyState == 4) {
+				callBack(request.status, arg, url);
+				request.onreadystatechange = null;
+				request = null;
+			}
+		}
+		request.send("q="+(Math.random()*10000));
+	} catch (e) { 
+		// exception was raised, so we fallback to amazon if possible
+		// debug(e);
+		callBack(404, arg, url);
+	}
 }
 
 function fetch(url, callBack, arg, getXML) {
