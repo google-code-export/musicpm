@@ -1,5 +1,5 @@
 #summary Help for Music Player Minion 2.0
-#labels Featured,Phase-Deploy
+#labels Deprecated,Phase-Deploy
 
 = Introduction =
 
