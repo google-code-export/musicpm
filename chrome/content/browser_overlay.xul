@@ -10,7 +10,21 @@
     <script type="text/javascript">
         <![CDATA[
         Components.utils.import("resource://minion/mpmUtils.js");
+        // Components.utils.import("resource://minion/io.js");
+		debug("We start here");
         Components.utils.import("resource://minion/mpd.js");
+        Components.utils.import("resource://minion/mpmMenu.js");
+        Components.utils.import("resource://minion/mpmUpgrade.js");
+
+		debug("Checking for upgrades...");
+		mpmUpgrade(mpd);
+
+		debug('hello');
+		mpd.loadServers();
+		loadSrvPref();
+		myPrefObserver.register();
+
+		debug("Starting...");
         var incr = 0;
 		var end = 0;
         function launchMinion () {

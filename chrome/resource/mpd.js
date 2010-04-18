@@ -16,8 +16,10 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 Components.utils.import("resource://minion/mpmUtils.js");
+Components.utils.import("resource://minion/mpmUpgrade.js");
 Components.utils.import("resource://minion/io.js");
-EXPORTED_SYMBOLS = ["dbQuery", "mpd", "prefBranch", "Sz"]
+
+EXPORTED_SYMBOLS = ["dbQuery", "mpd", "prefBranch", "Sz", "loadSrvPref", "myPrefObserver"]
 var prefService = Components.classes["@mozilla.org/preferences-service;1"]
         .getService(Components.interfaces.nsIPrefService);
 var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
@@ -32,10 +34,6 @@ var default_servers = [["localhost", "localhost:6600:"]];
 
 var pref_dir = "ProfD"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
 var pref_file = "mpm_servers.js";
-
-var pref_dir_old = "Home"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
-var pref_file_old = ".mpm_servers.js";
-
 
 function smartsort (a,b) {
     if (a.type != b.type) {
@@ -1052,6 +1050,22 @@ mpd.setServers = function(servers) {
 	file = null
 }
 
+mpd.loadServers = function() {
+	var file = DirIO.get(pref_dir);
+	file.append(pref_file);
+	if (file.exists()) {
+		debug("Reading server prefs from: "+file.path);
+		var str = FileIO.read(file)
+		mpd.servers = eval(str)
+	} else {
+		// creating default server
+		debug("Creating default servers.")
+		mpd.servers = default_servers;
+		mpd.setServers(mpd.servers);
+	}
+	file = null;
+}
+
 // Any property that may be observed must be set with this method.
 mpd.set = function(prop, val) {
     if (val != mpd[prop]) {
@@ -1427,34 +1441,3 @@ var myPrefObserver = {
         }
     }
 }
-
-var file = DirIO.get(pref_dir);
-file.append(pref_file);
-if (file.exists()) {
-	debug("Reading server prefs from: "+file.path);
-	var str = FileIO.read(file)
-	mpd.servers = eval(str)
-} else {
-	var file = DirIO.get(pref_dir_old);
-	file.append(pref_file_old);
-	if (file.exists()) {
-		debug("Reading OLD server prefs from: "+file.path);
-		// migrating old server file to new location
-		debug("Migrating old server prefs to new location/name");
-		var str = FileIO.read(file);
-		mpd.servers = eval(str);
-		FileIO.unlink(file);
-	} else {
-		// creating default server
-		debug("Creating default servers.")
-		mpd.servers = default_servers;
-	}
-	mpd.setServers(mpd.servers);
-}
-file = null;
-
-prefs.clear("persistant_state");
-if (typeof(prefs.get("use_amazon_art",1)) == "boolean" ) prefs.clear("use_amazon_art");
-loadSrvPref();
-myPrefObserver.register();
-debug("mpd.js finish")

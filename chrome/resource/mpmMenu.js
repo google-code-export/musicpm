@@ -1,14 +1,10 @@
 Components.utils.import("resource://minion/mpmUtils.js");
 Components.utils.import("resource://minion/io.js");
-Components.utils.import("resource://minion/mpd.js");
 
 EXPORTED_SYMBOLS = ["mpmMenu", "mpmMenuItem"]
 
 var pref_dir = "ProfD"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
 var pref_file = "mpm_menus.js";
-
-var pref_dir_old = "Home"; // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
-var pref_file_old = ".mpm_menus.js";
 
 function loadDefaults () {
     mpmMenu.items = [
@@ -262,33 +258,10 @@ function loadMenuItems () {
 		debug("Read menus from "+file.path);
 		var str = FileIO.read(file);
 		mpmMenu.items = eval(str);
-	}
-	else {
-		var file = DirIO.get(pref_dir_old);
-		file.append(pref_file_old);
-		if (file.exists()) {
-			debug("Read old menus from"+file.path);
-			var str = FileIO.read(file);
-			mpmMenu.items = eval(str);
-
-			// Handles conversion for < 1.99.4 alpha clients
-			var needsUpdate = false;
-			for (var i=0;i<mpmMenu.items.length;i++) {
-				var item = mpmMenu.items[i];
-				if (typeof(item.filterField == 'undefined')) {
-					item.filterField = null;
-					if (item.id == "mpm_menu_viewAlbum") item.filterField = 'Artist';
-					needsUpdate = true;
-				}
-			}
-			saveMenuItems();
-			FileIO.unlink(file);
-		}
-		else {
-			debug("Creating default menus.")
-			loadDefaults();
-			saveMenuItems();
-		}
+	} else {
+		debug("Creating default menus.")
+		loadDefaults();
+		saveMenuItems();
 	}
 	file = null;
 }
@@ -343,5 +316,3 @@ var mpmMenu = {
     restore: function () { loadDefaults(); saveMenuItems() },
     save: saveMenuItems
 }
-
-mpmMenu.load()

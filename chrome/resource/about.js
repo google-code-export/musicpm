@@ -3,7 +3,7 @@ Components.utils.import("resource://minion/mpmUtils.js");
 function init() {
     var rdfs = Components.classes['@mozilla.org/rdf/rdf-service;1'].
                           getService(Components.interfaces.nsIRDFService);
-    var extension = rdfs.GetResource('urn:mozilla:item:Music_Player_Minion2@code.google.com');
+    var extension = rdfs.GetResource('urn:mozilla:item:Music_Player_Minion@code.google.com');
     var gExtensionDB = Components.classes['@mozilla.org/extensions/manager;1'].
                        getService(Components.interfaces.nsIExtensionManager).
                        QueryInterface(Components.interfaces.nsIExtensionManager).
