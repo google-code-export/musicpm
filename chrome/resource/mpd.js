@@ -870,6 +870,8 @@ mpd.getArt = function(item, img) {
 	var fallback = function (code, item, url) {
 		if ( code == 200 || code == 0 ) {
 			mpd.cachedArt[url] = url;
+			item.objImg.setAttribute("tooltiptext",url);
+			item.objImg.src = url;
 			return;
 		}
 		if (prefs.get("use_amazon_art", 1) >= 1 ) getAmazonArt(item, item.objImg)
@@ -879,19 +881,23 @@ mpd.getArt = function(item, img) {
 		}
 	}
 
-	img.src = "chrome://minion/content/images/album_loading.png"
-	img.setAttribute("tooltiptext","...")
+	try {
+		img.src = "chrome://minion/content/images/album_loading.png"
+		img.setAttribute("tooltiptext","...")
 
-	item.objImg = img;
-	if (prefs.get("use_custom_art", false)) {
-		var url = urlReplace(prefs.get("custom_art_url"), item)
-		debug("Attempting to fetch cover at " + url)
-		if (typeof(mpd.cachedArt[url]) != 'string') prefetchImageFromURL(url, fallback, item);
-		img.setAttribute("tooltiptext",url);
-		img.src = url;
-	} else {
-		fallback(404, item);
-	}
+		item.objImg = img;
+		if (prefs.get("use_custom_art", false)) {
+			var url = urlReplace(prefs.get("custom_art_url"), item)
+			debug("Attempting to fetch cover at " + url);
+			if (typeof(mpd.cachedArt[url]) != 'string') prefetchImageFromURL(url, fallback, item);
+			else {
+				img.setAttribute("tooltiptext",url);
+				img.src = url;
+			}
+		} else {
+			fallback(404, item);
+		}
+	} catch(e) { debug(e); }
 }
 
 mpd.guessPlaylistName = function () {
