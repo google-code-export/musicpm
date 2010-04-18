@@ -4,8 +4,8 @@
          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
   <rdf:Description about="urn:mozilla:install-manifest">
-    <id>Music_Player_Minion2@code.google.com</id>
-    <version>__mpm_version__</version>
+    <id>Music_Player_Minion@code.google.com</id>
+    <version>2.0.9</version>
     <type>2</type>
     <optionsURL>chrome://minion/content/servers.xul</optionsURL>
     <iconURL>chrome://minion/content/images/logo.png</iconURL>

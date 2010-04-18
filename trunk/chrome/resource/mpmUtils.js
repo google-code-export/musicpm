@@ -373,24 +373,34 @@ function prefObserver (prefName, changeAction) {
     }
 };
 var prefs = {
-    branch : branch,
-    service : prefService,
-    get : function(strPref, def) {
+	branch : branch,
+	service : prefService,
+	get : function(strPref, def) {
 		try{
-        switch (branch.getPrefType(strPref)) {
-            case branch.PREF_STRING :
-                return branch.getCharPref(strPref);
-            case branch.PREF_INT :
-                return branch.getIntPref(strPref);
-            case branch.PREF_BOOL :
-                return branch.getBoolPref(strPref);
-            default :
-                def = Nz(def)
-                prefs.set(strPref, def);
-                return def;
-        }
+			switch (branch.getPrefType(strPref)) {
+				case branch.PREF_STRING :
+					return branch.getCharPref(strPref);
+				case branch.PREF_INT :
+					return branch.getIntPref(strPref);
+				case branch.PREF_BOOL :
+					return branch.getBoolPref(strPref);
+				default :
+					def = Nz(def)
+					prefs.set(strPref, def);
+					return def;
+			}
 		} catch(e){ debug(e);}
-    },
+	},
+	isPref : function (strPref) {
+		try {
+			if ( !strPref ) return false;
+			if ( branch.getPrefType(strPref) != branch.PREF_INVALID ) return true;
+			return false;
+		} catch(e) { 
+			debug(e);
+			return false; 
+		}
+	},
     getObserver : function (prefName, prefAction) {
         var po = new prefObserver(prefName, prefAction)
         po.register()

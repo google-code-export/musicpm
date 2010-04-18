@@ -200,3 +200,5 @@ function mpmMenu_contextShowing(event, location, activeItem, fillNode, nodeType)
         debug(e)
     }
 }
+
+mpmMenu.load();
