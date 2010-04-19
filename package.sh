@@ -29,8 +29,8 @@ echo "exporting content..."
 rm -rf $DST
 mkdir -p $DST
 rsync -r --delete-excluded --exclude=.\* \
-	--exclude=\*.db --exclude=\*.jar --exclude=\*.php \
-	--exclude=\*.sh --exclude=\*.py --exclude=\*.xpi --exclude=$DST ./ $DST
+	--exclude=\*.db --exclude=\*.jar --exclude=\*.php --exclude=\*.diff --exclude=\*.patch \
+	--exclude=\*.sh --exclude=\*.py --exclude=\*.xpi --exclude=TODO.txt --exclude=$DST ./ $DST
 
 cd $DST
 
