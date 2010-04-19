@@ -38,9 +38,11 @@ echo "applying version information..."
 find . \( -iname "*.js" -or -iname "*.rdf" -or -iname "*.x?l" -or -iname "*.html" \) -type f | xargs sed -i "s/__mpm_version__/$1/g"
 
 echo "creating package..."
+rm -rf $DST
 zip -q -r mpm_$1.xpi *
 # rm defaults/preferences/prefs.js
 # mv defaults/preferences/prefs.xr defaults/preferences/prefs.js
 # zip -r mpm_xulrunner_$1.zip * -x mpm_$1.xpi
 mv *.xpi ../
 cd ..
+rm -rf $DST

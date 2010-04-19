@@ -765,107 +765,6 @@ mpd.getAllDirs = function(callBack) {
     })
 }
 
-function SaveImageToURL(item,url) {
-	try {
-		debug('cbSaveImageToURL url=');
-		debug(url);
-		// we want to reject dummy requests
-		var txt = new String(url);
-		if (txt.indexOf('chrome://') == 0) return;
-
-		// unless specified, we don't save arts
-		if ( parseInt(prefs.get("use_amazon_art",1)) != 2 ) {
-			return;
-		}
-		
-		// the source object we want to download
-		var oSourceURL = Components.classes["@mozilla.org/network/io-service;1"]
-			.getService(Components.interfaces.nsIIOService)
-			.newURI(url, null, null);
-		
-		// if file:// we want to probe if it already exists
-		var oTargetFile = Components.classes["@mozilla.org/file/local;1"]
-			.createInstance(Components.interfaces.nsILocalFile);
-		// use to create the destination object
-		var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-			.getService(Components.interfaces.nsIIOService);
-		
-		var sTargetFile = urlReplace(prefs.get("save_art_url"), item);
-		var oDestination = ioService.newURI(sTargetFile,null,null);
-
-		debug("Attempt to download url: "+url);
-		debug("Attempt to save to file: "+sTargetFile);
-
-		// Probe if the file already exists
-		if ( oDestination.scheme == 'file://' ) {		
-			oTargetFile.initWithPath(oDestination.path);		
-			if(oTargetFile.exists()) {
-				deubg("File already exists");
-				return;
-			} else {
-				oTargetFile.create(0x00,0640);
-			}
-		}
-
-		// create a persist
-		var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].
-			createInstance(Components.interfaces.nsIWebBrowserPersist);
-
-		// with persist flags if desired See nsIWebBrowserPersist page for more PERSIST_FLAGS.
-		const nsIWBP = Components.interfaces.nsIWebBrowserPersist;
-		// const flags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
-		const flags = nsIWBP.PERSIST_FLAGS_NONE;
-		persist.persistFlags = flags | nsIWBP.PERSIST_FLAGS_FROM_CACHE;
-
-		// do the save
-		persist.saveURI(oSourceURL, null, null, null, null, oDestination);
-
-	} catch(e) { 
-		debug(e); 
-	}
-}
-
-function getAmazonArt (item, img) {
-    var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
-            + encodeURI(item.Artist)
-            + "&title="
-            + encodeURI(item.Album)
-            + "&limit=1"
-    var art =  "chrome://minion/content/images/album_blank.png"
-    debug("searching Metabrainz...")
-    if (typeof(mpd.cachedArt[search_url]) == 'string') {
-        img.src = mpd.cachedArt[search_url]
-        img.setAttribute("tooltiptext",mpd.cachedArt[search_url])
-    } else {
-        var cb = function(data) {
-            try {
-                var asin = ""
-                if (data != "") {
-                    var s = data.indexOf("<asin>") + 6
-                    if (s > 6) {
-                        var e = data.indexOf("</asin>", s)
-                        if (e > 0) {
-                            asin = data.slice(s, e)
-                        }
-                        if (asin.length == 10 && asin != '          ') {
-                            base = "http://images.amazon.com/images/P/"
-                                    + asin
-                            art = base + ".01.MZZZZZZZ.jpg"
-                        }
-                    }
-                }
-                mpd.cachedArt[search_url] = art
-                img.src = art
-                img.setAttribute("tooltiptext",art)
-                SaveImageToURL(item,art);
-            } catch (e) {
-                debug(e)
-            }
-        }
-        fetch(search_url, cb)
-    }
-}
-
 mpd.getArt = function(item, img) {
 	var fallback = function (code, item, url) {
 		if ( code == 200 || code == 0 ) {
@@ -874,7 +773,7 @@ mpd.getArt = function(item, img) {
 			item.objImg.src = url;
 			return;
 		}
-		if (prefs.get("use_amazon_art", 1) >= 1 ) getAmazonArt(item, item.objImg)
+		if (prefs.get("use_amazon_art", 1) >= 1 ) getAmazonArt(mpd, item, item.objImg)
 		else {
 			img.src = "chrome://minion/content/images/album_blank.png"
 			img.removeAttribute("tooltiptext")
@@ -975,6 +874,7 @@ mpd.searchLyrics = function (q, origCallBack) {
     debug(url)
     fetch(url, cb, null, true)
 }
+
 mpd.getLyrics = function (item, txtLyrics, btnEdit) {
     if (!Nz(item.Artist)) {
         txtLyrics.value = translateService.GetStringFromName("no_lyrics_found");
@@ -1418,7 +1318,7 @@ function socketTalker() {
     }
 
     return con
-}
+} // end socketTalker()
 
 var myPrefObserver = {
     register : function() {

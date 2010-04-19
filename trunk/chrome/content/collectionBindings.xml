@@ -459,7 +459,7 @@
                 <xul:box
                     flex="3"
                     id="tagsMainTree"
-                    style="-moz-binding: url('#mpmList')"
+                    style="-moz-binding: url('chrome://minion/content/collectionBindings.xml#mpmList')"
                     onselect="this.parentNode.parentNode.loadSub()"/>
                 <xul:splitter collapse="after"/>
                 <xul:vbox flex="1">
@@ -479,7 +479,7 @@
                     <xul:box
                         flex="1"
                         id="tagsSubTree"
-                        style="-moz-binding: url('#mpmList')"/>
+                        style="-moz-binding: url('chrome://minion/content/collectionBindings.xml#mpmList')"/>
                 </xul:vbox>
             </xul:vbox>
         </content>
@@ -633,19 +633,19 @@
                                     <xul:box id="folders"
                                         flex="1"
                                         minwidth="100px"
-                                        style="-moz-binding: url('#mpmFoldersPane')"/>
+                                        style="-moz-binding: url('chrome://minion/content/collectionBindings.xml#mpmFoldersPane')"/>
                                 </xul:tabpanel>
                                 <xul:tabpanel flex="1">
                                     <xul:box id="playlists"
                                         flex="1"
                                         minwidth="100px"
-                                        style="-moz-binding: url('#mpmList')"/>
+                                        style="-moz-binding: url('chrome://minion/content/collectionBindings.xml#mpmList')"/>
                                 </xul:tabpanel>
                                 <xul:tabpanel flex="1">
                                     <xul:box id="tags"
                                         flex="1"
                                         minwidth="100px"
-                                        style="-moz-binding: url('#mpmTagsPane')"/>
+                                        style="-moz-binding: url('chrome://minion/content/collectionBindings.xml#mpmTagsPane')"/>
                                 </xul:tabpanel>
                             </xul:tabpanels>
                         </xul:tabbox>
@@ -682,7 +682,7 @@
                                 <xul:deck id="browser-playlist_deck" flex="1"
                                 onselect="me.tdeck.selectedIndex=this.selectedIndex">
                                     <xul:box id="browser" class="mpm_browser" flex="1"
-                                             style="-moz-binding: url('#mpmBrowser')"/>
+                                             style="-moz-binding: url('chrome://minion/content/collectionBindings.xml#mpmBrowser')"/>
                                     <xul:box id="playlist" flex="1"
                                              mpm_name="browser_playlist"
                                              style="-moz-binding: url('chrome://minion/content/playlistBindings.xml#mpdPlaylist')"/>
