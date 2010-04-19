@@ -781,9 +781,17 @@ mpd.getArt = function(item, img) {
 	}
 
 	try {
-		img.src = "chrome://minion/content/images/album_loading.png"
-		img.setAttribute("tooltiptext","...")
-
+		var strFile = new String(item.file);
+		debug(item);
+		if ( strFile.indexOf('http://') == 0 || strFile.indexOf('https://') == 0 ) {
+			var art =  "chrome://minion/content/images/internet_music.png";
+			img.src = art;
+			img.setAttribute("tooltiptext",art);
+			return;
+		}
+		img.src = "chrome://minion/content/images/album_loading.png";
+		img.setAttribute("tooltiptext","...");
+		
 		item.objImg = img;
 		if (prefs.get("use_custom_art", false)) {
 			var url = urlReplace(prefs.get("custom_art_url"), item)
