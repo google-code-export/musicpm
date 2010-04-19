@@ -207,13 +207,13 @@ function copyArray(oldArray) {
         return oldArray
 }
 
-function getAmazonArt(mpd, item, img) {	
+function getAmazonArt(mpd, item, img) {
 	var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
 		+ encodeURI(item.Artist)
 		+ "&title="
 		+ encodeURI(item.Album)
 		+ "&limit=1";
-	var art =  "chrome://minion/content/images/album_blank.png"
+	var art =  "chrome://minion/content/images/album_blank.png";
 	debug("searching Metabrainz...")
 	if (typeof(mpd.cachedArt[search_url]) == 'string') {
 		img.src = mpd.cachedArt[search_url]
