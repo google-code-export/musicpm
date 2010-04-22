@@ -1,5 +1,6 @@
 Components.utils.import("resource://minion/mpmUtils.js");
 Components.utils.import("resource://minion/io.js");
+Components.utils.import("resource://minion/JSON.js");
 
 EXPORTED_SYMBOLS = ["mpmMenu", "mpmMenuItem"]
 
@@ -257,7 +258,7 @@ function loadMenuItems () {
 	if (file.exists()) {
 		debug("Read menus from "+file.path);
 		var str = FileIO.read(file);
-		mpmMenu.items = eval(str);
+		mpmMenu.items = JSON.parse(str);
 	} else {
 		debug("Creating default menus.")
 		loadDefaults();
@@ -305,7 +306,7 @@ function saveMenuItems () {
 	if (!file.exists()) {
 		FileIO.create(file);
 	}
-	var str = mpmMenu.items.toSource()
+	var str = JSON.stringify(mpmMenu.items);
 	FileIO.write(file, str);
 	file = null;
 }

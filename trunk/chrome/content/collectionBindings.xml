@@ -756,7 +756,7 @@
                 
                 var url = prefs.get("song_template", "chrome://minion/content/default_song_template.xul")
                 this.content.setAttribute("src", url);
-				// wrappedJSObject is quite compulsory here if we want to access to methods like cwin.load()
+				// wrappedJSObj is quite compulsory here if we want to access to methods like cwin.load()
                 this.cwin = Nz(this.content.contentWindow.wrappedJSObject, this.content.contentWindow)
                 this.cwin.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 

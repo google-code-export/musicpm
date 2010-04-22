@@ -2,6 +2,7 @@ Components.utils.import("resource://minion/mpmUtils.js");
 Components.utils.import("resource://minion/io.js");
 Components.utils.import("resource://minion/mpd.js");
 Components.utils.import("resource://minion/mpmMenu.js");
+Components.utils.import("resource://minion/JSON.js");
 
 function isValid(self, item, location) {
     var type = (Nz(item)) ? Nz(item.type, "undefined") : "undefined"
@@ -66,76 +67,82 @@ function ensureDetails(item) {
 }
 
 function handleMenuCommand(self, item, location) {
-    if (self.URL) {
-        var s = self.URL
-        for (x in item) {
-            s = s.replace("{" + x + "}", encodeURI(item[x]))
-        }
-        s = s.replace(/{[^}]+}/g, "")
-        openReuseByAttribute(s, "mpm_web_query")
-    }
-    if (self.queryType) {
-        var q = new dbQuery
-        q.cmd = self.queryCommand
-        q.type = self.queryType
-        q.scope = self.queryScope
-        var criteria = (self.queryScope) ? Nz(item[self.queryScope]) : ""
-        if (!criteria && item.type == self.queryScope)
-            criteria = item.Title
-        q.query = criteria
-        if (self.filterField) {
-            q.filterField = self.filterField
-            q.filterQuery = item[self.filterField]
-        }
-        ensureQuery(q)
-    }
-    if (self.mpdCommand) {
-        var s = self.mpdCommand
-        for (x in item) {
-            s = s.replace("{" + x + "}", Sz(item[x]))
-        }
-        for (x in mpd) {
-            s = s.replace("{" + x + "}", mpd[x])
-        }
-        s = s.replace(/{[^}]+}/g, "")
-        var q = new dbQuery(s)
-        q.evaluate()
-        if (!q.dbMatches) {
-            q.execute()
-        } else {
-            ensureQuery(q)
-        }
-    }
-    if (self.script) {
-        var fakebrowser = {
-            doUpdate : function() {
-                mpd.doCmd("update")
-            },
-            goTo : ensureQuery,
-            getActiveItem : function() {
-                return item
-            },
-			showDetails : ensureDetails				
-        }
-                
-        var focused = Nz(document.commandDispatcher.focusedElement.parentNode)
-        var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0])
-        var mpdplaylist = Nz(document.getElementsByTagName("mpdplaylist")[0])
-        if (mpdbrowser) {
-            if (mpdbrowser.getActiveLocation() == "mpdplaylist") {
-                var bplaylist = mpdbrowser.getActiveBrowser()
-                if (bplaylist == focused) mpdplaylist = bplaylist
-            }
-        } else {
-            mpdbrowser = fakebrowser
-        }
+	if (self.URL) {
+		var s = self.URL;
+		for (x in item) {
+			s = s.replace("{" + x + "}", encodeURI(item[x]));
+		}
+		s = s.replace(/{[^}]+}/g, "");
+		openReuseByAttribute(s, "mpm_web_query");
+	}
+	if (self.queryType) {
+		var q = new dbQuery;
+		q.cmd = self.queryCommand;
+		q.type = self.queryType;
+		q.scope = self.queryScope;
+		var criteria = (self.queryScope) ? Nz(item[self.queryScope]) : "";
+		if (!criteria && item.type == self.queryScope) criteria = item.Title;
+		q.query = criteria;
+		if (self.filterField) {
+			q.filterField = self.filterField;
+			q.filterQuery = item[self.filterField];
+		}
+		ensureQuery(q);
+	}
+	if (self.mpdCommand) {
+		var s = self.mpdCommand;
+		for (x in item) {
+			s = s.replace("{" + x + "}", Sz(item[x]));
+		}
+		for (x in mpd) {
+			s = s.replace("{" + x + "}", mpd[x]);
+		}
+		s = s.replace(/{[^}]+}/g, "");
+		var q = new dbQuery(s);
+		q.evaluate();
+		if (!q.dbMatches) {
+			q.execute();
+		} else {
+			ensureQuery(q);
+		}
+	}
+	if (self.script) {
+		var fakebrowser = {
+			doUpdate : function() {
+				mpd.doCmd("update");
+			},
+			goTo : ensureQuery,
+			getActiveItem : function() {
+				return item;
+			},
+			showDetails : ensureDetails
+		}
 
-        try {
-            eval(self.script)
-        } catch (e) {
-            debug(e)
-        }
-    }
+		var focused = Nz(document.commandDispatcher.focusedElement.parentNode);
+		var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0]);
+		var mpdplaylist = Nz(document.getElementsByTagName("mpdplaylist")[0]);
+		if (mpdbrowser) {
+			if (mpdbrowser.getActiveLocation() == "mpdplaylist") {
+				var bplaylist = mpdbrowser.getActiveBrowser();
+				if (bplaylist == focused) mpdplaylist = bplaylist;
+			}
+		} else {
+			mpdbrowser = fakebrowser;
+		}
+
+		try {
+			// self.script is the script supplied by the user in the action config interface.
+			// if the AMO reviewer thinks it's too unsafe, please point out a good ressource
+			// to fix the problem.
+			// these scripts are used to perform customizable actions at various places in the UI
+			// They also allow the user to extended the extension by adding other commands.
+			debug(self.script);
+			var userScript = new Function("mpdbrowser", "mpdplaylist", "item", self.script);
+			userScript(mpdbrowser, mpdplaylist, item);
+		} catch (e) {
+			debug(e);
+		}
+	}
 }
 
 function createMenuNode(menupopup, menuItem, activeItem, location, nodeType) {

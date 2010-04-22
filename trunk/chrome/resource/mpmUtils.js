@@ -78,10 +78,19 @@ function urlReplace (s, item) {
     debug(item)
     for (x in item) {
         var re = new RegExp("{"+x+"}","ig")
-        s = s.replace(re, encodeURI(item[x]))
+        s = s.replace(re, fixedEncodeURI(item[x]))
     }
     s = s.replace(/{[^}]+}/g,"")
     return s
+}
+
+// https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURIComponent
+// https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURI
+function fixedEncodeURI (str) {
+	return encodeURI(str).replace(/!/g, '%21').replace(/'/g, '%27')
+								  .replace(/\(/g, '%28').replace(/\)/g, '%29')
+								  .replace(/\*/g, '%2A').replace(/\@/g, '%40')
+								  .replace(/&/g, '%26').replace(/#/g, '%23');
 }
 
 function getFileContents(aURL) {
@@ -407,13 +416,11 @@ function openReuseByURL(url) {
                 browserInstance = recent.getBrowser();
                 browserInstance.selectedTab = browserInstance.addTab(url)
                 browserInstance.focus();
-                var currentBrowser = browserInstance
-                        .getBrowserForTab(browserInstance.selectedTab)
+                var currentBrowser = browserInstance.getBrowserForTab(browserInstance.selectedTab)
                 var win = currentBrowser.contentWindow.wrappedJSObject
             } else {
                 var win = winw.getWindowByName(url, null)
-                if (!win)
-                    win = winw.openWindow(null, url, url, null, null)
+                if (!win) win = winw.openWindow(null, url, url, null, null)
                 win.focus()
             }
         }
