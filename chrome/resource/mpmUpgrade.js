@@ -1,7 +1,7 @@
 Components.utils.import("resource://minion/mpmUtils.js");
 Components.utils.import("resource://minion/mpmMenu.js");
 Components.utils.import("resource://minion/io.js");
-
+Components.utils.import("resource://minion/JSON.js");
 
 EXPORTED_SYMBOLS = ["mpmUpgrade"]
 
@@ -52,6 +52,17 @@ function mpmUpgrade206(mpd) {
 		if ( prefs.isPref('use_amazon_art') ) {
 			if (typeof(prefs.get("use_amazon_art",1)) == "boolean" ) prefs.clear("use_amazon_art");
 		}
+
+		// it is not possible to restore old menus stored in JS and get them converted to JSON
+		// So, we have to restore defaults value.
+		// This concerns only "beta" user of 2.0.x branch
+		var file = DirIO.get(pref_dir_old);
+		file.append(pref_file_menus_old);
+		if (file.exists()) {
+			FileIO.unlink(file);
+		}
+		mpmMenu.restore(); // Will overwrite any already migrated menus
+
 		debug('Upgrade for 2.0.6: Ok');
 	} catch(e) {
 		debug('Upgrade for 2.0.6: Failed');
@@ -83,31 +94,10 @@ function mpmUpgrade200(mpd) {
 		if (file.exists()) {
 			debug('Upgrading old server prefs');
 			var str = FileIO.read(file);
-			mpd.servers = eval(str);
+			mpd.servers = JSON.parse(str);
 			FileIO.unlink(file);
 			mpd.setServers(mpd.servers);
 		}
-
-		file = DirIO.get(pref_dir_old);
-		file.append(pref_file_menus_old);
-		if (file.exists()) {
-			debug('Upgrading old menu prefs');
-			var str = FileIO.read(file);
-			mpmMenu.items = eval(str);
-
-			// Handles conversion for < 1.99.4 alpha clients
-			for (var i=0;i<mpmMenu.items.length;i++) {
-				var item = mpmMenu.items[i];
-				if (typeof(item.filterField == 'undefined')) {
-					item.filterField = null;
-					if (item.id == "mpm_menu_viewAlbum") item.filterField = 'Artist';
-				}
-			}
-			mpmMenu.save();
-			FileIO.unlink(file);
-			mpmMenu.items = [];
-		}
-
 		debug('Upgrade for 2.0.0: Ok');
 	} catch(e) {
 		debug('Upgrade for 2.0.0: Failed');

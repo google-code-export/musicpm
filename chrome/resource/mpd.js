@@ -18,6 +18,7 @@
 Components.utils.import("resource://minion/mpmUtils.js");
 Components.utils.import("resource://minion/mpmUpgrade.js");
 Components.utils.import("resource://minion/io.js");
+Components.utils.import("resource://minion/JSON.js");
 
 EXPORTED_SYMBOLS = ["dbQuery", "mpd", "prefBranch", "Sz", "loadSrvPref", "myPrefObserver"]
 var prefService = Components.classes["@mozilla.org/preferences-service;1"]
@@ -953,15 +954,17 @@ mpd.getOutputs = function(callBack) {
 }
 
 mpd.setServers = function(servers) {
-	mpd.set('servers', servers)
-	var file = DirIO.get(pref_dir)
-	file.append(pref_file)
-	if (!file.exists()) {
-		FileIO.create(file)
-	}
-	var str = mpd.servers.toSource()
-	FileIO.write(file, str)
-	file = null
+	mpd.set('servers', servers);
+	try {
+		var file = DirIO.get(pref_dir);
+		file.append(pref_file);
+		if (!file.exists()) {
+			FileIO.create(file);
+		}
+		var str = JSON.stringify(mpd.servers);
+		FileIO.write(file, str);
+		file = null;
+	} catch(e) { debug(e); }
 }
 
 mpd.loadServers = function() {
@@ -969,11 +972,11 @@ mpd.loadServers = function() {
 	file.append(pref_file);
 	if (file.exists()) {
 		debug("Reading server prefs from: "+file.path);
-		var str = FileIO.read(file)
-		mpd.servers = eval(str)
+		var str = FileIO.read(file);
+		mpd.servers = JSON.parse(str);
 	} else {
 		// creating default server
-		debug("Creating default servers.")
+		debug("Creating default servers.");
 		mpd.servers = default_servers;
 		mpd.setServers(mpd.servers);
 	}
