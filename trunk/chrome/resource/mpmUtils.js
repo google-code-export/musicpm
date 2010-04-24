@@ -74,14 +74,14 @@ function Nz(obj, def) {
 }
 
 function urlReplace (s, item) {   
-    if (Nz(item.file)) item.Path = item.file.split("/").slice(0,-1).join("/")
-    debug(item)
-    for (x in item) {
-        var re = new RegExp("{"+x+"}","ig")
-        s = s.replace(re, fixedEncodeURI(item[x]))
-    }
-    s = s.replace(/{[^}]+}/g,"")
-    return s
+	if (Nz(item.file)) item.Path = item.file.split("/").slice(0,-1).join("/");
+	// debug(item);
+	for (x in item) {
+		var re = new RegExp("{"+x+"}","ig");
+		s = s.replace(re, fixedEncodeURI(item[x]));
+	}
+	s = s.replace(/{[^}]+}/g,"");
+	return s;
 }
 
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURIComponent
@@ -379,56 +379,57 @@ function mpm_openDialog(url, id) {
 }
 
 function openReuseByURL(url) {
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-            .getService(Components.interfaces.nsIWindowMediator);
-    var browserEnumerator = wm.getEnumerator("navigator:browser");
-    // Check each browser instance for our URL
-    var found = false;
-    try {
-        while (!found && browserEnumerator.hasMoreElements()) {
-            var browser = browserEnumerator.getNext()
-            var browserInstance = browser.getBrowser()
+	var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+			.getService(Components.interfaces.nsIWindowMediator);
+	var browserEnumerator = wm.getEnumerator("navigator:browser");
+	// Check each browser instance for our URL
+	var found = false;
+	try {
+		while (!found && browserEnumerator.hasMoreElements()) {
+			var browser = browserEnumerator.getNext();
+			var browserInstance = browser.getBrowser();
 
-            // Check each tab of this browser instance
-            var numTabs = browserInstance.tabContainer.childNodes.length;
-            for (var index = 0; index < numTabs; index++) {
-                var currentBrowser = browserInstance.getBrowserAtIndex(index);
-                if (url == currentBrowser.currentURI.spec) {
-
-                    // The URL is already opened. Select this tab.
-                    browserInstance.selectedTab = browserInstance.tabContainer.childNodes[index];
-
-                    // Focus *this* browser
-                    browser.focus()
-                    browserInstance.focus();
-                    debug("in tab")
-                    var win = currentBrowser.contentWindow.wrappedJSObject
-                    found = true;
-                    break;
-                }
-            }
-        }
-        if (!found) {
-            var openInTab = prefs.get("launch_in_browser", false)
-            var recent = (openInTab) ? wm.getMostRecentWindow("navigator:browser") : false
-            if (recent) {
-                recent.focus()
-                browserInstance = recent.getBrowser();
-                browserInstance.selectedTab = browserInstance.addTab(url)
-                browserInstance.focus();
-                var currentBrowser = browserInstance.getBrowserForTab(browserInstance.selectedTab)
-                var win = currentBrowser.contentWindow.wrappedJSObject
-            } else {
-                var win = winw.getWindowByName(url, null)
-                if (!win) win = winw.openWindow(null, url, url, null, null)
-                win.focus()
-            }
-        }
-        return win
-
-    } catch (e) {
-        debug(e)
-    }
+			// Check each tab of this browser instance
+			var numTabs = browserInstance.tabContainer.childNodes.length;
+			for (var index = 0; index < numTabs; index++) {
+				var currentBrowser = browserInstance.getBrowserAtIndex(index);
+				if (url == currentBrowser.currentURI.spec) {
+					// The URL is already opened. Select this tab.
+					browserInstance.selectedTab = browserInstance.tabContainer.childNodes[index];
+					// Focus *this* browser
+					browser.focus();
+					browserInstance.focus();
+					debug("browser already in tab");
+					// wrapped is compulsory otherwise we can't right click on the statusbar
+					// to display album details and perform queries.
+					var win = currentBrowser.contentWindow.wrappedJSObject;
+					found = true;
+					break;
+				}
+			}
+		}
+		if (!found) {
+			var openInTab = prefs.get("launch_in_browser", false);
+			var recent = (openInTab) ? wm.getMostRecentWindow("navigator:browser") : false;
+			if (recent) {
+				recent.focus();
+				browserInstance = recent.getBrowser();
+				browserInstance.selectedTab = browserInstance.addTab(url);
+				browserInstance.focus();
+				var currentBrowser = browserInstance.getBrowserForTab(browserInstance.selectedTab);
+				// wrapped is compulsory otherwise we can't right click on the statusbar
+				// to display album details and perform queries.
+				var win = currentBrowser.contentWindow.wrappedJSObject;
+			} else {
+				var win = winw.getWindowByName(url, null);
+				if (!win) win = winw.openWindow(null, url, url, null, null);
+				win.focus();
+			}
+		}
+		return win;
+	} catch (e) {
+		debug(e);
+	}
 }
 
 function openReuseByAttribute(url, attrName) {

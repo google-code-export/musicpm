@@ -9,18 +9,7 @@ var pref_file = "mpm_menus.js";
 
 function loadDefaults () {
     mpmMenu.items = [
-        {
-            id : "mpm_menu_launch",
-            label : translateService.GetStringFromName("launch_new_browser"),
-            locations : "statusbar",
-            targets : null,
-            URL : null,
-            queryType : null,
-            queryScope : null,
-            filterField: null,
-            mpdCommand : null,
-            script : 'var w=window.open("chrome://minion/content/minion.xul","chrome://minion/content/minion.xul","chrome");w.focus()'
-        }, {
+		{
             id : "mpm_menu_toggle_cs",
             label : translateService.GetStringFromName("toggle_song_display"),
             locations : "statusbar",
