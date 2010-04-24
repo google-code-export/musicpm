@@ -136,10 +136,18 @@ function handleMenuCommand(self, item, location) {
 			// to fix the problem.
 			// these scripts are used to perform customizable actions at various places in the UI
 			// They also allow the user to extended the extension by adding other commands.
-			debug(self.script);
-			var userScript = new Function("mpdbrowser", "mpdplaylist", "item", self.script);
-			userScript(mpdbrowser, mpdplaylist, item);
+			// The use of Sandbox has been suggested by Jorge, but feel free to indicate if the
+			// implementation has been done properly
+			var sbox = Components.utils.Sandbox('chrome://minion/content/minion.xul');
+			sbox.mpdbrowser = mpdbrowser;
+			sbox.mpdplaylist = mpdplaylist;
+			sbox.prefs = prefs;
+			sbox.mpm_openDialog = mpm_openDialog;
+			sbox.mpd = mpd;
+			sbox.item = item;
+			Components.utils.evalInSandbox(self.script, sbox); // As per comments above
 		} catch (e) {
+			debug("Error in Sandbox");
 			debug(e);
 		}
 	}

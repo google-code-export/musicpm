@@ -95,11 +95,10 @@
             open: function(url, event) {
                 openUILink(url, event, false, true);
             },
-            doConfig: function() {
-                var cb = function (w){try{w.close}catch(e){}}
-                window.openDialog("chrome://minion/content/settings.xul",
-                                    "showmore", "chrome", cb)
-            },
+			doAbout: function() {
+				var cb = function (w){try{w.close}catch(e){}}
+				window.openDialog("chrome://minion/content/about/about.xul", "showmore", "chrome", cb)
+			},
             linkHandler: function(event) {
                 var ma = document.getElementById('mpm_linkHandlerAdd')
                 var mp = document.getElementById('mpm_linkHandlerPlay')
@@ -319,5 +318,38 @@
             <mpdservers/>
         </statusbarpanel>
     </statusbar>
-
+	<!--
+	<menubar id="main-menubar">
+		<menu id="menu_mpm" label="Minion" accesskey="M">
+			<menupopup id="menu_mpmPopup">
+				<menuitem label="Open Minion" oncommand="launchMinion()" accesskey="O"/>
+				<menuseparator/>
+				<menu id="menu_mpmPlayback" label="Playback" accesskey="P">
+					<menupopup id="menu_mpmPopupPlayback">
+						<menuitem label="Play" oncommand="mpd.doCmd('play')" accesskey="P"/>
+						<menuitem label="Pause" oncommand="mpd.doCmd('pause')" accesskey="a"/>
+						<menuitem label="Stop" oncommand="mpd.doCmd('stop')" accesskey="S"/>
+						<menuitem label="Next" oncommand="mpd.doCmd('next')" accesskey="N"/>
+						<menuitem label="Prev" oncommand="mpd.doCmd('prev')" accesskey="P"/>
+						<menuseparator/>
+						<menuitem label="Random" oncommand="mpd.toggleRandom()" accesskey="R"/>
+						<menuitem label="Repeat" oncommand="mpd.toggleRepeat()" accesskey="e"/>
+					</menupopup>
+				</menu>
+				<menuseparator/>
+				<menu id="menu_mpmSettings" label="Settings" accesskey="S">
+					<menupopup id="menu_mpmPopupSettings">
+						<menuitem label="Settings" accesskey="e" 
+							oncommand="mpm_openDialog('chrome://minion/content/settings.xul', 'settings')" />
+						<menuitem label="&minion.manage_servers;" accesskey="v"
+							oncommand="mpm_openDialog('chrome://minion/content/servers.xul', 'servers')"/>
+					</menupopup>
+				</menu>
+				<menuseparator/>
+				<menuitem label="About" accesskey="A"
+					oncommand="mpm.doAbout()"/>
+			</menupopup>
+		</menu>
+	</menubar>
+	-->
 </overlay>
