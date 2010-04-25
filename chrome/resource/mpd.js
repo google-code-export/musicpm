@@ -768,32 +768,41 @@ mpd.getAllDirs = function(callBack) {
 
 mpd.getArt = function(item, img) {
 	var fallback = function (code, item, url) {
-		if ( code == 200 || code == 0 ) {
-			mpd.cachedArt[url] = url;
-			item.objImg.setAttribute("tooltiptext",url);
-			item.objImg.src = url;
-			return;
-		}
-		if (prefs.get("use_amazon_art", 1) >= 1 ) getAmazonArt(mpd, item, item.objImg)
-		else {
-			img.src = "chrome://minion/content/images/album_blank.png"
-			img.removeAttribute("tooltiptext")
-		}
-	}
+		try{
+			if ( code == 200 || code == 0 ) {
+				mpd.cachedArt[url] = url;
+				img.setAttribute("tooltiptext",url);
+				img.src = url;
+				return;
+			}
+			if (prefs.get("use_amazon_art", 1) >= 1 ) {
+				getAmazonArt(mpd, item, img);
+			} else {
+				img.src = "chrome://minion/content/images/album_blank.png";
+				img.removeAttribute("tooltiptext");
+			}
+		} catch(e){ debug(e); }
+	};
 
 	try {
+		if ( typeof(item.file) != 'string' ) {
+			var art =  "chrome://minion/content/images/album_blank.png";
+			img.src = art;
+			img.setAttribute("tooltiptext",art);
+			return;
+		}
+
 		var strFile = new String(item.file);
-		debug(item);
 		if ( strFile.indexOf('http://') == 0 || strFile.indexOf('https://') == 0 ) {
 			var art =  "chrome://minion/content/images/internet_music.png";
 			img.src = art;
 			img.setAttribute("tooltiptext",art);
 			return;
 		}
+		
 		img.src = "chrome://minion/content/images/album_loading.png";
 		img.setAttribute("tooltiptext","...");
 		
-		item.objImg = img;
 		if (prefs.get("use_custom_art", false)) {
 			var url = urlReplace(prefs.get("custom_art_url"), item)
 			debug("Attempting to fetch cover at " + url);

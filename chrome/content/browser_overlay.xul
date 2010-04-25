@@ -324,6 +324,8 @@
 			<menupopup id="menu_mpmPopup">
 				<menuitem label="Open Minion" oncommand="launchMinion()" accesskey="O"/>
 				<menuseparator/>
+				<mpdmenuservers/>
+				<menuseparator/>
 				<menu id="menu_mpmPlayback" label="Playback" accesskey="P">
 					<menupopup id="menu_mpmPopupPlayback">
 						<menuitem label="Play" oncommand="mpd.doCmd('play')" accesskey="P"/>

@@ -36,36 +36,64 @@ var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
 var translateService = Components.classes["@mozilla.org/intl/stringbundle;1"]
         .getService(Components.interfaces.nsIStringBundleService)
         .createBundle("chrome://minion/locale/strings.properties");
-		
-function debug(s) {
-    if ( prefs.get("debug", false) != true ) return;	
-    try {
-        var str = ""
-        if (s == null) s = "null passed to debug"
-        if (typeof(s) == 'object') {
-            var str = ""
-            for (x in s) {
-                try {
-                    // str += (typeof(s[x]) == 'object') ? s[x].toSource() : x + ":
-                    // " + s[x]
-                    str += x + ": " + s[x] + "\n"
-                } catch (e) {
-                    str += x + ": ERROR\n"
-                }
-            }
-        } else if (typeof(str) == 'string') {
-            var str = s
-        }
-        if (typeof(str) == 'string' && str.length > 0) {
-            dump(str + "\n\n")
-            //consoleService.logStringMessage(str)
-        }
-    } catch (e) {
-        dump("error in debug!")
-        dump(e);
-        consoleService.logStringMessage("error in debug!")
-    }
+
+function getStringTime() {
+	var today = new Date();
+	var strDate = "";
+	var t = 0;
+	
+	t = today.getHours();
+	if ( t.toString().length == 1 ) strDate += '0';
+	strDate += t +':';
+	
+	t = today.getMinutes();
+	if ( t.toString().length == 1 ) strDate += '0';
+	strDate += t +':';
+
+	t = today.getSeconds();
+	if ( t.toString().length == 1 ) strDate += '0';
+	strDate += t +'.';
+	
+	t = today.getMilliseconds();
+	if ( t.toString().length == 1 ) strDate += '00';
+	if ( t.toString().length == 2 ) strDate += '0';
+	strDate += t;
+	
+	return strDate;
 }
+
+function debug(s) {
+	if ( prefs.get("debug", false) != true ) return;	
+	try {
+		var strDate = getStringTime();
+		var f = 0;
+		var str = "";
+		if (s == null) s = "null passed to debug";
+		if (typeof(s) == 'object') {
+			for (x in s) {
+				try {
+					if ( f != 0 ) str += "\n             ";
+					str += x + ': ' + s[x];
+				} catch (e) {
+					if ( f != 0 ) str += "\n             ";
+					str += x + ': ERROR';
+				}
+				f=1;
+			}
+		} else if (typeof(str) == 'string') {
+			var str = s;
+		}
+		if (typeof(str) == 'string' && str.length > 0) {
+			dump(strDate + ' ' + str + "\n");
+			//consoleService.logStringMessage(str)
+		}
+	} catch (e) {
+		dump("error in debug!")
+		dump(e);
+		consoleService.logStringMessage("error in debug!")
+	}
+}
+
 function Nz(obj, def) {
     if (typeof(obj) == 'undefined') {
         return (typeof(def) == 'undefined') ? null : def
@@ -217,43 +245,48 @@ function copyArray(oldArray) {
 }
 
 function getAmazonArt(mpd, item, img) {
-	var search_url = "http://musicbrainz.org/ws/1/release/?type=xml&artist="
-		+ encodeURI(item.Artist)
-		+ "&title="
-		+ encodeURI(item.Album)
-		+ "&limit=1";
-	var art =  "chrome://minion/content/images/album_blank.png";
-	debug("searching Metabrainz...")
-	if (typeof(mpd.cachedArt[search_url]) == 'string') {
-		img.src = mpd.cachedArt[search_url]
-		img.setAttribute("tooltiptext",mpd.cachedArt[search_url])
+	var art = "chrome://minion/content/images/album_blank.png";
+	var search_url = urlReplace(
+					"http://musicbrainz.org/ws/1/release/?type=xml&artist={Artist}&title={Album}&limit=1",
+					item);
+	if ( typeof(item.Album) != 'string' || typeof(item.Artist) != 'string' 
+			|| item.Album == "" || item.Artist == "") {
+		debug("Not enough info for search...")
+		img.src = 'chrome://minion/content/images/album_blank_no_info.png';
+		img.setAttribute("tooltiptext",translateService.GetStringFromName("track_no_info"));	
 	} else {
-	var cb = function(data) {
-		try {
-			var asin = ""
-			if (data != "") {
-				var s = data.indexOf("<asin>") + 6
-				if (s > 6) {
-					var e = data.indexOf("</asin>", s)
-					if (e > 0) {
-						asin = data.slice(s, e)
+		debug("searching Metabrainz...")
+		if (typeof(mpd.cachedArt[search_url]) == 'string') {
+			img.src = mpd.cachedArt[search_url];
+			img.setAttribute("tooltiptext",mpd.cachedArt[search_url]);
+		} else {
+			var cb = function(data) {
+				try {
+					var asin = "";
+					if (data != "") {
+						var s = data.indexOf("<asin>") + 6;
+						if (s > 6) {
+							var e = data.indexOf("</asin>", s);
+							if (e > 0) {
+								asin = data.slice(s, e);
+							}
+							if (asin.length == 10 && asin != '          ') {
+								base = "http://images.amazon.com/images/P/" + asin;
+								art = base + ".01.MZZZZZZZ.jpg";
+							}
+						}
 					}
-					if (asin.length == 10 && asin != '          ') {
-						base = "http://images.amazon.com/images/P/"
-						+ asin
-						art = base + ".01.MZZZZZZZ.jpg"
-					}
+					debug('applying art='+art);
+					mpd.cachedArt[search_url] = art;
+					img.src = art;
+					img.setAttribute("tooltiptext",art);
+					SaveImageToURL(item,art);
+				} catch (e) {
+					debug(e);
 				}
-			}
-			mpd.cachedArt[search_url] = art
-			img.src = art
-			img.setAttribute("tooltiptext",art)
-			SaveImageToURL(item,art);
-			} catch (e) {
-				debug(e)
-			}
+			};
+			fetch(search_url, cb);
 		}
-		fetch(search_url, cb);
 	}
 }
 
@@ -319,20 +352,22 @@ function SaveImageToURL(item,url) {
 
 function prefetchImageFromURL(url, callBack, arg) {
 	try {
-		var request = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
+		debug('Prefetch requested');
+		var imgRequest = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
 						.createInstance();
-		request.QueryInterface(Components.interfaces.nsIDOMEventTarget);
-		request.QueryInterface(Components.interfaces.nsIXMLHttpRequest);
+		imgRequest.QueryInterface(Components.interfaces.nsIDOMEventTarget);
+		imgRequest.QueryInterface(Components.interfaces.nsIXMLHttpRequest);
 
-		request.open("POST", url, true);
-		request.onreadystatechange = function() {
-			if (request.readyState == 4) {
-				callBack(request.status, arg, url);
-				request.onreadystatechange = null;
-				request = null;
+		imgRequest.open("POST", url, true);
+		imgRequest.onreadystatechange = function() {
+			if (imgRequest.readyState == 4) {
+				imgRequest.onreadystatechange = null;
+				var status = imgRequest.status;
+				imgRequest = null;
+				callBack(status, arg, url);
 			}
-		}
-		request.send("q="+(Math.random()*10000));
+		};
+		imgRequest.send("q="+(Math.random()*10000));
 	} catch (e) { 
 		// exception was raised, so we fallback to amazon if possible
 		// debug(e);
