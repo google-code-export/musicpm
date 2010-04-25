@@ -173,6 +173,17 @@
         </implementation>
     </binding>
 
+	<binding id="mpdMenuServers">
+		<content>
+			<xul:menu class="" 
+				tooltiptext="&minion.mpm_settings;"
+				xbl:inherits="menuitem" type="menu">
+				<xul:menuitem label="&minion.disconnect;" accesskey="D"
+					oncommand=""/>
+			</xul:menu>
+		</content>
+	</binding>
+
     <binding id="mpdServers">
         <content>
             <xul:toolbarbutton class="mpm_btn_Settings"
