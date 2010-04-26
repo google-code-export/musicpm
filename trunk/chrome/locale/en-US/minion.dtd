@@ -148,3 +148,10 @@
 <!ENTITY song.follow "Follow Currently Playing Song">
 <!ENTITY song.lyricsfly "Lyrics from Lyricsfly.com">
 <!ENTITY song.edit "Edit">
+<!ENTITY update.dummy7 "<----------------- Upgrade template --------------->">
+<!ENTITY upgrade.new_upgrade "New upgrade">
+<!ENTITY upgrade.homepage "Homepage">
+<!ENTITY upgrade.message_thanks "Thank you for using this extension.">
+<!ENTITY upgrade.message "We just upgraded your parameters to reflect recent changes in the extension. Please review you preferences and server settings to ensure all is set properly. Check out our homepage for the latest news and details.">
+<!ENTITY upgrade.message_team "The Music player Minion team.">
+<!ENTITY upgrade.about "About">

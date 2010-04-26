@@ -22,7 +22,7 @@
 		mpd.loadServers();
 		loadSrvPref();
 
-		debug("Starting...");		
+		debug("Starting...");
 		myPrefObserver.register();
         var incr = 0;
 		var end = 0;
@@ -75,7 +75,8 @@
         }
         var mpm = {
             onLoad: function (e) {
-                debug("load")
+                debug('load')
+                window.removeEventListener("load", function(e) { mpm.onLoad(e); }, false);
                 var cm = document.getElementById("contentAreaContextMenu")
                 if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, true)
                 obs.observe(null, null, null)
@@ -87,8 +88,14 @@
                 observerService.addObserver(obsVol, 'volume', false);
                 csPrefObserver.register();
                 updateStatusBarPosition(document);
-                window.removeEventListener("load", function(e) { mpm.onLoad(e); }, false);
             },
+			onFocus: function (e) {
+				window.removeEventListener("focus", function(e) { mpm.onFocus(e); }, false);
+				if (mpmIsUpgraded(true) == true ) {
+					var cb = function (w){try{w.close}catch(e){}}
+					window.openDialog("chrome://minion/content/upgrade.xul", "showupgrade", "chrome", cb)
+				}
+			},
             onPlaylistUnload: function (e) {
                 e.target.saveColumns()
             },
@@ -185,6 +192,7 @@
         };
 		var srv = ""
         window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
+        window.addEventListener("focus", function(e) { mpm.onFocus(e); }, false);
         window.addEventListener("online", function(e) { mpd.force_connect();dump("online\n") }, false);
         window.addEventListener("offline", function(e) { mpd.disconnect();dump("offline\n") }, false);
         document.getElementById('popup_playlist').addEventListener("unload", function(e) { mpm.onPlaylistUnload(e); }, true);
@@ -348,8 +356,7 @@
 					</menupopup>
 				</menu>
 				<menuseparator/>
-				<menuitem label="About" accesskey="A"
-					oncommand="mpm.doAbout()"/>
+				<menuitem label="About" accesskey="A" oncommand="mpm.doAbout()"/>
 			</menupopup>
 		</menu>
 	</menubar>

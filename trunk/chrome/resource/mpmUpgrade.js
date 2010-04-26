@@ -3,7 +3,7 @@ Components.utils.import("resource://minion/mpmMenu.js");
 Components.utils.import("resource://minion/io.js");
 Components.utils.import("resource://minion/JSON.js");
 
-EXPORTED_SYMBOLS = ["mpmUpgrade"]
+EXPORTED_SYMBOLS = ["mpmUpgrade", "mpmIsUpgraded"]
 
 // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
 var pref_dir = "ProfD";
@@ -28,17 +28,20 @@ function mpmUpgrade(mpd) {
 		debug('mpm preferences need to be upgraded ('+mpmGetPreviousVersion()+' != '+mpmGetCurrentVersion()+')');
 		switch(oldVersion) {
 			case '1.4.4':
-				mpmUpgrade144(mpd);
+				mpmSetUpgraded(mpmUpgrade144(mpd));
 			break;
 			case '2.0.0':
-				mpmUpgrade200(mpd);
+				mpmSetUpgraded(mpmUpgrade200(mpd));
 			case '2.0.4':
-				mpmUpgrade204(mpd);
+				mpmSetUpgraded(mpmUpgrade204(mpd));
 			case '2.0.6':
-				mpmUpgrade206(mpd);
+				mpmSetUpgraded(mpmUpgrade206(mpd));
+			case '2.0.12':
+				mpmSetUpgraded(true);
 			break;
 			default:
 				debug('This version has nothing to upgrade ('+oldVersion+')');
+				mpmSetUpgraded(false);
 			break;
 		}
 		mpmCleanOldPrefs();
@@ -67,8 +70,8 @@ function mpmUpgrade206(mpd) {
 	} catch(e) {
 		debug('Upgrade for 2.0.6: Failed');
 		debug(e);
-		return false;
 	}
+	return true;
 }
 
 function mpmUpgrade204(mpd) {
@@ -83,8 +86,8 @@ function mpmUpgrade204(mpd) {
 	} catch(e) {
 		debug('Upgrade for 2.0.4: Failed');
 		debug(e);
-		return false;
 	}
+	return true;
 }
 
 function mpmUpgrade200(mpd) {
@@ -102,8 +105,8 @@ function mpmUpgrade200(mpd) {
 	} catch(e) {
 		debug('Upgrade for 2.0.0: Failed');
 		debug(e);
-		return false;
 	}
+	return true;
 }
 
 function mpmUpgrade144(mpd) {
@@ -129,14 +132,12 @@ function mpmUpgrade144(mpd) {
 		prefs.clear("home");
 
 		debug('Upgrade for 1.4.4: Ok');		
-		return true;
 	} catch(e) {
 		debug('Upgrade for 1.4.4: Failed');
 		debug(e);
-		return false;
 	}
+	return true;
 }
-
 
 function mpmCleanOldPrefs() {
 	oldPrefs = ["mpd_host", "mpd_port", "mpd_password", "playlist_mode", "home", "use_amazon_art", "persistant_state"];
@@ -144,7 +145,6 @@ function mpmCleanOldPrefs() {
 		if ( prefs.isPref(oldPrefs[i]) ) prefs.clear(oldPrefs[i]);
 	}
 }
-
 
 function mpmGetPreviousVersion() {
 	if ( prefs.isPref('version') ) return prefs.get('version');
@@ -168,7 +168,6 @@ function mpmGetPreviousVersion() {
 	if ( prefs.isPref('mpd_host') ) return '1.4.4';
 }
 
-
 function mpmGetCurrentVersion() {
 	var rdfs = Components.classes['@mozilla.org/rdf/rdf-service;1']
 				.getService(Components.interfaces.nsIRDFService);
@@ -184,10 +183,104 @@ function mpmGetCurrentVersion() {
 	return version.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
 }
 
+function mpmSetUpgraded(isUpgraded) {
+	if ( typeof(isUpgraded) == 'boolean' ) prefs.set('upgraded',isUpgraded);
+	else prefs.set('upgraded',false);
+}
+
+function mpmIsUpgraded(reset) {
+	var isUpgraded = prefs.get('upgraded',true);
+	if ( typeof(reset) == 'boolean' && reset == true ) 	prefs.set('upgraded',false);
+	return isUpgraded;
+}
+
 function EM_NS(aProperty) {
     return 'http://www.mozilla.org/2004/em-rdf#' + aProperty;
 }
 
 function mpmSetCurrentVersion() {
 	prefs.set('version',mpmGetCurrentVersion());
+}
+
+/*
+ * Upgrade dialog box functions
+ */
+function dialogInit(){
+    var rdfs = Components.classes['@mozilla.org/rdf/rdf-service;1'].
+                          getService(Components.interfaces.nsIRDFService);
+    var extension = rdfs.GetResource('urn:mozilla:item:Music_Player_Minion@code.google.com');
+    var gExtensionDB = Components.classes['@mozilla.org/extensions/manager;1'].
+                       getService(Components.interfaces.nsIExtensionManager).
+                       QueryInterface(Components.interfaces.nsIExtensionManager).
+                       datasource;
+
+    var extensionsStrings = document.getElementById('extensionsStrings');
+
+    // Name
+    var nameArc = rdfs.GetResource(EM_NS('name'));
+    var name = gExtensionDB.GetTarget(extension, nameArc, true);
+    name = name.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
+
+    // Version
+    version = mpmGetCurrentVersion();
+
+    // Description
+    var descriptionArc = rdfs.GetResource(EM_NS('description'));
+    var description = gExtensionDB.GetTarget(extension, descriptionArc, true);
+    if (description)
+      description = description.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
+
+    // Home Page URL
+    var homepageArc = rdfs.GetResource(EM_NS('homepageURL'));
+    var homepage = gExtensionDB.GetTarget(extension, homepageArc, true);
+    if (homepage) {
+        homepage = homepage.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
+        // only allow http(s) homepages
+        var scheme = '';
+        var uri = null;
+        try {
+            uri = makeURI(homepage);
+            scheme = uri.scheme;
+        }
+        catch (ex) {}
+
+        if (uri && (scheme == 'http' || scheme == 'https'))
+            homepage = uri.spec;
+        else
+            homepage = null;
+    }
+
+    document.title = extensionsStrings.getFormattedString('aboutWindowTitle', [name]);
+    var extensionName = document.getElementById('extensionName');
+    extensionName.setAttribute('value', name);
+    var extensionVersion = document.getElementById('extensionVersion');
+    extensionVersion.setAttribute('value', version);
+
+    var extensionDescription = document.getElementById('extensionDescription');
+    extensionDescription.appendChild(document.createTextNode(description));
+
+    var extensionHomepage = document.getElementById('extensionHomepage');
+    if (homepage) {
+        extensionHomepage.setAttribute('homepageURL', homepage);
+        extensionHomepage.setAttribute('tooltiptext', homepage);
+        extensionHomepage.blur();
+    }
+    else
+        extensionHomepage.hidden = true;
+
+    var acceptButton = document.documentElement.getButton('accept');
+    acceptButton.label = extensionsStrings.getString('aboutWindowCloseButton');
+	debug('fin init');
+}
+
+function doServer() {
+	mpm_openDialog('chrome://minion/content/servers.xul', 'servers');
+}
+
+function doSettings() {
+	mpm_openDialog('chrome://minion/content/settings.xul', 'settings');
+}
+
+function doAbout() {
+	mpm_openDialog('chrome://minion/content/about/about.xul', 'about');
 }
