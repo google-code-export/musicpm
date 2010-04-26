@@ -148,3 +148,10 @@
 <!ENTITY song.follow "Suivre le morceau courant">
 <!ENTITY song.lyricsfly "Paroles via Lyricsfly.com">
 <!ENTITY song.edit "Editer">
+<!ENTITY update.dummy7 "<----------------- mise a jour template --------------->">
+<!ENTITY upgrade.new_upgrade "Nouvelle mise à jour">
+<!ENTITY upgrade.homepage "Page d'accueil">
+<!ENTITY upgrade.message_thanks "Merci d'utiliser cette extension.">
+<!ENTITY upgrade.message "Nous venons de mettre à jour vos paramètres pour correspondre aux récents changements de l'extension. Merci de vérifier que tout est correctement paramètré. Visitez la page d'accueil pour les détails et nouveautés.">
+<!ENTITY upgrade.message_team "L'équipe Music Player Monion.">
+<!ENTITY upgrade.about "A propos de...">
