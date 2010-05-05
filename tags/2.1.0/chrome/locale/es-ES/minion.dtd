@@ -1,0 +1,157 @@
+﻿<!ENTITY minion.dummy0 "<----------------- Strings de uso general--------------->">
+<!ENTITY appname "Music Player Minion">
+<!ENTITY album "Álbum">
+<!ENTITY albums "Álbumes">
+<!ENTITY all "Todo">
+<!ENTITY artist "Artista">
+<!ENTITY artists "Artistas">
+<!ENTITY browse "Examinar">
+<!ENTITY cancel "Cancelar">
+<!ENTITY composer "Compositor">
+<!ENTITY composers "Compositores">
+<!ENTITY date "Año">
+<!ENTITY dates "Años">
+<!ENTITY disc "Disco">
+<!ENTITY filename "Nombre de archivo">
+<!ENTITY folder "Carpeta">
+<!ENTITY folders "Carpetas">
+<!ENTITY genre "Género">
+<!ENTITY genres "Géneros">
+<!ENTITY length "Duración">
+<!ENTITY performer "Intérprete">
+<!ENTITY performers "Intérpretes">
+<!ENTITY playlist "Lista de temas">
+<!ENTITY playlists "Listas de temas">
+<!ENTITY position "Posición">
+<!ENTITY positions "Posiciones">
+<!ENTITY songs "Temas">
+<!ENTITY tags "Etiquetas">
+<!ENTITY time "Duración">
+<!ENTITY title "Título">
+<!ENTITY track "Pista">
+
+<!ENTITY minion.dummy1 "<----------------- Ventana de ajustes --------------->">
+<!ENTITY settings.title "Ajustes">
+<!ENTITY settings.pane1 "General">
+<!ENTITY settings.check_linguistic_sort "Cargar siempre con orden lingüístico (no distingue entre mayúsculas y minúsculas)">
+<!ENTITY settings.check_launch_in_browser "Ejecutar Minion en una pestaña (no en una nueva ventana)">
+<!ENTITY settings.check_adapt "Usar intervalo de actualización adaptativo.">
+<!ENTITY settings.check_adapt_tt "Esta opción actualiza los datos una vez por segundo, después de que el temporizador se haya sincronizado con la canción en curso.">
+<!ENTITY settings.update "Intervalo de actualización estático (milisegundos)">
+<!ENTITY settings.txt_search_timeout "Intervalo para Búsqueda Mientras Escribe (milisegundos, 0 para anular)">
+<!ENTITY settings.use_custom_url "Usar URL local para carátulas :">
+<!ENTITY settings.use_customyes "Usar carátula propia">
+<!ENTITY settings.amazon "Bajar carátulas de Amazon.com">
+<!ENTITY settings.amazonno "No">
+<!ENTITY settings.amazonyes "Sí">
+<!ENTITY settings.amazonsave "Guardar">
+<!ENTITY settings.pane2 "Apariencia">
+<!ENTITY settings.check_cs "No mostrar la canción en curso en la barra de estado.">
+<!ENTITY settings.check_theme "Usar el tema por defecto de Firefox">
+<!ENTITY settings.check_playlist_bottom "Poner abajo la lista de temas.">
+<!ENTITY settings.check_playlist_menu "Mostrar la lista de temas como un menú de la barra de estado.">
+<!ENTITY settings.txt_statusbar_position "Posición en la barra de estado">
+<!ENTITY settings.pane3 "Depuración">
+<!ENTITY settings.enable_debug "Mostrar información de depuración en la consola">
+<!ENTITY settings.help "Click para ayuda en línea">
+<!ENTITY minion.dummy2 "<----------------- Ventana de servidores --------------->">
+<!ENTITY servers.title "Servidores">
+<!ENTITY servers.lserver "Descripción">
+<!ENTITY servers.lhost "Host">
+<!ENTITY servers.lport "Puerto">
+<!ENTITY servers.lpassword "Contraseña">
+<!ENTITY servers.addserver "Añadir">
+<!ENTITY minion.dummy3 "<----------------- Menús varios --------------->">
+<!ENTITY menu.title "Acción por defecto al hacer doble clic">
+<!ENTITY menu.editmenu "Menú de edición">
+<!ENTITY menu.desc "Seleccionar qué hacer al hacer doble clic en un archivo:">
+<!ENTITY menu.item1 "Añadir a la lista de temas">
+<!ENTITY menu.item2 "Añadir a la lista de temas y empezar a tocar">
+<!ENTITY menu.item3 "Añadir a la lista de temas y tocar si está en stop">
+<!ENTITY menu.item4 "Ver detalles del tema">
+<!ENTITY minion.dummy4 "<----------------- Ventana del editor de menús --------------->">
+<!ENTITY menued.title "Editor de menús">
+<!ENTITY menued.addmenuitem "Añadir entrada de menú">
+<!ENTITY menued.addsep "Añadir separador">
+<!ENTITY menued.removemenuitem "Quitar entrada de menú">
+<!ENTITY menued.restdefaults "Volver a los menús por defecto">
+<!ENTITY menued.moveup "Subir">
+<!ENTITY menued.movedown "Bajar">
+<!ENTITY menued.itemlabel "Etiqueta de entrada de menú:">
+<!ENTITY menued.restricttype "Restringir el tipo de entrada:">
+<!ENTITY menued.restrictloc "Restringir ubicaciones:">
+<!ENTITY menued.loadurl "URL a cargar:">
+<!ENTITY menued.qfindall "(Búsqueda) Buscar todo:">
+<!ENTITY menued.qsame "(Búsqueda) Con el mismo:">
+<!ENTITY menued.qandsame "(Búsqueda) Y con el mismo:">
+<!ENTITY menued.mpdcmd "Orden de MPD:">
+<!ENTITY menued.customscript "Script:">
+<!ENTITY minion.dummy5 "<----------------- Minion --------------->">
+<!ENTITY minion.lastcmd "Última orden de MPD:">
+<!ENTITY minion.curtitle "Título">
+<!ENTITY minion.prealbum "de">
+<!ENTITY minion.curalbum "Álbum">
+<!ENTITY minion.preartist "por">
+<!ENTITY minion.curartist "Artista">
+<!ENTITY minion.tglfullscreen "Conmutar pantalla completa">
+<!ENTITY minion.editactions "Editar acciones">
+<!ENTITY minion.clearlist "Borrar la lista de temas">
+<!ENTITY minion.showsavepls "Mostrar listas guardadas">
+<!ENTITY minion.plsname "Nombre de la lista de temas">
+<!ENTITY minion.savepls "Guardar lista de temas">
+<!ENTITY minion.plstime "Duración de la lista de temas:">
+<!ENTITY minion.cover_action "Carátula/Acciones">
+<!ENTITY minion.relitems "Elementos relacionados:">
+<!ENTITY minion.selected "Seleccionado">
+<!ENTITY minion.selectedtt "Añadir selección(es) a la lista de temas">
+<!ENTITY minion.alltt "Añadir todo a la lista de temas">
+<!ENTITY minion.backcollection "Volver a la Colección de Música">
+<!ENTITY minion.search "Buscar">
+<!ENTITY minion.updatedb "Actualizar Base de datos">
+<!ENTITY minion.filter "Filtrar">
+<!ENTITY minion.filtertt "Filtra el contenido de la ubicación actual por Título">
+<!ENTITY minion.searchall "Buscar todo">
+<!ENTITY minion.searchalltt "Busca temas por todos los campos">
+<!ENTITY minion.playlisttt "Buscar en la lista de temas por todos los campos">
+<!ENTITY minion.titlett "Buscar solo por título de tema">
+<!ENTITY minion.artisttt "Buscar artistas">
+<!ENTITY minion.albumtt "Buscar álbumes">
+<!ENTITY minion.genrett "Buscar géneros">
+<!ENTITY minion.composertt "Buscar compositores">
+<!ENTITY minion.performertt "Buscar intérpretes">
+<!ENTITY minion.datett "Buscar año de lanzamiento">
+<!ENTITY minion.positiontt "Posición en la lista de temas">
+<!ENTITY minion.back "Atrás">
+<!ENTITY minion.forward "Adelante">
+<!ENTITY minion.home "Inicio">
+<!ENTITY minion.currentplaylist "Lista de temas en curso">
+<!ENTITY minion.previoustrack "Pista previa">
+<!ENTITY minion.nexttrack "Pista siguiente">
+<!ENTITY minion.play "Play">
+<!ENTITY minion.stop "Stop">
+<!ENTITY minion.pause "Pausa">
+<!ENTITY minion.mpm_settings "Ajustes de MPM">
+<!ENTITY minion.disconnect "Desconectar">
+<!ENTITY minion.manage_servers "Servidores">
+<!ENTITY minion.outputs "Salidas de audio">
+<!ENTITY minion.crossfade "Fundido entre pistas">
+<!ENTITY minion.crossfade0 "0 segundos (sin fundido)">
+<!ENTITY minion.crossfade5 "5 segundos">
+<!ENTITY minion.crossfade10 "10 segundos">
+<!ENTITY minion.crossfade_other "Otro...">
+<!ENTITY minion.crossfade_other_prompt "Número de segundos de fundido:">
+<!ENTITY minion.random "Aleatorio">
+<!ENTITY minion.repeat "Repetición">
+<!ENTITY minion.launch "Ejecutar Music Player Minion">
+<!ENTITY song.dummy6 "<----------------- Plantilla de tema --------------->">
+<!ENTITY song.title "Detalles del tema">
+<!ENTITY song.follow "Seguir el tema en curso">
+<!ENTITY song.lyricsfly "Letras de Lyricsfly.com">
+<!ENTITY song.edit "Editar">
+<!ENTITY update.dummy7 "<----------------- Upgrade template --------------->">
+<!ENTITY upgrade.new_upgrade "New upgrade">
+<!ENTITY upgrade.homepage "Homepage">
+<!ENTITY upgrade.message_thanks "Thank you for using this extension.">
+<!ENTITY upgrade.message "We just upgraded your parameters to reflect recent changes in the extension. Please review you preferences and server settings to ensure all is set properly. Check out our homepage for the latest news and details.">
+<!ENTITY upgrade.message_team "The Music player Minion team.">
+<!ENTITY upgrade.about "About">

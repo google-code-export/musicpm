@@ -1,0 +1,364 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
+
+<overlay id="minion-overlay"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <script type="text/javascript">
+        <![CDATA[
+        Components.utils.import("resource://minion/mpmUtils.js");
+ 		debug("Starting Music player Minion...");
+        Components.utils.import("resource://minion/mpd.js");
+        Components.utils.import("resource://minion/mpmMenu.js");
+        Components.utils.import("resource://minion/mpmUpgrade.js");
+
+		debug("Checking for upgrades...");
+		mpmUpgrade(mpd);
+
+		debug('Loading preferences...');
+		mpd.loadServers();
+		loadSrvPref();
+
+		debug("Starting...");
+		myPrefObserver.register();
+        var incr = 0;
+		var end = 0;
+        function launchMinion () {
+            openReuseByURL('chrome://minion/content/minion.xul')
+        }
+        var slidetimer = Components.classes["@mozilla.org/timer;1"]
+                    .createInstance(Components.interfaces.nsITimer);
+
+        var slideevent = { notify: function(slidetimer) {
+            if (end < 1) end = 0;
+            if ( incr == 0 ) {
+                slidetimer.cancel();
+                return;
+            }
+			try {
+                var b = document.getElementById("mpm_playlist_sb");
+                debug("slideevent: incr="+incr+", end="+end+", b.height="+b.height+", b.boxObject.height="+b.boxObject.height);
+                b.height = parseInt(b.height) + incr;
+			} catch(e) { debug(e) }
+            if (incr > 0) {
+                if (b.height >= end) slidetimer.cancel();
+            } else {
+                if (b.height <= end) {
+                    slidetimer.cancel();
+                    b.collapsed = !b.collapsed;
+                    var s = document.getElementById("mpm_playlist_splitter");
+                    s.collapsed = !s.collapsed;
+                }
+            }
+        } }
+
+        function togglePlaylistBar () {
+            var b = document.getElementById("mpm_playlist_sb");
+            var pl = document.getElementById("mpm_mw_playlist_box");
+            var s = document.getElementById("mpm_playlist_splitter");
+            if (!b.collapsed) pl.saveColumns();
+			else pl.showCurrent();
+            
+            if (parseInt(b.height) < 1) {
+                s.collapsed = !s.collapsed;
+                b.collapsed = !b.collapsed;
+                incr = 10;
+                end = 110;
+            } else {
+                incr = -10;
+                end = 0;
+            }
+			slidetimer.initWithCallback(slideevent,100,Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
+        }
+        var mpm = {
+            onLoad: function (e) {
+                debug('load')
+                window.removeEventListener("load", function(e) { mpm.onLoad(e); }, false);
+                var cm = document.getElementById("contentAreaContextMenu")
+                if (cm) cm.addEventListener("popupshowing", mpm.linkHandler, true)
+                obs.observe(null, null, null)
+                var volbtn = document.getElementById('mpm_sb_volume')
+                var volscl = document.getElementById('mpm_sb_volume_scale')
+                volbtn.addEventListener("DOMMouseScroll", volscl.volScroll, false)
+                volbtn.setAttribute("tooltiptext", translateService.GetStringFromName("volume")+" "+mpd.volume+"%")
+                observerService.addObserver(obs, 'greeting', false);
+                observerService.addObserver(obsVol, 'volume', false);
+                csPrefObserver.register();
+                updateStatusBarPosition(document);
+            },
+			onFocus: function (e) {
+				window.removeEventListener("focus", function(e) { mpm.onFocus(e); }, false);
+				if (mpmIsUpgraded(true) == true ) {
+					var cb = function (w){try{w.close}catch(e){}}
+					window.openDialog("chrome://minion/content/upgrade.xul", "showupgrade", "chrome", cb)
+				}
+			},
+            onPlaylistUnload: function (e) {
+                e.target.saveColumns()
+            },
+            open: function(url, event) {
+                openUILink(url, event, false, true);
+            },
+			doAbout: function() {
+				var cb = function (w){try{w.close}catch(e){}}
+				window.openDialog("chrome://minion/content/about/about.xul", "showmore", "chrome", cb)
+			},
+            linkHandler: function(event) {
+                var ma = document.getElementById('mpm_linkHandlerAdd')
+                var mp = document.getElementById('mpm_linkHandlerPlay')
+                ma.hidden = mp.hidden = !gContextMenu.onLink
+                return true
+            }
+        }
+        function mpm_linkHandlerAction(action) {
+            if (gContextMenu.onLink) {
+                var t = gContextMenu.target
+                // Handles images wrapped in hyperlinks.
+                var val = (t.hasAttribute('href')) ? t.href : t.parentNode.href
+                if (val != null) {
+                    var v = new RegExp();
+                    v.compile(/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/);
+                    if (v.test(val)) {
+                        mpd.handleURL(val, action)
+                    }
+                }
+            }
+        }
+        var obs = {
+            observe: function(sub,topic,data){
+                var hide = (mpd._socket == null);
+                document.getElementById('mpm_sb_controls').hidden = hide;
+                document.getElementById('mpm_sb_volume').hidden = hide;
+                document.getElementById('mpm_sb_playlist').hidden = hide;
+                document.getElementById('mpm_sb_currentsong').hidden = hide;
+                if (!hide) {
+                    csPrefObserver.observe(null,"nsPref:changed","sb_currentsong_hide")
+                    csPrefObserver.observe(null,"nsPref:changed","sb_playlist_menu")
+                } else {
+                    document.getElementById('mpm_sb_currentsong').collapsed = true
+                    document.getElementById('mpm_sb_playlist').collapsed = true
+                    document.getElementById('mpm_sb_currentsongb').collapsed = true
+                    document.getElementById('mpm_sb_playlistb').collapsed = true
+                    document.getElementById('sb_playlist_menu').collapsed = true
+                    document.getElementById('sb_playlist_box').collapsed = true
+                }
+            }
+        };
+        var obsVol = {
+            observe: function(sub,topic,data){
+                var vol = document.getElementById('mpm_sb_volume')
+                vol.setAttribute("tooltiptext", translateService.GetStringFromName("volume")+" "+data+"%")
+            }
+        };
+        var csPrefObserver = {
+            register: function(){
+                this._branch = prefs.branch;
+                this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
+                this._branch.addObserver("", this, false);
+            },
+        
+            unregister: function(){
+                if (!this._branch)
+                    return;
+                this._branch.removeObserver("", this);
+            },
+        
+            observe: function(aSubject, aTopic, aData){
+                if (aTopic != "nsPref:changed")
+                    return;
+                // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
+                // aData is the name of the pref that's been changed (relative to aSubject)
+                switch (aData) {
+                    case "sb_currentsong_hide":
+                        var hide = prefs.get('sb_currentsong_hide', false)
+                        document.getElementById('mpm_sb_currentsong').collapsed = hide;
+                        document.getElementById('mpm_sb_playlist').collapsed = !hide;
+                        document.getElementById('mpm_sb_currentsongb').collapsed = hide;
+                        document.getElementById('mpm_sb_playlistb').collapsed = !hide;
+                        break;
+                    case "sb_playlist_menu":
+                        var menu = prefs.get('sb_playlist_menu', false)
+                        document.getElementById('sb_playlist_menu').collapsed = !menu
+                        document.getElementById('sb_playlist_box').collapsed = menu
+                        break;
+                    case "statusbar_position":
+                        updateStatusBarPosition(document);
+                        break;
+                }
+            }
+        };
+		var srv = ""
+        window.addEventListener("load", function(e) { mpm.onLoad(e); }, false);
+        window.addEventListener("focus", function(e) { mpm.onFocus(e); }, false);
+        window.addEventListener("online", function(e) { mpd.force_connect();dump("online\n") }, false);
+        window.addEventListener("offline", function(e) { mpd.disconnect();dump("offline\n") }, false);
+        document.getElementById('popup_playlist').addEventListener("unload", function(e) { mpm.onPlaylistUnload(e); }, true);
+        document.getElementById('mpm_mw_playlist_box').addEventListener("unload", function(e) { mpm.onPlaylistUnload(e); }, true);
+        ]]>
+    </script>
+
+    <script src="chrome://minion/content/menus.js"/>
+    
+    <popup id="contentAreaContextMenu">
+      <menuitem id="mpm_linkHandlerAdd"
+            label="Add Link to MPD Playlist"
+            oncommand="mpm_linkHandlerAction('add');"
+            insertafter="context-openlinkintab" />
+      <menuitem id="mpm_linkHandlerPlay"
+            label="Play Link with MPD"
+            oncommand="mpm_linkHandlerAction('play');"
+            insertafter="context-openlinkintab" />
+    </popup>
+
+    <popupset>
+        <menupopup id="mpmMenu">
+            <vbox id="mpmDynamicMenu"/>
+            <menuseparator/>
+            <menuitem label="Edit Menu" 
+                oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
+        </menupopup>
+        <menupopup id="mpm_playlist_popup" 
+                   sizetocontent="true"
+                   position="before_end"
+                   onpopupshowing="this.childNodes[0].showCurrent()"
+                   onpopuphiding="this.childNodes[0].saveColumns()">
+            <mpdplaylist flex="1"
+                id="popup_playlist"
+                mpm_name="popup_playlist"
+                context="mpmMenu"
+                oncontextmenu="mpmMenu_contextShowing(event)"
+                width="300"
+                height="200"/>
+        </menupopup>
+        <tooltip id="mpm_sb_currentsong_tooltip"
+                   position="before_end">
+            <hbox>
+                <mpdalbumcover/>
+                <vbox>
+                    <spacer flex="1"/>
+                    <mpdlabel observes="Title" style="font-weight:bold"/>
+                    <mpdlabel observes="Album"/>
+                    <mpdlabel observes="Artist" style="font-style:italic"/>
+                    <spacer flex="1"/>                         
+                </vbox>
+              </hbox>
+        </tooltip>
+    </popupset>
+    
+    <window id="main-window">
+        <splitter id="mpm_playlist_splitter"
+              insertbefore="browser-bottombox"
+              resizebefore="flex"
+              collapsed="true"/>
+        <hbox id="mpm_playlist_sb"
+              insertbefore="browser-bottombox"
+              collapsed="true"
+              height="0"
+              style="overflow:hidden">
+            <vbox pack="center" align="center">
+                <mpdalbumcover/>
+            </vbox>
+            <mpdplaylist id="mpm_mw_playlist_box"
+                flex="1"
+                mpm_name="bottombox_playlist"
+                context="mpmMenu"
+                height="100"
+                persist="persist_columns height"
+                persist_columns="Pos Title Artist Album Time"
+                oncontextmenu="mpmMenu_contextShowing(event)"/>
+        </hbox>
+    </window>
+    <vbox id="browser-bottombox">
+    </vbox>
+    
+    <statusbar id="status-bar">
+        <statusbarpanel id="mpm_status-bar_controls"
+                    tooltip="mpm_sb_currentsong_tooltip"    
+                    context="mpmMenu"
+                    oncontextmenu="mpmMenu_contextShowing(event, 'statusbar', mpd.currentsong)">
+            <toolbarbutton id="mpm_sb_launch" class="mpm_btn_Launch"
+                           tooltiptext="&minion.launch;"
+                           oncommand="launchMinion()"/>
+            <mpdcontrols id="mpm_sb_controls" hidden="true"/>
+            <toolbarbutton id="mpm_sb_volume"
+                           hidden="true" 
+                           type="menu" 
+                           class="mpm_btn_Volume"
+                           tooltiptext="Volume">
+                <menupopup>
+                    <mpdvolume id="mpm_sb_volume_scale" orient="vertical"/>
+                </menupopup>
+            </toolbarbutton>
+            <hbox id="sb_playlist_menu">
+                <toolbarbutton id="mpm_sb_playlist"
+                    type="menu"
+                    popup="mpm_playlist_popup"
+                    class="mpm_btn_Playlist"/>
+                <toolbarbutton id="mpm_sb_currentsong"
+                            class="mpm_sb_currentsong"
+                            popup="mpm_playlist_popup">
+                    <mpdlabel id="mpm_sb_Title" 
+                              class="mpm_sb_Title"
+                              observes="Title" 
+                              crop="end">
+                    </mpdlabel>
+                    <mpdtime hidescale="true"/>
+                </toolbarbutton>
+            </hbox>
+            <hbox id="sb_playlist_box" collapsed="true">
+                <toolbarbutton id="mpm_sb_playlistb"
+                    class="mpm_btn_Playlist"
+                    oncommand="togglePlaylistBar()"/>
+                <toolbarbutton id="mpm_sb_currentsongb"
+                            class="mpm_sb_currentsong"
+                            oncommand="togglePlaylistBar()">
+                    <mpdlabel id="mpm_sb_Titleb"
+                              class="mpm_sb_Title"
+                              observes="Title" 
+                              crop="end">
+                    </mpdlabel>
+                    <mpdtime hidescale="true"/>
+                </toolbarbutton>
+            </hbox>
+            <mpdservers/>
+        </statusbarpanel>
+    </statusbar>
+	<!--
+	<menubar id="main-menubar">
+		<menu id="menu_mpm" label="Minion" accesskey="M">
+			<menupopup id="menu_mpmPopup">
+				<menuitem label="Open Minion" oncommand="launchMinion()" accesskey="O"/>
+				<menuseparator/>
+				<mpdmenuservers/>
+				<menuseparator/>
+				<menu id="menu_mpmPlayback" label="Playback" accesskey="P">
+					<menupopup id="menu_mpmPopupPlayback">
+						<menuitem label="Play" oncommand="mpd.doCmd('play')" accesskey="P"/>
+						<menuitem label="Pause" oncommand="mpd.doCmd('pause')" accesskey="a"/>
+						<menuitem label="Stop" oncommand="mpd.doCmd('stop')" accesskey="S"/>
+						<menuitem label="Next" oncommand="mpd.doCmd('next')" accesskey="N"/>
+						<menuitem label="Prev" oncommand="mpd.doCmd('prev')" accesskey="P"/>
+						<menuseparator/>
+						<menuitem label="Random" oncommand="mpd.toggleRandom()" accesskey="R"/>
+						<menuitem label="Repeat" oncommand="mpd.toggleRepeat()" accesskey="e"/>
+					</menupopup>
+				</menu>
+				<menuseparator/>
+				<menu id="menu_mpmSettings" label="Settings" accesskey="S">
+					<menupopup id="menu_mpmPopupSettings">
+						<menuitem label="Settings" accesskey="e" 
+							oncommand="mpm_openDialog('chrome://minion/content/settings.xul', 'settings')" />
+						<menuitem label="&minion.manage_servers;" accesskey="v"
+							oncommand="mpm_openDialog('chrome://minion/content/servers.xul', 'servers')"/>
+					</menupopup>
+				</menu>
+				<menuseparator/>
+				<menuitem label="About" accesskey="A" oncommand="mpm.doAbout()"/>
+			</menupopup>
+		</menu>
+	</menubar>
+	-->
+</overlay>

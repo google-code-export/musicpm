@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/settings.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
+
+<prefwindow id="mpmPreferences"
+            title="&appname; - &settings.title;"
+            xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<prefpane id="pane1" label="&settings.pane1;">
+	<preferences>
+		<preference id="adapt_interval" name="extensions.mpm.adaptive_interval" type="bool"/>
+		<preference id="interval" name="extensions.mpm.update_interval" type="int"/>
+		<preference id="search_timeout" name="extensions.mpm.search_timeout" type="int"/>
+		<preference id="use_custom" name="extensions.mpm.use_custom_art" type="bool"/>
+		<preference id="art_url" name="extensions.mpm.custom_art_url" type="string"/>
+		<preference id="use_amazon" name="extensions.mpm.use_amazon_art" type="int"/>
+		<preference id="launch_in_browser" name="extensions.mpm.launch_in_browser" type="bool"/>
+		<preference id="linguistic_sort" name="extensions.mpm.linguistic_sort" type="bool"/>
+		<preference id="save_art_url" name="extensions.mpm.save_art_url" type="string"/>
+	</preferences>
+
+    <script type="application/x-javascript" src="resource://minion/mpmUtils.js"/>
+
+	<checkbox id="check_linguistic_sort" preference="linguistic_sort"
+		label="&settings.check_linguistic_sort;"/>
+	<checkbox id="check_launch_in_browser" preference="launch_in_browser"
+		label="&settings.check_launch_in_browser;"/>
+	<checkbox id="check_adapt" preference="adapt_interval"
+		label="&settings.check_adapt;"
+		tooltiptext="&settings.check_adapt_tt;"/>
+	<hbox align="center">
+		<label value="&settings.update;"/>
+		<textbox id="update" type="number" preference="interval"
+			maxlength="5" style="max-width: 5em !important"/>
+	</hbox>
+
+	<hbox align="center">
+		<label value="&settings.txt_search_timeout;"/>
+		<textbox id="txt_search_timeout" type="number" preference="search_timeout"
+			maxlength="5" style="max-width: 5em !important"/>
+	</hbox>
+
+	<separator class="thin"/>
+
+	<groupbox id="artGroup">
+		<caption>
+			<label value="&settings.use_custom_url;"/>
+			<image src="chrome://minion/content/images/alwaysAsk.png" 
+				tooltiptext="&settings.help;"
+				onclick="window.open('http://code.google.com/p/musicpm/wiki/AlbumArtCovers')"/>
+		</caption>
+		<checkbox id="cbUseCustom" preference="use_custom" label="&settings.use_customyes;" 
+			oncommand="updateCustomArtInterface()" onsyncfrompreference="updateCustomArtInterfacePref()"/>
+		<hbox align="center">
+			<textbox id="tbCoverUrl"  preference="art_url" flex="1" preference-editable="true"/>
+			<button id="btnCustomBrowseLocalFile" oncommand="chooseFolder('art_url');" label="&browse;"/>
+		</hbox>
+	</groupbox>
+
+	<separator class="thin"/>
+
+	<groupbox id="amazonGroup">
+		<caption>
+			<label value="&settings.amazon;"/>
+			<image src="chrome://minion/content/images/alwaysAsk.png" 
+				tooltiptext="&settings.help;"
+				onclick="window.open('http://code.google.com/p/musicpm/wiki/AlbumArtCovers')"/>
+		</caption>
+		<radiogroup id="rgUseAmazon" preference="use_amazon"
+			oncommand="updateAmazonInterface()"
+			onsyncfrompreference="updateAmazonInterfacePref()">
+			<hbox align="left">
+				<radio id="rUseAmazonNo" value="0" label="&settings.amazonno;"/>
+			</hbox>
+			<hbox align="left">
+				<radio id="rUseAmazonYes" value="1" label="&settings.amazonyes;"/>
+			</hbox>
+			<hbox align="left">
+				<radio id="rUseAmazonYesSave" value="2" label="&settings.amazonsave;"/>
+			</hbox>
+			<hbox align="left">
+				<textbox id="tbSaveCoverUrl"  preference="save_art_url" flex="2" 
+					preference-editable="true"/>
+				<button id="btnAmazonBrowseLocalFile" oncommand="chooseFolder('save_art_url');" label="&browse;"/>
+			</hbox>
+		</radiogroup>
+	</groupbox>
+</prefpane>
+  
+  
+  <prefpane id="pane2" label="&settings.pane2;">
+    <preferences>
+      <preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
+      <preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
+      <preference id="playlist_bottom" name="extensions.mpm.playlist_bottom" type="bool"/>
+      <preference id="sb_playlist_menu" name="extensions.mpm.sb_playlist_menu" type="bool"/>
+      <preference id="statusbar_position" name="extensions.mpm.statusbar_position" type="int"/>
+    </preferences>
+
+    <checkbox id="check_cs" preference="sb_cs_hide"
+          label="&settings.check_cs;"/>
+    <checkbox id="check_theme" preference="theme"
+          label="&settings.check_theme;"/>
+    <checkbox id="check_playlist_bottom" preference="playlist_bottom"
+          label="&settings.check_playlist_bottom;"/>
+    <checkbox id="check_playlist_menu" preference="sb_playlist_menu"
+          label="&settings.check_playlist_menu;"/>
+    <hbox align="center">
+        <label value="&settings.txt_statusbar_position;"/>
+        <textbox id="txt_statusbar_position" type="number" preference="statusbar_position"
+                 maxlength="3" style="max-width: 5em !important"/>
+    </hbox>
+  </prefpane>
+
+  <prefpane id="pane3" label="&settings.pane3;">
+    <preferences>
+      <preference id="mpm_debug" name="extensions.mpm.debug" type="bool"/>
+    </preferences>
+
+    <checkbox id="mpm_enable_debug" preference="mpm_debug"
+          label="&settings.enable_debug;"/>
+
+  </prefpane>
+
+</prefwindow>
