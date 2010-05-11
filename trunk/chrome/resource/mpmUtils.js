@@ -15,29 +15,24 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-EXPORTED_SYMBOLS = ["Nz", "debug", "hmsFromSec", "prettyTime", "copyArray",
-        "observerService", "getFileContents", "getAmazonArt", "SaveImageToURL", 
-		"prefetchImageFromURL",  "fetch", "winw", "urlReplace", "openReuseByURL", 
-		"openReuseByAttribute", "mpm_openDialog", "prefs", "guessTags", 
-		"updateStatusBarPosition", "translateService", "mpmUtils_EXPORTED_SYMBOLS"]
-var mpmUtils_EXPORTED_SYMBOLS = copyArray(EXPORTED_SYMBOLS)
+var EXPORTED_SYMBOLS = ["nsMPM"];
 
-var observerService = Components.classes["@mozilla.org/observer-service;1"]
-        .getService(Components.interfaces.nsIObserverService);
-var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
-        .getService(Components.interfaces.nsIConsoleService);
-var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-        .getService(Components.interfaces.nsIPrefService);
-var branch = prefService.getBranch("extensions.mpm.");
+Components.utils.import("resource://minion/mpmCommon.js");
 
-var winw = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-        .getService(Components.interfaces.nsIWindowWatcher);
+nsMPM.observerService  = nsMPM.Cc["@mozilla.org/observer-service;1"]
+						.getService(nsMPM.Ci.nsIObserverService);
+nsMPM.consoleService   = nsMPM.Cc["@mozilla.org/consoleservice;1"]
+						.getService(nsMPM.Ci.nsIConsoleService);
+nsMPM.winw 			   = nsMPM.Cc["@mozilla.org/embedcomp/window-watcher;1"]
+						.getService(nsMPM.Ci.nsIWindowWatcher);
+nsMPM.slidetimer 	   = nsMPM.Cc["@mozilla.org/timer;1"]
+						.createInstance(nsMPM.Ci.nsITimer);
+nsMPM.translateService = nsMPM.Cc["@mozilla.org/intl/stringbundle;1"]
+						.getService(nsMPM.Ci.nsIStringBundleService)
+						.createBundle("chrome://minion/locale/strings.properties");
 
-var translateService = Components.classes["@mozilla.org/intl/stringbundle;1"]
-        .getService(Components.interfaces.nsIStringBundleService)
-        .createBundle("chrome://minion/locale/strings.properties");
 
-function getStringTime() {
+nsMPM.getStringTime = function() {
 	var today = new Date();
 	var strDate = "";
 	var t = 0;
@@ -62,10 +57,15 @@ function getStringTime() {
 	return strDate;
 }
 
-function debug(s) {
-	if ( prefs.get("debug", false) != true ) return;	
+nsMPM.debug = function (s) {
+	let that = this;
+	
+	if ( typeof(that) == 'undefined' ) dump("that doesn't exists\n");
+	if ( typeof(that.prefs) == 'undefined' ) dump("that.prefs doesn't exists\n");
+	
+	if ( that.prefs.get("debug", false) != true ) return;	
 	try {
-		var strDate = getStringTime();
+		var strDate = that.getStringTime();
 		var f = 0;
 		var str = "";
 		if (s == null) s = "null passed to debug";
@@ -85,28 +85,53 @@ function debug(s) {
 		}
 		if (typeof(str) == 'string' && str.length > 0) {
 			dump(strDate + ' ' + str + "\n");
-			//consoleService.logStringMessage(str)
+			//that.consoleService.logStringMessage(str)
 		}
 	} catch (e) {
 		dump("error in debug!")
 		dump(e);
-		consoleService.logStringMessage("error in debug!")
+		that.consoleService.logStringMessage("error in debug!")
 	}
 }
 
-function Nz(obj, def) {
-    if (typeof(obj) == 'undefined') {
-        return (typeof(def) == 'undefined') ? null : def
-    }
-    return obj
+nsMPM.Nz = function(obj, def) {
+	if (typeof(obj) == 'undefined') {
+		return (typeof(def) == 'undefined') ? null : def
+	}
+	return obj
 }
 
-function urlReplace (s, item) {   
-	if (Nz(item.file)) item.Path = item.file.split("/").slice(0,-1).join("/");
-	// debug(item);
+nsMPM.Sz = function(str) {
+    /* Prepare strings for mpd socket communications */
+    if (typeof(str) == "string")
+        return '"' + str.replace(/\"/g, '\\"') + '"'
+    return "''"
+}
+
+nsMPM.smartsort = function(a,b) {
+    if (a.type != b.type) {
+        if (a.type>b.type) return 1
+        if (a.type<b.type) return -1
+    }
+    var column = "name"     
+    if (isNaN(a[column]+b[column])) {
+        var al = a[column].toLowerCase()
+        var bl = b[column].toLowerCase()
+        if (al>bl) return 1
+        if (al<bl) return -1
+        return 0
+    }
+    else { return a[column]-b[column]}
+}
+
+nsMPM.urlReplace = function(s, item) {   
+	let that = this;
+
+	if (that.Nz(item.file)) item.Path = item.file.split("/").slice(0,-1).join("/");
+	// that.debug(item);
 	for (x in item) {
 		var re = new RegExp("{"+x+"}","ig");
-		s = s.replace(re, fixedEncodeURI(item[x]));
+		s = s.replace(re, that.fixedEncodeURI(item[x]));
 	}
 	s = s.replace(/{[^}]+}/g,"");
 	return s;
@@ -114,66 +139,61 @@ function urlReplace (s, item) {
 
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURIComponent
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURI
-function fixedEncodeURI (str) {
+nsMPM.fixedEncodeURI = function(str) {
 	return encodeURI(str).replace(/!/g, '%21').replace(/'/g, '%27')
-								  .replace(/\(/g, '%28').replace(/\)/g, '%29')
-								  .replace(/\*/g, '%2A').replace(/\@/g, '%40')
-								  .replace(/&/g, '%26').replace(/#/g, '%23');
+							  .replace(/\(/g, '%28').replace(/\)/g, '%29')
+							  .replace(/\*/g, '%2A').replace(/\@/g, '%40')
+							  .replace(/&/g, '%26').replace(/#/g, '%23');
 }
 
-function getFileContents(aURL) {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-            .getService(Components.interfaces.nsIIOService);
-    var scriptableStream = Components.classes["@mozilla.org/scriptableinputstream;1"]
-            .getService(Components.interfaces.nsIScriptableInputStream);
+nsMPM.getFileContents = function(aURL) {
+	let that = this;
+	var ioService = that.Cc["@mozilla.org/network/io-service;1"].getService(that.Ci.nsIIOService);
+	var scriptableStream = that.Cc["@mozilla.org/scriptableinputstream;1"].getService(that.Ci.nsIScriptableInputStream);
 
-    var channel = ioService.newChannel(aURL, null, null);
-    var input = channel.open();
-    scriptableStream.init(input);
-    var str = scriptableStream.read(input.available());
-    scriptableStream.close();
-    input.close();
-    return str;
+	var channel = ioService.newChannel(aURL, null, null);
+	var input = channel.open();
+	scriptableStream.init(input);
+	var str = scriptableStream.read(input.available());
+	scriptableStream.close();
+	input.close();
+	return str;
 }
 
-function hmsFromSec(sec) {
-    var hms = "0:00"
-    try {
-        sec = parseInt(sec)
-    } catch (err) {
-        return "0:00"
-    }
-    if (sec > 0) {
-        var h = 0
-        if (sec >= 3600) {
-            h = Math.floor(sec / 3600)
-            sec = sec % 3600
-        }
-        var m = Math.floor(sec / 60)
-        var s = sec % 60
-        if (h > 0) {
-            h = h + ":"
-            if (m.toString().length == 1) {
-                m = "0" + m
-            }
-        } else {
-            h = ""
-        }
-        m = m + ":"
-        if (s.toString().length == 1) {
-            s = "0" + s
-        }
-        hms = h + m + s
-    }
-    return hms
+nsMPM.hmsFromSec = function(sec) {
+	var hms = "0:00";
+	try {
+		sec = parseInt(sec);
+	} catch (err) {
+		return "0:00";
+	}
+	if (sec > 0) {
+		var h = 0;
+		if (sec >= 3600) {
+			h = Math.floor(sec / 3600);
+			sec = sec % 3600;
+		}
+		var m = Math.floor(sec / 60);
+		var s = sec % 60;
+		if (h > 0) {
+			h = h + ":";
+			if (m.toString().length == 1) m = "0" + m;
+		} else h = "";
+
+		m = m + ":";
+		if (s.toString().length == 1) s = "0" + s;
+		hms = h + m + s;
+	}
+	return hms;
 }
 
-function prettyTime(sec, round) {
+nsMPM.prettyTime = function(sec, round) {
+	let that = this;
 	var tm = ""
 	try {
 		sec = parseInt(sec)
 	} catch (err) {
-		debug("prettyTime: " + err.description);
+		that.debug("prettyTime: " + err.description);
 		sec = 0
 	}
 	if (sec > 0) {
@@ -186,19 +206,19 @@ function prettyTime(sec, round) {
 		var sep = ""
 
 		if (d > 0) {
-			if (d > 1) tm = d + " " + translateService.GetStringFromName("days");
-			else tm = d + " " + translateService.GetStringFromName("day");
+			if (d > 1) tm = d + " " + that.translateService.GetStringFromName("days");
+			else tm = d + " " + that.translateService.GetStringFromName("day");
 			sep = ", ";
 		}
 
 		if (h > 0) {
 			tm += sep;
 			if ( h > 1 ) {
-				if (d > 0) tm += h + " " + translateService.GetStringFromName("hrs");
-				else tm += h + " " + translateService.GetStringFromName("hours");
+				if (d > 0) tm += h + " " + that.translateService.GetStringFromName("hrs");
+				else tm += h + " " + that.translateService.GetStringFromName("hours");
 			} else {
-				if (d > 0) tm += h + " " + translateService.GetStringFromName("hr");
-				else tm += h + " " + translateService.GetStringFromName("hour");
+				if (d > 0) tm += h + " " + that.translateService.GetStringFromName("hr");
+				else tm += h + " " + that.translateService.GetStringFromName("hour");
 			}
 			sep = ", ";
 		}
@@ -206,59 +226,61 @@ function prettyTime(sec, round) {
 		if (m > 0) {
 			tm += sep;
 			if ( m > 1 ) {
-				if (d > 0) tm += m + " " + translateService.GetStringFromName("mins");
-				else tm += m + " " + translateService.GetStringFromName("minutes");
+				if (d > 0) tm += m + " " + that.translateService.GetStringFromName("mins");
+				else tm += m + " " + that.translateService.GetStringFromName("minutes");
 			} else {
-				if (d > 0) tm += m + " " + translateService.GetStringFromName("min");
-				else tm += m + " " + translateService.GetStringFromName("minute");
+				if (d > 0) tm += m + " " + that.translateService.GetStringFromName("min");
+				else tm += m + " " + that.translateService.GetStringFromName("minute");
 			}
 			sep = ", ";
 		}
 
-		if (!Nz(round) && s > 0) {
+		if (!that.Nz(round) && s > 0) {
 			tm += sep;
 			if ( s > 1 ) {
-			if (d > 0) tm += s + " " + translateService.GetStringFromName("secs");
-			else tm += s + " " + translateService.GetStringFromName("seconds");
+			if (d > 0) tm += s + " " + that.translateService.GetStringFromName("secs");
+			else tm += s + " " + that.translateService.GetStringFromName("seconds");
 			} else {
-				if (d > 0) tm += s + " " + translateService.GetStringFromName("sec");
-				else tm += s + " " + translateService.GetStringFromName("second");
+				if (d > 0) tm += s + " " + that.translateService.GetStringFromName("sec");
+				else tm += s + " " + that.translateService.GetStringFromName("second");
 			}
 		}
 	}
 	return tm
 }
 
-function copyArray(oldArray) {
-    if (typeof(oldArray) == 'object') {
-        var l = oldArray.length
-        var n = l
-        var newArray = []
-        if (l > 0) {
-            do {
-                newArray.push(oldArray[l - n])
-            } while (--n)
-        }
-        return newArray
-    } else
-        return oldArray
+nsMPM.copyArray = function(oldArray) {
+	if (typeof(oldArray) == 'object') {
+		var l = oldArray.length
+		var n = l
+		var newArray = []
+		if (l > 0) {
+			do {
+				newArray.push(oldArray[l - n])
+			} while (--n)
+		}
+		return newArray
+	} else
+		return oldArray
 }
 
-function getAmazonArt(mpd, item, img) {
+nsMPM.getAmazonArt = function(mpd, item, img) {
+	let that = this;
+	
 	var art = "chrome://minion/content/images/album_blank.png";
-	var search_url = urlReplace(
+	var search_url = that.urlReplace(
 					"http://musicbrainz.org/ws/1/release/?type=xml&artist={Artist}&title={Album}&limit=1",
 					item);
 	if ( typeof(item.Album) != 'string' || typeof(item.Artist) != 'string' 
 			|| item.Album == "" || item.Artist == "") {
-		debug("Not enough info for search...")
+		that.debug("Not enough info for search...")
 		img.src = 'chrome://minion/content/images/album_blank_no_info.png';
-		img.setAttribute("tooltiptext",translateService.GetStringFromName("track_no_info"));	
+		img.setAttribute("tooltiptext",that.translateService.GetStringFromName("track_no_info"));	
 	} else {
-		debug("searching Metabrainz...")
-		if (typeof(mpd.cachedArt[search_url]) == 'string') {
-			img.src = mpd.cachedArt[search_url];
-			img.setAttribute("tooltiptext",mpd.cachedArt[search_url]);
+		that.debug("searching Metabrainz...")
+		if (typeof(nsMPM.mpd.cachedArt[search_url]) == 'string') {
+			img.src = nsMPM.mpd.cachedArt[search_url];
+			img.setAttribute("tooltiptext",nsMPM.mpd.cachedArt[search_url]);
 		} else {
 			var cb = function(data) {
 				try {
@@ -276,56 +298,58 @@ function getAmazonArt(mpd, item, img) {
 							}
 						}
 					}
-					debug('applying art='+art);
-					mpd.cachedArt[search_url] = art;
+					that.debug('applying art='+art);
+					nsMPM.mpd.cachedArt[search_url] = art;
 					img.src = art;
 					img.setAttribute("tooltiptext",art);
-					SaveImageToURL(item,art);
+					that.SaveImageToURL(item,art);
 				} catch (e) {
-					debug(e);
+					that.debug(e);
 				}
 			};
-			fetch(search_url, cb);
+			that.fetch(search_url, cb);
 		}
 	}
 }
 
-function SaveImageToURL(item,url) {
+nsMPM.SaveImageToURL = function(item,url) {
+	let that = this;
+	
 	try {
-		debug('SaveImageToURL url=');
-		debug(url);
+		that.debug('SaveImageToURL url=');
+		that.debug(url);
 		// we want to reject dummy requests
 		var txt = new String(url);
 		if (txt.indexOf('chrome://') == 0) return;
 
 		// unless specified, we don't save arts
-		if ( parseInt(prefs.get("use_amazon_art",1)) != 2 ) {
+		if ( parseInt(that.prefs.get("use_amazon_art",1)) != 2 ) {
 			return;
 		}
 		
 		// the source object we want to download
-		var oSourceURL = Components.classes["@mozilla.org/network/io-service;1"]
-			.getService(Components.interfaces.nsIIOService)
+		var oSourceURL = that.Cc["@mozilla.org/network/io-service;1"]
+			.getService(that.Ci.nsIIOService)
 			.newURI(url, null, null);
 		
 		// if file:// we want to probe if it already exists
-		var oTargetFile = Components.classes["@mozilla.org/file/local;1"]
-			.createInstance(Components.interfaces.nsILocalFile);
+		var oTargetFile = that.Cc["@mozilla.org/file/local;1"]
+			.createInstance(that.Ci.nsILocalFile);
 		// use to create the destination object
-		var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-			.getService(Components.interfaces.nsIIOService);
+		var ioService = that.Cc["@mozilla.org/network/io-service;1"]
+			.getService(that.Ci.nsIIOService);
 		
-		var sTargetFile = urlReplace(prefs.get("save_art_url"), item);
+		var sTargetFile = that.urlReplace(that.prefs.get("save_art_url"), item);
 		var oDestination = ioService.newURI(sTargetFile,null,null);
 
-		debug("Attempt to download url: "+url);
-		debug("Attempt to save to file: "+sTargetFile);
+		that.debug("Attempt to download url: "+url);
+		that.debug("Attempt to save to file: "+sTargetFile);
 
 		// Probe if the file already exists
 		if ( oDestination.scheme == 'file://' ) {		
 			oTargetFile.initWithPath(oDestination.path);		
 			if(oTargetFile.exists()) {
-				deubg("File already exists");
+				that.debug("File already exists");
 				return;
 			} else {
 				oTargetFile.create(0x00,0640);
@@ -333,11 +357,11 @@ function SaveImageToURL(item,url) {
 		}
 
 		// create a persist
-		var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].
-			createInstance(Components.interfaces.nsIWebBrowserPersist);
+		var persist = that.Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].
+			createInstance(that.Ci.nsIWebBrowserPersist);
 
 		// with persist flags if desired See nsIWebBrowserPersist page for more PERSIST_FLAGS.
-		const nsIWBP = Components.interfaces.nsIWebBrowserPersist;
+		const nsIWBP = that.Ci.nsIWebBrowserPersist;
 		// const flags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
 		const flags = nsIWBP.PERSIST_FLAGS_NONE;
 		persist.persistFlags = flags | nsIWBP.PERSIST_FLAGS_FROM_CACHE;
@@ -346,17 +370,18 @@ function SaveImageToURL(item,url) {
 		persist.saveURI(oSourceURL, null, null, null, null, oDestination);
 
 	} catch(e) { 
-		debug(e); 
+		that.debug(e); 
 	}
 }
 
-function prefetchImageFromURL(url, callBack, arg) {
+nsMPM.prefetchImageFromURL = function(url, callBack, arg) {
+	let that = this;
 	try {
-		debug('Prefetch requested');
-		var imgRequest = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
+		that.debug('Prefetch requested');
+		var imgRequest = that.Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
 						.createInstance();
-		imgRequest.QueryInterface(Components.interfaces.nsIDOMEventTarget);
-		imgRequest.QueryInterface(Components.interfaces.nsIXMLHttpRequest);
+		imgRequest.QueryInterface(that.Ci.nsIDOMEventTarget);
+		imgRequest.QueryInterface(that.Ci.nsIXMLHttpRequest);
 
 		imgRequest.open("POST", url, true);
 		imgRequest.onreadystatechange = function() {
@@ -370,52 +395,57 @@ function prefetchImageFromURL(url, callBack, arg) {
 		imgRequest.send("q="+(Math.random()*10000));
 	} catch (e) { 
 		// exception was raised, so we fallback to amazon if possible
-		// debug(e);
+		// that.debug(e);
 		callBack(404, arg, url);
 	}
 }
 
-function fetch(url, callBack, arg, getXML) {
-    try {
-        var request = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
-                .createInstance();
-        request.QueryInterface(Components.interfaces.nsIDOMEventTarget);
-        request.QueryInterface(Components.interfaces.nsIXMLHttpRequest);
+nsMPM.fetch = function(url, callBack, arg, getXML) {
+	let that = this;
+	try {
+		var request = that.Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+		request.QueryInterface(that.Ci.nsIDOMEventTarget);
+		request.QueryInterface(that.Ci.nsIXMLHttpRequest);
 
-        request.open("GET", url, true)
-        request.onreadystatechange = function() {
-            if (request.readyState == 4) {
-                if (request.status == 200 || request.status == 0) {
-                    if (Nz(getXML)) {
-                        callBack(request.responseXML, arg, request)
-                    } else {
-                        callBack(request.responseText, arg, request)
-                    }
-                    request.onreadystatechange = null
-                    request = null
-                } else {
-					debug(request.status+": "+url)
-                    request.onreadystatechange = null
-                    request = null
-                }
-            }
-        }
-        request.send("")
-    } catch (e) {
-        debug(e)
-    }
+		request.open("GET", url, true)
+		request.onreadystatechange = function() {
+			if (request.readyState == 4) {
+				if (request.status == 200 || request.status == 0) {
+					if (that.Nz(getXML)) {
+						callBack(request.responseXML, arg, request)
+					} else {
+						callBack(request.responseText, arg, request)
+					}
+					request.onreadystatechange = null
+					request = null
+				} else {
+					that.debug(request.status+": "+url)
+					request.onreadystatechange = null
+					request = null
+				}
+			}
+		}
+		request.send("")
+	} catch (e) { that.debug(e) }
 }
 
-function mpm_openDialog(url, id) {
-    var features = "chrome,dialog=yes,resizable=yes"
-    if (id=="settings") features += ",titlebar,toolbar"
-    var win = winw.openWindow(winw.activeWindow, url, Nz(id, url),
-            features, null);
+nsMPM.mpm_openDialog = function(url, id) {
+	let that = this;
+	var features = "chrome,dialog=yes,resizable=yes"
+	if (id=="settings") features += ",titlebar,toolbar"
+	var win = that.winw.openWindow(that.winw.activeWindow, url, that.Nz(id, url),features, null);
 }
 
-function openReuseByURL(url) {
-	var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-			.getService(Components.interfaces.nsIWindowMediator);
+nsMPM.openReuseByURL = function(url) {
+	let that = this;
+	var wm = null;
+	try {
+		wm = that.Cc["@mozilla.org/appshell/window-mediator;1"]
+			.getService(that.Ci.nsIWindowMediator);
+		
+	} catch(e) {
+		that.debug(e);
+	}
 	var browserEnumerator = wm.getEnumerator("navigator:browser");
 	// Check each browser instance for our URL
 	var found = false;
@@ -434,7 +464,7 @@ function openReuseByURL(url) {
 					// Focus *this* browser
 					browser.focus();
 					browserInstance.focus();
-					debug("browser already in tab");
+					that.debug("browser already in tab");
 					// wrapped is compulsory otherwise we can't right click on the statusbar
 					// to display album details and perform queries.
 					var win = currentBrowser.contentWindow.wrappedJSObject;
@@ -444,7 +474,7 @@ function openReuseByURL(url) {
 			}
 		}
 		if (!found) {
-			var openInTab = prefs.get("launch_in_browser", false);
+			var openInTab = that.prefs.get("launch_in_browser", false);
 			var recent = (openInTab) ? wm.getMostRecentWindow("navigator:browser") : false;
 			if (recent) {
 				recent.focus();
@@ -456,147 +486,59 @@ function openReuseByURL(url) {
 				// to display album details and perform queries.
 				var win = currentBrowser.contentWindow.wrappedJSObject;
 			} else {
-				var win = winw.getWindowByName(url, null);
-				if (!win) win = winw.openWindow(null, url, url, null, null);
+				var win = that.winw.getWindowByName(url, null);
+				if (!win) win = that.winw.openWindow(null, url, url, null, null);
 				win.focus();
 			}
 		}
 		return win;
 	} catch (e) {
-		debug(e);
+		that.debug(e);
+	}
+	return null;
+}
+
+nsMPM.openReuseByAttribute = function(url, attrName) {
+	let that = this;
+
+	var wm = that.Cc["@mozilla.org/appshell/window-mediator;1"].getService(that.Ci.nsIWindowMediator);
+	attrName = that.Nz(attrName, 'mpm-unknown-tab')
+	try {
+		for (var found = false, 
+			index = 0, 
+			browserInstance = wm.getEnumerator('navigator:browser').getNext().getBrowser(); 
+			index < browserInstance.mTabContainer.childNodes.length && !found; index++) {
+			var currentTab = browserInstance.mTabContainer.childNodes[index];
+			if (currentTab.hasAttribute(attrName)) {
+				browserInstance.selectedTab = currentTab;
+				browserInstance.focus();
+				found = true;
+			}
+		}
+		if (!found) {
+			var browserEnumerator = wm.getEnumerator("navigator:browser");
+			var browserInstance = browserEnumerator.getNext().getBrowser();
+			var newTab = browserInstance.addTab(url);
+			newTab.setAttribute(attrName, "xyz");
+			browserInstance.selectedTab = newTab;
+			browserInstance.focus();
+		}
+	} catch (e) {
+		that.winw.openWindow(null, url, attrName, null, null)
 	}
 }
 
-function openReuseByAttribute(url, attrName) {
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-            .getService(Components.interfaces.nsIWindowMediator);
-    attrName = Nz(attrName, 'mpm-unknown-tab')
-    try {
-        for (var found = false, index = 0, browserInstance = wm
-                .getEnumerator('navigator:browser').getNext().getBrowser(); index < browserInstance.mTabContainer.childNodes.length
-                && !found; index++) {
-            var currentTab = browserInstance.mTabContainer.childNodes[index];
-            if (currentTab.hasAttribute(attrName)) {
-                browserInstance.selectedTab = currentTab;
-                browserInstance.focus();
-                found = true;
-            }
-        }
-        if (!found) {
-            var browserEnumerator = wm.getEnumerator("navigator:browser");
-            var browserInstance = browserEnumerator.getNext().getBrowser();
-            var newTab = browserInstance.addTab(url);
-            newTab.setAttribute(attrName, "xyz");
-            browserInstance.selectedTab = newTab;
-            browserInstance.focus();
-        }
-    } catch (e) {
-        winw.openWindow(null, url, attrName, null, null)
-    }
-}
-
-function prefObserver (prefName, changeAction) {
-    this.action = changeAction
-    this.register = function(){
-        this._branch = branch;
-        this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
-        this._branch.addObserver("", this, false);
-    },
-
-    this.unregister = function(){
-        if (!this._branch)
-            return;
-        this._branch.removeObserver("", this);
-    },
-
-    this.observe = function(aSubject, aTopic, aData){
-        if (aTopic != "nsPref:changed")
-            return;
-        // aSubject is the nsIPrefBranch we're observing (after appropriate QI)
-        // aData is the name of the pref that's been changed (relative to aSubject)
-        if (aData == prefName) this.action()
-    }
-};
-var prefs = {
-	branch : branch,
-	service : prefService,
-	get : function(strPref, def) {
-		try{
-			switch (branch.getPrefType(strPref)) {
-				case branch.PREF_STRING :
-					return branch.getCharPref(strPref);
-				case branch.PREF_INT :
-					return branch.getIntPref(strPref);
-				case branch.PREF_BOOL :
-					return branch.getBoolPref(strPref);
-				default :
-					def = Nz(def)
-					prefs.set(strPref, def);
-					return def;
-			}
-		} catch(e){ debug(e);}
-	},
-	isPref : function (strPref) {
-		try {
-			if ( !strPref ) return false;
-			if ( branch.getPrefType(strPref) != branch.PREF_INVALID ) return true;
-			return false;
-		} catch(e) { 
-			debug(e);
-			return false; 
-		}
-	},
-    getObserver : function (prefName, prefAction) {
-        var po = new prefObserver(prefName, prefAction)
-        po.register()
-        return po
-    },
-	clear : function(strPref) {
-		try {
-			branch.clearUserPref(strPref);
-		} catch(e) { return; }
-	},
-    set : function(strPref, val) {
-        switch (branch.getPrefType(strPref)) {
-            case branch.PREF_STRING :
-                branch.setCharPref(strPref, val);
-                break;
-            case branch.PREF_INT :
-                branch.setIntPref(strPref, val);
-                break;
-            case branch.PREF_BOOL :
-                branch.setBoolPref(strPref, val);
-                break;
-            default :
-                if (typeof(val) != 'undefined') {
-                    switch (typeof(val)) {
-                        case 'string' :
-                            branch.setCharPref(strPref, val);
-                            break;
-                        case 'number' :
-                            branch.setIntPref(strPref, val);
-                            break;
-                        case 'boolean' :
-                            branch.setBoolPref(strPref, val);
-                            break;
-                        default :
-                            branch.setCharPref(strPref, val.toSource());
-                            break;
-                    }
-                }
-        }
-    }
-}
-
-function guessTags(song) {
-    _artist = ""
-    _album = ""
-    _title = ""
-    _track = ""
-	track = Nz(song.Track, "")
-	title = Nz(song.Title, "")
-	artist = Nz(song.Artist, "")
-	album = Nz(song.Album, "")
+nsMPM.guessTags = function(song) {
+	let that = this;
+	
+	_artist = ""
+	_album = ""
+	_title = ""
+	_track = ""
+	track = that.Nz(song.Track, "")
+	title = that.Nz(song.Title, "")
+	artist = that.Nz(song.Artist, "")
+	album = that.Nz(song.Album, "")
 	try {
 		myfile = song.file.match(/[^\/]+$/)[0].replace(/\.[a-zA-Z0-9]+$/, "")
 		_title = myfile
@@ -621,73 +563,69 @@ function guessTags(song) {
 		if (title == "") song.Title = _title.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 		if (artist == "") song.Artist = _artist.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 		if (album == "") song.Album = _album.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
-	} catch (e) {debug(e)}
+	} catch (e) {that.debug(e)}
 	return song
 }
 
-function updateStatusBarPosition(doc) {
-    var index = prefs.get("statusbar_position", 0);
-    if (index <= 0) return;
-    debug('status-bar index: '+index);	
-    try
-    {
-        var statusBar = doc.getElementById("status-bar");
-        var children = statusBar.childNodes;
+nsMPM.updateStatusBarPosition = function(doc) {
+	let that = this;
+	var index = that.prefs.get("statusbar_position", 0);
+	if (index <= 0) return;
+	that.debug('status-bar index: '+index);	
+	try
+	{
+		var statusBar = doc.getElementById("status-bar");
+		var children = statusBar.childNodes;
 
-        var statusbarItem = doc.getElementById("mpm_status-bar_controls");
+		var statusbarItem = doc.getElementById("mpm_status-bar_controls");
 
-        var newStatusbarItem = statusBar.removeChild(statusbarItem);
+		var newStatusbarItem = statusBar.removeChild(statusbarItem);
 
-        if ((children.length == 0) || (index >= children.length)){
-            statusBar.appendChild(newStatusbarItem);
-        } else {
-            statusBar.insertBefore(newStatusbarItem, children[index-1]);
-        }
-    } catch(e) {
-        debug(e);
-        debug('doc/document:');
-		debug(doc);
-    }
+		if ((children.length == 0) || (index >= children.length)){
+			statusBar.appendChild(newStatusbarItem);
+		} else {
+			statusBar.insertBefore(newStatusbarItem, children[index-1]);
+		}
+	} catch(e) {
+		that.debug(e);
+		that.debug('doc/document:');
+		that.debug(doc);
+	}
 }
 
-/**
- * Displays a file picker in which the user can choose the location where
- * downloads are automatically saved, updating preferences and UI in
- * response to the choice, if one is made.
- */
-function chooseFolder(prefName)
-{
+nsMPM.chooseFolder = function(win, prefName) {
+	let that = this;
 	try {
-		const nsIFilePicker = Components.interfaces.nsIFilePicker;
-		const nsILocalFile = Components.interfaces.nsILocalFile;
+		const nsIFilePicker = that.Ci.nsIFilePicker;
+		const nsILocalFile = that.Ci.nsILocalFile;
 
-		var fp = Components.classes["@mozilla.org/filepicker;1"]
-			   .createInstance(nsIFilePicker);
-		var dnldMgr = Components.classes["@mozilla.org/download-manager;1"]
-					.getService(Components.interfaces.nsIDownloadManager);
+		var fp = that.Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+		var dnldMgr = that.Cc["@mozilla.org/download-manager;1"].getService(that.Ci.nsIDownloadManager);
 
 		var title = "My title";
-		fp.init(window, title, nsIFilePicker.modeGetFolder);
+		fp.init(win, title, nsIFilePicker.modeGetFolder);
 		fp.appendFilters(nsIFilePicker.filterAll);
 
 		fp.displayDirectory = dnldMgr.defaultDownloadsDirectory;
 
 		if (fp.show() == nsIFilePicker.returnOK) {
-			if ( typeof(prefName) != 'string' ) { debug('invalid prefName'); return; }
-			if ( prefName.length < 1 ) { debug('invalid prefName'); return; }
-			var forderPref = document.getElementById(prefName);
+			if ( typeof(prefName) != 'string' ) { that.debug('invalid prefName'); return; }
+			if ( prefName.length < 1 ) { that.debug('invalid prefName'); return; }
+			var forderPref = win.document.getElementById(prefName);
 			var file = fp.fileURL;
 			forderPref.value = file.spec;
 		}
-	} catch(e) { debug(e); }
+	} catch(e) { that.debug(e); }
 }
 
 // update the UI from the prefs at load time
-function updateCustomArtInterfacePref() {
+nsMPM.updateCustomArtInterfacePref = function(doc) {
+	let that = this;
+
 	try {
-		var use_customPref = document.getElementById("use_custom");
-		var tbCoverUrl = document.getElementById("tbCoverUrl");
-		var btnBrowse = document.getElementById("btnCustomBrowseLocalFile");
+		var use_customPref = doc.getElementById("use_custom");
+		var tbCoverUrl = doc.getElementById("tbCoverUrl");
+		var btnBrowse = doc.getElementById("btnCustomBrowseLocalFile");
 		
 		if ( use_customPref.value == true ) {
 			tbCoverUrl.disabled = false;
@@ -696,16 +634,17 @@ function updateCustomArtInterfacePref() {
 			tbCoverUrl.disabled = true;
 			btnBrowse.disabled = true;
 		}
-	} catch(e) { debug(e); }
+	} catch(e) { that.debug(e); }
 }
 
 // update the UI on user click
-function updateCustomArtInterface() {
+nsMPM.updateCustomArtInterface = function(doc) {
+	let that = this;
 	try {
-		var cbUseCustom = document.getElementById("cbUseCustom");
-		var tbCoverUrl = document.getElementById("tbCoverUrl");
-		var btnBrowse = document.getElementById("btnCustomBrowseLocalFile");
-				
+		var cbUseCustom = doc.getElementById("cbUseCustom");
+		var tbCoverUrl = doc.getElementById("tbCoverUrl");
+		var btnBrowse = doc.getElementById("btnCustomBrowseLocalFile");
+
 		if ( cbUseCustom.checked == true ) {
 			tbCoverUrl.disabled = false;
 			btnBrowse.disabled = false;
@@ -713,14 +652,15 @@ function updateCustomArtInterface() {
 			tbCoverUrl.disabled = true;
 			btnBrowse.disabled = true;
 		}
-	} catch(e) { debug(e); }
+	} catch(e) { that.debug(e); }
 }
 
-function updateAmazonInterfacePref() {
+nsMPM.updateAmazonInterfacePref = function(doc) {
+	let that = this;
 	try {
-		var use_amazonPref = document.getElementById("use_amazon");
-		var tbSaveCoverUrl = document.getElementById("tbSaveCoverUrl");
-		var btnBrowse = document.getElementById("btnAmazonBrowseLocalFile");
+		var use_amazonPref = doc.getElementById("use_amazon");
+		var tbSaveCoverUrl = doc.getElementById("tbSaveCoverUrl");
+		var btnBrowse = doc.getElementById("btnAmazonBrowseLocalFile");
 
 		if ( use_amazonPref.value == 2 ) {
 			tbSaveCoverUrl.disabled = false;
@@ -729,14 +669,16 @@ function updateAmazonInterfacePref() {
 			tbSaveCoverUrl.disabled = true;
 			btnBrowse.disabled = true;
 		}
-	} catch(e) { debug(e); }
+	} catch(e) { that.debug(e); }
 }
-function updateAmazonInterface() {
+
+nsMPM.updateAmazonInterface = function(doc) {
+	let that = this;
 	try {
-		var rgUseAmazon = document.getElementById("rgUseAmazon");
-		var tbSaveCoverUrl = document.getElementById("tbSaveCoverUrl");
-		var btnBrowse = document.getElementById("btnAmazonBrowseLocalFile");
-				
+		var rgUseAmazon = doc.getElementById("rgUseAmazon");
+		var tbSaveCoverUrl = doc.getElementById("tbSaveCoverUrl");
+		var btnBrowse = doc.getElementById("btnAmazonBrowseLocalFile");
+
 		if ( rgUseAmazon.value == 2 ) {
 			tbSaveCoverUrl.disabled = false;
 			btnBrowse.disabled = false;
@@ -744,5 +686,158 @@ function updateAmazonInterface() {
 			tbSaveCoverUrl.disabled = true;
 			btnBrowse.disabled = true;
 		}
-	} catch(e) { debug(e); }
+	} catch(e) { that.debug(e); }
 }
+
+nsMPM.togglePlaylistBar = function(doc) {
+	let that = this;
+
+	var b = doc.getElementById("mpm_playlist_sb");
+	var pl = doc.getElementById("mpm_mw_playlist_box");
+	var s = doc.getElementById("mpm_playlist_splitter");
+	if (!b.collapsed) pl.saveColumns();
+	else pl.showCurrent();
+	
+	if (parseInt(b.height) < 1) {
+		s.collapsed = !s.collapsed;
+		b.collapsed = !b.collapsed;
+		that.slideevent.incr = 10;
+		that.slideevent.end = 110;
+	} else {
+		that.slideevent.incr = -10;
+		that.slideevent.end = 0;
+	}
+	that.slideevent.doc = doc;
+	that.slidetimer.initWithCallback(that.slideevent,100,that.Ci.nsITimer.TYPE_REPEATING_SLACK);
+}
+
+nsMPM.prefObserver = function(prefName, changeAction) {
+	this.action = changeAction
+	this.register = function(){
+		this._branch = nsMPM.prefs.branch;
+		this._branch.QueryInterface(nsMPM.Ci.nsIPrefBranchInternal);
+		this._branch.addObserver("", this, false);
+	},
+	this.unregister = function(){
+		if (!this._branch)
+			return;
+		this._branch.removeObserver("", this);
+	},
+	this.observe = function(aSubject, aTopic, aData){
+		if (aTopic != "nsPref:changed")
+			return;
+		// aSubject is the nsIPrefBranch we're observing (after appropriate QI)
+		// aData is the name of the pref that's been changed (relative to aSubject)
+		if (aData == prefName) this.action()
+	}
+}
+
+nsMPM.prefs = {
+	branch : Components.classes["@mozilla.org/preferences-service;1"]
+			.getService(Components.interfaces.nsIPrefService)
+			.getBranch("extensions.mpm."),
+	get : function(strPref, def) {
+		try{
+			switch (this.branch.getPrefType(strPref)) {
+				case this.branch.PREF_STRING :
+					return this.branch.getCharPref(strPref);
+				case this.branch.PREF_INT :
+					return this.branch.getIntPref(strPref);
+				case this.branch.PREF_BOOL :
+					return this.branch.getBoolPref(strPref);
+				default :
+					def = nsMPM.Nz(def)
+					this.set(strPref, def);
+					return def;
+			}
+		} catch(e){ nsMPM.debug(e); }
+		return 'undefined';
+	},
+	isPref : function (strPref) {
+		try {
+			if ( !strPref ) return false;
+			if ( this.branch.getPrefType(strPref) != this.branch.PREF_INVALID ) return true;
+			return false;
+		} catch(e) { 
+			nsMPM.debug(e);
+			return false; 
+		}
+	},
+	getObserver : function (prefName, prefAction) {
+		var po = new nsMPM.prefObserver(prefName, prefAction)
+		po.register()
+		return po
+	},
+	clear : function(strPref) {
+		try {
+			this.branch.clearUserPref(strPref);
+		} catch(e) { return; }
+	},
+	set : function(strPref, val) {
+		switch (this.branch.getPrefType(strPref)) {
+			case this.branch.PREF_STRING :
+				this.branch.setCharPref(strPref, val);
+				break;
+			case this.branch.PREF_INT :
+				this.branch.setIntPref(strPref, val);
+				break;
+			case this.branch.PREF_BOOL :
+				this.branch.setBoolPref(strPref, val);
+				break;
+			default :
+				if (typeof(val) != 'undefined') {
+					switch (typeof(val)) {
+						case 'string' :
+							this.branch.setCharPref(strPref, val);
+							break;
+						case 'number' :
+							this.branch.setIntPref(strPref, val);
+							break;
+						case 'boolean' :
+							this.branch.setBoolPref(strPref, val);
+							break;
+						default :
+							this.branch.setCharPref(strPref, val.toSource());
+							break;
+					}
+				}
+		}
+	}
+}
+nsMPM.slideevent = {
+	incr : 0,
+	end : 0,
+	doc : null,
+	notify: function(slidetimer) {		
+		if (this.end < 1) this.end = 0;
+		if ( this.incr == 0 ) {
+			// nsMPM.debug("canceled"+this.incr+"-"+this.end);
+			slidetimer.cancel();
+			return;
+		}
+		try {
+			var b = this.doc.getElementById("mpm_playlist_sb");
+			// nsMPM.debug("slideevent: incr="+this.incr+", end="+this.end+", b.height="+b.height+", b.boxObject.height="+b.boxObject.height);
+			b.height = parseInt(b.height) + this.incr;
+		} catch(e) {
+			nsMPM.debug(e);
+			slidetimer.cancel();
+			return;
+		}
+		if (this.incr > 0) {
+			if (b.height >= this.end) slidetimer.cancel();
+		} else {
+			if (b.height <= this.end) {
+				slidetimer.cancel();
+				b.collapsed = !b.collapsed;
+				var s = this.doc.getElementById("mpm_playlist_splitter");
+				s.collapsed = !s.collapsed;
+			}
+		}
+	}
+}
+// dependent js modules
+// declare holder in mpmCommon.js
+if (nsMPM.mpmMenu == null) Components.utils.import("resource://minion/mpmMenu.js",nsMPM);
+if (nsMPM.mpd == null) Components.utils.import("resource://minion/mpd.js",nsMPM);
+if (nsMPM.mpmUpgrade == null || nsMPM.mpmIsUpgraded == null ) Components.utils.import("resource://minion/mpmUpgrade.js",nsMPM);

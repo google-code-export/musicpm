@@ -6,16 +6,11 @@
 
     <binding id="mpmTreeBase">
         <handlers>
-            <handler event="keypress" modifiers="accel" key="a"
-                action="this.selectAll()"/>
-            <handler event="dblclick"
-                action="this.followItem(this.activeItem)"/>
-            <handler event="keypress" keycode="VK_DELETE"
-                action="this.delete()"/>
-            <handler event="keypress" keycode="VK_INSERT"
-                action="this.addSelected()"/>
-            <handler event="keypress" keycode="VK_RETURN"
-                action="this.followItem(this.activeItem)"/>
+            <handler event="keypress" modifiers="accel" key="a" action="this.selectAll()"/>
+            <handler event="dblclick" action="this.followItem(this.activeItem)"/>
+            <handler event="keypress" keycode="VK_DELETE" action="this.delete()"/>
+            <handler event="keypress" keycode="VK_INSERT" action="this.addSelected()"/>
+            <handler event="keypress" keycode="VK_RETURN" action="this.followItem(this.activeItem)"/>
         </handlers>
         <implementation>
             <field name="box">document.getAnonymousNodes(this)[0].boxObject</field>
@@ -27,7 +22,7 @@
             <property name="activeItem" readonly="true">
                 <getter>
                     <![CDATA[
-                    var v = Nz(this.view)
+                    var v = nsMPM.Nz(this.view)
                     if (!v) return null
                     return v.rs[this.treeNode.currentIndex]
                     ]]>
@@ -57,7 +52,7 @@
             <method name="addAll">
                 <body>
                     <![CDATA[
-                    mpd.addToPlaylist(this.view.rs)
+                    nsMPM.mpd.addToPlaylist(this.view.rs)
                     ]]>
                 </body>
             </method>
@@ -76,7 +71,7 @@
                             db.push(this.view.getCellValue(v,null))
                         }
                     }
-                    mpd.addToPlaylist(db)
+                    nsMPM.mpd.addToPlaylist(db)
                     ]]>
                 </body>
             </method>
@@ -84,7 +79,7 @@
                 <parameter name="criteria"/>
                 <body>
                     <![CDATA[
-                    if (Nz(criteria,"")=="") {
+                    if (nsMPM.Nz(criteria,"")=="") {
                         this.view = new arrayView(this.db)
                         this.treeNode.view = this.view
                         return null
@@ -103,7 +98,7 @@
                 <parameter name="id"/>
                 <body>
                     <![CDATA[
-                    id = Nz(id)
+                    id = nsMPM.Nz(id)
                     var cols = this.treeNode.columns
                     if (id == 'Album') {
                         for (var i=0;i<cols.length;i++) {
@@ -137,7 +132,7 @@
                     for (var v=start.value; v<=end.value; v++){
                         item = view.get(v)
                         if (item.type == 'file') {
-                            var p = Nz(mpd.pl_lookup[item.file], -1)
+                            var p = nsMPM.Nz(nsMPM.mpd.pl_lookup[item.file], -1)
                             if (p > -1) {
                                 cmd += "\ndelete "+ (parseInt(p)-offset)
                                 offset++
@@ -147,8 +142,8 @@
                 }
 
                 cmd += "\ncommand_list_end"
-                debug(cmd)
-                mpd.doCmd(cmd, null, false)
+                nsMPM.debug(cmd)
+                nsMPM.mpd.doCmd(cmd, null, false)
                 ]]>
                 </body>
             </method>
@@ -165,7 +160,7 @@
                 <parameter name="me"/>
                 <body>
                     <![CDATA[
-                    me = Nz(me,this)
+                    me = nsMPM.Nz(me,this)
                     me.sortDir = null
                     me.sortOn = null
                     me.filter = null
@@ -207,18 +202,18 @@
                                 this.sortOn = null;
                                 break;
                             default:
-                                this.view.rs = copyArray(this.db).sort(smartsort);
+                                this.view.rs = nsMPM.copyArray(this.db).sort(smartsort);
                                 this.sortDir = 'ascending';
                                 break;
                         }
                     }
                     else {
-                        this.view.rs = copyArray(this.db).sort(smartsort)
+                        this.view.rs = nsMPM.copyArray(this.db).sort(smartsort)
                         if (this.sortOn) this.sortDir = null
                         this.sortOn = column
                         this.sortDir = "ascending"
                     }
-                    if (Nz(this.box)) this.box.invalidate()
+                    if (nsMPM.Nz(this.box)) this.box.invalidate()
                     ]]>
                 </body>
             </method>
@@ -239,10 +234,10 @@
                         }
                         col = col.getNext()
                     }
-                    debug(colprops)
-                    prefs.set("browser_columns", colprops)
+                    nsMPM.debug(colprops)
+                    nsMPM.prefs.set("browser_columns", colprops)
                 } catch (e) {
-                    debug(e)
+                    nsMPM.debug(e)
                 }
                 ]]>
                 </body>
@@ -356,7 +351,6 @@
         <implementation>
             <constructor>
                 Components.utils.import("resource://minion/mpmUtils.js");
-                Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
                 this.treeNode = document.getAnonymousNodes(this)[0]
                 this.box = this.treeNode.boxObject;
@@ -365,7 +359,7 @@
                 this.observer = {
                     observe: function(subject,topic,data){
                         if (!data) {
-                            mpd.getAllDirs(function(db){me.load(db,me)})
+                            nsMPM.mpd.getAllDirs(function(db){me.load(db,me)})
                         }
                         else {
                             me.box.clearStyleAndImageCaches()
@@ -376,16 +370,16 @@
                 this.observer2 = {
                     observe: function(subject,topic,data){
                         if (data) {
-                            mpd.getAllDirs(function(db){me.load(db,me)})
+                            nsMPM.mpd.getAllDirs(function(db){me.load(db,me)})
                         }
                     }
                 };
-                observerService.addObserver(this.observer,"updating_db",false)
-                observerService.addObserver(this.observer2,"new_mpd_server",false)
+                nsMPM.observerService.addObserver(this.observer,"updating_db",false)
+                nsMPM.observerService.addObserver(this.observer2,"new_mpd_server",false)
             </constructor>
             <destructor>
-                observerService.removeObserver(this.observer,"updating_db")
-                observerService.removeObserver(this.observer2,"new_mpd_server")
+                nsMPM.observerService.removeObserver(this.observer,"updating_db")
+                nsMPM.observerService.removeObserver(this.observer2,"new_mpd_server")
             </destructor>
             <method name="load">
                 <parameter name="db"/>
@@ -394,9 +388,9 @@
                 <body>
                     <![CDATA[
                     isRS = (rs != null) ? "true" : "false"
-                    debug("folders.load(); cache=" + isRS)
-                    me = Nz(me,this)
-                    if (prefs.get("linguistic_sort", true)) {
+                    nsMPM.debug("folders.load(); cache=" + isRS)
+                    me = nsMPM.Nz(me,this)
+                    if (nsMPM.prefs.get("linguistic_sort", true)) {
                         var column = "Title"
                         var smartsort = function (a,b) {
                             if (isNaN(a[column]+b[column])) {
@@ -409,7 +403,7 @@
                             else { return a[column]-b[column]}
                         }
                         if (!rs) {
-                            debug("sort");
+                            nsMPM.debug("sort");
                             db.sort(smartsort)
                         }
                     }
@@ -491,14 +485,13 @@
             <field name="typeSub">document.getAnonymousElementByAttribute(this, 'id', 'tagsSubType')</field>
             <constructor>
                 Components.utils.import("resource://minion/mpmUtils.js");
-                Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
                 var me = this
                 this.observerServer = {
                     observe: function(subject,topic,data){
 						var tree = me.treeMain
 						var filter = me.filterText.value
-						var q = new dbQuery()
+						var q = new nsMPM.dbQuery()
 						q.type = me.typeMain.value
 						q.query = ""
 						q.execute(function(db){
@@ -508,16 +501,16 @@
 						me.treeSub.load([],me.treeSub)
                     }
                 };
-                observerService.addObserver(this.observerServer,"new_connection",false)
+                nsMPM.observerService.addObserver(this.observerServer,"new_connection",false)
             </constructor>
             <destructor>
             </destructor>
             <method name="loadMain">
                 <body>
                     <![CDATA[
-                    if (!mpd._socket) mpd.connect()
+                    if (!nsMPM.mpd._socket) nsMPM.mpd.connect()
                     var tree = this.treeMain
-                    var q = new dbQuery()
+                    var q = new nsMPM.dbQuery()
                     q.type = this.typeMain.value
                     q.query = ""
                     q.execute(function(db){tree.load(db,tree)})
@@ -529,7 +522,7 @@
                     <![CDATA[
                     if (!this.treeMain.activeItem) return null
                     var tree = this.treeSub
-                    var q = new dbQuery()
+                    var q = new nsMPM.dbQuery()
                     q.type = this.typeSub.value
                     q.scope = this.typeMain.value
                     q.query = this.treeMain.activeItem.Title
@@ -548,12 +541,12 @@
                         <xul:hbox>
                             <xul:toolbarbutton tooltiptext="&minion.updatedb;"
                                 class="mpm_btn_Update"
-                                oncommand="mpd.doCmd('update')"/>
+                                oncommand="nsMPM.mpd.doCmd('update')"/>
 							<xul:toolbarbutton label="&minion.clearlist; "
 								id="browse_Clear_btn"
 								collapsed="true"
 								class="mpm_btn_Clear"
-								oncommand="mpd.doCmd('clear')"/>
+								oncommand="nsMPM.mpd.doCmd('clear')"/>
                             <xul:toolbarbutton label="&all;"
                                 tooltiptext="&minion.alltt;"
                                 class="mpm_btn_AddAll"
@@ -566,14 +559,14 @@
                         <xul:hbox>
 							<xul:toolbarbutton label="&minion.clearlist; "
 								class="mpm_btn_Clear"
-								oncommand="mpd.doCmd('clear')"/>
+								oncommand="nsMPM.mpd.doCmd('clear')"/>
                             <xul:textbox id="plname"
                                 value="Playlist Name"
                                 flex="1"
                                 maxwidth="250"/>
                             <xul:toolbarbutton tooltiptext="&minion.savepls;"
                                 class="mpm_btn_Save"
-                                oncommand='var n=this.parentNode.childNodes[1].value;if(!n)return null;mpd.doCmd("save "+String.fromCharCode(34)+n.replace(/"/g,String.fromCharCode(39))+String.fromCharCode(34))'/>
+                                oncommand='var n=this.parentNode.childNodes[1].value;if(!n)return null;nsMPM.mpd.doCmd("save "+String.fromCharCode(34)+n.replace(/"/g,String.fromCharCode(39))+String.fromCharCode(34))'/>
                         </xul:hbox>
                         <xul:hbox>
                             <xul:toolbarbutton class="mpm_btn_Back"
@@ -675,7 +668,7 @@
                                     <xul:label id="detail_label" class="fake_treecol" crop="end" value="Item"/>
                                     <xul:image id="image" class="mpm_browser_image"
                                                validate="never"
-                                               ondblclick="switch(this.className){case 'mpm_browser_image':this.className='mpm_browser_image_large';break;case 'mpm_browser_image_large':this.className='mpm_browser_image_small';break;default:this.className='mpm_browser_image'};prefs.set('image_size',this.className)"/>
+                                               ondblclick="switch(this.className){case 'mpm_browser_image':this.className='mpm_browser_image_large';break;case 'mpm_browser_image_large':this.className='mpm_browser_image_small';break;default:this.className='mpm_browser_image'};nsMPM.prefs.set('image_size',this.className)"/>
                                     <xbl:children includes="arrowscrollbox"/>
                                     <xul:spacer flex="1"/>
                                 </xul:vbox>
@@ -730,17 +723,15 @@
             <field name="tags">document.getAnonymousElementByAttribute(this, 'id', 'tags')</field>
             <constructor>
                 <![CDATA[
-                Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/mpmUtils.js");
                 Components.utils.import("resource://minion/trees.js");
-                Components.utils.import("resource://minion/io.js");
-				var hideEC = prefs.get("hide_extra_clearplaylist", true)
+				var hideEC = nsMPM.prefs.get("hide_extra_clearplaylist", true)
 				document.getAnonymousElementByAttribute(this, 'id', 'browse_Clear_btn').setAttribute('collapsed', hideEC)
                 var me = this
                 this.deck.me = me
                 var searchInput = this.searchInput
                 function searchInputSet () {
-                    var t = prefs.get("search_timeout",200)
+                    var t = nsMPM.prefs.get("search_timeout",200)
                     if (t == 0) t = null
                     searchInput.setAttribute("timeout", t)
                     searchInput.onchange = function(){
@@ -752,12 +743,12 @@
                     }
                 }
                 searchInputSet()
-                var obsSearchInput = prefs.getObserver("search_timeout", searchInputSet)
+                var obsSearchInput = nsMPM.prefs.getObserver("search_timeout", searchInputSet)
                 
-                var url = prefs.get("song_template", "chrome://minion/content/default_song_template.xul")
+                var url = nsMPM.prefs.get("song_template", "chrome://minion/content/default_song_template.xul")
                 this.content.setAttribute("src", url);
 				// wrappedJSObj is quite compulsory here if we want to access to methods like cwin.load()
-                this.cwin = Nz(this.content.contentWindow.wrappedJSObject, this.content.contentWindow)
+                this.cwin = nsMPM.Nz(this.content.contentWindow.wrappedJSObject, this.content.contentWindow)
                 this.cwin.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 
                 var browser = this.browser
@@ -774,13 +765,13 @@
                 folders.goTo = function(q) {me.goTo(q)}
                 folders.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 this.selectChange = function (item, location) {
-                    debug("selectChange")
-                    var item = Nz(item, me.getActiveItem())
-                    var location = Nz(location, me.getActiveLocation())
+                    nsMPM.debug("selectChange")
+                    var item = nsMPM.Nz(item, me.getActiveItem())
+                    var location = nsMPM.Nz(location, me.getActiveLocation())
                     image.removeAttribute("tooltiptext")
                     if (item) {
                         if (item.type=='search') {
-                            detail_label.value = translateService.GetStringFromName("search")+" "+item.Title
+                            detail_label.value = nsMPM.translateService.GetStringFromName("search")+" "+item.Title
                                 var s = "chrome://minion/content/images/"
                                 me.image.src = s + item.Title.toLowerCase() + "_xlarge.png"
                                 me.image.className='mpm_browser_image_small'
@@ -788,10 +779,10 @@
                         else {
                             detail_label.value = item.Title
                             var itemimg = item
-                            if (item.type=='album') itemimg = Nz(browser.db[0], item)
+                            if (item.type=='album') itemimg = nsMPM.Nz(browser.db[0], item)
                             if (itemimg.type == 'file') {
-                                mpd.getArt(itemimg, image)
-                                me.image.className=prefs.get('image_size','mpm_browser_image')
+                                nsMPM.mpd.getArt(itemimg, image)
+                                me.image.className=nsMPM.prefs.get('image_size','mpm_browser_image')
                             } else {
                                 var s = "chrome://minion/content/images/"
                                 me.image.src = s + item.type.toLowerCase() + "_xlarge.png"
@@ -808,14 +799,14 @@
                     function(){
                         var a = browser.activeItem
                         var l = "mpdbrowser"
-                        if (Nz(a.name)== translateService.GetStringFromName('current_playlist')) var l = "mpdplaylist"
+                        if (nsMPM.Nz(a.name)== nsMPM.translateService.GetStringFromName('current_playlist')) var l = "mpdplaylist"
                         selectChange(a, l)
                     }, false)
                 playlist.tree.addEventListener("select",
                     function(){selectChange(playlist.activeItem, "mpdplaylist")}, false)
                 this.folders_tab.onclick = function () {
-                    if (!Nz(folders.db)) {
-                        mpd.getAllDirs(function(db){
+                    if (!nsMPM.Nz(folders.db)) {
+                        nsMPM.mpd.getAllDirs(function(db){
                             folders.load(db, folders)
                         })
                     } else {
@@ -826,14 +817,14 @@
                 playlists.goTo = function(q) {me.goTo(q)}
                 playlists.followItem = function(i, f, q) {me.followItem(i, f, q)}
                 this.playlist_tab.onclick = function () {
-                    var q = new dbQuery()
+                    var q = new nsMPM.dbQuery()
                     q.type = "playlist"
                     q.query = ""
                     q.execute(function(db){
                         var cur = {
                             type: "playlist",
-                            name: translateService.GetStringFromName("current_playlist"),
-                            Title: translateService.GetStringFromName("current_playlist")
+                            name: nsMPM.translateService.GetStringFromName("current_playlist"),
+                            Title: nsMPM.translateService.GetStringFromName("current_playlist")
                         }
                         db.unshift(cur)
                         playlists.load(db,playlists)
@@ -842,14 +833,14 @@
                     })
                 }
                 this.tags_tab.onclick = function () {
-                    //if (!Nz(tags.db)) tags.loadMain()
+                    //if (!nsMPM.Nz(tags.db)) tags.loadMain()
                     var sub = tags.treeSub.treeNode.currentIndex
                     var main = tags.treeMain.treeNode.currentIndex
                     if (sub >= 0 && tags.treeSub.view.selection.isSelected(sub)) tags.treeSub.treeNode.onselect()
                     else if (main >= 0) tags.treeMain.treeNode.onselect()
                 }
 
-                tags.treeMain.followItem = function(i){debug("treeMain.followItem()");me.followItem(i)}
+                tags.treeMain.followItem = function(i){nsMPM.debug("treeMain.followItem()");me.followItem(i)}
                 tags.treeSub.followItem = function(i){
                     var f = tags.treeMain.activeItem
                     me.followItem(i, f.type, f.name)
@@ -874,44 +865,44 @@
                         }
                     }
                 };
-                observerService.addObserver(this.observerUpdate,"updating_db",false)
-                observerService.addObserver(this.observerUpdate,"song",false)
-                observerService.addObserver(this.observerUpdate,"state",false)
-                observerService.addObserver(this.observerUpdate,"plinfo",false)
+                nsMPM.observerService.addObserver(this.observerUpdate,"updating_db",false)
+                nsMPM.observerService.addObserver(this.observerUpdate,"song",false)
+                nsMPM.observerService.addObserver(this.observerUpdate,"state",false)
+                nsMPM.observerService.addObserver(this.observerUpdate,"plinfo",false)
                 this.observerServer = {
                     observe: function(subject,topic,data){
                         me.goHome()
                     }
                 };
-                observerService.addObserver(this.observerServer,"new_mpd_server",false)
+                nsMPM.observerService.addObserver(this.observerServer,"new_mpd_server",false)
                 this.observerPlaylists = {
                     observe: function(subject,topic,data){
-                        var q = new dbQuery()
+                        var q = new nsMPM.dbQuery()
                         q.type = "playlist"
                         q.query = ""
                         q.execute(function(db){
                             var cur = {
                                 type: "playlist",
-                                name: translateService.GetStringFromName("current_playlist"),
-                                Title: translateService.GetStringFromName("current_playlist")
+                                name: nsMPM.translateService.GetStringFromName("current_playlist"),
+                                Title: nsMPM.translateService.GetStringFromName("current_playlist")
                             }
                             db.unshift(cur)
                             playlists.load(db,playlists)
                         })
                     }
                 };
-                observerService.addObserver(this.observerPlaylists,"playlists",false)
+                nsMPM.observerService.addObserver(this.observerPlaylists,"playlists",false)
 
-                me.plname.value = mpd.playlistname
+                me.plname.value = nsMPM.mpd.playlistname
                 this.observerPlaylistName = {
                     observe: function(subject,topic,data){
                         me.plname.value = data
                     }
                 };
-                observerService.addObserver(this.observerPlaylistName,"playlistname",false)
+                nsMPM.observerService.addObserver(this.observerPlaylistName,"playlistname",false)
                 
                 var bcols = browser.treeNode.childNodes[0].childNodes
-                var colprops = prefs.get("browser_columns", "")
+                var colprops = nsMPM.prefs.get("browser_columns", "")
                 function setCol(val, index, arr) {
                     props = val.split(":")
                     if (props[0] > "") {
@@ -936,15 +927,16 @@
             </constructor>
             <destructor>
                 <![CDATA[
-                
-                this.saveColumns()
-                observerService.removeObserver(this.observerUpdate,"updating_db")
-                observerService.removeObserver(this.observerUpdate,"song")
-                observerService.removeObserver(this.observerUpdate,"state")
-                observerService.removeObserver(this.observerUpdate,"plinfo")
-                observerService.removeObserver(this.observerServer,"new_mpd_server")
-                observerService.removeObserver(this.observerPlaylists,"playlists")
-                observerService.removeObserver(this.observerPlaylistName,"load_playlist")
+                try {
+                    this.saveColumns()
+                    nsMPM.observerService.removeObserver(this.observerUpdate,"updating_db")
+                    nsMPM.observerService.removeObserver(this.observerUpdate,"song")
+                    nsMPM.observerService.removeObserver(this.observerUpdate,"state")
+                    nsMPM.observerService.removeObserver(this.observerUpdate,"plinfo")
+                    nsMPM.observerService.removeObserver(this.observerServer,"new_mpd_server")
+                    nsMPM.observerService.removeObserver(this.observerPlaylists,"playlists")
+                    // FIXME: useless? nsMPM.observerService.removeObserver(this.observerPlaylistName,"load_playlist")
+                } catch(e){nsMPM.debug(e);}
                 ]]>
             </destructor>
             <method name="addSelected">
@@ -959,9 +951,9 @@
                     try {
                         var cmd = "update"
                         var cwd = this.history[this.historyIndex]
-                        if (cwd.type=='directory') cmd = "update "+Sz(cwd.query)
-                        mpd.doCmd(cmd)
-                    } catch(e){debug(e)}
+                        if (cwd.type=='directory') cmd = "update "+nsMPM.Sz(cwd.query)
+                        nsMPM.mpd.doCmd(cmd)
+                    } catch(e){nsMPM.debug(e)}
                     ]]>
                 </body>
             </method>
@@ -972,37 +964,37 @@
                 <body>
                     <![CDATA[
                     try {
-                    var q = new dbQuery()
+                    var q = new nsMPM.dbQuery()
 					if (!item) return;
                     q.type = item.type
                     switch (item.type) {
                         case 'file':
-                            var act = parseInt(prefs.get("default_file_action", 0))
+                            var act = parseInt(nsMPM.prefs.get("default_file_action", 0))
                             
                             if (act==0) {
                                 // Prompt
-                                mpm_openDialog('chrome://minion/content/fileActions.xul', 'mpm_file_actions')
-                                var act = parseInt(prefs.get("default_file_action", 0))
+                                nsMPM.mpm_openDialog('chrome://minion/content/fileActions.xul', 'mpm_file_actions')
+                                var act = parseInt(nsMPM.prefs.get("default_file_action", 0))
                             }
 
                             switch (act) {
                                 case 1:
                                     // Add to Playlist
-                                    mpd.addToPlaylist(item)    
+                                    nsMPM.mpd.addToPlaylist(item)    
                                     return null;                                
                                     break;
                                 case 2:
                                     //Add to Playlist and Play Now
-                                    var l = mpd.playlistlength
-                                    mpd.addToPlaylist(item)
-                                    mpd.doCmd("play " + l)
+                                    var l = nsMPM.mpd.playlistlength
+                                    nsMPM.mpd.addToPlaylist(item)
+                                    nsMPM.mpd.doCmd("play " + l)
                                     return null;
                                     break;
                                 case 3:
                                     //Add to Playlist and Play if stopped
-                                    var l = mpd.playlistlength
-                                    mpd.addToPlaylist(item)
-                                    if (mpd.state == 'stop') mpd.doCmd("play " + l)
+                                    var l = nsMPM.mpd.playlistlength
+                                    nsMPM.mpd.addToPlaylist(item)
+                                    if (nsMPM.mpd.state == 'stop') nsMPM.mpd.doCmd("play " + l)
                                     return null;
                                     break;
                                 case 4:
@@ -1016,17 +1008,17 @@
                         case 'directory': break;
                         case 'playlist': break;
                         default:
-                            if (Nz(item.name,"") > "") {
+                            if (nsMPM.Nz(item.name,"") > "") {
                                 q.type = 'file';
                                 q.scope = item.type;
-                                q.filterField = Nz(filterField)
-                                q.filterQuery = Nz(filterQuery)
+                                q.filterField = nsMPM.Nz(filterField)
+                                q.filterQuery = nsMPM.Nz(filterQuery)
                             }
                             break;
                     }
                     q.query = item.name
                     this.goTo(q, item)
-                    } catch(e){debug(e)}
+                    } catch(e){nsMPM.debug(e)}
                     ]]>
                 </body>
             </method>
@@ -1034,7 +1026,7 @@
                 <body>
                     <![CDATA[
                     var e = document.commandDispatcher.focusedElement.parentNode
-                    return Nz(e)
+                    return nsMPM.Nz(e)
                     ]]>
                 </body>
             </method>
@@ -1044,7 +1036,7 @@
                     if (this.bp_deck.selectedIndex==0) {
                         var a = this.browser.activeItem
                         var l = "mpdbrowser"
-                        if (a && Nz(a.name)==translateService.GetStringFromName('current_playlist')) var l = "mpdplaylist"
+                        if (a && nsMPM.Nz(a.name)==nsMPM.translateService.GetStringFromName('current_playlist')) var l = "mpdplaylist"
                         return l
                     } else {
                         return "mpdplaylist"
@@ -1056,11 +1048,11 @@
                 <body>
                     <![CDATA[
                     var f = document.commandDispatcher.focusedElement
-                    if (!f) {debug("No focused Element!");return null}
+                    if (!f) {nsMPM.debug("No focused Element!");return null}
                     var e = f.parentNode
-                    if (!e) {debug("No parentNode!");return null}
-                    var a = Nz(e.activeItem)
-                    if (!a) {debug("No activeItem!");return null}
+                    if (!e) {nsMPM.debug("No parentNode!");return null}
+                    var a = nsMPM.Nz(e.activeItem)
+                    if (!a) {nsMPM.debug("No activeItem!");return null}
                     return a
                     ]]>
                 </body>
@@ -1093,7 +1085,7 @@
                                 Title: 'Folders',
                                 name: ''
                             }
-                    if (prefs.get("home_is_folders", false)) this.followItem(Folders)
+                    if (nsMPM.prefs.get("home_is_folders", false)) this.followItem(Folders)
                     else this.goTo(null)
                 </body>
             </method>
@@ -1102,66 +1094,66 @@
                 <parameter name="followitem"/>
                 <body>
                     <![CDATA[
-                    query = Nz(query)
+                    query = nsMPM.Nz(query)
                     var me = this
 					var statscb = function (data) {
 						var sng = /^songs\:\s(.*)$/gm.exec(data)
 						var tm = /^db_playtime\:\s(.*)$/gm.exec(data)
-						var label_track = translateService.GetStringFromName("track");
-						if (sng[1] >1) label_track = translateService.GetStringFromName("tracks");
+						var label_track = nsMPM.translateService.GetStringFromName("track");
+						if (sng[1] >1) label_track = nsMPM.translateService.GetStringFromName("tracks");
 						me.trackcount.value = sng[1] + " "+label_track
-						me.timecount.value = prettyTime(tm[1], true)
+						me.timecount.value = nsMPM.prettyTime(tm[1], true)
 					}
                     this.browser.box.QueryInterface(Components.interfaces.nsITreeBoxObject)
-                    if (query && query.query != translateService.GetStringFromName('current_playlist')) {
+                    if (query && query.query != nsMPM.translateService.GetStringFromName('current_playlist')) {
                         this.deck.selectedIndex = 0
                         this.bp_deck.selectedIndex = 0
                         var browser = this.browser
                         var albumCol = browser.getCol('Album')
                         query.callBack = function (db) {
-                            if (Nz(query.type)=='playlist' && Nz(query.query)=='') {
+                            if (nsMPM.Nz(query.type)=='playlist' && nsMPM.Nz(query.query)=='') {
                                 var cur = {
                                     type: "playlist",
-                                    name: translateService.GetStringFromName("current_playlist"),
-                                    Title: translateService.GetStringFromName("current_playlist")
+                                    name: nsMPM.translateService.GetStringFromName("current_playlist"),
+                                    Title: nsMPM.translateService.GetStringFromName("current_playlist")
                                 }
                                 db.unshift(cur)
                             }
                             browser.load(db);
-							if (prefs.get("enable_counts", true)) {
+							if (nsMPM.prefs.get("enable_counts", true)) {
 								if (query.query > "") {
 									if (db.length > 0 && db[0].type == 'directory') {
 										var tcb = function (data) {
 											var times = data.match(/^Time\:\s(.*)$/gm)
-											var label_track = translateService.GetStringFromName("track");
-											if (times.length >1) label_track = translateService.GetStringFromName("tracks");
+											var label_track = nsMPM.translateService.GetStringFromName("track");
+											if (times.length >1) label_track = nsMPM.translateService.GetStringFromName("tracks");
 											me.trackcount.value = times.length + " "+ label_track;
 											var t = 0
 											times.forEach(function(x){t+=parseInt(x.slice(6))})
-											me.timecount.value = prettyTime(t, true)
+											me.timecount.value = nsMPM.prettyTime(t, true)
 										}
-										mpd.doCmd('listallinfo "'+query.query+'"', tcb)
+										nsMPM.mpd.doCmd('listallinfo "'+query.query+'"', tcb)
 									} else {
 										var files = [x for each (x in db) if (x.type=='file')]
 										var time = 0
 										function sumTimes (el, idx, arr) {time += parseInt(el.Time)}
 										files.forEach(sumTimes)
-										var label_track = translateService.GetStringFromName("track");
-                                        if (files.length >1) label_track = translateService.GetStringFromName("tracks");
+										var label_track = nsMPM.translateService.GetStringFromName("track");
+                                        if (files.length >1) label_track = nsMPM.translateService.GetStringFromName("tracks");
 										me.trackcount.value = files.length + " " + label_track
-										me.timecount.value = prettyTime(time, true)
+										me.timecount.value = nsMPM.prettyTime(time, true)
 									}
 								} else {
 									if (query.type == 'playlist') {
 										me.trackcount.value = ""
 										me.timecount.value = ""								
 									} else {
-										mpd.doCmd('stats', statscb)
+										nsMPM.mpd.doCmd('stats', statscb)
 									}
 								}
 							}
                             me.cwd.value = query.query.split("/").slice(-1)
-                            if (Nz(query.filterField)) me.cwd.value += " ("+query.filterField + ": " + query.filterQuery + ")"
+                            if (nsMPM.Nz(query.filterField)) me.cwd.value += " ("+query.filterField + ": " + query.filterQuery + ")"
                             me.cwd_icon.className = "mpm_icon_"
                             if (query.type != "search") browser.collapseOne(query.scope)
                             else browser.collapseOne(null)
@@ -1171,7 +1163,7 @@
                                 case "directory": me.tabbox.selectedIndex = 0; break;
                                 default: me.tabbox.selectedIndex = 2; break;
                             }
-                            if (Nz(followitem)) {
+                            if (nsMPM.Nz(followitem)) {
                                 me.selectChange(followitem, "mpdbrowser")
                             } else {
                                 me.selectChange()
@@ -1179,19 +1171,19 @@
                         }
                         query.execute()
                     }
-                    else if (query && query.query == translateService.GetStringFromName("current_playlist")) {
+                    else if (query && query.query == nsMPM.translateService.GetStringFromName("current_playlist")) {
                         me.tabbox.selectedIndex = 1
                         me.deck.selectedIndex = 0
                         me.bp_deck.selectedIndex = 1
-                        me.cwd.value = translateService.GetStringFromName("current_playlist")
+                        me.cwd.value = nsMPM.translateService.GetStringFromName("current_playlist")
                         me.cwd_icon.className = 'mpm_icon_playlist'
-						if (prefs.get("enable_counts", true)) {
-                            var label_track = translateService.GetStringFromName("track");
-                            if (mpd.playlistlength >1) label_track = translateService.GetStringFromName("tracks");
-							me.trackcount.value = mpd.playlistlength + " " + label_track;
-							me.timecount.value = prettyTime(mpd.pltime, true)
+						if (nsMPM.prefs.get("enable_counts", true)) {
+                            var label_track = nsMPM.translateService.GetStringFromName("track");
+                            if (nsMPM.mpd.playlistlength >1) label_track = nsMPM.translateService.GetStringFromName("tracks");
+							me.trackcount.value = nsMPM.mpd.playlistlength + " " + label_track;
+							me.timecount.value = nsMPM.prettyTime(nsMPM.mpd.pltime, true)
 						}
-                        var pos = parseInt(Nz(mpd.song,0))
+                        var pos = parseInt(nsMPM.Nz(nsMPM.mpd.song,0))
                         me.selectChange()
                         //me.playlist.tree.view.selection.select(pos)                    
                     }
@@ -1199,22 +1191,22 @@
                         var home = [
                             {
                                 type: 'directory',
-                                Title: translateService.GetStringFromName('folders'),
+                                Title: nsMPM.translateService.GetStringFromName('folders'),
                                 name: ''
                             },
                             {
                                 type: 'Artist',
-                                Title: translateService.GetStringFromName('artists'),
+                                Title: nsMPM.translateService.GetStringFromName('artists'),
                                 name: ''
                             },
                             {
                                 type: 'Album',
-                                Title: translateService.GetStringFromName('albums'),
+                                Title: nsMPM.translateService.GetStringFromName('albums'),
                                 name: ''
                             },
                             {
                                 type: 'playlist',
-                                Title: translateService.GetStringFromName('playlists'),
+                                Title: nsMPM.translateService.GetStringFromName('playlists'),
                                 name: ''
                             }
                         ]
@@ -1239,7 +1231,7 @@
             <method name="handleSearch">
                 <body>
                     <![CDATA[
-                    var q = new dbQuery()
+                    var q = new nsMPM.dbQuery()
                     q.type = "search"
                     q.scope = this.searchType.selectedItem.value
                     q.query = this.searchInput.value

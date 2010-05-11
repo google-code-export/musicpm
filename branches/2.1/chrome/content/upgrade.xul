@@ -11,7 +11,11 @@
 		buttons="accept"
 		onload="dialogInit()">
 
-	<script type="application/x-javascript" src="resource://minion/mpmUpgrade.js"/>
+	<script>
+	<![CDATA[
+        Components.utils.import("resource://minion/mpmUtils.js");
+	]]>	
+	</script>
 	<script type="application/x-javascript" src="chrome://global/content/contentAreaUtils.js"/>
 
 	<stringbundleset id="aboutSet">
@@ -39,9 +43,9 @@
 		</vbox>
 		<hbox>
 			<spacer flex="1"/>
-			<button id="manageservers" label="&servers.title;" oncommand="doServer();"/>
-			<button id="settings" label="&settings.title;" oncommand="doSettings();"/>
-			<button id="about" label="&upgrade.about;" oncommand="doAbout();"/>
+			<button id="manageservers" label="&servers.title;" oncommand="nsMPM.doServer();"/>
+			<button id="settings" label="&settings.title;" oncommand="nsMPM.doSettings();"/>
+			<button id="about" label="&upgrade.about;" oncommand="nsMPM.doAbout();"/>
 		</hbox>
 	</vbox>
 	<separator id="groove" class="groove"/>

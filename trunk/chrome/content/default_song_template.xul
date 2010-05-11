@@ -19,7 +19,6 @@
     <script>
     <![CDATA[
         Components.utils.import("resource://minion/mpmUtils.js");
-        Components.utils.import("resource://minion/mpd.js");
         var item = null;
         var win = null;
         var cycles = 0;
@@ -30,20 +29,20 @@
 
         var observerCurSong = {
             observe: function(subject,topic,data){
-                load(mpd.currentsong)
+                load(nsMPM.mpd.currentsong)
             }
         };
 
         function load (objItem) {
-            document.getElementById("song").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
+            document.getElementById("song").className = (nsMPM.prefs.get("use_theme", true)) ? "mpm_themed" : ""
             var tags = ['Title', 'Artist', 'Album', 'Date', 'Genre',
                 'Composer', 'Performer', 'directory', 'length']
             item = objItem
             item.directory = item.name.replace(/\/[^\/]+$/,"")
-            item.length = prettyTime(item.Time)
+            item.length = nsMPM.prettyTime(item.Time)
             for (var i=0;i<tags.length;i++) {
                 var tag = tags[i]
-                var val = Nz(item[tag], "")
+                var val = nsMPM.Nz(item[tag], "")
                 if (val > "") {
                     document.getElementById(tag+"_label").value = val
                     document.getElementById(tag+"_row").collapsed = false
@@ -53,8 +52,8 @@
             }
             var ib = document.getElementById("image-box")
             ib.setAttribute("width",ib.boxObject.height)
-            mpd.getArt(item, document.getElementById("cover"))
-            mpd.getLyrics(item,
+            nsMPM.mpd.getArt(item, document.getElementById("cover"))
+            nsMPM.mpd.getLyrics(item,
                 document.getElementById("lyrics"),
                 document.getElementById("lyricsButton")
             )
@@ -70,16 +69,16 @@
         }
 
         function addItem () {
-            item.Pos = Nz(mpd.playlistlength, 0)
-            mpd.addToPlaylist(item)
+            item.Pos = nsMPM.Nz(nsMPM.mpd.playlistlength, 0)
+            nsMPM.mpd.addToPlaylist(item)
         }
 
         function playItem () {
-            if (!Nz(item.Pos)) {
-                item.Pos = Nz(mpd.playlistlength, 0)
-                mpd.addToPlaylist(item)
+            if (!nsMPM.Nz(item.Pos)) {
+                item.Pos = nsMPM.Nz(nsMPM.mpd.playlistlength, 0)
+                nsMPM.mpd.addToPlaylist(item)
             }
-            mpd.doCmd("play "+item.Pos)
+            nsMPM.mpd.doCmd("play "+item.Pos)
         }
 
         var LFTagsevent = { notify: function(LFTagstimer) {
@@ -107,7 +106,7 @@
                 if (cycles >= 100) {
                     LFTagstimer.cancel();
                 }
-                else debug(e)
+                else nsMPM.debug(e)
             }
         } }
 
@@ -121,9 +120,9 @@
         
         function toggleFollowCurrent (val) {
             if (val) {
-                observerService.addObserver(observerCurSong,"file",false)
+                nsMPM.observerService.addObserver(observerCurSong,"file",false)
             } else {
-                observerService.removeObserver(observerCurSong,"file")
+                nsMPM.observerService.removeObserver(observerCurSong,"file")
             }
         }
     ]]>
@@ -196,7 +195,7 @@
     <vbox flex="1">
         <hbox>
             <toolbarbutton label="&song.lyricsfly;" style="font-weight: bold"
-                oncommand="openReuseByURL('http://lyricsfly.com')"/>
+                oncommand="nsMPM.openReuseByURL('http://lyricsfly.com')"/>
             <spacer flex="1"/>
             <toolbarbutton id="lyricsButton" label="&song.edit;"
                 oncommand="editLyrics(this.edit_link)"/>

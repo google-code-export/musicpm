@@ -13,7 +13,7 @@
                 flex="1"
                 flags="dont-build-content"
                 enableColumnDrag="true"
-                ondblclick="var a=this.parentNode.activeItem;if(a)mpd.doCmd('play '+a.Pos)">
+                ondblclick="var a=this.parentNode.activeItem;if(a)nsMPM.mpd.doCmd('play '+a.Pos)">
                 <children/>
                 <xul:treecols>
                     <xul:treecol id="Pos" label="&position;" ordinal="1" width="30px"
@@ -99,11 +99,11 @@
             <handler event="keypress" modifiers="accel" key="a"
                 action="this.tree.view.selection.selectAll()"/>
             <handler event="keypress" key=" "
-                action="var a=this.activeItem;if(mpd.song==a.Pos)mpd.doCmd('pause');else mpd.doCmd('play '+a.Pos)"/>
+                action="var a=this.activeItem;if(nsMPM.mpd.song==a.Pos)nsMPM.mpd.doCmd('pause');else nsMPM.mpd.doCmd('play '+a.Pos)"/>
             <handler event="keypress" keycode="VK_DELETE"
                 action="this.delete()"/>
             <handler event="keypress" keycode="VK_BACK"
-                action="mpd.doCmd('stop', null, false)"/>
+                action="nsMPM.mpd.doCmd('stop', null, false)"/>
         </handlers>
         <implementation>
             <field name="view"/>
@@ -120,14 +120,13 @@
             <constructor>
                 <![CDATA[
                 Components.utils.import("resource://minion/mpmUtils.js");
-                Components.utils.import("resource://minion/mpd.js");
                 Components.utils.import("resource://minion/trees.js");
 
                 var me = this
-                debug(this.mpm_name)
+                nsMPM.debug(this.mpm_name)
                 function applyView() {
-                    debug("mpd.plinfo.length="+mpd.plinfo.length)
-                    me.view = new arrayView(mpd.plinfo)
+                    nsMPM.debug("nsMPM.mpd.plinfo.length="+nsMPM.mpd.plinfo.length)
+                    me.view = new arrayView(nsMPM.mpd.plinfo)
                     me.tree.view = me.view
                     me.box = me.tree.boxObject;
                     me.box.QueryInterface(Components.interfaces.nsITreeBoxObject);
@@ -135,7 +134,7 @@
                 applyView()
                 this.obsPL = {
                     observe: function(subject,topic,data){
-                        debug("obsPL: "+data)
+                        nsMPM.debug("obsPL: "+data)
                         var idx = me.box.getFirstVisibleRow()
                         applyView()
                         if (idx < me.view.rowCount) {
@@ -151,11 +150,11 @@
                         box.invalidate()
                     }
                 };
-                observerService.addObserver(this.obsPL,'plinfo',false)
-                observerService.addObserver(this.obsCurSong,'state',false)
-                observerService.addObserver(this.obsCurSong,'file',false)
+                nsMPM.observerService.addObserver(this.obsPL,'plinfo',false)
+                nsMPM.observerService.addObserver(this.obsCurSong,'state',false)
+                nsMPM.observerService.addObserver(this.obsCurSong,'file',false)
                 try {
-                    var colprops = prefs.get(this.mpm_name+"_columns", "")
+                    var colprops = nsMPM.prefs.get(this.mpm_name+"_columns", "")
                     function setCol(val, index, arr) {
                         props = val.split(":")
                         if (props[0] > "") {
@@ -177,27 +176,27 @@
                         }
                     }
                 } catch (e) {
-                    debug(e)
+                    nsMPM.debug(e)
                 }
                 ]]>
             </constructor>
             <destructor>
                 <![CDATA[
-                observerService.removeObserver(this.obsPL,'plinfo')
-                observerService.removeObserver(this.obsCurSong,'state')
-                observerService.removeObserver(this.obsCurSong,'file')
+                nsMPM.observerService.removeObserver(this.obsPL,'plinfo')
+                nsMPM.observerService.removeObserver(this.obsCurSong,'state')
+                nsMPM.observerService.removeObserver(this.obsCurSong,'file')
                 ]]>
             </destructor>
             <method name="crop">
                 <body>
                     <![CDATA[
 						var cmd = "command_list_begin"
-						var L = mpd.playlistlength
+						var L = nsMPM.mpd.playlistlength
 						for (var i=0;i<L;i++) {
-							if (i != mpd.song) cmd +="\ndeleteid "+mpd.plinfo[i].Id
+							if (i != nsMPM.mpd.song) cmd +="\ndeleteid "+nsMPM.mpd.plinfo[i].Id
 						}
 						cmd += "\ncommand_list_end"
-						mpd.doCmd(cmd, null, false)
+						nsMPM.mpd.doCmd(cmd, null, false)
                     ]]>
                 </body>
             </method>
@@ -225,14 +224,14 @@
                 }
 
                 cmd += "\ncommand_list_end"
-                mpd.doCmd(cmd, null, false)
+                nsMPM.mpd.doCmd(cmd, null, false)
                 ]]>
                 </body>
             </method>
             <method name="getActiveItem">
                 <body>
                     <![CDATA[
-                    return Nz(this.activeItem)
+                    return nsMPM.Nz(this.activeItem)
                     ]]>
                 </body>
             </method>
@@ -267,7 +266,7 @@
                 }
 
                 cmd += "\ncommand_list_end"
-                mpd.doCmd(cmd, null, false)
+                nsMPM.mpd.doCmd(cmd, null, false)
                 ]]>
                 </body>
             </method>
@@ -281,14 +280,14 @@
             <method name="moveLast">
                 <body>
                 <![CDATA[
-                this.moveTo(mpd.playlistlength-1)
+                this.moveTo(nsMPM.mpd.playlistlength-1)
                 ]]>
                 </body>
             </method>
             <method name="moveNext">
                 <body>
                 <![CDATA[
-                var moveToPos = parseInt(mpd.song)
+                var moveToPos = parseInt(nsMPM.mpd.song)
                 this.moveTo(moveToPos)
                 ]]>
                 </body>
@@ -306,9 +305,9 @@
                         colprops += [col.id, (col.width==0), col.width, i++].join(":")
                         col = col.getNext()
                     }
-                    prefs.set(this.mpm_name+"_columns", colprops)
+                    nsMPM.prefs.set(this.mpm_name+"_columns", colprops)
                 } catch (e) {
-                    debug(e)
+                    nsMPM.debug(e)
                 }
                 ]]>
                 </body>
@@ -317,7 +316,7 @@
                 <body>
                 <![CDATA[
                 try {
-                    var idx = mpd.song
+                    var idx = nsMPM.mpd.song
                     if (idx) {
                         if (idx < this.view.rowCount) {
                             this.box.scrollToRow(idx)
@@ -326,7 +325,7 @@
                             this.box.ensureRowIsVisible(this.view.rowCount-1)
                         }
                     }
-                } catch (e) { debug(e) }
+                } catch (e) { nsMPM.debug(e) }
                 ]]>
                 </body>
             </method>

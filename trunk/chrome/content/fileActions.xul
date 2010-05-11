@@ -18,13 +18,13 @@
         Components.utils.import("resource://minion/mpmUtils.js");
         function load () {
             var fa = document.getElementById("file_action")
-            var d = parseInt(prefs.get("default_file_action", 0))
+            var d = parseInt(nsMPM.prefs.get("default_file_action", 0))
             if (d > 0) fa.selectedIndex = d-1
         }
         
         function doSave(){
             var fa = document.getElementById("file_action")
-            prefs.set("default_file_action", parseInt(fa.value))
+            nsMPM.prefs.set("default_file_action", parseInt(fa.value))
             return true;
         }
         

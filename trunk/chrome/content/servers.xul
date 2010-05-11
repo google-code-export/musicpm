@@ -16,7 +16,6 @@
         style="overflow: auto">
     <script>
     <![CDATA[
-        Components.utils.import("resource://minion/mpd.js");
         Components.utils.import("resource://minion/mpmUtils.js");
         var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 		
@@ -45,10 +44,10 @@
             t4.setAttribute('type', 'password')
             var btn = document.createElementNS(xul,'button')
             btn.setAttribute('oncommand', 'this.parentNode.parentNode.removeChild(this.parentNode)')
-            btn.setAttribute('label', translateService.GetStringFromName("remove"))
-            if (Nz(index,null) != null) {
-                var desc = mpd.servers[index][0]
-                var srv = mpd.servers[index][1].split(":",3)
+            btn.setAttribute('label', nsMPM.translateService.GetStringFromName("remove"))
+            if (nsMPM.Nz(index,null) != null) {
+                var desc = nsMPM.mpd.servers[index][0]
+                var srv = nsMPM.mpd.servers[index][1].split(":",3)
                 t1.setAttribute('value', desc)
                 t1.autofillme = (desc == "")
                 t2.setAttribute('value', srv[0])
@@ -65,7 +64,7 @@
 
         function getPrefs(){
             var rows = document.getElementById("server_rows")
-            for (var i=0;i<mpd.servers.length;i++) {
+            for (var i=0;i<nsMPM.mpd.servers.length;i++) {
                 addServerRow(i)
             }
              window.sizeToContent()
@@ -80,8 +79,8 @@
                 item.push([c[1].value,c[2].value,c[3].value].join(":"))
                 servers.push(item)
             }
-            debug(servers.toSource())
-            mpd.setServers(servers)
+            nsMPM.debug(servers.toSource())
+            nsMPM.mpd.setServers(servers)
             return true;
         }
         function doCancel(){

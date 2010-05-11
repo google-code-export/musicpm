@@ -21,8 +21,7 @@
 
 
     <keyset>
-      <key id="kbExecute" modifiers="alt" key="x"
-        oncommand="mpdExecute()"/>
+      <key id="kbExecute" modifiers="alt" key="x" oncommand="mpdExecute()"/>
     </keyset>
 
     <popupset>
@@ -37,15 +36,15 @@
         <vbox pack="center" align="center">
             <mpdcontrols hidestop="false"/>
             <hbox pack="center" align="center">
-                <mpdtoggle observes="repeat" oncommand="mpd.toggleRepeat()"/>
-                <mpdtoggle observes="random" oncommand="mpd.toggleRandom()"/>
+                <mpdtoggle observes="repeat" oncommand="nsMPM.mpd.toggleRepeat()"/>
+                <mpdtoggle observes="random" oncommand="nsMPM.mpd.toggleRandom()"/>
                 <mpdservers id="mpdserversButton"/>
                 <mpdvolume/>
             </hbox>
         </vbox>
         <hbox flex="1"
             context="mpmMenu"
-            oncontextmenu="mpmMenu_contextShowing(event, 'currentsong', mpd.currentsong)">
+            oncontextmenu="mpmMenu_contextShowing(event, 'currentsong', nsMPM.mpd.currentsong)">
             <mpdalbumcover id="album_cover" onclick="loadCurrentAlbum()"/>
             <vbox flex="1">
                 <spacer flex="1" ordinal="1"/>
@@ -104,7 +103,7 @@
                 <toolbarbutton id="clearPlaylist"
                     class="mpm_btn_Clear"
                     tooltiptext="&minion.clearlist;"
-                    oncommand="mpd.doCmd('clear');document.getElementById('playlistName').value='Untitled'"/>
+                    oncommand="nsMPM.mpd.doCmd('clear');document.getElementById('playlistName').value='Untitled'"/>
                 <toolbarbutton id="loadPlaylist"
                     class="mpm_btn_Playlists"
                     tooltiptext="&minion.showsavepls;"
