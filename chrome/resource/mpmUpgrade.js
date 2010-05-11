@@ -1,31 +1,22 @@
 Components.utils.import("resource://minion/mpmUtils.js");
-Components.utils.import("resource://minion/mpmMenu.js");
-Components.utils.import("resource://minion/io.js");
-Components.utils.import("resource://minion/JSON.js");
 
-EXPORTED_SYMBOLS = ["mpmUpgrade", "mpmIsUpgraded"]
+let EXPORTED_SYMBOLS = ["mpmUpgrade", "mpmIsUpgraded", "doServer", "doSettings", "doAbout"]
 
-// http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
-var pref_dir = "ProfD";
+// Old variables. Now discarder. see mpmCommon.js.
 var pref_dir_old = "Home";
-
-var pref_file_menus = "mpm_menus.js";
 var pref_file_menus_old = ".mpm_menus.js";
-
-var pref_file_servers = "mpm_servers.js";
 var pref_file_servers_old = ".mpm_servers.js";
-
 var pref_file_state_old = ".mpm_browser_state.js";
 
 function mpmUpgrade(mpd) {
 	try {
 		var oldVersion = mpmGetPreviousVersion();
 		if ( oldVersion == mpmGetCurrentVersion() ) {
-			debug('No upgrades to do');
+			nsMPM.debug('No upgrades to do');
 			return;
 		}
 
-		debug('mpm preferences need to be upgraded ('+mpmGetPreviousVersion()+' != '+mpmGetCurrentVersion()+')');
+		nsMPM.debug('mpm preferences need to be upgraded ('+mpmGetPreviousVersion()+' != '+mpmGetCurrentVersion()+')');
 		switch(oldVersion) {
 			case '1.4.4':
 				mpmSetUpgraded(mpmUpgrade144(mpd));
@@ -40,82 +31,82 @@ function mpmUpgrade(mpd) {
 				mpmSetUpgraded(true);
 			break;
 			default:
-				debug('This version has nothing to upgrade ('+oldVersion+')');
+				nsMPM.debug('This version has nothing to upgrade ('+oldVersion+')');
 				mpmSetUpgraded(false);
 			break;
 		}
 		mpmCleanOldPrefs();
 		mpmSetCurrentVersion();
-		debug('Upgrade done');
-	} catch(e) { debug(e); }
+		nsMPM.debug('Upgrade done');
+	} catch(e) { nsMPM.debug(e); }
 }
 
 function mpmUpgrade206(mpd) {
 	try {
-		if ( prefs.isPref('use_amazon_art') ) {
-			if (typeof(prefs.get("use_amazon_art",1)) == "boolean" ) prefs.clear("use_amazon_art");
+		if ( nsMPM.prefs.isPref('use_amazon_art') ) {
+			if (typeof(nsMPM.prefs.get("use_amazon_art",1)) == "boolean" ) nsMPM.prefs.clear("use_amazon_art");
 		}
 
 		// it is not possible to restore old menus stored in JS and get them converted to JSON
 		// So, we have to restore defaults value.
 		// This concerns only "beta" user of 2.0.x branch
-		var file = DirIO.get(pref_dir_old);
+		var file = nsMPM.DirIO.get(pref_dir_old);
 		file.append(pref_file_menus_old);
 		if (file.exists()) {
-			FileIO.unlink(file);
+			nsMPM.FileIO.unlink(file);
 		}
-		mpmMenu.restore(); // Will overwrite any already migrated menus
+		nsMPM.mpmMenu.restore(); // Will overwrite any already migrated menus
 
-		debug('Upgrade for 2.0.6: Ok');
+		nsMPM.debug('Upgrade for 2.0.6: Ok');
 	} catch(e) {
-		debug('Upgrade for 2.0.6: Failed');
-		debug(e);
+		nsMPM.debug('Upgrade for 2.0.6: Failed');
+		nsMPM.debug(e);
 	}
 	return true;
 }
 
 function mpmUpgrade204(mpd) {
 	try {
-		if ( prefs.isPref('persistant_state') ) prefs.clear("persistant_state");
+		if ( nsMPM.prefs.isPref('persistant_state') ) nsMPM.prefs.clear("persistant_state");
 
-		var file = DirIO.get(pref_dir_old);
+		var file = nsMPM.DirIO.get(pref_dir_old);
 		file.append(pref_file_state_old);
-		if (file.exists()) FileIO.unlink(file);
+		if (file.exists()) nsMPM.FileIO.unlink(file);
 
-		debug('Upgrade for 2.0.4: Ok');
+		nsMPM.debug('Upgrade for 2.0.4: Ok');
 	} catch(e) {
-		debug('Upgrade for 2.0.4: Failed');
-		debug(e);
+		nsMPM.debug('Upgrade for 2.0.4: Failed');
+		nsMPM.debug(e);
 	}
 	return true;
 }
 
 function mpmUpgrade200(mpd) {
 	try {
-		var file = DirIO.get(pref_dir_old);
+		var file = nsMPM.DirIO.get(pref_dir_old);
 		file.append(pref_file_servers_old);
 		if (file.exists()) {
-			debug('Upgrading old server prefs');
-			var str = FileIO.read(file);
-			mpd.servers = JSON.parse(str);
-			FileIO.unlink(file);
-			mpd.setServers(mpd.servers);
+			nsMPM.debug('Upgrading old server nsMPM.prefs');
+			var str = nsMPM.FileIO.read(file);
+			nsMPM.mpd.servers = nsMPM.JSON.parse(str);
+			nsMPM.FileIO.unlink(file);
+			nsMPM.mpd.setServers(nsMPM.mpd.servers);
 		}
-		debug('Upgrade for 2.0.0: Ok');
+		nsMPM.debug('Upgrade for 2.0.0: Ok');
 	} catch(e) {
-		debug('Upgrade for 2.0.0: Failed');
-		debug(e);
+		nsMPM.debug('Upgrade for 2.0.0: Failed');
+		nsMPM.debug(e);
 	}
 	return true;
 }
 
 function mpmUpgrade144(mpd) {
 	try {
-		var host = prefs.get('mpd_host');
-		var port = prefs.get('mpd_port');
-		var password = prefs.get('mpd_password');
+		var host = nsMPM.prefs.get('mpd_host');
+		var port = nsMPM.prefs.get('mpd_port');
+		var password = nsMPM.prefs.get('mpd_password');
 
-		prefs.set('server',host+':'+port+':'+password);
+		nsMPM.prefs.set('server',host+':'+port+':'+password);
 
 		var servers = [];
 		var server = [];
@@ -123,18 +114,18 @@ function mpmUpgrade144(mpd) {
 		server.push(host+':'+port+':'+password);
 		servers.push(server);
 		
-		mpd.setServers(servers);
+		nsMPM.mpd.setServers(servers);
 
-		prefs.clear("mpd_host");
-		prefs.clear("mpd_port");
-		prefs.clear("mpd_password");
-		prefs.clear("playlist_mode");
-		prefs.clear("home");
+		nsMPM.prefs.clear("mpd_host");
+		nsMPM.prefs.clear("mpd_port");
+		nsMPM.prefs.clear("mpd_password");
+		nsMPM.prefs.clear("playlist_mode");
+		nsMPM.prefs.clear("home");
 
-		debug('Upgrade for 1.4.4: Ok');		
+		nsMPM.debug('Upgrade for 1.4.4: Ok');		
 	} catch(e) {
-		debug('Upgrade for 1.4.4: Failed');
-		debug(e);
+		nsMPM.debug('Upgrade for 1.4.4: Failed');
+		nsMPM.debug(e);
 	}
 	return true;
 }
@@ -142,30 +133,31 @@ function mpmUpgrade144(mpd) {
 function mpmCleanOldPrefs() {
 	oldPrefs = ["mpd_host", "mpd_port", "mpd_password", "playlist_mode", "home", "use_amazon_art", "persistant_state"];
 	for(i=0; i<oldPrefs.length; i++){
-		if ( prefs.isPref(oldPrefs[i]) ) prefs.clear(oldPrefs[i]);
+		if ( nsMPM.prefs.isPref(oldPrefs[i]) ) nsMPM.prefs.clear(oldPrefs[i]);
 	}
 }
 
 function mpmGetPreviousVersion() {
-	if ( prefs.isPref('version') ) return prefs.get('version');
+	if ( nsMPM.prefs.isPref('version') ) return nsMPM.prefs.get('version');
 
-	if ( prefs.isPref('save_art_url') ) return '2.0.8';
+	if ( nsMPM.prefs.isPref('save_art_url') ) return '2.0.8';
 	
-	var menus_file = DirIO.get(pref_dir);
-	menus_file.append(pref_file_menus);
-	var servers_file = DirIO.get(pref_dir);
-	servers_file.append(pref_file_servers);
+	var menus_file = nsMPM.DirIO.get(nsMPM.pref_dir);
+	menus_file.append(nsMPM.pref_file_menus);
+	var servers_file = nsMPM.DirIO.get(nsMPM.pref_dir);
+	servers_file.append(nsMPM.pref_file_servers);
 	if ( servers_file.exists() && menus_file.exists() ) return '2.0.6';
 
-	if ( prefs.isPref('debug') ) return '2.0.4';
+	if ( nsMPM.prefs.isPref('nsMPM.debug') ) return '2.0.4';
 
-	menus_file = DirIO.get(pref_dir_old);
+	menus_file = nsMPM.DirIO.get(pref_dir_old);
 	menus_file.append(pref_file_menus_old);
-	servers_file = DirIO.get(pref_dir_old);
+	servers_file = nsMPM.DirIO.get(pref_dir_old);
 	servers_file.append(pref_file_servers_old);
 	if ( servers_file.exists() || menus_file.exists() ) return '2.0.0';
 
-	if ( prefs.isPref('mpd_host') ) return '1.4.4';
+	if ( nsMPM.prefs.isPref('mpd_host') ) return '1.4.4';
+	return mpmGetCurrentVersion();
 }
 
 function mpmGetCurrentVersion() {
@@ -184,13 +176,13 @@ function mpmGetCurrentVersion() {
 }
 
 function mpmSetUpgraded(isUpgraded) {
-	if ( typeof(isUpgraded) == 'boolean' ) prefs.set('upgraded',isUpgraded);
-	else prefs.set('upgraded',false);
+	if ( typeof(isUpgraded) == 'boolean' ) nsMPM.prefs.set('upgraded',isUpgraded);
+	else nsMPM.prefs.set('upgraded',false);
 }
 
 function mpmIsUpgraded(reset) {
-	var isUpgraded = prefs.get('upgraded',true);
-	if ( typeof(reset) == 'boolean' && reset == true ) 	prefs.set('upgraded',false);
+	var isUpgraded = nsMPM.prefs.get('upgraded',true);
+	if ( typeof(reset) == 'boolean' && reset == true ) 	nsMPM.prefs.set('upgraded',false);
 	return isUpgraded;
 }
 
@@ -199,12 +191,10 @@ function EM_NS(aProperty) {
 }
 
 function mpmSetCurrentVersion() {
-	prefs.set('version',mpmGetCurrentVersion());
+	nsMPM.prefs.set('version',mpmGetCurrentVersion());
 }
 
-/*
- * Upgrade dialog box functions
- */
+// Upgrade dialog box functions
 function dialogInit(){
     var rdfs = Components.classes['@mozilla.org/rdf/rdf-service;1'].
                           getService(Components.interfaces.nsIRDFService);
@@ -270,17 +260,17 @@ function dialogInit(){
 
     var acceptButton = document.documentElement.getButton('accept');
     acceptButton.label = extensionsStrings.getString('aboutWindowCloseButton');
-	debug('fin init');
+	nsMPM.debug('fin init');
 }
 
 function doServer() {
-	mpm_openDialog('chrome://minion/content/servers.xul', 'servers');
+	nsMPM.mpm_openDialog('chrome://minion/content/servers.xul', 'servers');
 }
 
 function doSettings() {
-	mpm_openDialog('chrome://minion/content/settings.xul', 'settings');
+	nsMPM.mpm_openDialog('chrome://minion/content/settings.xul', 'settings');
 }
 
 function doAbout() {
-	mpm_openDialog('chrome://minion/content/about/about.xul', 'about');
-}
+	nsMPM.mpm_openDialog('chrome://minion/content/about/about.xul', 'about');
+}	

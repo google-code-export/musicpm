@@ -1,5 +1,4 @@
 Components.utils.import("resource://minion/mpmUtils.js");
-Components.utils.import("resource://minion/mpd.js");
 Components.utils.import("resource://minion/trees.js");
 
 var postinittimer = Components.classes["@mozilla.org/timer;1"]
@@ -12,25 +11,25 @@ var observerPlaylists = {
 };
 var observerPlaylistName = {
     observe: function(subject,topic,data){
-        document.getElementById("playlistName").value = data
+        if ( document != null ) document.getElementById("playlistName").value = data
     }
 };
 
 function browse_select (item, loc) {
     var browse = document.getElementById('browse')
-    if (!item) return null
-    debug("select from minion.js: "+item.Title)
+    if (!item) return
+    nsMPM.debug("select from minion.js: "+item.Title)
     mpmMenu_contextShowing(null,loc,item,'mpmDynamicMenu2', "toolbarbutton")
 }
 
 function init () {
-    document.getElementById("main").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
-    var orient = (prefs.get("playlist_bottom", false)) ? "vertical" : "horizontal"
+    document.getElementById("main").className = (nsMPM.prefs.get("use_theme", true)) ? "mpm_themed" : ""
+    var orient = (nsMPM.prefs.get("playlist_bottom", false)) ? "vertical" : "horizontal"
     document.getElementById("main_content").setAttribute("orient", orient)
     document.getElementById("main_content_splitter").setAttribute("orient", orient);
     var prefObserver = {
         register: function(){
-            this._branch = prefs.branch;
+            this._branch = nsMPM.prefs.branch;
             this._branch.QueryInterface(Components.interfaces.nsIPrefBranchInternal);
             this._branch.addObserver("", this, false);
         },
@@ -48,10 +47,10 @@ function init () {
             // aData is the name of the pref that's been changed (relative to aSubject)
             switch (aData) {
                 case "use_theme":
-                    document.getElementById("main").className = (prefs.get("use_theme", true)) ? "mpm_themed" : ""
+                    document.getElementById("main").className = (nsMPM.prefs.get("use_theme", true)) ? "mpm_themed" : ""
                     break;
                 case "playlist_bottom":
-                    var orient = (prefs.get("playlist_bottom", false)) ? "vertical" : "horizontal";
+                    var orient = (nsMPM.prefs.get("playlist_bottom", false)) ? "vertical" : "horizontal";
                     document.getElementById("main_content").setAttribute("orient", orient);
                     document.getElementById("main_content_splitter").setAttribute("orient", orient);
                     break;
@@ -60,35 +59,35 @@ function init () {
         }
     };
     prefObserver.register();
-    observerService.addObserver(observerPlaylists,"playlists",false)
-    observerService.addObserver(observerPlaylistName,"playlistname",false)
-    if(!mpd._socket) mpd.connect()
+    nsMPM.observerService.addObserver(observerPlaylists,"playlists",false)
+    nsMPM.observerService.addObserver(observerPlaylistName,"playlistname",false)
+    if(!nsMPM.mpd._socket) nsMPM.mpd.connect()
     window.name = "chrome://minion/content/minion.xul"
     var browse = document.getElementById('browse')
     browse.handle_select = browse_select
 	var s = decodeURI(window.location.search)
-	debug(s)
+	nsMPM.debug(s)
 	if (s.length != 0) {
 		s = s.split("=")
 		switch (s[0]) {
-			case "?url": mpd.handleURL(s[1]); break;
-			case "?play_url":  mpd.handleURL(s[1], "play"); break;
+			case "?url": nsMPM.mpd.handleURL(s[1]); break;
+			case "?play_url":  nsMPM.mpd.handleURL(s[1], "play"); break;
 			case "?cmd": 
-				var q = new dbQuery((s[1]));
+				var q = new nsMPM.dbQuery((s[1]));
 				q.execute();
 				break;
 		}
 	}
     postinittimer.initWithCallback(postinit,100,Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-    document.getElementById("playlistName").value = mpd.playlistname
+    document.getElementById("playlistName").value = nsMPM.mpd.playlistname
 }
 
 var postinit = { notify: function(postinittimer) {
 	var q = Application.storage.get("doQuery", null)
 	var d = Application.storage.get("doDetails", null)
-    debug("post_init()");
-	debug(q)
-	debug(d)
+    nsMPM.debug("post_init()");
+	nsMPM.debug(q)
+	nsMPM.debug(d)
     if (q) {
         document.getElementById("browse").goTo(q)
 		Application.storage.set("doQuery", null)
@@ -100,16 +99,18 @@ var postinit = { notify: function(postinittimer) {
 }}
 
 function unload () {
-    document.getElementById("browse").saveColumns()
-    document.getElementById("playlist").saveColumns()
-    document.getElementById("browser_playlist").saveColumns()
-    observerService.removeObserver(observerPlaylists,"playlists")
-    observerService.removeObserver(observerPlaylistName,"load_playlist")
+	try {
+		document.getElementById("browse").saveColumns()
+		document.getElementById("playlist").saveColumns()
+		// FIXME: not working document.getElementById("browser_playlist").saveColumns()
+		nsMPM.observerService.removeObserver(observerPlaylists,"playlists")
+		// FIXME: useless? nsMPM.observerService.removeObserver(observerPlaylistName,"load_playlist")
+	} catch(e){ nsMPM.debug(e); }
 }
 
 function mpdExecute () {
-    var q = new dbQuery()
-    q.cmd = prompt(translateService.GetStringFromName('enter_mpd_cmd'))
+    var q = new nsMPM.dbQuery()
+    q.cmd = prompt(nsMPM.translateService.GetStringFromName('enter_mpd_cmd'))
     q.query = q.cmd
     document.getElementById("browse").goTo(q)
 }
@@ -126,25 +127,25 @@ function setFavicon (url) {
     link.rel = "shortcut icon";
     link.href = url;
     win.appendChild(link)
-    } catch (e) {debug(e)}
+    } catch (e) {nsMPM.debug(e)}
 }
 
 function loadCurrentAlbum() {
-    var q = new dbQuery()
+    var q = new nsMPM.dbQuery()
     q.type = "file"
     q.scope = "Album"
-    q.query = mpd.Album
+    q.query = nsMPM.mpd.Album
     q.filterField = "Artist"
-    q.filterQuery = mpd.Artist
-    document.getElementById("browse").goTo(q, mpd.currentsong)
+    q.filterQuery = nsMPM.mpd.Artist
+    document.getElementById("browse").goTo(q, nsMPM.mpd.currentsong)
 }
 
 function viewCurrentSong() {
-    document.getElementById("browse").showDetails(mpd.currentsong)
+    document.getElementById("browse").showDetails(nsMPM.mpd.currentsong)
 }
 function refreshPlaylists () {
     var list = document.getElementById("savedPlaylists")
-    var q = new dbQuery()
+    var q = new nsMPM.dbQuery()
     q.type = "playlist"
     q.query = ""
     q.execute(function(db){
@@ -157,7 +158,7 @@ function showPlaylists () {
     if (list.collapsed == false) {
         list.collapsed = true
         document.getElementById("playlist_splitter").collapsed = true
-        return null
+        return
     }
     list.collapsed = false
     document.getElementById("playlist_splitter").collapsed = false
@@ -169,15 +170,15 @@ function loadPlaylist(name) {
             "clear\n" +
             'load  "' + name.replace(/"/g, '\\"') + '"\n' +
             "command_list_end"
-    mpd.doCmd(c)
+    nsMPM.mpd.doCmd(c)
     document.getElementById("savedPlaylists").collapsed = true
     document.getElementById("playlist_splitter").collapsed = true
 }
 
 function savePlaylist () {
     var name = document.getElementById("playlistName").value
-    if (name == "") return null
-    mpd.doCmd('save "' + name.replace(/"/g, '\\"') + '"')
+    if (name == "") return
+    nsMPM.mpd.doCmd('save "' + name.replace(/"/g, '\\"') + '"')
 
 }
 

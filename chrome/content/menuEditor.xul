@@ -15,9 +15,7 @@
     ondialogcancel="return doCancel();">
     <script>
     <![CDATA[
-        Components.utils.import("resource://minion/mpd.js");
         Components.utils.import("resource://minion/mpmUtils.js");
-        Components.utils.import("resource://minion/mpmMenu.js");
         
         function addMenuItem (index, sep) {
 	        var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -25,14 +23,15 @@
             var e = document.createElementNS(xul,'listitem')
             if (index < 0) {
                 index = list.selectedIndex + 1
-                if (Nz(sep)) mpmMenu.items.splice(index, 0, 'separator')
-                else mpmMenu.items.splice(index, 0, new mpmMenuItem)
+                if (nsMPM.Nz(sep)) nsMPM.mpmMenu.items.splice(index, 0, 'separator')
+                else nsMPM.mpmMenu.items.splice(index, 0, new nsMPM.mpmMenu.mpmMenuItem)
+				nsMPM.debug(new nsMPM.mpmMenu.mpmMenuItem)
             }
-            if (mpmMenu.items[index] == 'separator') {
-                var label = '<separator>'               
+            if (nsMPM.mpmMenu.items[index] == 'separator') {
+                var label = '<separator>'
             }
             else {
-                var label = mpmMenu.items[index].label
+                var label = nsMPM.mpmMenu.items[index].label
             }
             list.insertItemAt(index, label, index)
         }
@@ -41,18 +40,18 @@
             var list = document.getElementById("menuList")
             list.changing = true
             while (list.hasChildNodes()) list.removeChild(list.lastChild)
-            var len = mpmMenu.items.length
+            var len = nsMPM.mpmMenu.items.length
             for (var i=0;i<len;i++) {
                 addMenuItem(i)
             }
-            list.selectedIndex = Nz(select, 0)
+            list.selectedIndex = nsMPM.Nz(select, 0)
             list.changing = false
         }
         
         function saveItem (e) {
             var list = document.getElementById("menuList")
             if (list.changing) return null
-            var item = mpmMenu.items[e.value]
+            var item = nsMPM.mpmMenu.items[e.value]
             if (typeof(item) == 'object') {
 	            rows = ["label","targets","locations","URL","queryType",
 	                "queryScope", "mpdCommand", "script"]
@@ -69,16 +68,16 @@
         function loadItem (e) {
             if (!e) return null
             var list = document.getElementById("menuList")
-            if (Nz(list.lastIndex,-1) > -1) {
+            if (nsMPM.Nz(list.lastIndex,-1) > -1) {
                 saveItem(list.childNodes[list.lastIndex])
             }
-            var item = mpmMenu.items[e.value]
+            var item = nsMPM.mpmMenu.items[e.value]
             rows = ["label","targets","locations","URL","queryType",
                 "queryScope", "filterField", "mpdCommand", "script"]
             for each (val in rows) {
                 var row = document.getElementById('menuItem_'+val)
                 if (row) {
-                    row.childNodes[1].value = (Nz(item[val])) ? item[val] : ""
+                    row.childNodes[1].value = (nsMPM.Nz(item[val])) ? item[val] : ""
                 }
             }
             list.lastIndex = e.value
@@ -89,8 +88,8 @@
             list.changing = true
             var idx = list.selectedIndex
             if ((idx+dir) > -1 && (idx+dir)<list.itemCount) {
-	            var mitem = mpmMenu.items.splice(idx,1)[0]
-	            mpmMenu.items.splice(idx+(dir),0, mitem)
+	            var mitem = nsMPM.mpmMenu.items.splice(idx,1)[0]
+	            nsMPM.mpmMenu.items.splice(idx+(dir),0, mitem)
 	            getMenus(idx+dir)
             }
             list.changing = false
@@ -101,7 +100,7 @@
             list.changing = true
             var idx = list.selectedIndex
             if (idx > -1) {
-                var mitem = mpmMenu.items.splice(idx,1)[0]
+                var mitem = nsMPM.mpmMenu.items.splice(idx,1)[0]
                 if (idx >= list.itemCount-1) idx--
                 getMenus(idx)
             }
@@ -109,9 +108,9 @@
         }
         
         function restore () {
-            var conf = confirm(translateService.GetStringFromName("reset_to_default_menus"))
+            var conf = confirm(nsMPM.translateService.GetStringFromName("reset_to_default_menus"))
             if (conf) {
-                mpmMenu.restore()
+                nsMPM.mpmMenu.restore()
                 var list = document.getElementById("menuList")
                 getMenus(list.selectedIndex)
             }
@@ -119,15 +118,15 @@
         
         function doSave(){
             var list = document.getElementById("menuList")
-            if (Nz(list.lastIndex,-1) > -1) {
+            if (nsMPM.Nz(list.lastIndex,-1) > -1) {
                 saveItem(list.childNodes[list.lastIndex])
             }
-            mpmMenu.save()
+            nsMPM.mpmMenu.save()
             return true;
         }
         
         function doCancel(){
-            mpmMenu.load()
+            nsMPM.mpmMenu.load()
             return true;
         }
     ]]>

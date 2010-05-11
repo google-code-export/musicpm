@@ -1,12 +1,8 @@
 Components.utils.import("resource://minion/mpmUtils.js");
-Components.utils.import("resource://minion/io.js");
-Components.utils.import("resource://minion/mpd.js");
-Components.utils.import("resource://minion/mpmMenu.js");
-Components.utils.import("resource://minion/JSON.js");
 
-function isValid(self, item, location) {
-    var type = (Nz(item)) ? Nz(item.type, "undefined") : "undefined"
-    var location = Nz(location, "undefined")
+function isValid(self, item, loc) {
+    var type = (nsMPM.Nz(item)) ? nsMPM.Nz(item.type, "undefined") : "undefined"
+    var location = nsMPM.Nz(loc, "undefined")
     var l = (self.locations)
             ? (self.locations.split(" ").indexOf(location) > -1)
             : true
@@ -17,43 +13,43 @@ function isValid(self, item, location) {
 }
 
 function ensureQuery(q) {
-    debug("ensureQuery")
-    var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0])
+    nsMPM.debug("ensureQuery")
+    var mpdbrowser = nsMPM.Nz(document.getElementsByTagName("mpdbrowser")[0])
     if (mpdbrowser) {
         mpdbrowser.goTo(q)
     } else {
         try {
             var url = "chrome://minion/content/minion.xul"
-            var win = openReuseByURL(url)
-            var doc = Nz(win.document)
+            var win = nsMPM.openReuseByURL(url)
+            var doc = nsMPM.Nz(win.document)
             if (doc) {
                 var mpdbrowser = doc.getElementsByTagName("mpdbrowser")
-                if (Nz(mpdbrowser[0])) {
+                if (nsMPM.Nz(mpdbrowser[0])) {
                     mpdbrowser[0].goTo(q)
                 } else {
                     Application.storage.set("doQuery", q)
                 }
             }
         } catch (e) {
-            debug(e)
+            nsMPM.debug(e)
         }
     }
 }
 
 function ensureDetails(item) {
-    debug("ensureDetails")
-    var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0])
+    nsMPM.debug("ensureDetails")
+    var mpdbrowser = nsMPM.Nz(document.getElementsByTagName("mpdbrowser")[0])
     if (mpdbrowser) {
         mpdbrowser.showDetails(item)
     } else {
         try {
             var url = "chrome://minion/content/minion.xul"
-            var win = openReuseByURL(url)
+            var win = nsMPM.openReuseByURL(url)
 			if (win) {
-				var doc = Nz(win.document)
+				var doc = nsMPM.Nz(win.document)
 				if (doc) {
 					var mpdbrowser = doc.getElementsByTagName("mpdbrowser")
-					if (Nz(mpdbrowser[0])) {
+					if (nsMPM.Nz(mpdbrowser[0])) {
 						mpdbrowser[0].showDetails(item)
 					} else {
 						Application.storage.set("doDetails", item)
@@ -61,7 +57,7 @@ function ensureDetails(item) {
 				}
 			}
         } catch (e) {
-            debug(e)
+            nsMPM.debug(e)
         }
     }
 }
@@ -73,14 +69,14 @@ function handleMenuCommand(self, item, location) {
 			s = s.replace("{" + x + "}", encodeURI(item[x]));
 		}
 		s = s.replace(/{[^}]+}/g, "");
-		openReuseByAttribute(s, "mpm_web_query");
+		nsMPM.openReuseByAttribute(s, "mpm_web_query");
 	}
 	if (self.queryType) {
-		var q = new dbQuery;
+		var q = new nsMPM.dbQuery();
 		q.cmd = self.queryCommand;
 		q.type = self.queryType;
 		q.scope = self.queryScope;
-		var criteria = (self.queryScope) ? Nz(item[self.queryScope]) : "";
+		var criteria = (self.queryScope) ? nsMPM.Nz(item[self.queryScope]) : "";
 		if (!criteria && item.type == self.queryScope) criteria = item.Title;
 		q.query = criteria;
 		if (self.filterField) {
@@ -92,13 +88,13 @@ function handleMenuCommand(self, item, location) {
 	if (self.mpdCommand) {
 		var s = self.mpdCommand;
 		for (x in item) {
-			s = s.replace("{" + x + "}", Sz(item[x]));
+			s = s.replace("{" + x + "}", nsMPM.Sz(item[x]));
 		}
-		for (x in mpd) {
-			s = s.replace("{" + x + "}", mpd[x]);
+		for (x in nsMPM.mpd) {
+			s = s.replace("{" + x + "}", nsMPM.mpd[x]);
 		}
 		s = s.replace(/{[^}]+}/g, "");
-		var q = new dbQuery(s);
+		var q = new nsMPM.dbQuery(s);
 		q.evaluate();
 		if (!q.dbMatches) {
 			q.execute();
@@ -109,7 +105,7 @@ function handleMenuCommand(self, item, location) {
 	if (self.script) {
 		var fakebrowser = {
 			doUpdate : function() {
-				mpd.doCmd("update");
+				nsMPM.mpd.doCmd("update");
 			},
 			goTo : ensureQuery,
 			getActiveItem : function() {
@@ -118,9 +114,10 @@ function handleMenuCommand(self, item, location) {
 			showDetails : ensureDetails
 		}
 
-		var focused = Nz(document.commandDispatcher.focusedElement.parentNode);
-		var mpdbrowser = Nz(document.getElementsByTagName("mpdbrowser")[0]);
-		var mpdplaylist = Nz(document.getElementsByTagName("mpdplaylist")[0]);
+		var focused = null;
+		if (document.commandDispatcher.focusedElement != null ) focused = nsMPM.Nz(document.commandDispatcher.focusedElement.parentNode);
+		var mpdbrowser = nsMPM.Nz(document.getElementsByTagName("mpdbrowser")[0]);
+		var mpdplaylist = nsMPM.Nz(document.getElementsByTagName("mpdplaylist")[0]);
 		if (mpdbrowser) {
 			if (mpdbrowser.getActiveLocation() == "mpdplaylist") {
 				var bplaylist = mpdbrowser.getActiveBrowser();
@@ -139,16 +136,15 @@ function handleMenuCommand(self, item, location) {
 			// The use of Sandbox has been suggested by Jorge, but feel free to indicate if the
 			// implementation has been done properly
 			var sbox = Components.utils.Sandbox('chrome://minion/content/minion.xul');
+			sbox.nsMPM = nsMPM;
 			sbox.mpdbrowser = mpdbrowser;
 			sbox.mpdplaylist = mpdplaylist;
-			sbox.prefs = prefs;
-			sbox.mpm_openDialog = mpm_openDialog;
-			sbox.mpd = mpd;
+			// sbox.mpd = mpd;
 			sbox.item = item;
 			Components.utils.evalInSandbox(self.script, sbox); // As per comments above
 		} catch (e) {
-			debug("Error in Sandbox");
-			debug(e);
+			nsMPM.debug("Error in Sandbox");
+			nsMPM.debug(e);
 		}
 	}
 }
@@ -156,7 +152,7 @@ function handleMenuCommand(self, item, location) {
 function createMenuNode(menupopup, menuItem, activeItem, location, nodeType) {
     var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     var e = document.createElementNS(NS, nodeType)
-    if (Nz(menuItem.doCommand)) {
+    if (nsMPM.Nz(menuItem.doCommand)) {
         e.onclick = function(event) {
             menuItem.doCommand(activeItem, location, event)
         }
@@ -180,30 +176,30 @@ function createMenuNode(menupopup, menuItem, activeItem, location, nodeType) {
 function mpmMenu_contextShowing(event, location, activeItem, fillNode, nodeType) {
     try {
         var NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        var menu = document.getElementById(Nz(fillNode, "mpmDynamicMenu"))
-        location = Nz(location)
-        activeItem = Nz(activeItem)
-        nodeType = Nz(nodeType, "menuitem")
+        var menu = document.getElementById(nsMPM.Nz(fillNode, "mpmDynamicMenu"))
+        location = nsMPM.Nz(location)
+        activeItem = nsMPM.Nz(activeItem)
+        nodeType = nsMPM.Nz(nodeType, "menuitem")
         if ((!location || !activeItem) && event) {
-            var elem = event.target
-            var activeItem = Nz(activeItem) ? activeItem : Nz(elem.getActiveItem())
-            var location = Nz(location) ? location : Nz(elem.tagNameOverride, elem.tagName)
+            var elem = event.target;
+            activeItem = nsMPM.Nz(activeItem) ? activeItem : nsMPM.Nz(elem.getActiveItem())
+            location = nsMPM.Nz(location) ? location : nsMPM.Nz(elem.tagNameOverride, elem.tagName)
         }
         while (menu.hasChildNodes()) {
             menu.removeChild(menu.firstChild)
         }
-		debug("location="+location)
+		nsMPM.debug("location="+location)
         if (location) {
             var readySep = false
-            for (var i = 0; i < mpmMenu.items.length; i++) {
-                if (mpmMenu.items[i] == "separator") {
+            for (var i = 0; i < nsMPM.mpmMenu.items.length; i++) {
+                if (nsMPM.mpmMenu.items[i] == "separator") {
                     if (readySep) {
                         var e = document.createElementNS(NS, "menuseparator")
                         menu.appendChild(e)
                         readySep = false
                     }
-                } else if (isValid(mpmMenu.items[i], activeItem, location)) {
-                    var e = createMenuNode(menu, mpmMenu.items[i], activeItem,
+                } else if (isValid(nsMPM.mpmMenu.items[i], activeItem, location)) {
+                    var e = createMenuNode(menu, nsMPM.mpmMenu.items[i], activeItem,
                             location, nodeType)
                     readySep = true
                 }
@@ -212,8 +208,8 @@ function mpmMenu_contextShowing(event, location, activeItem, fillNode, nodeType)
                 menu.removeChild(menu.lastChild)
         }
     } catch (e) {
-        debug(e)
+        nsMPM.debug(e)
     }
 }
 
-mpmMenu.load();
+nsMPM.mpmMenu.load();

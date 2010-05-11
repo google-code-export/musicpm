@@ -17,7 +17,6 @@
 */
 
 Components.utils.import("resource://minion/mpmUtils.js");
-Components.utils.import("resource://minion/mpd.js");
 EXPORTED_SYMBOLS = ["arrayView", "playlistView", "folderView"]
 
 
@@ -34,20 +33,20 @@ function customTreeView () {
     this.drop = function (row, orientation ) {}
     this.getCellProperties = function (row, col, props ) {
         try {
-            var item = Nz(this.get(row))
+            var item = nsMPM.Nz(this.get(row))
             if (item) {
                 var t = item.type
                 var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
 
                 props.AppendElement(aserv.getAtom(col.id))
-                if (t == 'directory' && mpd.updating_db) {
+                if (t == 'directory' && nsMPM.mpd.updating_db) {
                     props.AppendElement(aserv.getAtom(col.id + "_updating"))
                 }
                 else {
                     props.AppendElement(aserv.getAtom(col.id + "_" + t))
-                    if (mpd.song && Nz(item.Pos, -1) == mpd.song) {
-                        if (col.id == 'Title' && mpd.state != 'stop') {
-                            props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+                    if (nsMPM.mpd.song && nsMPM.Nz(item.Pos, -1) == nsMPM.mpd.song) {
+                        if (col.id == 'Title' && nsMPM.mpd.state != 'stop') {
+                            props.AppendElement(aserv.getAtom(nsMPM.mpd.state + "_currentsong"))
                         }
                         props.AppendElement(aserv.getAtom("currentsong"))
                     }
@@ -56,27 +55,28 @@ function customTreeView () {
             }
         }
         catch (e) {
-            debug(e)
-            debug(item)
+            nsMPM.debug(e)
+            nsMPM.debug(item)
         }
     }
     this.getCellText = function(R, C){
         var item = this.get(R)
-        if (!Nz(item)) return "";
+        if (!nsMPM.Nz(item)) return "";
         switch (C.id) {
             case "Pos":
                 if (item.type != 'file') return ""
                 var p = item.Pos
-                if (!p) p = Nz(mpd.pl_lookup[item.file])
+                if (!p) p = nsMPM.Nz(nsMPM.mpd.pl_lookup[item.file])
                 return (p) ? (parseInt(p) + 1) + "." : "";
                 break;
             case "Time":
-                return (item.Time) ? hmsFromSec(item.Time) : "";
+                return (item.Time) ? nsMPM.hmsFromSec(item.Time) : "";
                 break;
             default:
                 return (item[C.id]);
                 break;
         }
+	return "";
     }
     this.getCellValue = function (row, col ) {return this.rs[row]}
     this.getColumnProperties = function (col, properties ) {}
@@ -119,10 +119,10 @@ function arrayView(dbArray) {
     this.rowCount = dbArray.length
     this.rs = dbArray
 	this.getCounts = function () {
-		var files = [x for each (x in dbArray) if (x.type='file')]
+		var files = [x for each (x in dbArray) if (x.type=='file')]
 		var time = 0
 		for each (f in files) {time += Math.parseInt(f.Time)}
-		var text = f.length + " "+translateService.GetStringFromName("tracks")+", " + prettyTime(time)
+		var text = f.length + " "+nsMPM.translateService.GetStringFromName("tracks")+", " + nsMPM.prettyTime(time)
 	}
 }
 arrayView.prototype = new customTreeView
@@ -139,7 +139,7 @@ function playlistView(){
         }
     }
     this.load = function (db, expanded){
-        if (!Nz(expanded)) {
+        if (!nsMPM.Nz(expanded)) {
             var rc = db.length
             var rs = new Array()
             rs.length = rc
@@ -167,14 +167,14 @@ function playlistView(){
                     rs[rc - n] = {
                         index: idx,
                         type: 'Album',
-                        Prefix: translateService.GetStringFromName("from")+" ",
+                        Prefix: nsMPM.translateService.GetStringFromName("from")+" ",
                         isContainer: false
                     }
                     --n
                     rs[rc - n] = {
                         index: idx,
                         type: 'Artist',
-                        Prefix: translateService.GetStringFromName("by")+" ",
+                        Prefix: nsMPM.translateService.GetStringFromName("by")+" ",
                         isContainer: false
                     }
                     idx++
@@ -202,13 +202,13 @@ function playlistView(){
             this.rs[i+1] = {
                 index: idx,
                 type: 'Album',
-                Prefix: translateService.GetStringFromName("from")+" ",
+                Prefix: nsMPM.translateService.GetStringFromName("from")+" ",
                 isContainer: false
             }
             this.rs[i+2] = {
                 index: idx,
                 type: 'Artist',
-                Prefix: translateService.GetStringFromName("by")+" ",
+                Prefix: nsMPM.translateService.GetStringFromName("by")+" ",
                 isContainer: false
             }
             this.treeBox.rowCountChanged(i-1, 3)
@@ -235,16 +235,16 @@ function playlistView(){
         this.rs.length = n
     }
     this.get = function (row) {
-        var cur = Nz(this.rs[row])
+        var cur = nsMPM.Nz(this.rs[row])
         if (!cur) {
             //this.treeBox.rowCountChanged(row, -1)
             return {type: 'unknown', pos: null, time: null, Title: 'ERROR!'}
         }
         if (cur.type == 'pointer') {
-            return Nz(this.db[cur.index], cur)
+            return nsMPM.Nz(this.db[cur.index], cur)
         }
         else {
-            var item = Nz(this.db[cur.index], cur)
+            var item = nsMPM.Nz(this.db[cur.index], cur)
             return {
                 type: cur.type,
                 index: cur.index,
@@ -282,7 +282,7 @@ function playlistView(){
             return (this.rs[row].isContainer) ? 0 : 1
         }
         catch (e) {
-            debug(e)
+            nsMPM.debug(e)
             return 0
         }
     }
@@ -306,13 +306,13 @@ function playlistView(){
                 var art = {
                     index: item.Pos,
                     type: 'Artist',
-                    Prefix: translateService.GetStringFromName("by")+" ",
+                    Prefix: nsMPM.translateService.GetStringFromName("by")+" ",
                     isContainer: false
                 }
                 var alb = {
                     index: item.Pos,
                     type: 'Album',
-                    Prefix: translateService.GetStringFromName("from")+" ",
+                    Prefix: nsMPM.translateService.GetStringFromName("from")+" ",
                     isContainer: false
                 }
                 this.rs[row].isOpen = true
@@ -322,7 +322,7 @@ function playlistView(){
             }
         }
         catch (e) {
-            debug(e)
+            nsMPM.debug(e)
         }
     }
     this.getRowProperties = function(row, props){
@@ -348,7 +348,7 @@ playlistView.prototype = new customTreeView
 
 
 function folderView(dbArray, rsArray) {
-    var rs = (Nz(rsArray))
+    var rs = (nsMPM.Nz(rsArray))
     if (!rs) rs = [x for each (x in dbArray) if (x.level == 0)].sort()
     var view = {
         db: dbArray,
@@ -374,6 +374,7 @@ function folderView(dbArray, rsArray) {
                 if (nextLevel == thisLevel) return true;
                 else if (nextLevel < thisLevel) return false;
             }
+			return false;
         },
         isContainer: function (index ) {
             return true
@@ -412,14 +413,14 @@ function folderView(dbArray, rsArray) {
                 var aserv = Components.classes["@mozilla.org/atom-service;1"].getService(Components.interfaces.nsIAtomService);
 
                 props.AppendElement(aserv.getAtom(col.id))
-                if (t == 'directory' && mpd.updating_db) {
+                if (t == 'directory' && nsMPM.mpd.updating_db) {
                     props.AppendElement(aserv.getAtom(col.id + "_updating"))
                 }
                 else {
                     props.AppendElement(aserv.getAtom(col.id + "_" + t))
-                    if (item.name == mpd.file) {
-                        if (col.id == 'Title' && mpd.state != 'stop') {
-                            props.AppendElement(aserv.getAtom(mpd.state + "_currentsong"))
+                    if (item.name == nsMPM.mpd.file) {
+                        if (col.id == 'Title' && nsMPM.mpd.state != 'stop') {
+                            props.AppendElement(aserv.getAtom(nsMPM.mpd.state + "_currentsong"))
                         }
                         props.AppendElement(aserv.getAtom("currentsong"))
                     }
@@ -427,7 +428,7 @@ function folderView(dbArray, rsArray) {
                 aserv = null
             }
             catch (e) {
-                debug(e)
+                nsMPM.debug(e)
             }
         },
         getCellText: function(R, C){
