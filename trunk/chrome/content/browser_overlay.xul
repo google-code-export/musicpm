@@ -11,9 +11,9 @@
     
     <popup id="contentAreaContextMenu">
       <menuitem id="mpm_linkHandlerAdd" label="Add Link to MPD Playlist"
-            oncommand="mpm_linkHandlerAction('add');" insertafter="context-openlinkintab" />
+            oncommand="nsMPM_window.mpm.mpm_linkHandlerAction('add');" insertafter="context-openlinkintab" />
       <menuitem id="mpm_linkHandlerPlay" label="Play Link with MPD"
-            oncommand="mpm_linkHandlerAction('play');" insertafter="context-openlinkintab" />
+            oncommand="nsMPM_window.mpm.mpm_linkHandlerAction('play');" insertafter="context-openlinkintab" />
     </popup>
 
     <popupset>

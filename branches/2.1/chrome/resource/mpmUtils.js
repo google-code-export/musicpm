@@ -836,6 +836,18 @@ nsMPM.slideevent = {
 		}
 	}
 }
+nsMPM.winStorage = function(win,doc) {
+	if ( typeof(win) == 'undefinied' || typeof(doc) == 'undefined') return
+	nsMPM.instance_count++;
+	this.instance = nsMPM.instance_count;
+	this.obs = null;
+	this.obsVol = null;
+	this.csPrefObserver = null;
+	this.window = win;
+	this.document = doc;
+	this.mpm = null;
+	nsMPM.debug(this);
+}
 // dependent js modules
 // declare holder in mpmCommon.js
 if (nsMPM.mpmMenu == null) Components.utils.import("resource://minion/mpmMenu.js",nsMPM);
