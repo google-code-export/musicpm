@@ -18,7 +18,9 @@ if ("undefined" == typeof(nsMPM) || nsMPM == null ) {
 		
 		pref_dir: "ProfD", // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
 		pref_file_servers: "mpm_servers.js",
-		pref_file_menus : "mpm_menus.js"
+		pref_file_menus: "mpm_menus.js",
+		
+		instance_count: 0
 	};
 }
 
