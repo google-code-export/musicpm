@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
+
+<overlay id="minion-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <script src="chrome://minion/content/browser_overlay.js"/>
+    <script src="chrome://minion/content/menus.js"/>
+    
+    <popup id="contentAreaContextMenu">
+      <menuitem id="mpm_linkHandlerAdd" label="Add Link to MPD Playlist"
+            oncommand="nsMPM_window.mpm.mpm_linkHandlerAction('add');" insertafter="context-openlinkintab" />
+      <menuitem id="mpm_linkHandlerPlay" label="Play Link with MPD"
+            oncommand="nsMPM_window.mpm.mpm_linkHandlerAction('play');" insertafter="context-openlinkintab" />
+    </popup>
+
+    <popupset>
+        <menupopup id="mpmMenu">
+            <vbox id="mpmDynamicMenu"/>
+            <menuseparator/>
+            <menuitem label="Edit Menu" 
+                oncommand="window.openDialog('chrome://minion/content/menuEditor.xul')"/>
+        </menupopup>
+        <menupopup id="mpm_playlist_popup" 
+                   sizetocontent="true"
+                   position="before_end"
+                   onpopupshowing="this.childNodes[0].showCurrent()"
+                   onpopuphiding="this.childNodes[0].saveColumns()">
+            <mpdplaylist flex="1"
+                id="popup_playlist"
+                mpm_name="popup_playlist"
+                context="mpmMenu"
+                oncontextmenu="mpmMenu_contextShowing(event)"
+                width="300"
+                height="200"/>
+        </menupopup>
+        <tooltip id="mpm_sb_currentsong_tooltip"
+                   position="before_end">
+            <hbox>
+                <mpdalbumcover/>
+                <vbox>
+                    <spacer flex="1"/>
+                    <mpdlabel observes="Title" style="font-weight:bold"/>
+                    <mpdlabel observes="Album"/>
+                    <mpdlabel observes="Artist" style="font-style:italic"/>
+                    <spacer flex="1"/>                         
+                </vbox>
+              </hbox>
+        </tooltip>
+    </popupset>
+    
+    <window id="main-window">
+        <splitter id="mpm_playlist_splitter"
+              insertbefore="browser-bottombox"
+              resizebefore="flex"
+              collapsed="true"/>
+        <hbox id="mpm_playlist_sb"
+              insertbefore="browser-bottombox"
+              collapsed="true"
+              height="0"
+              style="overflow:hidden">
+            <vbox pack="center" align="center">
+                <mpdalbumcover/>
+            </vbox>
+            <mpdplaylist id="mpm_mw_playlist_box"
+                flex="1"
+                mpm_name="bottombox_playlist"
+                context="mpmMenu"
+                height="100"
+                persist="persist_columns height"
+                persist_columns="Pos Title Artist Album Time"
+                oncontextmenu="mpmMenu_contextShowing(event)"/>
+        </hbox>
+    </window>
+    <vbox id="browser-bottombox">
+    </vbox>
+    
+    <statusbar id="status-bar">
+        <statusbarpanel id="mpm_status-bar_controls"
+                    tooltip="mpm_sb_currentsong_tooltip"    
+                    context="mpmMenu"
+                    oncontextmenu="mpmMenu_contextShowing(event, 'statusbar', nsMPM.mpd.currentsong)">
+            <toolbarbutton id="mpm_sb_launch" class="mpm_btn_Launch"
+                           tooltiptext="&minion.launch;"
+                           oncommand="nsMPM.openReuseByURL('chrome://minion/content/minion.xul')"/>
+            <mpdcontrols id="mpm_sb_controls" hidden="true"/>
+            <toolbarbutton id="mpm_sb_volume"
+                           hidden="true" 
+                           type="menu" 
+                           class="mpm_btn_Volume"
+                           tooltiptext="Volume">
+                <menupopup>
+                    <mpdvolume id="mpm_sb_volume_scale" orient="vertical"/>
+                </menupopup>
+            </toolbarbutton>
+            <hbox id="sb_playlist_menu">
+                <toolbarbutton id="mpm_sb_playlist"
+                    type="menu"
+                    popup="mpm_playlist_popup"
+                    class="mpm_btn_Playlist"/>
+                <toolbarbutton id="mpm_sb_currentsong"
+                            class="mpm_sb_currentsong"
+                            popup="mpm_playlist_popup">
+                    <mpdlabel id="mpm_sb_Title" 
+                              class="mpm_sb_Title"
+                              observes="Title" 
+                              crop="end">
+                    </mpdlabel>
+                    <mpdtime hidescale="true"/>
+                </toolbarbutton>
+            </hbox>
+            <hbox id="sb_playlist_box" collapsed="true">
+                <toolbarbutton id="mpm_sb_playlistb"
+                    class="mpm_btn_Playlist"
+                    oncommand="nsMPM.togglePlaylistBar(document)"/>
+                <toolbarbutton id="mpm_sb_currentsongb"
+                            class="mpm_sb_currentsong"
+                            oncommand="nsMPM.togglePlaylistBar(document)">
+                    <mpdlabel id="mpm_sb_Titleb"
+                              class="mpm_sb_Title"
+                              observes="Title" 
+                              crop="end">
+                    </mpdlabel>
+                    <mpdtime hidescale="true"/>
+                </toolbarbutton>
+            </hbox>
+            <mpdservers/>
+        </statusbarpanel>
+    </statusbar>
+</overlay>
