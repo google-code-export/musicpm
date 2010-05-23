@@ -1,6 +1,20 @@
 #summary A history of changes made for each release.  Alphas not included.
 #labels Featured
 
+= 2.1.0 =
+  * New main interface (including, playlist, folder and tag navigation)
+  * New preference panels (including debugs, amazon and status-bar controls)
+  * Playback controls in Firefox status-bar
+  * Spanish language
+  * Added a proper "about" box
+  * Added an uprade window
+  * Per-profile settings
+  * Compatible with Portable Firefox
+  * Security fixes
+  * Fixed some UTF-8 problems
+  * Many fixes
+  * A total of 62 commits  
+
 = 1.4.4 =
 
   * Fixed loading playlists with apostrophes from menus.
