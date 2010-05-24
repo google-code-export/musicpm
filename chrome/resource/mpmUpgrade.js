@@ -163,7 +163,6 @@ mpmUpgrade.check = function(mpd) {
 		var oldVersion = mpmGetPreviousVersion();
 		if ( oldVersion == mpmGetCurrentVersion() ) {
 			nsMPM.debug('No upgrades to do');
-			mpmSetUpgraded(true);
 			return;
 		}
 
