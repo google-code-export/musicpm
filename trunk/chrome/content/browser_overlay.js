@@ -17,19 +17,27 @@ var nsMPM_window = new nsMPM.winStorage(window,document);
 
 nsMPM_window.mpm = {
 	onLoad: function (e) {
-		nsMPM.debug('load')
-		window.removeEventListener("load", function(e) { nsMPM_window.mpm.onLoad(e); }, false);
-		var cm = nsMPM_window.document.getElementById("contentAreaContextMenu")
-		if (cm) cm.addEventListener("popupshowing", nsMPM_window.mpm.linkHandler, true)
-		nsMPM_window.obs.observe(null, null, null)
-		var volbtn = nsMPM_window.document.getElementById('mpm_sb_volume')
-		var volscl = nsMPM_window.document.getElementById('mpm_sb_volume_scale')
-		volbtn.addEventListener("DOMMouseScroll", volscl.volScroll, false)
-		volbtn.setAttribute("tooltiptext", nsMPM.translateService.GetStringFromName("volume")+" "+nsMPM.mpd.volume+"%")
-		nsMPM.observerService.addObserver(nsMPM_window.obs, 'greeting', false);
-		nsMPM.observerService.addObserver(nsMPM_window.obsVol, 'volume', false);
-		nsMPM_window.csPrefObserver.register();
-		nsMPM.updateStatusBarPosition(nsMPM_window.document);
+		nsMPM.debug('loading...')
+		try {
+			window.removeEventListener("load", function(e) { nsMPM_window.mpm.onLoad(e); }, false);
+			var cm = nsMPM_window.document.getElementById("contentAreaContextMenu")
+			if (cm) cm.addEventListener("popupshowing", nsMPM_window.mpm.linkHandler, true)
+			nsMPM_window.obs.observe(null, null, null)
+			var volbtn = nsMPM_window.document.getElementById('mpm_sb_volume')
+			var volscl = nsMPM_window.document.getElementById('mpm_sb_volume_scale')
+			volbtn.addEventListener("DOMMouseScroll", volscl.volScroll, false)
+			volbtn.setAttribute("tooltiptext", nsMPM.translateService.GetStringFromName("volume")+" "+nsMPM.mpd.volume+"%")
+			nsMPM.observerService.addObserver(nsMPM_window.obs, 'greeting', false);
+			nsMPM.observerService.addObserver(nsMPM_window.obsVol, 'volume', false);
+			nsMPM_window.csPrefObserver.register();
+			nsMPM.updateStatusBarPosition(nsMPM_window.document);
+			var newWidth = nsMPM.prefs.get('sb_song_width',150);
+			nsMPM_window.document.getElementById('mpm_sb_Titleb').setAttribute('width',newWidth);
+			nsMPM_window.document.getElementById('mpm_sb_Titleb').child.setAttribute('width',newWidth);
+			nsMPM_window.document.getElementById('mpm_sb_Title').setAttribute('width',newWidth);
+			nsMPM_window.document.getElementById('mpm_sb_Title').child.setAttribute('width',newWidth);
+		} catch(e){nsMPM.debug(e);}
+		nsMPM.debug('loaded')
 	},
 	onFocus: function (e) {
 		window.removeEventListener("focus", function(e) { nsMPM_window.mpm.onFocus(e); }, false);
@@ -115,8 +123,10 @@ nsMPM_window.csPrefObserver = {
 				var hide = nsMPM.prefs.get('sb_currentsong_hide', false)
 				nsMPM_window.document.getElementById('mpm_sb_currentsong').collapsed = hide;
 				nsMPM_window.document.getElementById('mpm_sb_playlist').collapsed = !hide;
+				nsMPM_window.document.getElementById('mpm_sb_box_resizer').collapsed = hide;
 				nsMPM_window.document.getElementById('mpm_sb_currentsongb').collapsed = hide;
 				nsMPM_window.document.getElementById('mpm_sb_playlistb').collapsed = !hide;
+				nsMPM_window.document.getElementById('mpm_sb_box_resizerb').collapsed = hide;
 				break;
 			case "sb_playlist_menu":
 				var menu = nsMPM.prefs.get('sb_playlist_menu', false)
@@ -125,6 +135,14 @@ nsMPM_window.csPrefObserver = {
 				break;
 			case "statusbar_position":
 				nsMPM.updateStatusBarPosition(nsMPM_window.document);
+				break;
+			case "sb_song_width":
+				var newWidth = nsMPM.prefs.get('sb_song_width',150);
+				nsMPM.debug("status-bar title width changed: "+ newWidth);
+				nsMPM_window.document.getElementById('mpm_sb_Title').setAttribute('width',newWidth);
+				nsMPM_window.document.getElementById('mpm_sb_Title').child.setAttribute('width',newWidth);
+				nsMPM_window.document.getElementById('mpm_sb_Titleb').setAttribute('width',newWidth);
+				nsMPM_window.document.getElementById('mpm_sb_Titleb').child.setAttribute('width',newWidth);
 				break;
 		}
 	}

@@ -123,7 +123,6 @@
                 Components.utils.import("resource://minion/trees.js");
 
                 var me = this
-                nsMPM.debug(this.mpm_name)
                 function applyView() {
                     nsMPM.debug("nsMPM.mpd.plinfo.length="+nsMPM.mpd.plinfo.length)
                     me.view = new arrayView(nsMPM.mpd.plinfo)
@@ -159,9 +158,11 @@
                         props = val.split(":")
                         if (props[0] > "") {
                             var c = document.getAnonymousElementByAttribute(this, 'id', props[0])
-                            c.hidden = (props[1]=="true")
-                            c.setAttribute("width", props[2])
-                            c.setAttribute("ordinal", props[3])
+                            if ( c != null ) {
+                                c.hidden = (props[1]=="true")
+                                c.setAttribute("width", props[2])
+                                c.setAttribute("ordinal", props[3])
+                            }
                         }
                     }
                     if (colprops > "") {
@@ -171,8 +172,10 @@
                         var cols=me.state.persist.split(" ")
                         for (i=0;i<cols.length;i++) {
                             var c = document.getAnonymousElementByAttribute(me, 'id', cols[i])
-                            c.setAttribute("ordinal", i)
-                            c.setAttribute("hidden", false)
+                            if ( c != null ) {
+                                c.setAttribute("ordinal", i)
+                                c.setAttribute("hidden", false)
+                            }
                         }
                     }
                 } catch (e) {

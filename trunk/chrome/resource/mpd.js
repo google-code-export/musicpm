@@ -139,6 +139,7 @@ mpd._parseCurrentSong = function(data) {
     nsMPM.mpd.set('Time', nsMPM.Nz(obj.Time))
     nsMPM.mpd.set('Artist', nsMPM.Nz(obj.Artist))
     nsMPM.mpd.set('Title', nsMPM.Nz(obj.Title))
+    nsMPM.mpd.set('sbTitle', nsMPM.Nz(obj.Title))
     nsMPM.mpd.set('Album', nsMPM.Nz(obj.Album))
     nsMPM.mpd.set('Track', nsMPM.Nz(obj.Track))
     nsMPM.mpd.set('Date', nsMPM.Nz(obj.Date))

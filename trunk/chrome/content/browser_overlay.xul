@@ -28,16 +28,10 @@
                    position="before_end"
                    onpopupshowing="this.childNodes[0].showCurrent()"
                    onpopuphiding="this.childNodes[0].saveColumns()">
-            <mpdplaylist flex="1"
-                id="popup_playlist"
-                mpm_name="popup_playlist"
-                context="mpmMenu"
-                oncontextmenu="mpmMenu_contextShowing(event)"
-                width="300"
-                height="200"/>
+            <mpdplaylist flex="1" id="popup_playlist" mpm_name="popup_playlist" context="mpmMenu"
+                oncontextmenu="mpmMenu_contextShowing(event)" width="300" height="200"/>
         </menupopup>
-        <tooltip id="mpm_sb_currentsong_tooltip"
-                   position="before_end">
+        <tooltip id="mpm_sb_currentsong_tooltip" position="before_end">
             <hbox>
                 <mpdalbumcover/>
                 <vbox>
@@ -64,19 +58,14 @@
             <vbox pack="center" align="center">
                 <mpdalbumcover/>
             </vbox>
-            <mpdplaylist id="mpm_mw_playlist_box"
-                flex="1"
-                mpm_name="bottombox_playlist"
-                context="mpmMenu"
-                height="100"
-                persist="persist_columns height"
-                persist_columns="Pos Title Artist Album Time"
+            <mpdplaylist id="mpm_mw_playlist_box" flex="2" mpm_name="bottombox_playlist" context="mpmMenu"
+                height="100" persist="persist_columns height" persist_columns="Pos Title Artist Album Time"
                 oncontextmenu="mpmMenu_contextShowing(event)"/>
         </hbox>
     </window>
     <vbox id="browser-bottombox">
     </vbox>
-    
+
     <statusbar id="status-bar">
         <statusbarpanel id="mpm_status-bar_controls"
                     tooltip="mpm_sb_currentsong_tooltip"    
@@ -95,36 +84,27 @@
                     <mpdvolume id="mpm_sb_volume_scale" orient="vertical"/>
                 </menupopup>
             </toolbarbutton>
-            <hbox id="sb_playlist_menu">
-                <toolbarbutton id="mpm_sb_playlist"
-                    type="menu"
-                    popup="mpm_playlist_popup"
-                    class="mpm_btn_Playlist"/>
-                <toolbarbutton id="mpm_sb_currentsong"
-                            class="mpm_sb_currentsong"
-                            popup="mpm_playlist_popup">
-                    <mpdlabel id="mpm_sb_Title" 
-                              class="mpm_sb_Title"
-                              observes="Title" 
-                              crop="end">
-                    </mpdlabel>
-                    <mpdtime hidescale="true"/>
+            <hbox id="sb_playlist_box" collapsed="false">
+                <toolbarbutton id="mpm_sb_playlistb" class="mpm_btn_Playlist" oncommand="nsMPM.togglePlaylistBar(document)"/>
+                <toolbarbutton id="mpm_sb_currentsongb" class="mpm_sb_currentsong" oncommand="nsMPM.togglePlaylistBar(document)">
+                    <mpdtime hidescale="true" flex="1" width="30"/>
+					<mpdlabel id="mpm_sb_Titleb" flex="0" class="mpm_sb_Title" observes="sbTitle" crop="end" value="&appname;"/>
                 </toolbarbutton>
+				<box id="mpm_sb_box_resizerb"
+					onmousedown="nsMPM.resizeHandler.onMouseDown(window,event);" 
+					onmouseup="nsMPM.resizeHandler.onMouseUp(event);" 
+					onmousemove="nsMPM.resizeHandler.onMouseMove(event);"/>
             </hbox>
-            <hbox id="sb_playlist_box" collapsed="true">
-                <toolbarbutton id="mpm_sb_playlistb"
-                    class="mpm_btn_Playlist"
-                    oncommand="nsMPM.togglePlaylistBar(document)"/>
-                <toolbarbutton id="mpm_sb_currentsongb"
-                            class="mpm_sb_currentsong"
-                            oncommand="nsMPM.togglePlaylistBar(document)">
-                    <mpdlabel id="mpm_sb_Titleb"
-                              class="mpm_sb_Title"
-                              observes="Title" 
-                              crop="end">
-                    </mpdlabel>
-                    <mpdtime hidescale="true"/>
+            <hbox id="sb_playlist_menu" collapsed="true">
+                <toolbarbutton id="mpm_sb_playlist" type="menu" popup="mpm_playlist_popup" class="mpm_btn_Playlist"/>
+                <toolbarbutton id="mpm_sb_currentsong" class="mpm_sb_currentsong" popup="mpm_playlist_popup">
+                    <mpdtime hidescale="true" flex="1" width="30"/>
+                    <mpdlabel id="mpm_sb_Title" flex="0" class="mpm_sb_Title" observes="sbTitle" crop="end" value="&appname;"/>
                 </toolbarbutton>
+				<box id="mpm_sb_box_resizer"
+					onmousedown="nsMPM.resizeHandler.onMouseDown(window,event);" 
+					onmouseup="nsMPM.resizeHandler.onMouseUp(event);" 
+					onmousemove="nsMPM.resizeHandler.onMouseMove(event);"/>
             </hbox>
             <mpdservers/>
         </statusbarpanel>

@@ -98,11 +98,15 @@ treechildren::-moz-tree-cell-text(Artist) {
     overflow: hidden;
 }
 
+.mpm_sb_Title {
+    overflow: hidden;	
+    width: 130px;
+	min-width: 25px !important;
+}
 .mpm_sb_Title > label {
     overflow: hidden;
-    width: 130px;
-    max-width: 130px;
-    margin: 0px !important;
+	width: 130px;
+    margin: 0px 0px 0px 2px !important;
     padding: 0px !important;
 }
 .mpm_sb_currentsong .mpdTime {
@@ -153,4 +157,36 @@ mpdplaylist > tree  {
 
 treechildren::-moz-tree-cell-text(currentsong) {
     font-weight: bold;
-    }
+}
+#mpm_sb_box_resizerb, #mpm_sb_box_resizer {
+    -moz-appearance: none !important;
+    width: 4px !important;
+    height: 8px !important;
+    background: none;
+    -moz-border-bottom-colors: rgb(113, 111, 100) rgb(172, 168, 153);
+    -moz-border-left-colors: rgb(241, 239, 226) rgb(255, 255, 255);
+    -moz-border-right-colors: rgb(113, 111, 100) rgb(172, 168, 153);
+    -moz-border-top-colors: rgb(241, 239, 226) rgb(255, 255, 255);
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-left-style: solid;
+    border-right-style: solid;
+    cursor: w-resize;
+    margin-right: 6px;
+}
+.mpm-minimode-only {
+    display: -moz-box !important;
+}
+.mpm-overlay-only {
+    display: none;
+}
+.mpm-minimode-only[hidden="true"] {
+    display: none !important;
+}
+.mpm-minimode-only {
+    display: none;
+}
