@@ -14,7 +14,6 @@ if ("undefined" == typeof(nsMPM) || nsMPM == null ) {
 		mpmMenu: null,
 		mpd: null,
 		mpmUpgrade: null,
-		mpmIsUpgraded: null,
 		
 		pref_dir: "ProfD", // http://mxr.mozilla.org/seamonkey/source/xpcom/io/nsAppDirectoryServiceDefs.h
 		pref_file_servers: "mpm_servers.js",

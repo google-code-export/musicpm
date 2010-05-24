@@ -9,7 +9,7 @@
 		xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 		xmlns:html="http://www.w3.org/1999/xhtml"
 		buttons="accept"
-		onload="dialogInit()">
+		onload="nsMPM.mpmUpgrade.dialogInit(this.document)">
 
 	<script>
 	<![CDATA[
@@ -43,9 +43,9 @@
 		</vbox>
 		<hbox>
 			<spacer flex="1"/>
-			<button id="manageservers" label="&servers.title;" oncommand="nsMPM.doServer();"/>
-			<button id="settings" label="&settings.title;" oncommand="nsMPM.doSettings();"/>
-			<button id="about" label="&upgrade.about;" oncommand="nsMPM.doAbout();"/>
+			<button id="manageservers" label="&servers.title;" oncommand="nsMPM.mpmUpgrade.doServer();"/>
+			<button id="settings" label="&settings.title;" oncommand="nsMPM.mpmUpgrade.doSettings();"/>
+			<button id="about" label="&upgrade.about;" oncommand="nsMPM.mpmUpgrade.doAbout();"/>
 		</hbox>
 	</vbox>
 	<separator id="groove" class="groove"/>
