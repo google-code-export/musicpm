@@ -31,7 +31,6 @@ nsMPM.translateService = nsMPM.Cc["@mozilla.org/intl/stringbundle;1"]
 						.getService(nsMPM.Ci.nsIStringBundleService)
 						.createBundle("chrome://minion/locale/strings.properties");
 
-
 nsMPM.getStringTime = function() {
 	var today = new Date();
 	var strDate = "";
@@ -846,7 +845,58 @@ nsMPM.winStorage = function(win,doc) {
 	this.window = win;
 	this.document = doc;
 	this.mpm = null;
-	nsMPM.debug(this);
+}
+
+nsMPM.resizeHandler = {
+	bResizing : false,
+	startPosX : null,
+	panelElem : null,
+	lastWidth : null,
+	minWidth : 25,
+	startPanelWidth: null,
+	win: null,
+	
+	onMouseMove: function(event){
+		try{
+			if (!nsMPM.resizeHandler.bResizing) return;
+			var deltaX = event.screenX - nsMPM.resizeHandler.startPosX;
+			
+			var newWidth = 1*nsMPM.resizeHandler.startPanelWidth + deltaX;
+			if (newWidth > nsMPM.resizeHandler.minWidth) {
+				nsMPM.resizeHandler.panelElem.setAttribute('width', newWidth);
+				nsMPM.resizeHandler.panelElem.child.setAttribute('width', newWidth);
+				nsMPM.resizeHandler.lastWidth = newWidth;
+			}
+		} catch(e){nsMPM.debug(e);}
+	},
+	onMouseDown: function(win,event){
+		/* the "win" is important to listen the mouse mvts globally */
+		try{
+			if (nsMPM.resizeHandler.bResizing) return;
+			nsMPM.resizeHandler.bResizing = true;
+			nsMPM.resizeHandler.startPosX = event.screenX;
+			nsMPM.resizeHandler.panelElem  = event.target.previousSibling.lastElementChild;
+			nsMPM.resizeHandler.startPanelWidth = nsMPM.resizeHandler.panelElem.getAttribute('width');
+			win.addEventListener("mouseup", nsMPM.resizeHandler.onMouseUp, false);
+			win.addEventListener("mousemove", nsMPM.resizeHandler.onMouseMove, false);
+			nsMPM.resizeHandler.win = win;
+		} catch(e){nsMPM.debug(e);}
+	},
+	onMouseUp: function(event){
+		try {
+			nsMPM.resizeHandler.bResizing = false;
+			if ( nsMPM.resizeHandler.startPanelWidth != nsMPM.resizeHandler.lastWidth
+				&& nsMPM.resizeHandler.lastWidth != null ) {
+				if ( nsMPM.resizeHandler.lastWidth < nsMPM.resizeHandler.minWidth )
+					nsMPM.resizeHandler.lastWidth = nsMPM.resizeHandler.minWidth;
+				nsMPM.prefs.set('sb_song_width', nsMPM.resizeHandler.lastWidth);
+			}
+			if ( nsMPM.resizeHandler.win ) {
+				nsMPM.resizeHandler.win.removeEventListener("mouseup",nsMPM.resizeHandler.onMouseUp,false);
+				nsMPM.resizeHandler.win.removeEventListener("mousemove",nsMPM.resizeHandler.onMouseMove,false);
+			}
+		} catch(e){nsMPM.debug(e);}
+	}
 }
 // dependent js modules
 // declare holder in mpmCommon.js

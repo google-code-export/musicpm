@@ -382,6 +382,7 @@
                 this.tmChoke = dt.getTime()
                 var dt = null
                 var me = this
+				var ns = nsMPM
 
                 var seekScroll = function (event) {
                     lbl1.parentNode.seekBySec(event.detail * -2);
@@ -392,8 +393,7 @@
 						if (!progress.userdrag) {
 							progress.value = data
 							progress.enabled = true
-							if (typeof(nsMPM) == 'undefined') dump('bla\n');
-							else lbl1.value = nsMPM.hmsFromSec(data);
+							lbl1.value = ns.hmsFromSec(data);
 						}
                     }
                 };
@@ -402,7 +402,7 @@
                         if (!me.chokeTimer) {
                             progress.max = data
                             lbl2.seconds = data;
-                            lbl2.value = nsMPM.hmsFromSec(data);
+                            lbl2.value = ns.hmsFromSec(data);
                         }
                     }
                 };
@@ -412,7 +412,7 @@
                         progress.enabled = enable
                         lbl1.enabled = enable
                         lbl2.enabled = enable
-                        //obs2.observe(null,null,nsMPM.mpd.Time)
+                        //obs2.observe(null,null,ns.mpd.Time)
                     }
                 };
 
@@ -422,9 +422,9 @@
                 this.seekScroll = seekScroll
                 obs1.observe(null,null,nsMPM.mpd.time)
                 obs2.observe(null,null,nsMPM.mpd.Time)
-                nsMPM.observerService.addObserver(obs1,"time",false)
-                nsMPM.observerService.addObserver(obs2,"Time",false)
-                nsMPM.observerService.addObserver(obsState,"state",false)
+                nsMPM.observerService.addObserver(this.obs1,"time",false)
+                nsMPM.observerService.addObserver(this.obs2,"Time",false)
+                nsMPM.observerService.addObserver(this.obsState,"state",false)
                 this.addEventListener("DOMMouseScroll", seekScroll, false)
                 ]]>
             </constructor>
@@ -468,9 +468,7 @@
                                 var tm = this.tmChoke + 1000 - mil
                                 this.chokeTimer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer)
                                 this.chokeTimer.initWithCallback(cb, tm, Components.interfaces.nsITimer.TYPE_ONE_SHOT)
-
                             }
-
                         }
                     }
                     this.lbl1.seconds = sec;
