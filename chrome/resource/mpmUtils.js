@@ -902,4 +902,4 @@ nsMPM.resizeHandler = {
 // declare holder in mpmCommon.js
 if (nsMPM.mpmMenu == null) Components.utils.import("resource://minion/mpmMenu.js",nsMPM);
 if (nsMPM.mpd == null) Components.utils.import("resource://minion/mpd.js",nsMPM);
-if (nsMPM.mpmUpgrade == null || nsMPM.mpmIsUpgraded == null ) Components.utils.import("resource://minion/mpmUpgrade.js",nsMPM);
+if (nsMPM.mpmUpgrade == null ) Components.utils.import("resource://minion/mpmUpgrade.js",nsMPM);

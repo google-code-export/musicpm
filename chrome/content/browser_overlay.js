@@ -2,7 +2,7 @@ Components.utils.import("resource://minion/mpmUtils.js");
 nsMPM.debug("Starting Music player Minion...");
 
 nsMPM.debug("Checking for upgrades...");
-nsMPM.mpmUpgrade(nsMPM.mpd);
+nsMPM.mpmUpgrade.check(nsMPM.mpd);
 
 nsMPM.debug('Loading preferences...');
 nsMPM.mpd.loadServers();
@@ -41,7 +41,7 @@ nsMPM_window.mpm = {
 	},
 	onFocus: function (e) {
 		window.removeEventListener("focus", function(e) { nsMPM_window.mpm.onFocus(e); }, false);
-		if (nsMPM.mpmIsUpgraded(true) == true ) {
+		if (nsMPM.mpmUpgrade.isUpgraded(true) == true ) {
 			var cb = function (w){try{w.close}catch(e){}}
 			window.openDialog("chrome://minion/content/upgrade.xul", "showupgrade", "chrome", cb)
 		}
