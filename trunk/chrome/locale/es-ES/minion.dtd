@@ -54,6 +54,8 @@
 <!ENTITY settings.pane3 "Depuración">
 <!ENTITY settings.enable_debug "Mostrar información de depuración en la consola">
 <!ENTITY settings.help "Click para ayuda en línea">
+<!ENTITY settings.statusbar "Status-bar">
+<!ENTITY settings.theme "Theme">
 <!ENTITY minion.dummy2 "<----------------- Ventana de servidores --------------->">
 <!ENTITY servers.title "Servidores">
 <!ENTITY servers.lserver "Descripción">
