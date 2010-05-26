@@ -1,6 +1,11 @@
 #summary A history of changes made for each release.  Alphas not included.
 #labels Featured
 
+= 2.1.1 (currently in active development) = 
+  * Added a resizable status-bar. The size is saved and restored properly. (r324)
+  * Fixed menu corruption is menu editor (issue 80)
+  * Fixed upgrade dialog box when displayed. Version and name properly displayed (r325)
+
 = 2.1.0 =
   * New main interface (including, playlist, folder and tag navigation)
   * New preference panels (including debugs, amazon and status-bar controls)
