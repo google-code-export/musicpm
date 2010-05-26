@@ -17,24 +17,23 @@
     <![CDATA[
         Components.utils.import("resource://minion/mpmUtils.js");
         
-        function addMenuItem (index, sep) {
-	        var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-	        var list = document.getElementById("menuList")
-            var e = document.createElementNS(xul,'listitem')
-            if (index < 0) {
-                index = list.selectedIndex + 1
-                if (nsMPM.Nz(sep)) nsMPM.mpmMenu.items.splice(index, 0, 'separator')
-                else nsMPM.mpmMenu.items.splice(index, 0, new nsMPM.mpmMenu.mpmMenuItem)
-				nsMPM.debug(new nsMPM.mpmMenu.mpmMenuItem)
-            }
-            if (nsMPM.mpmMenu.items[index] == 'separator') {
-                var label = '<separator>'
-            }
-            else {
-                var label = nsMPM.mpmMenu.items[index].label
-            }
-            list.insertItemAt(index, label, index)
-        }
+		function addMenuItem (index, sep) {
+			var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+			var list = document.getElementById("menuList")
+			var e = document.createElementNS(xul,'listitem')
+			if (index < 0) {
+				index = list.selectedIndex + 1
+				if (nsMPM.Nz(sep)) nsMPM.mpmMenu.items.splice(index, 0, 'separator')
+				else nsMPM.mpmMenu.items.splice(index, 0, new nsMPM.mpmMenu.mpmMenuItem)
+			}
+			if (nsMPM.mpmMenu.items[index] == 'separator') {
+				var label = '<separator>'
+			}
+			else {
+				var label = nsMPM.mpmMenu.items[index].label
+			}
+			list.insertItemAt(index, label, index);
+		}
 
         function getMenus(select){
             var list = document.getElementById("menuList")
@@ -47,40 +46,44 @@
             list.selectedIndex = nsMPM.Nz(select, 0)
             list.changing = false
         }
-        
-        function saveItem (e) {
-            var list = document.getElementById("menuList")
-            if (list.changing) return null
-            var item = nsMPM.mpmMenu.items[e.value]
-            if (typeof(item) == 'object') {
-	            rows = ["label","targets","locations","URL","queryType",
-	                "queryScope", "mpdCommand", "script"]
-	            for each (val in rows) {
-	                var row = document.getElementById('menuItem_'+val)
-	                if (row) {
-	                    item[val] = (row.childNodes[1].value > "") ? row.childNodes[1].value : null
-	                }
-	            }
-                e.label = item.label
-            }
-        }
-        
+
+        function saveItem (e,index) {
+			try {
+				var list = document.getElementById("menuList")
+				if (list.changing) return null
+				var item = nsMPM.mpmMenu.items[index]
+				if (typeof(item) == 'object') {
+					rows = ["label", "targets", "locations", "URL", "queryType", "queryScope", "mpdCommand", "script"]
+					for each (val in rows) {
+						var row = document.getElementById('menuItem_'+val)
+						if (row) {
+							item[val] = (row.childNodes[1].value > "") ? row.childNodes[1].value : null
+						}
+					}
+					e.label = item.label
+					e.value = index;
+				}
+			} catch(ex) {nsMPM.debug(ex);}
+		}
+
         function loadItem (e) {
-            if (!e) return null
-            var list = document.getElementById("menuList")
-            if (nsMPM.Nz(list.lastIndex,-1) > -1) {
-                saveItem(list.childNodes[list.lastIndex])
-            }
-            var item = nsMPM.mpmMenu.items[e.value]
-            rows = ["label","targets","locations","URL","queryType",
-                "queryScope", "filterField", "mpdCommand", "script"]
-            for each (val in rows) {
-                var row = document.getElementById('menuItem_'+val)
-                if (row) {
-                    row.childNodes[1].value = (nsMPM.Nz(item[val])) ? item[val] : ""
-                }
-            }
-            list.lastIndex = e.value
+			if (!e) return null;
+			try {
+				var list = document.getElementById("menuList")
+				if (nsMPM.Nz(list.lastIndex,-1) > -1) {
+					saveItem(list.childNodes[list.lastIndex],list.lastIndex);
+				}
+				var index = list.selectedIndex;
+				var item = nsMPM.mpmMenu.items[index];
+				rows = ["label", "targets", "locations", "URL", "queryType", "queryScope", "filterField", "mpdCommand", "script"];
+				for each (val in rows) {
+					var row = document.getElementById('menuItem_'+val);
+					if (row) {
+						row.childNodes[1].value = (nsMPM.Nz(item[val])) ? item[val] : "";
+					}
+				}
+				list.lastIndex = index;
+			} catch(ex) {nsMPM.debug(ex);}
         }
         
         function moveItem (dir) {
@@ -115,11 +118,11 @@
                 getMenus(list.selectedIndex)
             }
         }
-        
+ 
         function doSave(){
             var list = document.getElementById("menuList")
             if (nsMPM.Nz(list.lastIndex,-1) > -1) {
-                saveItem(list.childNodes[list.lastIndex])
+                saveItem(list.childNodes[list.lastIndex],list.lastIndex);
             }
             nsMPM.mpmMenu.save()
             return true;
@@ -152,7 +155,7 @@
         <vbox>
             <listbox id="menuList"
                 flex="1"     
-                onselect="loadItem(this.selectedItem)"/>
+                onselect="loadItem(this.selectedItem);"/>
             <hbox pack="center" align="center">
                 <button label="&menued.moveup;" flex="1" oncommand="moveItem(-1)"/>
                 <button label="&menued.movedown;" flex="1" oncommand="moveItem(+1)"/>
