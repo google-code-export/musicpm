@@ -54,6 +54,8 @@
 <!ENTITY settings.pane3 "Debug">
 <!ENTITY settings.enable_debug "Display debug info in the console">
 <!ENTITY settings.help "Click me for online help">
+<!ENTITY settings.statusbar "Status-bar">
+<!ENTITY settings.theme "Theme">
 <!ENTITY minion.dummy2 "<----------------- servers window --------------->">
 <!ENTITY servers.title "Servers">
 <!ENTITY servers.lserver "Description">
