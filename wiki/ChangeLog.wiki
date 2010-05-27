@@ -2,7 +2,9 @@
 #labels Featured
 
 = 2.1.1 (currently in active development) = 
-  * Added a resizable status-bar. The size is saved and restored properly. (r324)
+  * Added a resizable statusbar. The size is saved and restored properly. (r324)
+  * Ability to entirely hide the statusbar (r330)
+  * Added menu to control the extension when the statusbar is hidden (r330)
   * Fixed menu corruption is menu editor (issue 80)
   * Fixed upgrade dialog box when displayed. Version and name properly displayed (r325)
 
