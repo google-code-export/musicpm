@@ -30,8 +30,14 @@
 <!ENTITY title "Titre">
 <!ENTITY track "Piste">
 
+<!ENTITY update.dummy8 "<----------------- Access keys --------------->">
+<!ENTITY ak.manage_server "v">
+<!ENTITY ak.menu_minion "M">
+<!ENTITY ak.menu_settings "S">
+<!ENTITY ak.prefs "P">
 <!ENTITY minion.dummy1 "<----------------- fenetre des parametres --------------->">
 <!ENTITY settings.title "Paramètres">
+<!ENTITY settings.prefs "Préférences">
 <!ENTITY settings.pane1 "Général">
 <!ENTITY settings.check_linguistic_sort "Toujours charger avec le tri linguistique (casse insensible)">
 <!ENTITY settings.check_launch_in_browser "Lancer Minion dans un onglet (à l'opposé d'une nouvelle fenêtre)">
@@ -56,6 +62,7 @@
 <!ENTITY settings.help "cliquez moi pour de l'aide en ligne">
 <!ENTITY settings.statusbar "Barre d'état">
 <!ENTITY settings.theme "Thème">
+<!ENTITY settings.statusbar_hide "Cacher la barre d'état">
 <!ENTITY minion.dummy2 "<----------------- fenetre des servers --------------->">
 <!ENTITY servers.title "Serveurs">
 <!ENTITY servers.lserver "Description">

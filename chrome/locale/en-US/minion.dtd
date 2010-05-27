@@ -30,8 +30,14 @@
 <!ENTITY title "Title">
 <!ENTITY track "Track">
 
+<!ENTITY update.dummy8 "<----------------- Access keys --------------->">
+<!ENTITY ak.manage_server "v">
+<!ENTITY ak.menu_minion "M">
+<!ENTITY ak.menu_settings "S">
+<!ENTITY ak.prefs "P">
 <!ENTITY minion.dummy1 "<----------------- settings window --------------->">
 <!ENTITY settings.title "Settings">
+<!ENTITY settings.prefs "Preferences">
 <!ENTITY settings.pane1 "General">
 <!ENTITY settings.check_linguistic_sort "Always load with linguistic sort (case insensitive)">
 <!ENTITY settings.check_launch_in_browser "Launch Minion in tab (as opposed to new window)">
@@ -54,8 +60,9 @@
 <!ENTITY settings.pane3 "Debug">
 <!ENTITY settings.enable_debug "Display debug info in the console">
 <!ENTITY settings.help "Click me for online help">
-<!ENTITY settings.statusbar "Status-bar">
+<!ENTITY settings.statusbar "Statusbar">
 <!ENTITY settings.theme "Theme">
+<!ENTITY settings.statusbar_hide "Hide statusbar">
 <!ENTITY minion.dummy2 "<----------------- servers window --------------->">
 <!ENTITY servers.title "Servers">
 <!ENTITY servers.lserver "Description">

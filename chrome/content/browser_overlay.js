@@ -30,12 +30,7 @@ nsMPM_window.mpm = {
 			nsMPM.observerService.addObserver(nsMPM_window.obs, 'greeting', false);
 			nsMPM.observerService.addObserver(nsMPM_window.obsVol, 'volume', false);
 			nsMPM_window.csPrefObserver.register();
-			nsMPM.updateStatusBarPosition(nsMPM_window.document);
-			var newWidth = nsMPM.prefs.get('sb_song_width',150);
-			nsMPM_window.document.getElementById('mpm_sb_Titleb').setAttribute('width',newWidth);
-			nsMPM_window.document.getElementById('mpm_sb_Titleb').child.setAttribute('width',newWidth);
-			nsMPM_window.document.getElementById('mpm_sb_Title').setAttribute('width',newWidth);
-			nsMPM_window.document.getElementById('mpm_sb_Title').child.setAttribute('width',newWidth);
+			nsMPM.updateStatusBarStyles(nsMPM_window);
 		} catch(e){nsMPM.debug(e);}
 		nsMPM.debug('loaded')
 	},
@@ -133,16 +128,10 @@ nsMPM_window.csPrefObserver = {
 				nsMPM_window.document.getElementById('sb_playlist_menu').collapsed = !menu
 				nsMPM_window.document.getElementById('sb_playlist_box').collapsed = menu
 				break;
-			case "statusbar_position":
-				nsMPM.updateStatusBarPosition(nsMPM_window.document);
-				break;
 			case "sb_song_width":
-				var newWidth = nsMPM.prefs.get('sb_song_width',150);
-				nsMPM.debug("status-bar title width changed: "+ newWidth);
-				nsMPM_window.document.getElementById('mpm_sb_Title').setAttribute('width',newWidth);
-				nsMPM_window.document.getElementById('mpm_sb_Title').child.setAttribute('width',newWidth);
-				nsMPM_window.document.getElementById('mpm_sb_Titleb').setAttribute('width',newWidth);
-				nsMPM_window.document.getElementById('mpm_sb_Titleb').child.setAttribute('width',newWidth);
+			case "statusbar_position":
+			case "statusbar_hide":
+				nsMPM.updateStatusBarStyles(nsMPM_window);
 				break;
 		}
 	}

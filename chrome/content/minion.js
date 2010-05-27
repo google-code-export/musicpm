@@ -100,12 +100,12 @@ var postinit = { notify: function(postinittimer) {
 
 function unload () {
 	try {
-		document.getElementById("browse").saveColumns()
-		document.getElementById("playlist").saveColumns()
+		document.getElementById("browse").saveColumns();
+		document.getElementById("playlist").saveColumns();
 		// FIXME: not working document.getElementById("browser_playlist").saveColumns()
-		nsMPM.observerService.removeObserver(observerPlaylists,"playlists")
-		// FIXME: useless? nsMPM.observerService.removeObserver(observerPlaylistName,"load_playlist")
-	} catch(e){ nsMPM.debug(e); }
+		nsMPM.observerService.removeObserver(observerPlaylists,"playlists");
+		nsMPM.observerService.removeObserver(observerPlaylistName,"playlistname");
+	} catch(e){ /* we may have an exception when the browser is closed but another window remains */ }
 }
 
 function mpdExecute () {
