@@ -566,24 +566,42 @@ nsMPM.guessTags = function(song) {
 	return song
 }
 
-nsMPM.updateStatusBarPosition = function(doc) {
+nsMPM.updateStatusBarStyles = function(wStorage) {
 	let that = this;
 	var index = that.prefs.get("statusbar_position", 0);
 	if (index <= 0) return;
 	that.debug('status-bar index: '+index);	
 	try
 	{
-		var statusBar = doc.getElementById("status-bar");
+		var statusBar = wStorage.document.getElementById("status-bar");
 		var children = statusBar.childNodes;
 
-		var statusbarItem = doc.getElementById("mpm_status-bar_controls");
+		if ( wStorage.statusbar == null )
+			wStorage.statusbar = wStorage.document.getElementById("mpm_status-bar_controls");
+		
+		if ( wStorage.statusbar == null ) that.debug("mpm_status-bar_controls cannot be found")
+ 
+		try {
+			statusBar.removeChild(wStorage.statusbar);
+		} catch(e){that.debug("cannot remove status-bar item");}
 
-		var newStatusbarItem = statusBar.removeChild(statusbarItem);
-
-		if ((children.length == 0) || (index >= children.length)){
-			statusBar.appendChild(newStatusbarItem);
+		if ( that.prefs.get('statusbar_hide',false) == false ) {
+			// status-bar position
+			if ((children.length == 0) || (index >= children.length)){
+				statusBar.appendChild(wStorage.statusbar);
+			} else {
+				statusBar.insertBefore(wStorage.statusbar, children[index-1]);
+			}
+			
+			// current song styles
+			var newWidth = that.prefs.get('sb_song_width',150);
+			that.debug("status-bar title width changed: "+ newWidth);
+			wStorage.document.getElementById('mpm_sb_Titleb').setAttribute('width',newWidth);
+			wStorage.document.getElementById('mpm_sb_Titleb').child.setAttribute('width',newWidth);
+			wStorage.document.getElementById('mpm_sb_Title').setAttribute('width',newWidth);
+			wStorage.document.getElementById('mpm_sb_Title').child.setAttribute('width',newWidth);
 		} else {
-			statusBar.insertBefore(newStatusbarItem, children[index-1]);
+			that.debug("Status-bar not displayed based on prefs");
 		}
 	} catch(e) {
 		that.debug(e);
@@ -845,6 +863,7 @@ nsMPM.winStorage = function(win,doc) {
 	this.window = win;
 	this.document = doc;
 	this.mpm = null;
+	this.statusbar = null;
 }
 
 nsMPM.resizeHandler = {

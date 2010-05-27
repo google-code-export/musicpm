@@ -17,8 +17,9 @@
 <prefpane id="pane2" label="&settings.pane2;">
 	<preferences>
 		<preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
-		<preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
 		<preference id="playlist_bottom" name="extensions.mpm.playlist_bottom" type="bool"/>
+		<preference id="statusbar_hide" name="extensions.mpm.statusbar_hide" type="bool"/>
+		<preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
 		<preference id="sb_playlist_menu" name="extensions.mpm.sb_playlist_menu" type="bool"/>
 		<preference id="statusbar_position" name="extensions.mpm.statusbar_position" type="int"/>
 	</preferences>
@@ -41,6 +42,7 @@
 				tooltiptext="&settings.help;"
 				onclick="window.open('http://code.google.com/p/musicpm/wiki/AlbumArtCovers')"/>
 		</caption>
+		<checkbox id="check_statusbar_hide" preference="statusbar_hide" label="&settings.statusbar_hide;"/>
 		<checkbox id="check_cs" preference="sb_cs_hide" label="&settings.check_cs;"/>
 		<checkbox id="check_playlist_menu" preference="sb_playlist_menu" label="&settings.check_playlist_menu;"/>
 		<hbox align="center">

@@ -109,4 +109,18 @@
             <mpdservers/>
         </statusbarpanel>
     </statusbar>
+	<menubar id="main-menubar">
+		<menu id="menu_mpm" label="Minion" accesskey="&ak.menu_minion;">
+			<menupopup id="menu_mpmPopup">
+				<menuitem label="&minion.launch;" oncommand="nsMPM.openReuseByURL('chrome://minion/content/minion.xul');" accesskey="O"/>
+				<menuseparator/>
+				<menu id="menu_mpmSettings" label="&settings.title;" accesskey="&ak.menu_settings;">
+					<menupopup id="menu_mpmPopupSettings">
+						<menuitem label="&settings.prefs;" accesskey="&ak.prefs;" oncommand="nsMPM.mpm_openDialog('chrome://minion/content/settings.xul', 'settings');"/>
+						<menuitem label="&minion.manage_servers;" accesskey="&ak.manage_server;" oncommand="nsMPM.mpm_openDialog('chrome://minion/content/servers.xul', 'servers');"/>
+					</menupopup>
+				</menu>
+			</menupopup>
+		</menu>
+	</menubar>
 </overlay>
