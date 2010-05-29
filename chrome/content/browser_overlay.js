@@ -30,7 +30,7 @@ nsMPM_window.mpm = {
 			nsMPM.observerService.addObserver(nsMPM_window.obs, 'greeting', false);
 			nsMPM.observerService.addObserver(nsMPM_window.obsVol, 'volume', false);
 			nsMPM_window.csPrefObserver.register();
-			nsMPM.updateStatusBarStyles(nsMPM_window);
+			nsMPM.updateStatusBarAllStyles(nsMPM_window);
 		} catch(e){nsMPM.debug(e);}
 		nsMPM.debug('loaded')
 	},
@@ -72,20 +72,14 @@ nsMPM_window.mpm = {
 nsMPM_window.obs = {
 	observe: function(sub,topic,data){
 		var hide = (nsMPM.mpd._socket == null);
-		nsMPM_window.document.getElementById('mpm_sb_controls').hidden = hide;
-		nsMPM_window.document.getElementById('mpm_sb_volume').hidden = hide;
-		nsMPM_window.document.getElementById('mpm_sb_playlist').hidden = hide;
-		nsMPM_window.document.getElementById('mpm_sb_currentsong').hidden = hide;
+		nsMPM.updateStatusBarElementsStyles(nsMPM_window,'force','playback',hide);
+		nsMPM.updateStatusBarElementsStyles(nsMPM_window,'force','currentsong',hide);
+		nsMPM.updateStatusBarElementsStyles(nsMPM_window,'force','playlist',hide);
+
 		if (!hide) {
-			nsMPM_window.csPrefObserver.observe(null,"nsPref:changed","sb_currentsong_hide")
-			nsMPM_window.csPrefObserver.observe(null,"nsPref:changed","sb_playlist_menu")
-		} else {
-			nsMPM_window.document.getElementById('mpm_sb_currentsong').collapsed = true
-			nsMPM_window.document.getElementById('mpm_sb_playlist').collapsed = true
-			nsMPM_window.document.getElementById('mpm_sb_currentsongb').collapsed = true
-			nsMPM_window.document.getElementById('mpm_sb_playlistb').collapsed = true
-			nsMPM_window.document.getElementById('sb_playlist_menu').collapsed = true
-			nsMPM_window.document.getElementById('sb_playlist_box').collapsed = true
+			nsMPM_window.csPrefObserver.observe(null,"nsPref:changed","sb_controls_hide");
+			nsMPM_window.csPrefObserver.observe(null,"nsPref:changed","sb_currentsong_hide");
+			nsMPM_window.csPrefObserver.observe(null,"nsPref:changed","sb_playlist_menu");
 		}
 	}
 };
@@ -114,20 +108,21 @@ nsMPM_window.csPrefObserver = {
 		// aSubject is the nsIPrefBranch we're observing (after appropriate QI)
 		// aData is the name of the pref that's been changed (relative to aSubject)
 		switch (aData) {
+			case "sb_launch_hide":
+				nsMPM.updateStatusBarElementsStyles(nsMPM_window,'pref','launch',null);
+			break;
+			case "sb_controls_hide":
+				nsMPM.updateStatusBarElementsStyles(nsMPM_window,'pref','playback',null);
+			break;
 			case "sb_currentsong_hide":
-				var hide = nsMPM.prefs.get('sb_currentsong_hide', false)
-				nsMPM_window.document.getElementById('mpm_sb_currentsong').collapsed = hide;
-				nsMPM_window.document.getElementById('mpm_sb_playlist').collapsed = !hide;
-				nsMPM_window.document.getElementById('mpm_sb_box_resizer').collapsed = hide;
-				nsMPM_window.document.getElementById('mpm_sb_currentsongb').collapsed = hide;
-				nsMPM_window.document.getElementById('mpm_sb_playlistb').collapsed = !hide;
-				nsMPM_window.document.getElementById('mpm_sb_box_resizerb').collapsed = hide;
-				break;
+				nsMPM.updateStatusBarElementsStyles(nsMPM_window,'pref','currentsong',null);
+			break;
 			case "sb_playlist_menu":
-				var menu = nsMPM.prefs.get('sb_playlist_menu', false)
-				nsMPM_window.document.getElementById('sb_playlist_menu').collapsed = !menu
-				nsMPM_window.document.getElementById('sb_playlist_box').collapsed = menu
-				break;
+				nsMPM.updateStatusBarElementsStyles(nsMPM_window,'pref','playlist',null);
+			break;
+			case "sb_settings_hide":
+				nsMPM.updateStatusBarElementsStyles(nsMPM_window,'pref','settings',null);
+			break;
 			case "sb_song_width":
 			case "statusbar_position":
 			case "statusbar_hide":

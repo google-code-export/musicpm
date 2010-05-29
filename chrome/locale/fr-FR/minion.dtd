@@ -70,6 +70,9 @@
 <!ENTITY servers.lport "Port">
 <!ENTITY servers.lpassword "Mot de passe">
 <!ENTITY servers.addserver "Ajouter">
+<!ENTITY settings.check_ctrl "Masquer les contrôles de lecture">
+<!ENTITY settings.check_launch "Masquer le boutton 'lancer'">
+<!ENTITY settings.check_settings "Masquer le boutton 'Paramètres'">
 <!ENTITY minion.dummy3 "<----------------- menus divers --------------->">
 <!ENTITY menu.title "Action par défaut sur double-clic">
 <!ENTITY menu.editmenu "Editer les menus">

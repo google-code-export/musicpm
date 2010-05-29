@@ -727,15 +727,14 @@ mpd.loadServers = function() {
 		nsMPM.mpd.servers = nsMPM.JSON.parse(str);
 	} else {
 		// creating default server
-		var s;
-		var p;
+		var s,p;
 		if ( nsMPM.env.exists('MPD_HOST') ) {
 			s = nsMPM.env.get('MPD_HOST');
 			if ( nsMPM.env.exists('MPD_PORT')) {
 				p = nsMPM.env.get('MPD_PORT');
 			} else {
-				p = 6600;
-			} // [["localhost", "localhost:6600:"]];
+				p = 6600; // this is the default mpd port
+			}
 			nsMPM.debug('Found MPD environment settings');
 			nsMPM.mpd.servers = [[s, s+':'+p+':']]
 			nsMPM.mpd.setServers(nsMPM.mpd.servers);

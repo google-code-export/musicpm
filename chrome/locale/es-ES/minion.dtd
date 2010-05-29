@@ -63,6 +63,9 @@
 <!ENTITY settings.statusbar "Barra de estado">
 <!ENTITY settings.theme "Tema">
 <!ENTITY settings.statusbar_hide "Ocultar la barra de estado">
+<!ENTITY settings.check_ctrl "Ocultar los controles de reproducción">
+<!ENTITY settings.check_launch "Ocultar botón 'Ejecutar'">
+<!ENTITY settings.check_settings "Ocultar botón 'Ajustes'">
 <!ENTITY minion.dummy2 "<----------------- Ventana de servidores --------------->">
 <!ENTITY servers.title "Servidores">
 <!ENTITY servers.lserver "Descripción">

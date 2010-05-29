@@ -106,7 +106,7 @@
 					onmouseup="nsMPM.resizeHandler.onMouseUp(event);" 
 					onmousemove="nsMPM.resizeHandler.onMouseMove(event);"/>
             </hbox>
-            <mpdservers/>
+            <mpdservers id="mpm_sb_servers"/>
         </statusbarpanel>
     </statusbar>
 	<menubar id="main-menubar">

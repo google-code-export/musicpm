@@ -62,7 +62,10 @@
 <!ENTITY settings.help "Click me for online help">
 <!ENTITY settings.statusbar "Statusbar">
 <!ENTITY settings.theme "Theme">
-<!ENTITY settings.statusbar_hide "Hide statusbar">
+<!ENTITY settings.statusbar_hide "Hide the statusbar">
+<!ENTITY settings.check_ctrl "Hide the playback controls">
+<!ENTITY settings.check_launch "Hide 'launch' button">
+<!ENTITY settings.check_settings "Hide 'settings' button">
 <!ENTITY minion.dummy2 "<----------------- servers window --------------->">
 <!ENTITY servers.title "Servers">
 <!ENTITY servers.lserver "Description">
