@@ -727,9 +727,25 @@ mpd.loadServers = function() {
 		nsMPM.mpd.servers = nsMPM.JSON.parse(str);
 	} else {
 		// creating default server
-		nsMPM.debug("Creating default servers.");
-		nsMPM.mpd.servers = default_servers;
-		nsMPM.mpd.setServers(nsMPM.mpd.servers);
+		var s;
+		var p;
+		if ( nsMPM.env.exists('MPD_HOST') ) {
+			s = nsMPM.env.get('MPD_HOST');
+			if ( nsMPM.env.exists('MPD_PORT')) {
+				p = nsMPM.env.get('MPD_PORT');
+			} else {
+				p = 6600;
+			} // [["localhost", "localhost:6600:"]];
+			nsMPM.debug('Found MPD environment settings');
+			nsMPM.mpd.servers = [[s, s+':'+p+':']]
+			nsMPM.mpd.setServers(nsMPM.mpd.servers);
+			nsMPM.prefs.set("server",nsMPM.mpd.servers[0][1]);
+		} else {
+			nsMPM.debug("Creating default servers.");
+			nsMPM.mpd.servers = default_servers;
+			nsMPM.mpd.setServers(nsMPM.mpd.servers);
+			nsMPM.prefs.set("server",nsMPM.mpd.servers[0][1]);
+		}
 	}
 	file = null;
 }

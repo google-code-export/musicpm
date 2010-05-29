@@ -66,7 +66,7 @@ function init () {
     var browse = document.getElementById('browse')
     browse.handle_select = browse_select
 	var s = decodeURI(window.location.search)
-	nsMPM.debug(s)
+	nsMPM.debug(s);
 	if (s.length != 0) {
 		s = s.split("=")
 		switch (s[0]) {

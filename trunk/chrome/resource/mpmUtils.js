@@ -30,6 +30,8 @@ nsMPM.slidetimer 	   = nsMPM.Cc["@mozilla.org/timer;1"]
 nsMPM.translateService = nsMPM.Cc["@mozilla.org/intl/stringbundle;1"]
 						.getService(nsMPM.Ci.nsIStringBundleService)
 						.createBundle("chrome://minion/locale/strings.properties");
+nsMPM.env =				nsMPM.Cc["@mozilla.org/process/environment;1"].
+						getService(nsMPM.Ci.nsIEnvironment);
 
 nsMPM.getStringTime = function() {
 	var today = new Date();
