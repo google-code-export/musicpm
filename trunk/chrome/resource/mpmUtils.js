@@ -567,6 +567,87 @@ nsMPM.guessTags = function(song) {
 	} catch (e) {that.debug(e)}
 	return song
 }
+nsMPM.updateStatusBarAllStyles = function(wStorage) {
+	let that = this;
+	that.updateStatusBarStyles(wStorage);
+	that.updateStatusBarElementsStyles(wStorage,'pref','launch',null);
+	that.updateStatusBarElementsStyles(wStorage,'pref','playback',null);
+	that.updateStatusBarElementsStyles(wStorage,'pref','currentsong',null);
+	that.updateStatusBarElementsStyles(wStorage,'pref','playlist',null);
+	that.updateStatusBarElementsStyles(wStorage,'pref','settings',null);
+}
+nsMPM.updateStatusBarElementsStyles = function (wStorage, domain, topic, hide){
+	let that = this;
+	if ( !topic || topic == '') {
+		that.debug('Call to updateStatusBarElementsStyles with no topic');
+		return;
+	}
+	switch (domain) {
+		case 'force':
+			switch(topic) {
+				case 'playback':
+					wStorage.document.getElementById('mpm_sb_controls').hidden = hide;
+					wStorage.document.getElementById('mpm_sb_volume').hidden = hide;
+				break;
+				case 'currentsong':
+					wStorage.document.getElementById('mpm_sb_currentsong').hidden = hide;
+					wStorage.document.getElementById('mpm_sb_playlist').hidden = hide;
+					wStorage.document.getElementById('mpm_sb_currentsongb').collapsed = hide;
+					wStorage.document.getElementById('mpm_sb_playlistb').collapsed = hide;
+				break;
+				case 'playlist':
+					wStorage.document.getElementById('sb_playlist_menu').collapsed = hide;
+					wStorage.document.getElementById('sb_playlist_box').collapsed = hide;
+
+				break;
+				default:
+					that.debug('Call to updateStatusBarElementsStyles() with unknown domain:topic: '+domain+':'+topic);
+				break;
+			}
+		break;
+		case 'pref':
+			switch(topic) {
+				case 'launch':
+					var h = that.prefs.get('sb_launch_hide', false);
+					wStorage.document.getElementById('mpm_sb_launch').hidden = h;
+				break;
+				case 'playback':
+					if  (that.mpd._socket == null) return;
+					var h = that.prefs.get('sb_controls_hide', false);
+					wStorage.document.getElementById('mpm_sb_controls').hidden = h;
+					wStorage.document.getElementById('mpm_sb_volume').hidden = h;
+				break;
+				case 'currentsong':
+					if  (that.mpd._socket == null) return;
+					var h = that.prefs.get('sb_currentsong_hide', false);
+					wStorage.document.getElementById('mpm_sb_currentsong').collapsed = h;
+					wStorage.document.getElementById('mpm_sb_playlist').collapsed = !h;
+					wStorage.document.getElementById('mpm_sb_box_resizer').collapsed = h;
+					wStorage.document.getElementById('mpm_sb_currentsongb').collapsed = h;
+					wStorage.document.getElementById('mpm_sb_playlistb').collapsed = !h;
+					wStorage.document.getElementById('mpm_sb_box_resizerb').collapsed = h;
+				break;
+				case 'playlist':
+					if  (that.mpd._socket == null) return;
+					var menu = that.prefs.get('sb_playlist_menu', false);
+					wStorage.document.getElementById('sb_playlist_menu').collapsed = !menu;
+					wStorage.document.getElementById('sb_playlist_box').collapsed = menu;
+				break;
+				case 'settings':
+					var h = that.prefs.get('sb_settings_hide', false);
+					wStorage.document.getElementById('mpm_sb_servers').collapsed = h;
+					wStorage.document.getElementById('mpm_sb_servers').hidden = h;
+				break;
+				default:
+					that.debug('Call to updateStatusBarElementsStyles() with unknown domain:topic: '+domain+':'+topic);
+				break;
+			}
+		break;
+		default:
+			that.debug('Call to updateStatusBarElementsStyles() with unknown domain:topic: '+domain+':'+topic);
+		
+	}
+}
 
 nsMPM.updateStatusBarStyles = function(wStorage) {
 	let that = this;

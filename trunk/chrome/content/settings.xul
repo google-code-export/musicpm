@@ -19,7 +19,10 @@
 		<preference id="theme" name="extensions.mpm.use_theme" type="bool" inverted="true"/>
 		<preference id="playlist_bottom" name="extensions.mpm.playlist_bottom" type="bool"/>
 		<preference id="statusbar_hide" name="extensions.mpm.statusbar_hide" type="bool"/>
+		<preference id="sb_launch_hide" name="extensions.mpm.sb_launch_hide" type="bool"/>
+		<preference id="sb_controls_hide" name="extensions.mpm.sb_controls_hide" type="bool"/>
 		<preference id="sb_cs_hide" name="extensions.mpm.sb_currentsong_hide" type="bool"/>
+		<preference id="sb_settings_hide" name="extensions.mpm.sb_settings_hide" type="bool"/>
 		<preference id="sb_playlist_menu" name="extensions.mpm.sb_playlist_menu" type="bool"/>
 		<preference id="statusbar_position" name="extensions.mpm.statusbar_position" type="int"/>
 	</preferences>
@@ -27,9 +30,6 @@
 	<groupbox id="themeGroup">
 		<caption>
 			<label value="&settings.theme;"/>
-			<image src="chrome://minion/content/images/alwaysAsk.png" 
-				tooltiptext="&settings.help;"
-				onclick="window.open('http://code.google.com/p/musicpm/wiki/AlbumArtCovers')"/>
 		</caption>
 		<checkbox id="check_theme" preference="theme" label="&settings.check_theme;"/>
 		<checkbox id="check_playlist_bottom" preference="playlist_bottom" label="&settings.check_playlist_bottom;"/>
@@ -38,12 +38,12 @@
 	<groupbox id="statusbarGroup">
 		<caption>
 			<label value="&settings.statusbar;"/>
-			<image src="chrome://minion/content/images/alwaysAsk.png" 
-				tooltiptext="&settings.help;"
-				onclick="window.open('http://code.google.com/p/musicpm/wiki/AlbumArtCovers')"/>
 		</caption>
 		<checkbox id="check_statusbar_hide" preference="statusbar_hide" label="&settings.statusbar_hide;"/>
+		<checkbox id="check_launch" preference="sb_launch_hide" label="&settings.check_launch;"/>
+		<checkbox id="check_ctrl" preference="sb_controls_hide" label="&settings.check_ctrl;"/>
 		<checkbox id="check_cs" preference="sb_cs_hide" label="&settings.check_cs;"/>
+		<checkbox id="check_settings" preference="sb_settings_hide" label="&settings.check_settings;"/>
 		<checkbox id="check_playlist_menu" preference="sb_playlist_menu" label="&settings.check_playlist_menu;"/>
 		<hbox align="center">
 			<label value="&settings.txt_statusbar_position;"/>
