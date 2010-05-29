@@ -6,7 +6,7 @@
   * Ability to entirely hide the statusbar (r330)
   * Added menu to control the extension when the statusbar is hidden (r330)
   * At first statup, if MPD_HOST and MPD_PORT exist, they're used as default server (r332)
-  * Added preferences to individualy hide/show statusbar controls (r333)
+  * Added preferences to individualy hide/show statusbar controls (issue 52) (r333)
   * Fixed menu corruption is menu editor (issue 80)
   * Fixed upgrade dialog box when displayed. Version and name properly displayed (r325)
 
