@@ -182,7 +182,7 @@ mpmUpgrade.check = function(mpd) {
 			break;
 			default:
 				nsMPM.debug('This version has nothing to upgrade ('+oldVersion+')');
-				mpmSetUpgraded(false);
+				mpmSetUpgraded(true);
 			break;
 		}
 		mpmCleanOldPrefs();
