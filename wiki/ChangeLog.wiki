@@ -1,14 +1,18 @@
 ﻿#summary A history of changes made for each release.  Alphas not included.
 #labels Featured
 
-= 2.1.1 (currently in active development) = 
+= 2.1.1 (Under active development) = 
   * Added a resizable statusbar. The size is saved and restored properly. (r324)
   * Ability to entirely hide the statusbar (r330)
   * Added menu to control the extension when the statusbar is hidden (r330)
   * At first statup, if MPD_HOST and MPD_PORT exist, they're used as default server (r332)
   * Added preferences to individualy hide/show statusbar controls (issue 52) (r333)
+  * The upgrade box is always displayed after each update (r335)
+  * Updated Spanish translation (About box)
   * Fixed menu corruption is menu editor (issue 80)
   * Fixed upgrade dialog box when displayed. Version and name properly displayed (r325)
+  * Fixed Spanish translations (UTF-8 + BOM header)
+  * Fixed French translation
 
 = 2.1.0 =
   * New main interface (including, playlist, folder and tag navigation)

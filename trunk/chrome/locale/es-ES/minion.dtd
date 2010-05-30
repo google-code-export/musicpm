@@ -161,9 +161,9 @@
 <!ENTITY song.lyricsfly "Letras de Lyricsfly.com">
 <!ENTITY song.edit "Editar">
 <!ENTITY update.dummy7 "<----------------- Upgrade template --------------->">
-<!ENTITY upgrade.new_upgrade "New upgrade">
-<!ENTITY upgrade.homepage "Homepage">
+<!ENTITY upgrade.new_upgrade "Nueva actualización">
+<!ENTITY upgrade.homepage "Página del programa">
 <!ENTITY upgrade.message_thanks "Gracias por usar esta extensión.">
-<!ENTITY upgrade.message "We just upgraded your parameters to reflect recent changes in the extension. Please review you preferences and server settings to ensure all is set properly. Check out our homepage for the latest news and details.">
-<!ENTITY upgrade.message_team "The Music player Minion team.">
+<!ENTITY upgrade.message "Acabamos de actualizar sus parámetros para recoger cambios recientes en la extensión. Por favor, revise sus preferencias y los ajustes del servidor para asegurarse de que son los apropiados. Visite la página del programa para ver las últimas noticias y detalles.">
+<!ENTITY upgrade.message_team "El equipo de Music Player Minion.">
 <!ENTITY upgrade.about "Acerca de">
