@@ -64,7 +64,7 @@
 <!ENTITY settings.theme "Tema">
 <!ENTITY settings.statusbar_hide "Ocultar la barra de estado">
 <!ENTITY settings.check_ctrl "Ocultar los controles de reproducción">
-<!ENTITY settings.check_launch "Ocultar botón 'Ejecutar'">
+<!ENTITY settings.check_launch "Ocultar botón 'Ejecutar Minion'">
 <!ENTITY settings.check_settings "Ocultar botón 'Ajustes'">
 <!ENTITY minion.dummy2 "<----------------- Ventana de servidores --------------->">
 <!ENTITY servers.title "Servidores">
@@ -163,7 +163,7 @@
 <!ENTITY update.dummy7 "<----------------- Upgrade template --------------->">
 <!ENTITY upgrade.new_upgrade "New upgrade">
 <!ENTITY upgrade.homepage "Homepage">
-<!ENTITY upgrade.message_thanks "Thank you for using this extension.">
+<!ENTITY upgrade.message_thanks "Gracias por usar esta extensión.">
 <!ENTITY upgrade.message "We just upgraded your parameters to reflect recent changes in the extension. Please review you preferences and server settings to ensure all is set properly. Check out our homepage for the latest news and details.">
 <!ENTITY upgrade.message_team "The Music player Minion team.">
-<!ENTITY upgrade.about "About">
+<!ENTITY upgrade.about "Acerca de">
