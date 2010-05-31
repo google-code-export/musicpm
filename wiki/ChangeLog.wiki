@@ -7,6 +7,7 @@
   * Added menu to control the extension when the statusbar is hidden (r330)
   * At first statup, if MPD_HOST and MPD_PORT exist, they're used as default server (r332)
   * Added preferences to individualy hide/show statusbar controls (issue 52) (r333)
+  * Added Minion menu in the menubar (issue 75) (r330)
   * The upgrade box is always displayed after each update (r335)
   * Updated Spanish translation (About box)
   * Fixed menu corruption is menu editor (issue 80)
