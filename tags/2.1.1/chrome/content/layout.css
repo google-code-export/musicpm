@@ -1,0 +1,192 @@
+.mpm_topToolbar {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.mpm_browser_image_box > toolbarbutton {
+    text-align: left;
+}
+
+.fake_treecol {
+    overflow: clip;
+    width: 136px !important;
+}
+
+.mpm_browser_image {
+    min-width: 132px;
+    min-height: 132px;
+    max-width: 132px;
+    max-height: 132px;
+    margin: 5px;
+}
+.mpm_browser_image_small {
+    min-width: 132px;
+    min-height: 84px;
+    max-width: 132px;
+    max-height: 84px;
+    margin: 5px;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin: 5px;
+}
+.mpm_browser_image_large {
+    min-width: 260px;
+    min-height: 260px;
+    max-width: 260px;
+    max-height: 260px;
+    margin: 5px;
+}
+mpdalbumcover > image{
+    margin: 5px 10px 3px 10px;
+    padding: 0px;
+    border: 1px solid Gray;
+    height: 70px !important;
+    width: 70px !important;
+}
+
+
+mpdtime {
+    -moz-box-pack: center;
+    -moz-box-align: center;
+}
+
+
+.tagsContentLabel {
+    text-align: center;
+    padding-top: 6px;
+}
+
+.cwd {
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.cwd_counts {
+	text-align: center;
+    font-weight: normal;
+	font-size: 0.75em !important;
+    overflow: hidden;
+	padding: 0px 2px 0px 2px!important;
+	margin: 0px !important;
+	opacity: 0.7;
+}
+
+.Title {
+    font-weight: bold;
+    font-size: 20px;
+}
+.Artist {
+  font-style: italic;
+}
+
+treechildren::-moz-tree-cell-text(Artist) {
+    font-style: italic;
+}
+
+.gridlabel {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.tag_val {
+    overflow: hidden;
+}
+.tag_row {
+    max-width: 400px;
+    overflow: hidden;
+}
+
+.mpm_sb_Title {
+    overflow: hidden;	
+    width: 130px;
+	min-width: 25px !important;
+}
+.mpm_sb_Title > label {
+    overflow: hidden;
+	width: 130px;
+    margin: 0px 0px 0px 2px !important;
+    padding: 0px !important;
+}
+.mpm_sb_currentsong .mpdTime {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    margin: 0px 2px 0px 2px !important;
+}
+#mpm_status-bar_controls {
+    padding: 0px !important;
+}
+#mpm_status-bar_controls toolbarbutton {
+    -moz-appearance: none;
+    -moz-border-radius: 4px;
+    border: 1px solid transparent;
+    margin: 0px;
+}
+.mpm_sb_currentsong {
+    -moz-appearance: none;
+    -moz-border-radius: 4px;
+    border: 1px solid transparent;
+    margin: 0px;
+    border: 1px solid #CFCFCF !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    margin-left: 4px !important;
+    margin-right: 4px !important;
+}
+#mpm_status-bar_controls toolbarbutton:hover {
+    border: 1px solid #AEAEAE;
+    background-color: #EEEEEE;
+}
+#mpm_status-bar_controls toolbarbutton:active {
+    border: 1px solid black;
+    background-color: #828282;
+}
+#mpm_status-bar_controls toolbarbutton > dropmarker{
+    display: none;
+}
+#mpm_playlist_popup {
+    padding: 0px !important;
+}
+mpdplaylist > tree  {
+    margin: 0px !important;
+}
+#mpm_playlist_popup mpdplaylist {
+    padding: 0px !important;
+}
+
+treechildren::-moz-tree-cell-text(currentsong) {
+    font-weight: bold;
+}
+#mpm_sb_box_resizerb, #mpm_sb_box_resizer {
+    -moz-appearance: none !important;
+    width: 4px !important;
+    height: 8px !important;
+    background: none;
+    -moz-border-bottom-colors: rgb(113, 111, 100) rgb(172, 168, 153);
+    -moz-border-left-colors: rgb(241, 239, 226) rgb(255, 255, 255);
+    -moz-border-right-colors: rgb(113, 111, 100) rgb(172, 168, 153);
+    -moz-border-top-colors: rgb(241, 239, 226) rgb(255, 255, 255);
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-left-style: solid;
+    border-right-style: solid;
+    cursor: w-resize;
+    margin-right: 6px;
+}
+.mpm-minimode-only {
+    display: -moz-box !important;
+}
+.mpm-overlay-only {
+    display: none;
+}
+.mpm-minimode-only[hidden="true"] {
+    display: none !important;
+}
+.mpm-minimode-only {
+    display: none;
+}

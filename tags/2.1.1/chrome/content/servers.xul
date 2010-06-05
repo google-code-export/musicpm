@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
+
+<dialog id="mpmServers" title="&appname; - &servers.title;"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="getPrefs()"
+        buttons="accept,cancel"
+        buttonaccesskeyaccept="S"
+        ondialogaccept="return doSave();"
+        buttonlabelcancel="&cancel;"
+        buttonaccesskeycancel="n"
+        ondialogcancel="return doCancel();"
+        resizable="true"
+        style="overflow: auto">
+    <script>
+    <![CDATA[
+        Components.utils.import("resource://minion/mpmUtils.js");
+        var xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+		
+        function addServerRow (index) {
+            var rows = document.getElementById("server_rows")
+            var row = document.createElementNS(xul,'row')
+            var t1 = document.createElementNS(xul,'textbox')
+            var t2 = document.createElementNS(xul,'textbox')
+            var t3 = document.createElementNS(xul,'textbox')
+            var autoFill = function (e) {
+                var desc = e.target.parentNode.childNodes[0]
+                var host = e.target.parentNode.childNodes[1]
+                var port = e.target.parentNode.childNodes[2]
+                if (desc.autofillme) {
+                    desc.value = host.value + ":" + port.value
+                }
+            }
+            t1.autofillme = true
+            t1.addEventListener('input',function(e){e.target.autofillme=(e.target.value=="")},false)
+            t2.addEventListener('input',autoFill,false)
+            t3.addEventListener('input',autoFill,false)
+            t3.setAttribute('width', '75')
+            t3.setAttribute('type', 'number')
+            t3.setAttribute('value', 6600)
+            var t4 = document.createElementNS(xul,'textbox')
+            t4.setAttribute('type', 'password')
+            var btn = document.createElementNS(xul,'button')
+            btn.setAttribute('oncommand', 'this.parentNode.parentNode.removeChild(this.parentNode)')
+            btn.setAttribute('label', nsMPM.translateService.GetStringFromName("remove"))
+            if (nsMPM.Nz(index,null) != null) {
+                var desc = nsMPM.mpd.servers[index][0]
+                var srv = nsMPM.mpd.servers[index][1].split(":",3)
+                t1.setAttribute('value', desc)
+                t1.autofillme = (desc == "")
+                t2.setAttribute('value', srv[0])
+                t3.setAttribute('value', srv[1])
+                t4.setAttribute('value', srv[2])
+            }
+            row.appendChild(t1)
+            row.appendChild(t2)
+            row.appendChild(t3)
+            row.appendChild(t4)
+            row.appendChild(btn)
+            rows.appendChild(row)
+        }
+
+        function getPrefs(){
+            var rows = document.getElementById("server_rows")
+            for (var i=0;i<nsMPM.mpd.servers.length;i++) {
+                addServerRow(i)
+            }
+             window.sizeToContent()
+        }
+        function doSave(){
+            var rows = document.getElementById("server_rows").childNodes
+            var servers = []
+            for (i=1;i<rows.length;i++) {
+                var item = []
+                var c = rows[i].childNodes
+                item.push(c[0].value)
+                item.push([c[1].value,c[2].value,c[3].value].join(":"))
+                servers.push(item)
+            }
+            nsMPM.debug(servers.toSource())
+            nsMPM.mpd.setServers(servers)
+            return true;
+        }
+        function doCancel(){
+          return true;
+        }
+    ]]>
+    </script>
+
+    <dialogheader title="&appname;" description="&servers.title;"/>
+    <grid id="server_grid">
+    <columns>
+      <column flex="5"/>
+      <column flex="3"/>
+      <column flex="1"/>
+      <column flex="1"/>
+      <column/>
+    </columns>
+    <rows id="server_rows">
+        <row>
+            <label id="lserver" value="&servers.lserver;"/>
+            <label id="lhost" value="&servers.lhost;"/>
+            <label id="lport" value="&servers.lport;"/>
+            <label id="lpassword" value="&servers.lpassword;"/>
+            <spacer/>
+        </row>
+    </rows>
+    </grid>
+    <hbox>
+        <spacer flex="1"/>
+        <button id="addserver" label="&servers.addserver;" oncommand="addServerRow(); window.sizeToContent()"/>
+    </hbox>
+</dialog>

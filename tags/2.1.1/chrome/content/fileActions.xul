@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/icons.css" type="text/css"?>
+<?xml-stylesheet href="chrome://minion/content/layout.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
+
+<dialog id="mpmMenus" title="&appname; - &menu.title;"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    onload="load();window.sizeToContent()"
+    buttons="accept,cancel"
+    buttonaccesskeyaccept="S"
+    ondialogaccept="return doSave();"
+    buttonlabelcancel="&cancel;"
+    buttonaccesskeycancel="n"
+    ondialogcancel="return doCancel();">
+    <script>
+    <![CDATA[
+        Components.utils.import("resource://minion/mpmUtils.js");
+        function load () {
+            var fa = document.getElementById("file_action")
+            var d = parseInt(nsMPM.prefs.get("default_file_action", 0))
+            if (d > 0) fa.selectedIndex = d-1
+        }
+        
+        function doSave(){
+            var fa = document.getElementById("file_action")
+            nsMPM.prefs.set("default_file_action", parseInt(fa.value))
+            return true;
+        }
+        
+        function doCancel(){
+            return true;
+        }
+    ]]>
+    </script>
+
+    <dialogheader title="&appname;" description="&menu.title;"/>
+    <label value="&menu.desc;"/>
+    <menulist id="file_action">
+        <menupopup>
+            <menuitem value="1" label="&menu.item1;"/>
+            <menuitem value="2" label="&menu.item2;"/>
+            <menuitem value="3" label="&menu.item3;" selected="true"/>
+            <menuitem value="4" label="&menu.item4;"/>
+        </menupopup>
+    </menulist>
+
+</dialog>
+

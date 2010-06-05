@@ -1,7 +1,7 @@
 ﻿#summary A history of changes made for each release.  Alphas not included.
 #labels Featured
 
-= 2.1.1 (Under active development) = 
+= 2.1.1 (2010/06/04) = 
   * Added a resizable statusbar. The size is saved and restored properly. (r324)
   * Ability to entirely hide the statusbar (r330)
   * Added menu to control the extension when the statusbar is hidden (r330)
@@ -15,7 +15,7 @@
   * Fixed Spanish translations (UTF-8 + BOM header)
   * Fixed French translation
 
-= 2.1.0 =
+= 2.1.0 (2010/05/16) =
   * New main interface (including, playlist, folder and tag navigation)
   * New preference panels (including debugs, amazon and status-bar controls)
   * Playback controls in Firefox status-bar
