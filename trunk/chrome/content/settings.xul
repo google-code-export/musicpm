@@ -96,10 +96,12 @@
 
 	<checkbox id="check_linguistic_sort" preference="linguistic_sort" label="&settings.check_linguistic_sort;"/>
 	<checkbox id="check_launch_in_browser" preference="launch_in_browser" label="&settings.check_launch_in_browser;"/>
-	<checkbox id="check_adapt" preference="adapt_interval" label="&settings.check_adapt;" tooltiptext="&settings.check_adapt_tt;"/>
-	<hbox align="center">
-		<label value="&settings.update;"/>
-		<textbox id="update" type="number" preference="interval" maxlength="5" style="max-width: 5em !important"/>
+	<hbox align="left" valign="top">
+		<checkbox valign="top" id="check_adapt" preference="adapt_interval" label="&settings.check_adapt;" tooltiptext="&settings.check_adapt_tt;"
+			oncommand="nsMPM.updateIntervalInterface(document)"
+			onsyncfrompreference="nsMPM.updateIntervalInterfacePref(document)"/>
+		<textbox valign="top" id="update" type="number" preference="interval" maxlength="5" style="max-width: 5em !important"/>
+		<label valign="top" value="&settings.update;"/>
 	</hbox>
 
 	<hbox align="center">
@@ -138,11 +140,7 @@
 			onsyncfrompreference="nsMPM.updateAmazonInterfacePref(document)">
 			<hbox align="left">
 				<radio id="rUseAmazonNo" value="0" label="&settings.amazonno;"/>
-			</hbox>
-			<hbox align="left">
 				<radio id="rUseAmazonYes" value="1" label="&settings.amazonyes;"/>
-			</hbox>
-			<hbox align="left">
 				<radio id="rUseAmazonYesSave" value="2" label="&settings.amazonsave;"/>
 			</hbox>
 			<hbox align="left">

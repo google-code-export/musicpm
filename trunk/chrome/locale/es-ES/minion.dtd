@@ -43,7 +43,7 @@
 <!ENTITY settings.check_launch_in_browser "Ejecutar Minion en una pestaña (no en una nueva ventana)">
 <!ENTITY settings.check_adapt "Usar intervalo de actualización adaptativo.">
 <!ENTITY settings.check_adapt_tt "Esta opción actualiza los datos una vez por segundo, después de que el temporizador se haya sincronizado con la canción en curso.">
-<!ENTITY settings.update "Intervalo de actualización estático (milisegundos)">
+<!ENTITY settings.update "Intervalo estático (milisegundos)">
 <!ENTITY settings.txt_search_timeout "Intervalo para Búsqueda Mientras Escribe (milisegundos, 0 para anular)">
 <!ENTITY settings.use_custom_url "Usar URL local para carátulas :">
 <!ENTITY settings.use_customyes "Usar carátula propia">
