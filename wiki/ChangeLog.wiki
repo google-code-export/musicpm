@@ -5,7 +5,7 @@
   * Added integration option to the "Save as..." dialog box (issue 85) (r339)
   * Added support for drag and drop for playlists only (issue 84) (r339)
   * Added integration option in the preference dialog box (r339)
-  * Visual enhancement (style and positions) in the preference dialog box (r339, r340)
+  * Visual enhancement (style and positions) in the preference dialog box (r339, r340, r341)
   * Updated translations
   * Fixed support for xspf playlists (issue 39) (r339)
   * Fixed support for m3u playlists (r339)

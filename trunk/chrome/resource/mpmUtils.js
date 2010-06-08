@@ -780,6 +780,45 @@ nsMPM.updateIntervalInterface = function (doc) {
 		else tbUpdate.disabled = false;
 	} catch(e) { that.debug(e); }
 }
+nsMPM.updateStatusbarInterfacePref = function(doc) {	
+	let that = this;
+	try {
+		var statusbar_hidePref = doc.getElementById("statusbar_hide");
+		var cbLaunch = doc.getElementById("check_launch");
+		var cbControls = doc.getElementById("check_ctrl");
+		var cbCurrentSong = doc.getElementById("check_cs");
+		var cbSettings = doc.getElementById("check_settings");
+		var cbPlaylistMenu = doc.getElementById("check_playlist_menu");
+		var lbPosition = doc.getElementById("label_position");
+		var tbPosition = doc.getElementById("txt_statusbar_position");
+		
+		if ( statusbar_hidePref.value == true ){
+			cbLaunch.disabled = cbControls.disabled = cbCurrentSong.disabled = cbSettings.disabled = cbPlaylistMenu.disabled = lbPosition.disabled = tbPosition.disabled = true;
+		} else {
+			cbLaunch.disabled = cbControls.disabled = cbCurrentSong.disabled = cbSettings.disabled = cbPlaylistMenu.disabled = lbPosition.disabled = tbPosition.disabled = false;
+		}		
+	} catch(e){ that.debug(e); }
+}
+nsMPM.updateStatusbarInterface = function (doc) {
+	let that = this;
+	try {
+		var cbStatusbarHide = doc.getElementById("check_statusbar_hide");
+		var cbLaunch = doc.getElementById("check_launch");
+		var cbControls = doc.getElementById("check_ctrl");
+		var cbCurrentSong = doc.getElementById("check_cs");
+		var cbSettings = doc.getElementById("check_settings");
+		var cbPlaylistMenu = doc.getElementById("check_playlist_menu");
+		var lbPosition = doc.getElementById("label_position");
+		var tbPosition = doc.getElementById("txt_statusbar_position");
+		
+		if ( cbStatusbarHide.checked == true ){
+			cbLaunch.disabled = cbControls.disabled = cbCurrentSong.disabled = cbSettings.disabled = cbPlaylistMenu.disabled = lbPosition.disabled = tbPosition.disabled = true;
+		} else {
+			cbLaunch.disabled = cbControls.disabled = cbCurrentSong.disabled = cbSettings.disabled = cbPlaylistMenu.disabled = lbPosition.disabled = tbPosition.disabled = false;
+		}		
+	} catch(e){ that.debug(e); }
+	
+}
 nsMPM.updateDownloadInterface = function(doc){
 	let that = this;
 	try {
