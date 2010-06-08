@@ -41,14 +41,16 @@
 				<caption>
 					<label value="&settings.statusbar;"/>
 				</caption>
-				<checkbox id="check_statusbar_hide" preference="statusbar_hide" label="&settings.statusbar_hide;"/>
+				<checkbox id="check_statusbar_hide" preference="statusbar_hide" label="&settings.statusbar_hide;"
+					oncommand="nsMPM.updateStatusbarInterface(document);"
+					onsyncfrompreference="nsMPM.updateStatusbarInterfacePref(document);"/>
 				<checkbox id="check_launch" preference="sb_launch_hide" label="&settings.check_launch;"/>
 				<checkbox id="check_ctrl" preference="sb_controls_hide" label="&settings.check_ctrl;"/>
 				<checkbox id="check_cs" preference="sb_cs_hide" label="&settings.check_cs;"/>
 				<checkbox id="check_settings" preference="sb_settings_hide" label="&settings.check_settings;"/>
 				<checkbox id="check_playlist_menu" preference="sb_playlist_menu" label="&settings.check_playlist_menu;"/>
 				<hbox align="center">
-					<label value="&settings.txt_statusbar_position;"/>
+					<label id="label_position" value="&settings.txt_statusbar_position;"/>
 					<textbox id="txt_statusbar_position" type="number" preference="statusbar_position" maxlength="3" style="max-width: 5em !important"/>
 				</hbox>
 			</groupbox>
