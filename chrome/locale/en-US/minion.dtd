@@ -43,7 +43,7 @@
 <!ENTITY settings.check_launch_in_browser "Launch Minion in tab (as opposed to new window)">
 <!ENTITY settings.check_adapt "Use adaptive update interval.">
 <!ENTITY settings.check_adapt_tt "This option will cause Minion to update once per second, after the timer has been synchronized with the current song.">
-<!ENTITY settings.update "Static update interval (milliseconds)">
+<!ENTITY settings.update "Static interval (milliseconds)">
 <!ENTITY settings.txt_search_timeout "Search As You Type interval (milliseconds, 0 to disable)">
 <!ENTITY settings.use_custom_url "Custom album cover URL">
 <!ENTITY settings.use_customyes "Use custom album cover">

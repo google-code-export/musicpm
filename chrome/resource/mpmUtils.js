@@ -138,9 +138,9 @@ nsMPM.urlReplace = function(s, item) {
 	return s;
 }
 
-// https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURIComponent
-// https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURI
 nsMPM.fixedEncodeURI = function(str) {
+	// https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURIComponent
+	// https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Functions/encodeURI
 	return encodeURI(str).replace(/!/g, '%21').replace(/'/g, '%27')
 							  .replace(/\(/g, '%28').replace(/\)/g, '%29')
 							  .replace(/\*/g, '%2A').replace(/\@/g, '%40')
@@ -758,7 +758,28 @@ nsMPM.updateCustomArtInterface = function(doc) {
 		}
 	} catch(e) { that.debug(e); }
 }
+nsMPM.updateIntervalInterfacePref = function(doc) {
+	let that = this;
 
+	try {
+		var adapt_intervalPref = doc.getElementById("adapt_interval");
+		var tbUpdate = doc.getElementById("update");
+		
+		if ( adapt_intervalPref.value == true ) tbUpdate.disabled = true;
+		else tbUpdate.disabled = false;
+	} catch(e) { that.debug(e); }
+}
+nsMPM.updateIntervalInterface = function (doc) {
+	let that = this;
+
+	try {
+		var cbCheck_adapt = doc.getElementById("check_adapt");
+		var tbUpdate = doc.getElementById("update");
+
+		if ( cbCheck_adapt.checked == true ) tbUpdate.disabled = true;
+		else tbUpdate.disabled = false;
+	} catch(e) { that.debug(e); }
+}
 nsMPM.updateDownloadInterface = function(doc){
 	let that = this;
 	try {
