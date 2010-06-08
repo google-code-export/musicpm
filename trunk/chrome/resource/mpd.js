@@ -50,6 +50,7 @@ var mpd = {
     Time : null,
     Artist : null,
     Title : null,
+    sbTitle : null,
     Album : null,
     Track : null,
     Date : null,
@@ -769,122 +770,63 @@ mpd.toggleRepeat = function() {
 }
 
 mpd.load_pls_stream = function(data, action) {
-    if (typeof(action) == 'undefined')
-        action = "add"
-    var urls = data.match(/(?:File\d+=)(.+)(?:[\n|\r])/ig)
-    var cmd = 'command_list_begin'
-    if (action == "play")
-        cmd += "\nclear"
-    for (x in urls) {
-        var u = urls[x].replace("\n", "").replace(/File\d+=/gi, "")
-        if (u.length > 0)
-            cmd += '\nadd ' + u
-    }
-    if (action == "play")
-        cmd += "\nplay"
-    cmd += '\ncommand_list_end'
-    nsMPM.debug(cmd)
-    nsMPM.mpd.doCmd(cmd)
+	try {
+		var itemCount=0;
+		if (typeof(action) == 'undefined') action = "add";
+		var urls = data.match(/(?:File\d+=)(.+)(?:[\n|\r])/ig)
+		var cmd = 'command_list_begin'
+		if (action == "replace") cmd += "\nclear";
+		for (x in urls) {
+			var u = urls[x].replace("\n", "").replace(/File\d+=/gi, "")
+			if (u.length > 0) {
+				cmd += '\nadd ' + u;
+				itemCount++;
+			}
+		}
+		cmd += '\ncommand_list_end'
+		nsMPM.mpd.doCmd(cmd)
+	} catch(e){ nsMPM.debug(e); }
+	return itemCount;
 }
 
 mpd.load_m3u_stream = function(data, action) {
-    if (typeof(action) == 'undefined')
-        action = "add"
-    urls = data.replace(/#.+\n/g, "").split("\n")
-    var cmd = 'command_list_begin'
-    if (action == "play")
-        cmd += "\nclear"
-    for (x in urls) {
-        var u = urls[x].replace("\n", "").replace(/File\d+=/gi, "")
-        if (u.length > 0)
-            cmd += '\nadd ' + u
-    }
-    if (action == "play")
-        cmd += "\nplay"
-    cmd += '\ncommand_list_end'
-    nsMPM.debug(cmd)
-    nsMPM.mpd.doCmd(cmd)
+	try {
+		var itemCount=0;
+		if (typeof(action) == 'undefined') action = "add"
+		urls = data.replace(/^#.+$/mg, "").replace(/\r/mg,'').split("\n")
+		var cmd = 'command_list_begin';
+		if (action == "replace") cmd += "\nclear";
+		for (x in urls) {
+			var u = urls[x];
+			if (u.length > 0) {
+				cmd += '\nadd ' + u;
+				itemCount++;
+			}
+		}
+		cmd += '\ncommand_list_end';
+		nsMPM.mpd.doCmd(cmd);
+	} catch(e){ nsMPM.debug(e); }
+	return itemCount;
 }
 
 mpd.load_xspf_stream = function(data, action) {
-    nsMPM.debug(data)
-    if (typeof(action) == 'undefined')
-        action = "add"
-    urls = data.getElementsByTagName("location")
-    var cmd = 'command_list_begin'
-    if (action == "play")
-        cmd += "\nclear"
-    for (var x=0; x < urls.length; x++) {
-        var u = urls.item(x)
-        cmd += '\nadd ' + u.textContent
-    }
-    if (action == "play")
-        cmd += "\nplay"
-    cmd += '\ncommand_list_end'
-    nsMPM.debug(cmd)
-    nsMPM.mpd.doCmd(cmd)
-}
-
-mpd.load_unknown_stream = function(data, action, req) {
-    var head = req.getAllResponseHeaders()
-    var content = head.match(/Content-Type: (.*)\n/)[1]
-    nsMPM.debug("content = '"+content+"'")
-    switch (content) {
-        case "audio/x-scpls" :
-            nsMPM.mpd.load_pls_stream(data, action);
-            break;
-        case "audio/x-mpegurl" :
-            nsMPM.mpd.load_m3u_stream(data, action);
-            break;
-        case "application/xspf+xml" :
-            nsMPM.mpd.load_xspf_stream(req.responseXML, action);
-            break;
-        default :
-            nsMPM.mpd.doCmd('add "' + url + '"');
-            break;
-    }
-}
-mpd.handleURL = function(url, action) {
-    if (typeof(url) != 'string') return
-    if (typeof(action) == 'undefined')
-        action = "add"
-    if (url.length < 4) return
-    if (url.indexOf("http://somafm.com/play/") == 0) {
-        url = url.replace("/play", "") + ".pls"
-    }
-    nsMPM.debug(action + ": " + url + ", " + url.substr(-4).toLocaleLowerCase())
-    switch (url.substr(-4).toLocaleLowerCase()) {
-        case ".pls" :
-            nsMPM.fetch(url, nsMPM.mpd.load_pls_stream, action);
-            break;
-        case ".m3u" :
-            nsMPM.fetch(url, nsMPM.mpd.load_m3u_stream, action);
-            break;
-        case "xspf" :
-            nsMPM.fetch(url, nsMPM.mpd.load_xspf_stream, action, true);
-            break;
-        case ".mp3" :
-            nsMPM.mpd.doCmd('add "' + url + '"');
-            break;
-        case ".ogg" :
-            nsMPM.mpd.doCmd('add "' + url + '"');
-            break;
-        case ".wav" :
-            nsMPM.mpd.doCmd('add "' + url + '"');
-            break;
-        case "flac" :
-            nsMPM.mpd.doCmd('add "' + url + '"');
-            break;
-        case ".acc" :
-            nsMPM.mpd.doCmd('add "' + url + '"');
-            break;
-        case ".mod" :
-            nsMPM.mpd.doCmd('add "' + url + '"');
-            break;
-        default:
-            nsMPM.fetch(url, nsMPM.mpd.load_unknown_stream, action);
-            break;
-    }
+	try {
+		var itemCount=0;
+		if (typeof(action) == 'undefined') action = "add";
+		urls = data.getElementsByTagName("location");
+		var cmd = 'command_list_begin';
+		if (action == "replace") cmd += "\nclear";
+		for (var x=0; x < urls.length; x++) {
+			var u = urls.item(x);
+			if ( u.textContent.length > 0 ) {
+				cmd += '\nadd ' + u.textContent;
+				itemCount++;
+			}
+		}
+		cmd += '\ncommand_list_end';
+		nsMPM.mpd.doCmd(cmd);
+	} catch(e){ nsMPM.debug(e); }
+	return itemCount;
 }
 
 mpd.prefObserver = {

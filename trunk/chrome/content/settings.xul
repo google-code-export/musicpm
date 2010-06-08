@@ -25,31 +25,59 @@
 		<preference id="sb_settings_hide" name="extensions.mpm.sb_settings_hide" type="bool"/>
 		<preference id="sb_playlist_menu" name="extensions.mpm.sb_playlist_menu" type="bool"/>
 		<preference id="statusbar_position" name="extensions.mpm.statusbar_position" type="int"/>
+		<preference id="dl_integrate" name="extensions.mpm.dl.integrate" type="bool"/>
+		<preference id="dl_action" name="extensions.mpm.dl.action" type="int"/>
+		<preference id="dl_after" name="extensions.mpm.dl.after" type="int"/>
 	</preferences>
 
-	<groupbox id="themeGroup">
-		<caption>
-			<label value="&settings.theme;"/>
-		</caption>
-		<checkbox id="check_theme" preference="theme" label="&settings.check_theme;"/>
-		<checkbox id="check_playlist_bottom" preference="playlist_bottom" label="&settings.check_playlist_bottom;"/>
-	</groupbox>
-
-	<groupbox id="statusbarGroup">
-		<caption>
-			<label value="&settings.statusbar;"/>
-		</caption>
-		<checkbox id="check_statusbar_hide" preference="statusbar_hide" label="&settings.statusbar_hide;"/>
-		<checkbox id="check_launch" preference="sb_launch_hide" label="&settings.check_launch;"/>
-		<checkbox id="check_ctrl" preference="sb_controls_hide" label="&settings.check_ctrl;"/>
-		<checkbox id="check_cs" preference="sb_cs_hide" label="&settings.check_cs;"/>
-		<checkbox id="check_settings" preference="sb_settings_hide" label="&settings.check_settings;"/>
-		<checkbox id="check_playlist_menu" preference="sb_playlist_menu" label="&settings.check_playlist_menu;"/>
-		<hbox align="center">
-			<label value="&settings.txt_statusbar_position;"/>
-			<textbox id="txt_statusbar_position" type="number" preference="statusbar_position" maxlength="3" style="max-width: 5em !important"/>
-		</hbox>
-	</groupbox>
+	<grid>
+	<colums>
+		<column flex="2"/>
+		<column flex="1"/>
+	</colums>
+	<rows>
+		<row>
+			<groupbox id="statusbarGroup">
+				<caption>
+					<label value="&settings.statusbar;"/>
+				</caption>
+				<checkbox id="check_statusbar_hide" preference="statusbar_hide" label="&settings.statusbar_hide;"/>
+				<checkbox id="check_launch" preference="sb_launch_hide" label="&settings.check_launch;"/>
+				<checkbox id="check_ctrl" preference="sb_controls_hide" label="&settings.check_ctrl;"/>
+				<checkbox id="check_cs" preference="sb_cs_hide" label="&settings.check_cs;"/>
+				<checkbox id="check_settings" preference="sb_settings_hide" label="&settings.check_settings;"/>
+				<checkbox id="check_playlist_menu" preference="sb_playlist_menu" label="&settings.check_playlist_menu;"/>
+				<hbox align="center">
+					<label value="&settings.txt_statusbar_position;"/>
+					<textbox id="txt_statusbar_position" type="number" preference="statusbar_position" maxlength="3" style="max-width: 5em !important"/>
+				</hbox>
+			</groupbox>
+			<groupbox id="downloadGroup">
+				<caption><label value="&settings.download;"/></caption>
+					<checkbox id="check_dl_integrate" preference="dl_integrate" label="&settings.downloadint;"
+							  oncommand="nsMPM.updateDownloadInterface(document);"
+							  onsyncfrompreference="nsMPM.updateDownloadInterfacePref(document);"/>
+					<radiogroup id="rgDlAction" preference="dl_action">
+						<hbox align="left"><radio id="rDlActionAdd" value="1" label="&settings.dlactionadd;"/></hbox>
+						<hbox align="left"><radio id="rDlActionRepl" value="2" label="&settings.dlactionrepl;"/></hbox>
+					</radiogroup>
+					<label value="After processing action"/>
+					<radiogroup id="rgDlAfter" preference="dl_after">
+						<hbox align="left"><radio id="rDlAfterNothing" value="0" label="Do nothing"/></hbox>
+						<hbox align="left"><radio id="rDlAfterPlayStop" value="1" label="Play if stopped"/></hbox>
+						<hbox align="left"><radio id="rDlAfterPlayNow" value="2" label="Play now"/></hbox>
+					</radiogroup>
+			</groupbox>
+		</row>
+	</rows>
+	</grid>
+			<groupbox id="themeGroup">
+				<caption>
+					<label value="&settings.theme;"/>
+				</caption>
+				<checkbox id="check_theme" preference="theme" label="&settings.check_theme;"/>
+				<checkbox id="check_playlist_bottom" preference="playlist_bottom" label="&settings.check_playlist_bottom;"/>
+			</groupbox>
 </prefpane>
 
 <prefpane id="pane1" label="&settings.pane1;">

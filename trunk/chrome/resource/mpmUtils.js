@@ -410,23 +410,27 @@ nsMPM.fetch = function(url, callBack, arg, getXML) {
 
 		request.open("GET", url, true)
 		request.onreadystatechange = function() {
-			if (request.readyState == 4) {
-				if (request.status == 200 || request.status == 0) {
-					if (that.Nz(getXML)) {
-						callBack(request.responseXML, arg, request)
+			try{
+				that.debug("state="+request.readyState);
+				if (request.readyState == 4) {
+					if (request.status == 200) {
+						that.debug(request);
+						if (that.Nz(getXML)) {
+							callBack(request.responseXML, arg, request)
+						} else {
+							callBack(request.responseText, arg, request)
+						}
+						request.onreadystatechange = null
+						request = null
 					} else {
-						callBack(request.responseText, arg, request)
+						that.debug("fetch("+request.status+")=> "+url)
+						request.onreadystatechange = null
+						request = null
 					}
-					request.onreadystatechange = null
-					request = null
-				} else {
-					that.debug(request.status+": "+url)
-					request.onreadystatechange = null
-					request = null
 				}
-			}
+			} catch(e){ that.debug(e); }
 		}
-		request.send("")
+		request.send("");
 	} catch (e) { that.debug(e) }
 }
 
@@ -755,6 +759,46 @@ nsMPM.updateCustomArtInterface = function(doc) {
 	} catch(e) { that.debug(e); }
 }
 
+nsMPM.updateDownloadInterface = function(doc){
+	let that = this;
+	try {
+		var cbDlIntegrate = doc.getElementById("check_dl_integrate");
+		var rDlActionAdd = doc.getElementById("rDlActionAdd");
+		var rDlActionrepl = doc.getElementById("rDlActionRepl");
+		var rDlAfterNothing = doc.getElementById("rDlAfterNothing");
+		var rDlAfterPlayStop = doc.getElementById("rDlAfterPlayStop");
+		var rDlAfterPlayNow = doc.getElementById("rDlAfterPlayNow");
+		
+		if ( cbDlIntegrate.checked == true )	{
+			rDlAfterNothing.disabled = rDlAfterPlayStop.disabled = rDlAfterPlayNow.disabled = false;
+			rDlActionrepl.disabled = rDlActionAdd.disabled = false;
+		} else {
+			rDlAfterNothing.disabled = rDlAfterPlayStop.disabled = rDlAfterPlayNow.disabled = true;
+			rDlActionrepl.disabled = rDlActionAdd.disabled = true;
+		}
+	}catch(e){ that.debug(e); }
+}
+
+nsMPM.updateDownloadInterfacePref = function(doc){
+	let that = this;
+	try {
+		var dl_integratePref = doc.getElementById("dl_integrate");
+		var rDlActionAdd = doc.getElementById("rDlActionAdd");
+		var rDlActionrepl = doc.getElementById("rDlActionRepl");
+		var rDlAfterNothing = doc.getElementById("rDlAfterNothing");
+		var rDlAfterPlayStop = doc.getElementById("rDlAfterPlayStop");
+		var rDlAfterPlayNow = doc.getElementById("rDlAfterPlayNow");
+		
+		if ( dl_integratePref.value == true )	{
+			rDlAfterNothing.disabled = rDlAfterPlayStop.disabled = rDlAfterPlayNow.disabled = false;
+			rDlActionrepl.disabled = rDlActionAdd.disabled = false;
+		} else {
+			rDlAfterNothing.disabled = rDlAfterPlayStop.disabled = rDlAfterPlayNow.disabled = true;
+			rDlActionrepl.disabled = rDlActionAdd.disabled = true;
+		}
+	}catch(e){ that.debug(e); }
+}
+
 nsMPM.updateAmazonInterfacePref = function(doc) {
 	let that = this;
 	try {
@@ -977,7 +1021,7 @@ nsMPM.resizeHandler = {
 			if (nsMPM.resizeHandler.bResizing) return;
 			nsMPM.resizeHandler.bResizing = true;
 			nsMPM.resizeHandler.startPosX = event.screenX;
-			nsMPM.resizeHandler.panelElem  = event.target.previousSibling.lastElementChild;
+			nsMPM.resizeHandler.panelElem  = event.target.previousSibling.lastChild;
 			nsMPM.resizeHandler.startPanelWidth = nsMPM.resizeHandler.panelElem.getAttribute('width');
 			win.addEventListener("mouseup", nsMPM.resizeHandler.onMouseUp, false);
 			win.addEventListener("mousemove", nsMPM.resizeHandler.onMouseMove, false);
@@ -999,6 +1043,142 @@ nsMPM.resizeHandler = {
 			}
 		} catch(e){nsMPM.debug(e);}
 	}
+}
+nsMPM.handleDowloadURL = function(urlObj){
+	let that = this;
+	try {
+		var action = 'add';
+		var lastsong = that.mpd.playlistlength;
+		
+		if ( that.prefs.get('dl.action',1) == 2) action = 'replace';
+		if ( that.processDowloadURL(urlObj, action) ) {
+			var after = that.prefs.get('dl.after',0);
+			if ( after == 0 ) return; // do nothing
+
+			if ( after == 1 && that.mpd.state == 'stop' ) { // play if stopped
+				if ( action == 'replace') that.mpd.doCmd('play');
+				else that.mpd.doCmd('play '+lastsong);
+			}
+
+			if ( after == 2 ) { // play now
+				if ( action == 'replace') that.mpd.doCmd('play');
+				else that.mpd.doCmd('play '+lastsong);
+			}
+		}
+	} catch(e){ that.debug(e); }
+}
+
+nsMPM.processDowloadURL = function(urlObj, action){
+	let that = this;
+	var url = urlObj.spec;
+	if ( typeof(action) == 'undefined' ) action = 'add';
+	that.debug('processDowloadURL('+urlObj.spec+','+action+')');
+	
+	function retrieveData(stream){
+		try {
+			if (!stream) return null;
+			var size = 0;
+			var file_data = "";
+			var bstream = Components.classes["@mozilla.org/binaryinputstream;1"].createInstance(Components.interfaces.nsIBinaryInputStream);
+			bstream.setInputStream(stream);
+			while((size = bstream.available())) file_data += bstream.readBytes(size);
+			return file_data;
+		} catch(e){ that.debug(e); }
+		return null;
+	}
+	try {
+		if ( urlObj.fileExtension ){
+			switch(urlObj.fileExtension.toLocaleLowerCase()){
+				case "mp3" :
+					if ( action == 'replace') that.mpd.doCmd('clear');
+					that.mpd.doCmd('add "' + url + '"');
+					return 1;
+					break;
+				case "ogg" :
+					if ( action == 'replace') that.mpd.doCmd('clear');
+					that.mpd.doCmd('add "' + url + '"');
+					return 1;
+					break;
+				case "wav" :
+					if ( action == 'replace') that.mpd.doCmd('clear');
+					that.mpd.doCmd('add "' + url + '"');
+					return 1;
+					break;
+				case "flac" :
+					if ( action == 'replace') that.mpd.doCmd('clear');
+					that.mpd.doCmd('add "' + url + '"');
+					return 1;
+					break;
+				case "aac" :
+					if ( action == 'replace') that.mpd.doCmd('clear');
+					that.mpd.doCmd('add "' + url + '"');
+					return 1;
+					break;
+				case "mod" :
+					if ( action == 'replace') that.mpd.doCmd('clear');
+					that.mpd.doCmd('add "' + url + '"');
+					return 1;
+					break;
+				case "wma" :
+					if ( action == 'replace') that.mpd.doCmd('clear');
+					that.mpd.doCmd('add "' + url + '"');
+					return 1;
+					break;
+			}
+			
+		}
+		// these files require processing and local download
+		var ioserv = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+		var channel = ioserv.newChannel(url, 0, null);
+		var stream = channel.open();
+		if (channel instanceof Components.interfaces.nsIHttpChannel && channel.responseStatus != 200) {
+			that.debug("Failed to retrieve element: "+url);
+			return false;
+		} else {
+			try {
+				var contenttype = '';
+				if ( typeof(channel.contentType) != 'undefined') contenttype = channel.contentType;
+				else channel.getResponseHeader('Content-Type');
+				if ( contenttype ){
+					switch(contenttype){
+						case "audio/x-scpls" :
+							return that.mpd.load_pls_stream(retrieveData(stream), action);
+						break;
+						case "audio/x-mpegurl" :
+							return that.mpd.load_m3u_stream(retrieveData(stream), action);
+						break;
+						case "application/xspf+xml" :
+							try {
+								var parser = Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
+								var xml = parser.parseFromStream(stream, null, -1, "application/xml");
+								return that.mpd.load_xspf_stream(xml, action);
+							} catch(e){ that.debug(e); }
+							return false;
+						break;
+					}
+				}
+			} catch(e){ that.debug(e); }
+			// in case the server did not reported proper mime type but the extension matched (maybe)
+			switch (url.substr(-4).toLocaleLowerCase()) {
+				case ".pls" :
+					return that.mpd.load_pls_stream(retrieveData(stream), action);
+				break;
+				case ".m3u" :
+					return that.mpd.load_m3u_stream(retrieveData(stream), action);
+				break;
+				case "xspf" :
+					try {
+						var parser = Components.classes["@mozilla.org/xmlextras/domparser;1"].createInstance(Components.interfaces.nsIDOMParser);
+						var xml = parser.parseFromStream(stream, null, -1, "application/xml");
+						return that.mpd.load_xspf_stream(xml, action);
+					} catch(e){ that.debug(e); }
+					return false;
+				break;
+			}
+			that.debug("The specified URL isn't supported: "+url);
+		}
+	} catch(e){ that.debug(e); }
+	return false;
 }
 // dependent js modules
 // declare holder in mpmCommon.js

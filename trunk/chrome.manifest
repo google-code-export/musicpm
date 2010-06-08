@@ -2,6 +2,7 @@ content minion chrome/content/
 resource minion chrome/resource/
 
 overlay chrome://browser/content/browser.xul chrome://minion/content/browser_overlay.xul
+overlay chrome://mozapps/content/downloads/unknownContentType.xul chrome://minion/content/saveas.xul
 
 locale minion en-US chrome/locale/en-US/
 locale minion fr-FR chrome/locale/fr-FR/

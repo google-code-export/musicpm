@@ -66,6 +66,10 @@
 <!ENTITY settings.check_ctrl "Ocultar los controles de reproducción">
 <!ENTITY settings.check_launch "Ocultar botón 'Ejecutar Minion'">
 <!ENTITY settings.check_settings "Ocultar botón 'Ajustes'">
+<!ENTITY settings.download "Integración">
+<!ENTITY settings.downloadint "Añadir 'abrir con MPD' a la ventana 'Guardar como'">
+<!ENTITY settings.dlactionadd "Añadir a la lista de temas">
+<!ENTITY settings.dlactionrepl "Sustituir la lista de temas">
 <!ENTITY minion.dummy2 "<----------------- Ventana de servidores --------------->">
 <!ENTITY servers.title "Servidores">
 <!ENTITY servers.lserver "Descripción">
@@ -167,3 +171,5 @@
 <!ENTITY upgrade.message "Acabamos de actualizar sus parámetros para recoger cambios recientes en la extensión. Por favor, revise sus preferencias y los ajustes del servidor para asegurarse de que son los apropiados. Visite la página del programa para ver las últimas noticias y detalles.">
 <!ENTITY upgrade.message_team "El equipo de Music Player Minion.">
 <!ENTITY upgrade.about "Acerca de">
+<!ENTITY dl.dummy8 "<----------------- Save As template --------------->">
+<!ENTITY dl.openmpd "Abrir con MPD">

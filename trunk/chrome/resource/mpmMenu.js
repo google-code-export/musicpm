@@ -161,24 +161,6 @@ var mpmMenu = {
 				mpdCommand : null,
 				script : "mpdplaylist.moveLast()"
 			}, {
-				id : "mpm_menu_addURL",
-				label : nsMPM.translateService.GetStringFromName("add_url_to_playlist"),
-				locations : "mpdplaylist",
-				targets : null,
-				URL : null,
-				queryType : null,
-				queryScope : null,
-				filterField: null,
-				mpdCommand : null,
-				script : 'var val = prompt("'+nsMPM.translateService.GetStringFromName("enter_url")+'", "http://")\n'+
-					'if (val != null) {\n'+
-					'    var v = new RegExp();\n'+
-					'    v.compile(/(ftp|http|https):\\/\\/(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(\\/|\\/([\\w#!:.?+=&%@!\\-\\/]))?/);\n'+
-					'    if (v.test(val)) {\n'+
-					'        nsMPM.mpd.handleURL(val)\n'+
-					'    }\n'+
-					'    else alert("`"+val+"` '+nsMPM.translateService.GetStringFromName("is_not_valid")+'")\n}'
-			}, {
 				id : "mpm_menu_ClearPlaylist",
 				label : nsMPM.translateService.GetStringFromName("clear_playlist"),
 				locations : "mpdplaylist",

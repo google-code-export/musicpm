@@ -66,6 +66,10 @@
 <!ENTITY settings.check_ctrl "Hide the playback controls">
 <!ENTITY settings.check_launch "Hide 'Launch Minion' button">
 <!ENTITY settings.check_settings "Hide 'settings' button">
+<!ENTITY settings.download "Integration">
+<!ENTITY settings.downloadint "Add 'open with MPD' to the 'Save as' window">
+<!ENTITY settings.dlactionadd "Add to playlist">
+<!ENTITY settings.dlactionrepl "Replace playlist">
 <!ENTITY minion.dummy2 "<----------------- servers window --------------->">
 <!ENTITY servers.title "Servers">
 <!ENTITY servers.lserver "Description">
@@ -167,3 +171,5 @@
 <!ENTITY upgrade.message "We just upgraded your parameters to reflect recent changes in the extension. Please review you preferences and server settings to ensure all is set properly. Check out our homepage for the latest news and details.">
 <!ENTITY upgrade.message_team "The Music player Minion team.">
 <!ENTITY upgrade.about "About">
+<!ENTITY dl.dummy8 "<----------------- Save As template --------------->">
+<!ENTITY dl.openmpd "Open with MPD">

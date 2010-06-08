@@ -1,6 +1,21 @@
 ﻿#summary A history of changes made for each release.  Alphas not included.
 #labels Featured
 
+= 2.1.2 (under development) =
+  * Added integration option to the "Save as..." dialog box (issue 85) (r339)
+  * Added support for drag and drop for playlists only (issue 84) (r339)
+  * Added integration option in the preference dialog box (r339)
+  * Visual enhancement (style and positions) in the preference dialog box (r339)
+  * Fixed support for xspf playlists (issue 39) (r339)
+  * Fixed support for m3u playlists (r339)
+  * Fixed resizable statusbar in  Firefox 3.0 (issue 86) (r339)
+  * Fixed statusbar title when playlist is empty at startup (issue 87) (r339)
+  * Removed context menu 
+  * Removed broken custom menu "Add URL to Playlist" since the sandbox prevent prompt()
+  * Updated translations
+  * Removed obsolote functions
+  * Removed obsolete code
+
 = 2.1.1 (2010/06/04) = 
   * Added a resizable statusbar. The size is saved and restored properly. (r324)
   * Ability to entirely hide the statusbar (r330)

@@ -10,3 +10,6 @@ radio[pane=pane2] {
 radio[pane=pane3] {
 	-moz-image-region: rect(64px, 32px, 96px, 0px);
 }
+caption {
+        font-weight: bold;
+}
