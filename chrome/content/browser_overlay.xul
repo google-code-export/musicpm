@@ -9,13 +9,6 @@
     <script src="chrome://minion/content/browser_overlay.js"/>
     <script src="chrome://minion/content/menus.js"/>
     
-    <popup id="contentAreaContextMenu">
-      <menuitem id="mpm_linkHandlerAdd" label="Add Link to MPD Playlist"
-            oncommand="nsMPM_window.mpm.mpm_linkHandlerAction('add');" insertafter="context-openlinkintab" />
-      <menuitem id="mpm_linkHandlerPlay" label="Play Link with MPD"
-            oncommand="nsMPM_window.mpm.mpm_linkHandlerAction('play');" insertafter="context-openlinkintab" />
-    </popup>
-
     <popupset>
         <menupopup id="mpmMenu">
             <vbox id="mpmDynamicMenu"/>

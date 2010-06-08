@@ -73,6 +73,10 @@
 <!ENTITY settings.check_ctrl "Masquer les contrôles de lecture">
 <!ENTITY settings.check_launch "Masquer le boutton 'lancer Minion'">
 <!ENTITY settings.check_settings "Masquer le boutton 'Paramètres'">
+<!ENTITY settings.download "Intégration">
+<!ENTITY settings.downloadint "Ajouter 'Ouvrir avec MPD' à la fenêtre 'Enregistrer sous'">
+<!ENTITY settings.dlactionadd "Ajouter à la liste de lecture">
+<!ENTITY settings.dlactionrepl "Remplacer la liste de lecture">
 <!ENTITY minion.dummy3 "<----------------- menus divers --------------->">
 <!ENTITY menu.title "Action par défaut sur double-clic">
 <!ENTITY menu.editmenu "Editer les menus">
@@ -167,3 +171,5 @@
 <!ENTITY upgrade.message "Nous venons de mettre à jour vos paramètres pour correspondre aux récents changements de l'extension. Merci de vérifier que tout est correctement paramètré. Visitez la page d'accueil pour les détails et nouveautés.">
 <!ENTITY upgrade.message_team "L'équipe Music Player Monion.">
 <!ENTITY upgrade.about "A propos de...">
+<!ENTITY dl.dummy8 "<----------------- Save As template --------------->">
+<!ENTITY dl.openmpd "Ouvrir avec MPD">

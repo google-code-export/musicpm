@@ -20,8 +20,6 @@ nsMPM_window.mpm = {
 		nsMPM.debug('loading...')
 		try {
 			window.removeEventListener("load", function(e) { nsMPM_window.mpm.onLoad(e); }, false);
-			var cm = nsMPM_window.document.getElementById("contentAreaContextMenu")
-			if (cm) cm.addEventListener("popupshowing", nsMPM_window.mpm.linkHandler, true)
 			nsMPM_window.obs.observe(null, null, null)
 			var volbtn = nsMPM_window.document.getElementById('mpm_sb_volume')
 			var volscl = nsMPM_window.document.getElementById('mpm_sb_volume_scale')
@@ -46,26 +44,6 @@ nsMPM_window.mpm = {
 	},
 	open: function(url, event) {
 		openUILink(url, event, false, true);
-	},
-	linkHandler: function(event) {
-		var ma = nsMPM_window.document.getElementById('mpm_linkHandlerAdd')
-		var mp = nsMPM_window.document.getElementById('mpm_linkHandlerPlay')
-		ma.hidden = mp.hidden = !gContextMenu.onLink
-		return true
-	},
-	mpm_linkHandlerAction: function(action) {
-		if (gContextMenu.onLink) {
-			var t = gContextMenu.target
-			// Handles images wrapped in hyperlinks.
-			var val = (t.hasAttribute('href')) ? t.href : t.parentNode.href
-			if (val != null) {
-				var v = new RegExp();
-				v.compile(/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/);
-				if (v.test(val)) {
-					nsMPM.mpd.handleURL(val, action)
-				}
-			}
-		}
 	}
 }
 

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://minion/locale/minion.dtd">
+
+<overlay id="downthemallDownloadSaveAs" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/x-javascript" src="chrome://minion/content/saveas.js"/>
+
+	<radiogroup id="mode">
+		<vbox insertbefore="save" id="mpmdownloadcontainer" collapsed="true" flex="1">
+			<hbox flex="1">
+				<radio id="mpmdownload" label="&dl.openmpd;" disabled="true"/>
+			</hbox>
+		</vbox>
+	</radiogroup>
+</overlay>
