@@ -70,6 +70,9 @@
 <!ENTITY settings.downloadint "Añadir 'abrir con MPD' a la ventana 'Guardar como'">
 <!ENTITY settings.dlactionadd "Añadir a la lista de temas">
 <!ENTITY settings.dlactionrepl "Sustituir la lista de temas">
+<!ENTITY settings.donothing "No hacer nada">
+<!ENTITY settings.playstop "Tocar los temas si está en stop">
+<!ENTITY settings.playnow "Tocar los temas inmediatamente">
 <!ENTITY minion.dummy2 "<----------------- Ventana de servidores --------------->">
 <!ENTITY servers.title "Servidores">
 <!ENTITY servers.lserver "Descripción">

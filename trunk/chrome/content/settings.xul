@@ -65,9 +65,9 @@
 					</radiogroup>
 					<label value="After processing action"/>
 					<radiogroup id="rgDlAfter" preference="dl_after">
-						<hbox align="left"><radio id="rDlAfterNothing" value="0" label="Do nothing"/></hbox>
-						<hbox align="left"><radio id="rDlAfterPlayStop" value="1" label="Play if stopped"/></hbox>
-						<hbox align="left"><radio id="rDlAfterPlayNow" value="2" label="Play now"/></hbox>
+						<hbox align="left"><radio id="rDlAfterNothing" value="0" label="&settings.donothing;"/></hbox>
+						<hbox align="left"><radio id="rDlAfterPlayStop" value="1" label="&settings.playstop;"/></hbox>
+						<hbox align="left"><radio id="rDlAfterPlayNow" value="2" label="&settings.playnow;"/></hbox>
 					</radiogroup>
 			</groupbox>
 		</row>

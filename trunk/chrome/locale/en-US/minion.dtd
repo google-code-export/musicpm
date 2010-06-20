@@ -70,6 +70,9 @@
 <!ENTITY settings.downloadint "Add 'open with MPD' to the 'Save as' window">
 <!ENTITY settings.dlactionadd "Add to playlist">
 <!ENTITY settings.dlactionrepl "Replace playlist">
+<!ENTITY settings.donothing "Do nothing">
+<!ENTITY settings.playstop "Play if stopped">
+<!ENTITY settings.playnow "Play now">
 <!ENTITY minion.dummy2 "<----------------- servers window --------------->">
 <!ENTITY servers.title "Servers">
 <!ENTITY servers.lserver "Description">

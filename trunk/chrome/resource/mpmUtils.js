@@ -816,8 +816,7 @@ nsMPM.updateStatusbarInterface = function (doc) {
 		} else {
 			cbLaunch.disabled = cbControls.disabled = cbCurrentSong.disabled = cbSettings.disabled = cbPlaylistMenu.disabled = lbPosition.disabled = tbPosition.disabled = false;
 		}		
-	} catch(e){ that.debug(e); }
-	
+	} catch(e){ that.debug(e); }	
 }
 nsMPM.updateDownloadInterface = function(doc){
 	let that = this;
