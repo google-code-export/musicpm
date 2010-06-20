@@ -63,6 +63,9 @@
 <!ENTITY settings.statusbar "Barre d'état">
 <!ENTITY settings.theme "Thème">
 <!ENTITY settings.statusbar_hide "Cacher la barre d'état">
+<!ENTITY settings.donothing "Ne rien faire">
+<!ENTITY settings.playstop "Jouer si arrêté">
+<!ENTITY settings.playnow "Jouer immédiatement">
 <!ENTITY minion.dummy2 "<----------------- fenetre des servers --------------->">
 <!ENTITY servers.title "Serveurs">
 <!ENTITY servers.lserver "Description">
