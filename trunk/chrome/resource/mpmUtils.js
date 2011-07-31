@@ -656,7 +656,7 @@ nsMPM.updateStatusBarElementsStyles = function (wStorage, domain, topic, hide){
 nsMPM.updateStatusBarStyles = function(wStorage) {
 	let that = this;
 	var index = that.prefs.get("statusbar_position", 0);
-	if (index <= 0) return;
+	if (index < 0) index = 0;
 	that.debug('status-bar index: '+index);	
 	try
 	{
