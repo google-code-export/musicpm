@@ -264,8 +264,8 @@ var mpmMenu = {
 				that.items = nsMPM.JSON.parse(str);
 			} else {
 				nsMPM.debug("Creating default menus.")
-				_loadDefaults();
-				_saveMenuItems();
+				this._loadDefaults();
+				this._saveMenuItems();
 			}
 			file = null;
 		} catch(e){dump(e+"\n"); dump(this+"\n")}
